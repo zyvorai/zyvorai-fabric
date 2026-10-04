@@ -8,58 +8,47 @@
   Build: ./docs/social/build-hero-dark.sh  ->  fabric-hero-dark.jpg (2400x1260)
 -->
 <style>
-  :root { --blue:#0071e3; --signal:#2997ff; --cyan:#64d2ff; --green:#30d158; --amber:#ff9f0a;
+  :root { --blue:#0071e3; --signal:#2997ff; --cyan:#64d2ff; --green:#30d158; --amber:#ff9f0a; --red:#ff453a; --violet:#bf5af2;
     --sans:'SF Pro Display','Helvetica Neue',Helvetica,Arial,sans-serif; --mono:'SF Mono',Menlo,Consolas,monospace; }
   * { box-sizing:border-box; }
   html,body { margin:0; padding:0; }
   body { width:1200px; height:630px; overflow:hidden; color:#f5f5f7; font-family:var(--sans); position:relative; background:#000; }
   .aurora { position:absolute; inset:0;
-    background:radial-gradient(720px 460px at 80% 16%, rgba(41,151,255,.40), transparent 62%),
-               radial-gradient(600px 420px at 104% 98%, rgba(100,210,255,.20), transparent 60%),
+    background:radial-gradient(720px 460px at 80% 16%, rgba(41,151,255,.34), transparent 62%),
+               radial-gradient(600px 420px at 104% 98%, rgba(100,210,255,.16), transparent 60%),
                radial-gradient(520px 380px at 6% 110%, rgba(0,113,227,.28), transparent 60%); }
-  .grid { position:absolute; inset:0; opacity:.09;
-    background-image:linear-gradient(rgba(120,180,255,.9) 1px,transparent 1px),linear-gradient(90deg,rgba(120,180,255,.9) 1px,transparent 1px);
-    background-size:44px 44px; -webkit-mask-image:radial-gradient(900px 520px at 72% 42%, #000 18%, transparent 75%); }
-  .left { position:absolute; left:60px; top:52px; width:560px; z-index:3; }
+  .copy { position:absolute; left:60px; top:52px; width:560px; z-index:3; }
   .brand { display:flex; align-items:center; gap:12px; font-family:var(--mono); font-size:14px; letter-spacing:.18em; text-transform:uppercase; color:#a1a1a6; }
   .brand b { color:#fff; }
   .word { margin:20px 0 0; font-size:80px; line-height:.95; font-weight:800; letter-spacing:-.05em; white-space:nowrap;
     background:linear-gradient(92deg,#fff 0%,#e3f0ff 38%,var(--signal) 74%,var(--cyan) 100%); -webkit-background-clip:text; background-clip:text; color:transparent; padding-bottom:6px; }
   .tag { margin:14px 0 0; font-size:31px; line-height:1.15; font-weight:700; letter-spacing:-.02em; }
   .tag em { font-style:normal; color:var(--signal); }
-  .lede { margin:12px 0 0; font-size:18px; line-height:1.45; color:#b8b8bf; width:520px; }
+  .lede { margin:12px 0 0; font-size:18px; line-height:1.45; color:#b8b8bf; width:520px; text-shadow:0 1px 12px #000; }
   .stats { margin-top:24px; display:flex; gap:32px; }
   .stat b { display:block; font-size:34px; font-weight:800; letter-spacing:-.03em; color:#fff; }
   .stat span { font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#8e8e93; }
   .pill { position:absolute; left:60px; bottom:40px; display:flex; gap:10px; z-index:3; }
-  .pill span { font-family:var(--mono); font-size:13.5px; font-weight:700; padding:7px 13px; border-radius:18px; border:1.5px solid rgba(255,255,255,.2); color:#e5e5ea; background:rgba(255,255,255,.04); }
+  .pill span { font-family:var(--mono); font-size:13.5px; font-weight:700; padding:7px 13px; border-radius:18px; border:1.5px solid rgba(255,255,255,.2); color:#e5e5ea; background:rgba(0,0,0,.6); }
   .pill span.b { background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 0 24px rgba(0,113,227,.55); }
-
-  .right { position:absolute; left:652px; top:96px; width:560px; z-index:2; }
-  .win { position:relative; width:560px; border-radius:16px; overflow:hidden; z-index:2;
-    background:linear-gradient(180deg, rgba(22,24,30,.94), rgba(10,11,14,.96));
-    box-shadow:0 50px 100px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.14), 0 0 90px rgba(41,151,255,.22);
-    transform:perspective(1600px) rotateY(-14deg) rotateX(4deg); transform-origin:left center; }
-  .bar { height:34px; display:flex; align-items:center; gap:8px; padding:0 14px; background:rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.07); }
-  .bar i { width:11px; height:11px; border-radius:50%; background:#ff5f57; } .bar i:nth-child(2){background:#febc2e} .bar i:nth-child(3){background:#28c840}
-  .bar em { margin-left:auto; margin-right:auto; font-style:normal; font-family:var(--mono); font-size:12px; color:#8e8e93; transform:translateX(-24px); }
-  .term { min-height:214px; padding:20px 22px 24px; font-family:var(--mono); font-size:15.5px; line-height:1.75; }
-  .l { white-space:pre; overflow:hidden; text-overflow:ellipsis; color:#f5f5f7; }
-  .l .p { color:var(--signal); font-weight:700; }
-  .l.out { color:#a1a1a6; }
-  .l.cm { color:#6e6e73; }
-  .l.ok { color:#d1f7dc; } .l.ok span { color:var(--green); font-weight:700; }
-  .l.warn { color:#ffe1b0; } .l.warn span { color:var(--amber); font-weight:700; }
-  .cur { display:inline-block; width:9px; height:18px; background:var(--signal); vertical-align:-3px; box-shadow:0 0 12px var(--signal); }
-  .chips { margin:34px 0 0 38px; width:480px; display:flex; flex-wrap:wrap; gap:10px; position:relative; z-index:3; }
-  .chips span { font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:.04em; padding:7px 12px; border-radius:14px;
-    color:#cfe6ff; background:rgba(10,20,35,.82); border:1px solid rgba(41,151,255,.45); box-shadow:0 0 18px rgba(41,151,255,.18); }
+  .art { position:absolute; left:520px; top:0; width:680px; height:630px; z-index:2; }
+  .art svg { display:block; }
+  #labels { position:absolute; inset:0; z-index:4; pointer-events:none; }
+  .lbl { position:absolute; font-family:var(--mono); font-size:12.5px; color:#a1a1a6; text-align:center; transform:translate(-50%,-50%); white-space:nowrap; }
+  .lbl b { display:block; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:#e5e5ea; }
+  .lbl span { display:block; margin-top:3px; }
+  .lbl.box { padding:7px 12px; border-radius:12px; background:rgba(8,10,14,.85); border:1px solid rgba(255,255,255,.14); }
+  .lbl.chip { padding:6px 11px; border-radius:13px; font-size:12.5px; font-weight:700; color:#cfe6ff; background:rgba(10,20,35,.85); border:1px solid rgba(41,151,255,.5); box-shadow:0 0 16px rgba(41,151,255,.2); }
+  .lbl.left { transform:translate(0,-50%); text-align:left; }
+  .lbl.right { transform:translate(-100%,-50%); text-align:right; }
+  .ok { color:var(--green) !important; } .warn { color:var(--amber) !important; } .bad { color:var(--red) !important; } .sig { color:var(--signal) !important; } .cy { color:var(--cyan) !important; } .vi { color:var(--violet) !important; }
 </style>
 </head>
 <body>
 <div class="aurora"></div>
-<div class="grid"></div>
-<div class="left">
+<div class="art"><svg id="art" width="680" height="630" viewBox="0 0 680 630" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div id="labels"></div>
+<div class="copy">
   <div class="brand"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><defs><linearGradient id="zb" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff5a15"/><stop offset="1" stop-color="#cc420a"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#zb)"/><path d="M18.5,20.5 45.5,20.5 18.5,43.5 45.5,43.5" fill="none" stroke="#fff" stroke-width="8.3" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Zyvor</b><span>&middot;</span><span>Private cloud control plane</span></div>
   <div class="word">Zyvor Fabric</div>
   <div class="tag">One daemon.<br><em>Four front doors.</em></div>
@@ -67,8 +56,103 @@
   <div class="stats"><div class="stat"><b>780+</b><span>REST endpoints</span></div><div class="stat"><b>50+</b><span>Rust crates</span></div><div class="stat"><b>4</b><span>front doors</span></div></div>
 </div>
 <div class="pill"><span class="b">github.com/zyvorai/zyvorai-fabric</span><span>Apache-2.0</span></div>
-<div class="right"><div class="win"><div class="bar"><i></i><i></i><i></i><em>zyvor-fabricd</em></div>
-<div class="term"><div class="l"><span class="p">$</span> sudo zyvor-fabricd</div><div class="l out">Starting zyvor-fabricd</div><div class="l"><span class="p">$</span> fabricctl create web-01 --image fedora-41 --cpus 2</div><div class="l ok"><span>&#10003;</span> VM &#x27;web-01&#x27; created successfully</div><div class="l"><span class="p">$</span> <i class="cur"></i></div></div></div>
-<div class="chips"><span>Rust</span><span>KVM</span><span>FluxVM</span><span>Kubernetes</span><span>Terraform</span><span>OpenAI API</span></div></div>
+<script>
+var Z = (function () {
+  var NS = 'http://www.w3.org/2000/svg', svg = document.getElementById('art'), labels = document.getElementById('labels');
+  var seed = 20261004;
+  function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+  function el(tag, a, parent) { var n = document.createElementNS(NS, tag); for (var k in a) n.setAttribute(k, a[k]); (parent || svg).appendChild(n); return n; }
+  function g(attrs) { return el('g', attrs || {}); }
+  function label(x, y, inner, cls, style) { var d = document.createElement('div'); d.className = 'lbl ' + (cls || ''); d.style.left = (520 + x) + 'px'; d.style.top = y + 'px'; if (style) d.setAttribute('style', d.getAttribute('style') + ';' + style); d.innerHTML = inner; labels.appendChild(d); return d; }
+  return { NS: NS, svg: svg, W: 680, H: 630, rnd: rnd, el: el, g: g, label: label,
+    reseed: function (s) { seed = s; },
+    c: { blue: '#0071e3', signal: '#2997ff', cyan: '#64d2ff', green: '#30d158', amber: '#ff9f0a', red: '#ff453a', violet: '#bf5af2', teal: '#40c8e0', indigo: '#5e5ce6', pink: '#ff375f', white: '#f5f5f7', grey: '#8e8e93' } };
+})();
+(function () {
+// Fabric: a woven cloth. Warp threads are the five capabilities, interlaced with weft; one glowing knot at the centre is the single daemon.
+var C = Z.c;
+var defs = Z.el('defs', {});
+defs.innerHTML = '<filter id="fbGl" filterUnits="userSpaceOnUse" x="-50" y="-50" width="780" height="730"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+  '<filter id="fbSf" filterUnits="userSpaceOnUse" x="-50" y="-50" width="780" height="730"><feGaussianBlur stdDeviation="14"/></filter>' +
+  '<filter id="fbSh" filterUnits="userSpaceOnUse" x="-50" y="-50" width="780" height="730"><feGaussianBlur stdDeviation="2.2"/></filter>' +
+  '<radialGradient id="fbFade" gradientUnits="userSpaceOnUse" cx="357" cy="306" r="330"><stop offset=".62" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>' +
+  '<mask id="fbMask"><rect x="0" y="0" width="680" height="630" fill="url(#fbFade)"/></mask>' +
+  '<radialGradient id="fbCore"><stop offset="0" stop-color="#05080e" stop-opacity=".95"/><stop offset=".6" stop-color="#05080e" stop-opacity=".85"/><stop offset="1" stop-color="#05080e" stop-opacity="0"/></radialGradient>' +
+  '<radialGradient id="fbHalo"><stop offset="0" stop-color="#64d2ff" stop-opacity=".55"/><stop offset="1" stop-color="#2997ff" stop-opacity="0"/></radialGradient>';
+
+var types = [
+  { n: 'VM', c: C.signal }, { n: 'network', c: C.cyan }, { n: 'storage', c: C.teal },
+  { n: 'security', c: C.violet }, { n: 'inference', c: C.indigo }
+];
+var NW = 10, NF = 10, X0 = 150, SX = 46, Y0 = 108, SY = 44, TW = 17;
+function warpX(i, y) { return X0 + i * SX + 7 * Math.sin(y / 70 + i * .5); }
+function weftY(j, x) { return Y0 + j * SY + 6 * Math.sin(x / 85 + j * .7); }
+var KX = X0 + 4.5 * SX, KY = Y0 + 4.5 * SY;
+function pinch(x, y) {
+  var dx = KX - x, dy = KY - y, f = .42 * Math.exp(-(dx * dx + dy * dy) / (2 * 120 * 120));
+  return (x + dx * f).toFixed(1) + ',' + (y + dy * f).toFixed(1);
+}
+function warpPath(i, ya, yb) {
+  var d = '';
+  for (var y = ya; y <= yb + .01; y += 3) d += (d ? ' L' : 'M') + pinch(warpX(i, y), y);
+  return d;
+}
+function weftPath(j, xa, xb) {
+  var d = '';
+  for (var x = xa; x <= xb + .01; x += 3) d += (d ? ' L' : 'M') + pinch(x, weftY(j, x));
+  return d;
+}
+var yTop = Y0 - 34, yBot = Y0 + (NF - 1) * SY + 34, xL = X0 - 34, xR = X0 + (NW - 1) * SX + 34;
+
+var cloth = Z.g({ mask: 'url(#fbMask)' });
+function thread(d, col, parent, shade) {
+  if (shade) Z.el('path', { d: d, fill: 'none', stroke: '#000', 'stroke-width': TW + 5, opacity: .55, filter: 'url(#fbSh)', 'stroke-linecap': 'butt' }, parent);
+  Z.el('path', { d: d, fill: 'none', stroke: col, 'stroke-width': TW, 'stroke-linecap': 'butt', opacity: .55 }, parent);
+  Z.el('path', { d: d, fill: 'none', stroke: col, 'stroke-width': TW - 6, 'stroke-linecap': 'butt', opacity: .9 }, parent);
+  Z.el('path', { d: d, fill: 'none', stroke: 'rgba(255,255,255,.45)', 'stroke-width': 1.6, 'stroke-linecap': 'butt' }, parent);
+}
+var weftCol = '#34496b';
+// 1. warps full length (under layer)
+for (var i = 0; i < NW; i++) thread(warpPath(i, yTop, yBot), types[Math.floor(i / 2)].c, cloth, false);
+// 2. wefts full length
+for (var j = 0; j < NF; j++) thread(weftPath(j, xL, xR), weftCol, cloth, true);
+// 3. warp segments that pass over the weft (plain weave)
+for (var i = 0; i < NW; i++) for (var j = 0; j < NF; j++) {
+  if ((i + j) % 2) continue;
+  var yc = weftY(j, warpX(i, Y0 + j * SY));
+  thread(warpPath(i, yc - SY / 2 + 3, yc + SY / 2 - 3), types[Math.floor(i / 2)].c, cloth, true);
+}
+// loose fringe at the bottom
+for (var i = 0; i < NW; i++) {
+  var x = warpX(i, yBot), col = types[Math.floor(i / 2)].c;
+  for (var f = -1; f <= 1; f += 2) {
+    var fx = x + f * 4;
+    Z.el('path', { d: 'M' + fx.toFixed(1) + ',' + yBot + ' q' + (Z.rnd() * 14 - 7) + ',22 ' + (Z.rnd() * 16 - 8) + ',' + (34 + Z.rnd() * 18), fill: 'none', stroke: col, 'stroke-width': 2, opacity: .45, 'stroke-linecap': 'round' }, cloth);
+  }
+}
+
+// the knot: a glowing trefoil where every thread is tied together
+var kx = X0 + 4.5 * SX, ky = Y0 + 4.5 * SY;
+Z.el('circle', { cx: kx, cy: ky, r: 70, fill: 'url(#fbCore)' });
+Z.el('circle', { cx: kx, cy: ky, r: 120, fill: 'url(#fbHalo)', opacity: .5 });
+var kd = '';
+for (var t = 0; t <= 360; t += 3) {
+  var a = t * Math.PI / 180, s = 15;
+  var px = kx + s * (Math.sin(a) + 2 * Math.sin(2 * a)), py = ky + s * (Math.cos(a) - 2 * Math.cos(2 * a)) - 2;
+  kd += (kd ? ' L' : 'M') + px.toFixed(1) + ',' + py.toFixed(1);
+}
+kd += 'Z';
+Z.el('path', { d: kd, fill: 'none', stroke: C.signal, 'stroke-width': 14, opacity: .35, filter: 'url(#fbSf)' });
+Z.el('path', { d: kd, fill: 'none', stroke: '#05080e', 'stroke-width': 11, 'stroke-linejoin': 'round' });
+Z.el('path', { d: kd, fill: 'none', stroke: C.cyan, 'stroke-width': 6, 'stroke-linejoin': 'round', filter: 'url(#fbGl)' });
+Z.el('path', { d: kd, fill: 'none', stroke: '#fff', 'stroke-width': 1.6, opacity: .85 });
+
+types.forEach(function (tp, k) {
+  Z.label(X0 + (2 * k + .5) * SX, 52, tp.n, '', 'font-size:12px;color:' + tp.c);
+});
+Z.label(kx, ky + 86, '<b>zyvor-fabricd</b><span>one daemon</span>', 'box');
+Z.label(X0 + 4.5 * SX, 590, 'CLI &middot; console &middot; operator &middot; Terraform', 'chip');
+})();
+</script>
 </body>
 </html>
