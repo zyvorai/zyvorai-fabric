@@ -1,13 +1,6 @@
 <div align="center">
 
-<img src="docs/social/fabric-hero-dark.jpg" alt="Zyvor Fabric - One daemon. Four front doors." width="100%">
-
 # Zyvor Fabric
-
-### Private cloud control plane for Linux.
-
-VMs, networking, storage, security and AI inference from **one daemon**.<br>
-One ~15MB Rust daemon that deploys in about 5 minutes on any Linux server with KVM.
 
 [![CI](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ci.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=CI)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ci.yml)
 [![Keep](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Keep)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/keep.yml)
@@ -20,11 +13,50 @@ One ~15MB Rust daemon that deploys in about 5 minutes on any Linux server with K
 [![Built on FluxVM](https://img.shields.io/badge/VM%20engine-FluxVM-0071e3?style=flat-square&labelColor=1d1d1f)](https://github.com/zyvorai/zyvor-fluxvm)
 [![Built on GuestKit](https://img.shields.io/badge/guest%20tooling-GuestKit-0071e3?style=flat-square&labelColor=1d1d1f)](https://github.com/zyvorai/zyvor-guestkit)
 
-[**Quick start**](#quick-start) · [**Keep**](docs/keep/README.md) · [**AI Workloads**](docs/ai-workloads.md) · [**Deploy**](#deploy) · [**Docs**](docs/index.md) · [**Talk to Zyvor**](https://zyvor.dev)
+[![Book a demo](https://img.shields.io/badge/Book_a_demo-0071e3?style=for-the-badge)](https://zyvor.dev/schedule?utm_source=github&utm_medium=fabric&utm_campaign=readme_hero)
+[![30-day PoC](https://img.shields.io/badge/30--day_PoC-000000?style=for-the-badge)](https://zyvor.dev/poc?utm_source=github&utm_medium=fabric&utm_campaign=readme_hero)
+[![Deploy](https://img.shields.io/badge/Deploy_in_about_5_minutes-7d7aff?style=for-the-badge)](#quickstart)
+
+<img src="docs/social/fabric-hero-dark.jpg" alt="Zyvor Fabric - One daemon. Four front doors." width="100%">
+
+### One daemon. Four front doors.
+
+**Private cloud control plane for Linux.** VMs, networking, storage, security and AI inference from **one daemon**: one ~15MB Rust daemon that deploys in about 5 minutes on any Linux server with KVM, driven the same way from the CLI, the web console, the Kubernetes operator and Terraform.
+
+**780+ REST endpoints** · **53 Rust crates** · **4 front doors, one API** · **92-page web console** · **Built on FluxVM + GuestKit**
+
+[**Quickstart**](#quickstart) · [**Keep**](docs/keep/README.md) · [**AI Workloads**](docs/ai-workloads.md) · [**Deploy**](#deploy) · [**Docs**](docs/index.md) · [**Talk to Zyvor**](https://zyvor.dev)
 
 </div>
 
 ---
+
+## What's new
+
+| Release | What landed |
+|---|---|
+| **Keep** | Credential secrets from a file or from HashiCorp Vault (`source vault`), with Vault AppRole and Kubernetes login and chart values |
+| **Keep** | The runtime rejects policy fields it does not enforce |
+| **0.3.0** | `POST /v1/agui`: an AG-UI endpoint over Keep sessions, validated against the official `@ag-ui/core` 1.0.0 schemas; it cannot approve anything |
+| **0.3.0** | **Solvor**, a native SwiftUI Mac client for Keep (`integrations/macos-keep`), plus `keepctl init` to scaffold a new use-case pack |
+| **0.3.0** | OCR for photos and screenshots inside the cell, six bank operations packs, and more everyday use cases |
+| **0.3.0** | `zyvorctl` is now `fabricctl`, and it finds a TLS daemon on `localhost:9095` without `--server` |
+| **0.3.0** | Fixed: use-case cells now get a host-applied deny-all policy and fail closed; finished runs delete their cell at once |
+
+Full history: [CHANGELOG.md](CHANGELOG.md).
+
+## Why Zyvor Fabric
+
+| When this happens… | Zyvor Fabric gives you… |
+|---|---|
+| The CLI, the console and your Terraform each drift from one another | One REST API with 780+ endpoints behind the CLI, the web console, the Kubernetes operator and Terraform |
+| VM lifecycle is tied to libvirt XML or systemd units | FluxVM supervises each VM's hypervisor process directly, and host networking uses direct netlink calls |
+| Auth, RBAC and audit are a separate project | PAM/LDAP/OIDC sign-in, JWT auth, 3-tier RBAC, audit export and encryption at rest, built in, with a 31-round security audit report |
+| You want private inference next to your VMs, not in someone else's cloud | OpenAI-compatible inference on the same daemon: models, Maglev-weighted backends and API keys (single-cluster Beta) |
+| You want to give an AI agent a computer without giving it your network | Keep: a sealed microVM whose network policy the host sets, with approvals you hold |
+| Deploying a private cloud is a multi-week project | One daemon on any Linux server with KVM: bare metal, Docker, Kubernetes or Operator only |
+
+![Capabilities at a glance: Compute, Network, Secure, AI](docs/ux/readme-capabilities.jpg)
 
 ## One daemon. Four front doors.
 
@@ -33,22 +65,6 @@ One ~15MB Rust daemon that deploys in about 5 minutes on any Linux server with K
 Fabric does not implement VM execution itself. That is a deliberate design choice, not a gap: **Fabric decides what should exist; [FluxVM](https://github.com/zyvorai/zyvor-fluxvm) makes it exist; [GuestKit](https://github.com/zyvorai/zyvor-guestkit) prepares the disk.**
 
 > **Naming:** the product is **Zyvor Fabric**; the daemon, unit and paths stay `zyvor-fabricd`. Canonical repo: [zyvorai/fabric](https://github.com/zyvorai/zyvorai-fabric). See [docs/NAMING.md](docs/NAMING.md).
-
-<div align="center">
-
-![Zyvor Fabric dashboard](docs/assets/dashboard.png)
-
-*The console dashboard — fleet health, capability status and live VM metrics at a glance.*
-
-</div>
-
-<div align="center">
-
-[![Keep: your agent, your hardware, your keys](docs/assets/keep-hero.jpg)](docs/keep/README.md)
-
-**Keep it yours.** *[Keep](docs/keep/README.md) is the sealed agent runtime you run, read and take with you. Muse column from its public announcement; evidence class today is `software-test`.*
-
-</div>
 
 <a id="ai-workloads-beta"></a>
 
@@ -91,7 +107,61 @@ A 92-page web console and <code>fabricctl</code>, both first-class against the s
 
 ---
 
-## Quick start
+## Zyvor Fabric vs Proxmox VE
+
+![Zyvor Fabric vs Proxmox VE: API first, one daemon, private inference next to the VMs](docs/ux/readme-vs.jpg)
+
+| | **Zyvor Fabric** | **Proxmox VE** |
+|---|---|---|
+| Hypervisors | QEMU/KVM, Cloud Hypervisor, Firecracker, via [FluxVM](https://github.com/zyvorai/zyvor-fluxvm) | QEMU/KVM plus LXC containers |
+| Management layer | FluxVM (systemd-free) + one REST API | pvemanager with a Perl backend |
+| Automation | 780+-endpoint JSON REST API, SSE events, Kubernetes operator, Terraform provider included | REST API, `pvesh`, community Terraform providers |
+| Cluster model | Single-host or small cluster (multi-host networking available) | Built-in multi-node cluster with its own cluster filesystem (pmxcfs) |
+| Live migration | Disk-copy path GA; native FluxVM transport preview; full HA cutover pre-GA | Built-in cluster migration |
+| AI inference | OpenAI-compatible inference on the same daemon (Beta) | Not part of the product |
+| License | Apache-2.0, in full | AGPL plus an optional subscription |
+| **Choose Proxmox VE when** | | You need large multi-host clusters with mature shared-storage live migration today, or first-class Windows guests |
+
+<a id="is-this-for-you"></a>
+
+**Is this for you?** It fits API-first automation, single-host or small-cluster deployments, security-conscious teams, and private inference next to the VMs. Look elsewhere for large multi-host clusters with mature live migration today, a deep libvirt-XML ecosystem, or first-class Windows guests. [The honest version](docs/why-fabric.md#is-this-for-you), the [comparison matrix](docs/guides/decision-support/comparison-matrix.md) and the [FAQ](docs/quick-reference/faq.md).
+
+---
+
+## See it live
+
+<div align="center">
+
+![Zyvor Fabric dashboard](docs/assets/dashboard.png)
+
+*The console dashboard — fleet health, capability status and live VM metrics at a glance.*
+
+[![Keep: your agent, your hardware, your keys](docs/assets/keep-hero.jpg)](docs/keep/README.md)
+
+**Keep it yours.** *[Keep](docs/keep/README.md) is the sealed agent runtime you run, read and take with you. Muse column from its public announcement; evidence class today is `software-test`.*
+
+<img src="docs/assets/keep/solvor-home.png" alt="Solvor, the Mac client for Keep: use cases" width="49%"> <img src="docs/assets/keep/solvor-result.png" alt="Solvor: a run's result" width="49%">
+
+*Solvor, the native Mac client for Keep: pick a use case, then read the result of a run in a sealed cell.*
+
+</div>
+
+---
+
+## How it fits together
+
+![Fabric decides; FluxVM runs; GuestKit prepares](docs/ux/readme-how-it-works.jpg)
+
+- <a id="architecture-fluxvm--guestkit"></a>**Architecture:** how Fabric composes FluxVM and GuestKit — [docs/architecture-fluxvm-guestkit.md](docs/architecture-fluxvm-guestkit.md).
+- <a id="zyvor-platform-stack"></a>**Zyvor platform stack:** where Fabric sits among the Zyvor products — [docs/platform-stack.md](docs/platform-stack.md).
+
+---
+
+<a id="quick-start"></a>
+
+## Quickstart
+
+Requires a Linux server with KVM.
 
 ```bash
 git clone https://github.com/zyvorai/zyvorai-fabric.git && cd fabric
@@ -102,12 +172,6 @@ fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096 --tenant acme
 ```
 
 Default ports: **9095** (API + UI) and **7788** (FluxVM on localhost). The full path table, verification commands and multi-tenant notes are in [Getting started](docs/getting-started.md); a laptop dev setup is in [QUICKSTART.md](QUICKSTART.md).
-
-<a id="is-this-for-you"></a>
-
-**Is this for you?** It fits API-first automation, single-host or small-cluster deployments, security-conscious teams, and private inference next to the VMs. Look elsewhere for large multi-host clusters with mature live migration today, a deep libvirt-XML ecosystem, or first-class Windows guests. [The honest version](docs/why-fabric.md#is-this-for-you), the [comparison matrix](docs/guides/decision-support/comparison-matrix.md) and the [FAQ](docs/quick-reference/faq.md).
-
----
 
 ## Platform at a glance
 
@@ -123,8 +187,6 @@ Default ports: **9095** (API + UI) and **7788** (FluxVM on localhost). The full 
 | Deploy modes | Bare metal · Docker · Kubernetes · Operator |
 
 All figures above are counted directly from source (route definitions, router config, crate manifest, audit report) — see [docs/PRODUCT_OVERVIEW.md](docs/PRODUCT_OVERVIEW.md) for the methodology.
-
----
 
 ## Deploy
 
@@ -148,11 +210,6 @@ Four first-class ways to run Fabric. Pick one; the full guide is [docs/deploy.md
 | Keep (open agent workstation) | [docs/keep/README.md](docs/keep/README.md) · [docs/keep/at-a-glance.md](docs/keep/at-a-glance.md) |
 | Tutorials and user manuals | [docs/tutorials/README.md](docs/tutorials/README.md) · [docs/user/README.md](docs/user/README.md) |
 
-## Go deeper
-
-- <a id="architecture-fluxvm--guestkit"></a>**Architecture:** how Fabric composes FluxVM and GuestKit — [docs/architecture-fluxvm-guestkit.md](docs/architecture-fluxvm-guestkit.md).
-- <a id="zyvor-platform-stack"></a>**Zyvor platform stack:** where Fabric sits among the Zyvor products — [docs/platform-stack.md](docs/platform-stack.md).
-
 ## Contributing
 
 Contributions are welcome. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the development setup, code style and PR process.
@@ -165,24 +222,50 @@ make lint && make fmt
 
 `docs/` and this README are authoritative; historical build summaries in the repo root are snapshots.
 
-## License
+---
 
-Commercial subscriptions and support: see [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md).
+## Maturity
 
-### Open source (Apache-2.0)
+| Area | Status (from the repo's own docs) |
+|---|---|
+| VM lifecycle, networking, storage, security, CLI, console, operator, Terraform | Shipped; see [FEATURES.md](FEATURES.md) |
+| Live migration | Disk-copy path GA; native FluxVM transport **preview**; full HA cutover **pre-GA** ([comparison matrix](docs/guides/decision-support/comparison-matrix.md)) |
+| AI Workloads | Single-cluster **Beta**; multi-site HA store stays **Preview**; **not GA** ([at a glance](docs/ai-workloads-at-a-glance.md)) |
+| Keep | Evidence class `software-test`; Keep 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/keep/STATUS.md)) |
 
-This repository is licensed under the [Apache License, Version 2.0](LICENSE), in full — there is no dual-licensing or separately-licensed core component.
-You may use, modify, and run it for personal, lab, and commercial production
-use at no charge, subject to Apache-2.0 (preserve notices / NOTICE where required).
-See [NOTICE](NOTICE).
+---
 
-### Enterprise
+## Part of the Zyvor stack
 
-Production support, SLAs, and Zyvor Enterprise products are licensed separately.
-Contact [sales@zyvor.dev](mailto:sales@zyvor.dev) or see [zyvor.dev](https://zyvor.dev).
+| Product | Role next to Zyvor Fabric |
+|---|---|
+| **Zyvor Fabric** | Private cloud control plane: VMs, networking, storage, security, inference |
+| **[FluxVM](https://github.com/zyvorai/zyvor-fluxvm)** | The VM engine Fabric is built on: makes what Fabric decides exist |
+| **[GuestKit](https://github.com/zyvorai/zyvor-guestkit)** | Offline VM disk inspection, repair and customization; prepares the disk |
+| **[hyper2kvm](https://github.com/zyvorai/hyper2kvm)** | Multi-cloud VM migration, listed next to Fabric in the [platform stack](docs/platform-stack.md) |
+
+→ [zyvor.dev](https://zyvor.dev)
+
+---
+
+## License and support
+
+Zyvor Fabric is **free and open source** under the [Apache License, Version 2.0](LICENSE), in full — there is no dual-licensing or separately-licensed core component. You may use, modify, and run it for personal, lab, and commercial production use at no charge, subject to Apache-2.0 (preserve notices / NOTICE where required). See [NOTICE](NOTICE).
+
+**Zyvor Enterprise** adds what production teams ask for: supported releases, deployment and upgrade guidance, priority incident triage, a named technical contact and 24x7 critical intake. Plans and terms: [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md) · [Pricing](https://zyvor.dev/pricing?utm_source=github&utm_medium=fabric&utm_campaign=readme_license) · [sales@zyvor.dev](mailto:sales@zyvor.dev).
+
+Report vulnerabilities per [SECURITY.md](SECURITY.md).
+
+---
 
 <div align="center">
 
-Part of the Zyvor platform. More at **[zyvor.dev](https://zyvor.dev)**.
+### Run your private cloud from one daemon
+
+[![Book a demo](https://img.shields.io/badge/Book_a_demo-0071e3?style=for-the-badge)](https://zyvor.dev/schedule?utm_source=github&utm_medium=fabric&utm_campaign=readme_footer)
+[![30-day PoC](https://img.shields.io/badge/Start_a_30--day_PoC-000000?style=for-the-badge)](https://zyvor.dev/poc?utm_source=github&utm_medium=fabric&utm_campaign=readme_footer)
+[![Pricing](https://img.shields.io/badge/Pricing-1d1d1f?style=for-the-badge)](https://zyvor.dev/pricing?utm_source=github&utm_medium=fabric&utm_campaign=readme_footer)
+[![Contact sales](https://img.shields.io/badge/Contact_sales-2997ff?style=for-the-badge)](mailto:sales@zyvor.dev?subject=Zyvor%20Fabric)
+[![Star on GitHub](https://img.shields.io/github/stars/zyvorai/zyvorai-fabric?style=for-the-badge&logo=github&label=Star&color=2997ff)](https://github.com/zyvorai/zyvorai-fabric)
 
 </div>
