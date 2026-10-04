@@ -14,10 +14,10 @@ const config: Config = {
   },
 
   url: 'https://zyvorai.github.io',
-  baseUrl: '/fabric/',
+  baseUrl: '/zyvorai-fabric/',
 
   organizationName: 'zyvorai',
-  projectName: 'fabric',
+  projectName: 'zyvorai-fabric',
 
   onBrokenLinks: 'warn',
 
@@ -76,7 +76,7 @@ const config: Config = {
           path: '../docs',
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/zyvorai/fabric/tree/main/docs/',
+          editUrl: 'https://github.com/zyvorai/zyvorai-fabric/tree/main/docs/',
           // docs/keep/README.md is the GitHub landing page for Keep. The site
           // already has /keep and docs/keep/KEEP.md (the folder index), so
           // keep the README out of the docs build to avoid a duplicate route.
@@ -99,7 +99,8 @@ const config: Config = {
   themeConfig: {
     image: 'img/social-card.png',
     colorMode: {
-      respectPrefersColorScheme: true,
+      defaultMode: 'dark',
+      respectPrefersColorScheme: false,
     },
     navbar: {
       title: 'Zyvor Fabric',
@@ -131,7 +132,7 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          href: 'https://github.com/zyvorai/fabric',
+          href: 'https://github.com/zyvorai/zyvorai-fabric',
           label: 'GitHub',
           position: 'right',
         },
@@ -157,14 +158,14 @@ const config: Config = {
         {
           title: 'Project',
           items: [
-            {label: 'GitHub', href: 'https://github.com/zyvorai/fabric'},
+            {label: 'GitHub', href: 'https://github.com/zyvorai/zyvorai-fabric'},
             {
               label: 'Changelog',
-              href: 'https://github.com/zyvorai/fabric/blob/main/CHANGELOG.md',
+              href: 'https://github.com/zyvorai/zyvorai-fabric/blob/main/CHANGELOG.md',
             },
             {
               label: 'License (Apache-2.0)',
-              href: 'https://github.com/zyvorai/fabric/blob/main/LICENSE',
+              href: 'https://github.com/zyvorai/zyvorai-fabric/blob/main/LICENSE',
             },
           ],
         },
