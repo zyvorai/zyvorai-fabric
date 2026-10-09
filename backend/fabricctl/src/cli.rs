@@ -165,6 +165,22 @@ enum Commands {
     List,
     /// Get VM information
     Info { name: String },
+    /// Fork a running VM into copies that share its memory snapshot (flux-vm KVM engine)
+    Fork {
+        name: String,
+        /// Children to start (1-32)
+        #[arg(long, default_value = "1", value_parser = clap::value_parser!(u32).range(1..=32))]
+        count: u32,
+        /// Name prefix for the children
+        #[arg(long)]
+        prefix: Option<String>,
+        /// Wait for a first command in every child and report the time FluxVM measured
+        #[arg(long)]
+        ready: bool,
+        /// Idempotency key, so retrying returns the same children
+        #[arg(long)]
+        idempotency_key: Option<String>,
+    },
     /// Show a VM's real memory footprint (PSS) and balloon
     Memory { name: String },
     /// Show or set a VM's memory balloon (Beta; flux-vm KVM engine only)
@@ -1861,6 +1877,35 @@ impl Cli {
                 }
             }
 
+            Commands::Fork {
+                name,
+                count,
+                prefix,
+                ready,
+                idempotency_key,
+            } => {
+                let resp = client
+                    .post(format!("{}/vms/{}/fork", api_base(), name))
+                    .json(&serde_json::json!({
+                        "count": count,
+                        "name_prefix": prefix,
+                        "ready": ready,
+                        "idempotency_key": idempotency_key,
+                    }))
+                    .send()
+                    .await?;
+                if !resp.status().is_success() {
+                    let status = resp.status();
+                    let body = resp.text().await.unwrap_or_default();
+                    anyhow::bail!("fork: {status}: {body}");
+                }
+                let out: serde_json::Value = resp.json().await?;
+                match fmt {
+                    OutputFormat::Table => print_fork(&out),
+                    _ => println!("{}", format_output(&out, fmt)?),
+                }
+            }
+
             Commands::Memory { name } => {
                 let mem: serde_json::Value = client
                     .get(format!("{}/vms/{}/memory", api_base(), name))
@@ -3446,6 +3491,34 @@ impl Cli {
     }
 }
 
+/// Render `POST /vms/{name}/fork`. Times are what FluxVM measured on that host; none are estimated.
+fn print_fork(out: &serde_json::Value) {
+    let kids = out["children"]
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    println!(
+        "Forked {} into {} VM(s) in {} ms",
+        out["parent"].as_str().unwrap_or("?"),
+        kids.len(),
+        out["elapsed_ms"]
+    );
+    for k in kids {
+        println!(
+            "  {}  {}",
+            k["name"].as_str().unwrap_or("?"),
+            k["id"].as_str().unwrap_or("?")
+        );
+    }
+    match out
+        .get("first_command_ms")
+        .and_then(serde_json::Value::as_u64)
+    {
+        Some(ms) => println!("First command ran in every child within {ms} ms (slowest child)"),
+        None => println!("First-command time not measured (use --ready)"),
+    }
+}
+
 /// Render `GET /vms/{name}/memory`. PSS is the honest per-VM cost: pages shared with other
 /// VMs are divided between them, so summing PSS over VMs does not double count.
 fn print_memory(m: &serde_json::Value) {
@@ -3496,6 +3569,35 @@ mod memory_cli_tests {
             Some(Commands::Balloon { mib: None, .. })
         ));
         assert!(Cli::try_parse_from(["fabricctl", "balloon", "vm1", "--mib", "-1"]).is_err());
+    }
+
+    #[test]
+    fn fork_parses_and_bounds_count() {
+        let cli =
+            Cli::try_parse_from(["fabricctl", "fork", "vm1", "--count", "16", "--ready"]).unwrap();
+        match cli.command {
+            Some(Commands::Fork {
+                name,
+                count,
+                ready,
+                prefix,
+                ..
+            }) => {
+                assert_eq!(
+                    (name.as_str(), count, ready, prefix),
+                    ("vm1", 16, true, None)
+                );
+            }
+            _ => panic!("expected Fork"),
+        }
+        assert!(Cli::try_parse_from(["fabricctl", "fork", "vm1", "--count", "0"]).is_err());
+        assert!(Cli::try_parse_from(["fabricctl", "fork", "vm1", "--count", "33"]).is_err());
+        assert!(matches!(
+            Cli::try_parse_from(["fabricctl", "fork", "vm1"])
+                .unwrap()
+                .command,
+            Some(Commands::Fork { count: 1, .. })
+        ));
     }
 }
 
