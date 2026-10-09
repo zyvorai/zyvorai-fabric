@@ -1017,6 +1017,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/migration/receivers/{id}",
             axum::routing::delete(api::migration::abort_native_receiver),
         )
+        .route("/vms/{name}/fork", post(api::memory::fork_vm))
         .route("/vms/{name}/memory", get(api::memory::get_memory))
         .route(
             "/vms/{name}/balloon",

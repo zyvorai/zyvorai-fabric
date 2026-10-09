@@ -33,6 +33,11 @@ const GROUPS: &[CmdGroup] = &[
                 about: "Get VM information",
             },
             CmdEntry {
+                emoji: "🍴",
+                name: "fork",
+                about: "Fork a running VM into copies (flux-vm KVM engine)",
+            },
+            CmdEntry {
                 emoji: "🧠",
                 name: "memory",
                 about: "Show a VM's real memory footprint (PSS) and balloon",

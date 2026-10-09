@@ -12,12 +12,12 @@ use axum::{
 use serde::Deserialize;
 use serde_json::json;
 use std::sync::Arc;
-use zyvor_fabric_fluxvm_client::{BalloonStatus, VmMemory};
+use zyvor_fabric_fluxvm_client::{BalloonStatus, ForkVmRequest, ReadyOptions, VmMemory};
 
 use super::qga::{fluxvm_client, resolve_id};
 use crate::server::AppState;
 use crate::validation::validate_vm_name;
-use security::{RequireAdmin, RequireRead};
+use security::{RequireAdmin, RequireRead, RequireWrite};
 
 type ApiErr = (StatusCode, Json<serde_json::Value>);
 
@@ -77,4 +77,68 @@ pub async fn set_balloon(
         .await
         .map(Json)
         .map_err(bad_gateway)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ForkBody {
+    #[serde(default = "one")]
+    pub count: u32,
+    #[serde(default)]
+    pub name_prefix: Option<String>,
+    /// Wait for a first guest command in every child and report how long it took.
+    #[serde(default)]
+    pub ready: bool,
+    /// Sent to FluxVM as `Idempotency-Key`, so a retry returns the same children.
+    #[serde(default)]
+    pub idempotency_key: Option<String>,
+}
+
+fn one() -> u32 {
+    1
+}
+
+/// Children one fork may start. FluxVM enforces the same limit; checking here gives a clear 400.
+pub const MAX_FORK_COUNT: u32 = 32;
+
+/// POST /api/vms/{name}/fork  `{"count": N, "name_prefix": "...", "ready": true}`
+///
+/// Needs the flux-vm backend on the KVM engine; anything else comes back from FluxVM as an error.
+pub async fn fork_vm(
+    RequireWrite(_claims): RequireWrite,
+    State(state): State<Arc<AppState>>,
+    Path(name): Path<String>,
+    Json(body): Json<ForkBody>,
+) -> Result<Json<serde_json::Value>, ApiErr> {
+    checked(&name)?;
+    if body.count == 0 || body.count > MAX_FORK_COUNT {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": format!("count must be 1-{MAX_FORK_COUNT}") })),
+        ));
+    }
+    if let Some(prefix) = &body.name_prefix {
+        checked(prefix)?;
+    }
+    let client = fluxvm_client(&state)?;
+    let id = resolve_id(&client, &name).await?;
+    let out = client
+        .fork_vm(
+            id,
+            &ForkVmRequest {
+                count: body.count,
+                name_prefix: body.name_prefix.clone(),
+            },
+            &ReadyOptions {
+                ready_exec: body.ready,
+                idempotency_key: body.idempotency_key.as_deref(),
+            },
+        )
+        .await
+        .map_err(bad_gateway)?;
+    Ok(Json(json!({
+        "parent": name,
+        "children": out.items.iter().map(|v| json!({ "id": v.id, "name": v.name })).collect::<Vec<_>>(),
+        "elapsed_ms": out.elapsed_ms,
+        "first_command_ms": out.first_command_ms,
+    })))
 }
