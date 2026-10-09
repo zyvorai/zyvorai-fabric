@@ -329,6 +329,12 @@ HTML=$(curl -sf "$API/keep/cockpit?session=$SID")
 check "cockpit HTML serves" "Keep cockpit" "$HTML"
 check "keepctl cockpit" "$SID" "$("$KEEPCTL" cockpit "$SID")"
 
+# Recording hook: run a narrated demo against this live runtime instead of the checks.
+if [[ -n "${KEEP_E2E_DEMO:-}" ]]; then
+  echo "=== DEMO"
+  API="$API" TOKEN="$TOKEN" SID="$SID" STUB_OPS="$W/sandboxes/changeset.jsonl" bash "$KEEP_E2E_DEMO"
+  exit $?
+fi
 echo "==> speculate, review, approve (FluxVM stub; changeset body is a real captured response)"
 SSTATUS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/v1/sessions/$SID" | json_get status || true)
 if [[ "$SSTATUS" != "running" ]]; then
