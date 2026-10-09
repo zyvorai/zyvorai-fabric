@@ -7,7 +7,7 @@
   copy of the cell and opens a `changeset` approval carrying the diff. A person's approve makes FluxVM approve then apply;
   a deny rejects it. The agent cannot approve. `paths` is required (FluxVM needs existing guest directories for a VM).
   `keepctl speculate` / `keepctl decide`, a diff view in the console's Keep session page, and e2e coverage against the
-  FluxVM stub. The FluxVM calls were run against a real FluxVM; Keep's own handler was tested against fakes only.
+  FluxVM stub. Run live against a real FluxVM microVM on KVM: speculate, approve (apply) and deny (reject), checked inside the guest.
 - **Keep: FluxVM credential grants.** `/v1/sessions/{id}/grants` (POST, GET, DELETE) forward to FluxVM's broker, only for
   credentials whose Keep limits a grant can keep: an `Authorization` header, no approval, method, path or per-user limits,
   hosts inside the credential's host. The secret is sent once and never returned or audited.

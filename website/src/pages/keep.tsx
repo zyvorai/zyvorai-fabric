@@ -89,15 +89,15 @@ export default function KeepPage(): ReactNode {
                   muted
                   playsInline
                   controls
-                  poster={useBaseUrl('/demos/keep-speculate.gif')}
+                  poster={useBaseUrl('/demos/keep-live-speculate.gif')}
                   style={{width: '100%', borderRadius: 12}}>
-                  <source src={useBaseUrl('/demos/keep-speculate.webm')} type="video/webm" />
-                  <source src={useBaseUrl('/demos/keep-speculate.mp4')} type="video/mp4" />
+                  <source src={useBaseUrl('/demos/keep-live-speculate.webm')} type="video/webm" />
+                  <source src={useBaseUrl('/demos/keep-live-speculate.mp4')} type="video/mp4" />
                 </video>
                 <figcaption style={{marginTop: 12, fontSize: '0.9rem', opacity: 0.8}}>
-                  Real Keep runtime. FluxVM is the CI stub, so no VM boots in this recording; the changeset it
-                  returns is a response captured from a real FluxVM. Reproduce it with{' '}
-                  <code>./scripts/record-demos.sh keep-speculate</code>.
+                  A real run: the Keep runtime and a real FluxVM microVM on KVM, on a shared lab host. The waits are
+                  trimmed; the printed times are what that loaded host took, not a benchmark. A stub-backed version
+                  that anyone can run is <code>./scripts/record-demos.sh keep-speculate</code>.
                 </figcaption>
               </figure>
             </Reveal>

@@ -23,10 +23,10 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 </div>
 
 <p align="center">
-  <img src="../assets/demos/keep-speculate.gif" alt="Keep: an agent proposes a file change, a person approves it, and only then does FluxVM apply it" width="820">
+  <img src="../assets/demos/keep-live-speculate.gif" alt="Keep with a real FluxVM microVM: a proposed change waits for approval, is applied on approve, and is left out on deny" width="820">
 </p>
 
-<p align="center"><sub>A real run of the Keep runtime; FluxVM is the CI stub. <a href="../assets/demos/README.md">How these are made</a>.</sub></p>
+<p align="center"><sub>A real run with a real FluxVM microVM on KVM; waits trimmed, times are from a loaded shared host. A stub-backed version anyone can run: <a href="../assets/demos/keep-speculate.gif">keep-speculate</a>. <a href="../assets/demos/README.md">How these are made</a>.</sub></p>
 
 <p align="center">
   <img src="../assets/keep/demo-static.svg" alt="Real output of ./scripts/keep-e2e.sh: 39 checks passed, 0 failed" width="760">
