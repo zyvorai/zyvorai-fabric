@@ -25,6 +25,8 @@ keepctl artifacts --use-case csv-clean --since 2026-09-01T00:00:00Z
 keepctl diff <older-artifact-id> <newer-artifact-id>   # what changed between two runs
 keepctl audit <session-uuid> --limit 20           # journal rows; the hash-chain check goes to stderr
 keepctl approvals pending                         # pending | approved | denied, or none for all
+keepctl speculate <session-id> --paths /work -- <cmd>   # run in an isolated copy of the cell; changes wait behind a `changeset` approval
+keepctl decide <approval-id> approved|denied             # a person's decision; approved applies the changeset on FluxVM
 ```
 
 Batches and triggers ([TRIGGERS.md](../TRIGGERS.md)):

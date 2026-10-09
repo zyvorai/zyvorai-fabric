@@ -354,11 +354,17 @@ else
   check_eq "operator approves" 200 "$(http_code "${AUTH[@]}" -X POST "$API/v1/approvals/$AID" -d '{"decision":"approved"}')"
   OPS=$(python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl")
   check_eq "approve then apply reached FluxVM" "speculate,approve,apply" "$OPS"
+  check "keepctl speculate opens a changeset approval" '"kind":"changeset"' "$("$KEEPCTL" speculate "$SID" --paths /tmp -- echo hi 2>&1)"
+  KAID=$("$KEEPCTL" approvals pending | awk '$3=="changeset"{print $1; exit}')
+  check "keepctl approvals lists it" changeset "$("$KEEPCTL" approvals pending)"
+  check "keepctl decide denies it" '"status":"denied"' "$("$KEEPCTL" decide "$KAID" denied 2>&1)"
+  OPS=$(python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl")
+  check_eq "keepctl round trip ended in a reject" "speculate,approve,apply,speculate,reject" "$OPS"
   CODE=$(http_code "${AUTH[@]}" -X POST "$API/v1/sessions/$SID/speculate" -d '{"command":"rm -rf /tmp/specdir","paths":["/tmp"]}')
   AID2=$(body | json_get approval.id)
   check_eq "operator denies the second one" 200 "$(http_code "${AUTH[@]}" -X POST "$API/v1/approvals/$AID2" -d '{"decision":"denied"}')"
   OPS=$(python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl")
-  check_eq "denied changeset was rejected, never applied" "speculate,approve,apply,speculate,reject" "$OPS"
+  check_eq "denied changeset was rejected, never applied" "speculate,approve,apply,speculate,reject,speculate,reject" "$OPS"
 fi
 
 echo "==> user-held unwrap scaffold (refused without SNP/TDX)"
