@@ -1263,6 +1263,65 @@ pub enum AgentResponse {
 // Client
 // ============================================================================
 
+/// Body of `POST /v1/vms/{id}/fork`. FluxVM rejects unknown fields, so this
+/// carries exactly what the server reads.
+#[derive(Debug, Clone, Serialize)]
+pub struct ForkVmRequest {
+    /// Children to start from one memory snapshot (FluxVM allows 1-32).
+    pub count: u32,
+    #[serde(rename = "namePrefix", skip_serializing_if = "Option::is_none")]
+    pub name_prefix: Option<String>,
+}
+
+/// Per-call options for the fork and create calls that FluxVM can time.
+#[derive(Debug, Clone, Default)]
+pub struct ReadyOptions<'a> {
+    /// Ask FluxVM to wait for a first guest-agent command (`?ready=exec`) and
+    /// report how long it took.
+    pub ready_exec: bool,
+    /// Sent as `Idempotency-Key`; see [`validate_idempotency_key`].
+    pub idempotency_key: Option<&'a str>,
+}
+
+/// Response of `POST /v1/vms/{id}/fork`.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ForkVmResponse {
+    pub items: Vec<VmRecord>,
+    #[serde(default)]
+    pub elapsed_ms: u64,
+    /// Slowest child's first-command time. Present only with `ready_exec`, and
+    /// only when every child answered (a partial maximum would understate).
+    #[serde(default)]
+    pub first_command_ms: Option<u64>,
+    /// Per-child timing or `first_command_error`, in `items` order.
+    #[serde(default)]
+    pub first_command: Vec<serde_json::Value>,
+}
+
+/// A created VM plus the first-command timing from `?ready=exec`.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ReadyVm {
+    #[serde(flatten)]
+    pub vm: VmRecord,
+    #[serde(default)]
+    pub first_command_ms: Option<u64>,
+    #[serde(default)]
+    pub phases: Option<serde_json::Value>,
+    /// Set instead of the timing when the VM exists but the probe failed.
+    #[serde(default)]
+    pub first_command_error: Option<String>,
+}
+
+/// One entry of `GET /v1/vms/{id}/snapshots`.
+#[derive(Debug, Clone, Deserialize)]
+pub struct VmSnapshotInfo {
+    pub tag: String,
+    #[serde(default)]
+    pub created_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub size_bytes: u64,
+}
+
 /// Attach an `Idempotency-Key` header. FluxVM accepts 1-255 visible ASCII
 /// characters and rejects anything else, so check here for a clearer error.
 pub fn with_idempotency_key(
@@ -1586,6 +1645,110 @@ impl FluxVmClient {
             .send()
             .await?;
         Self::parse(resp).await
+    }
+
+    /// `POST /v1/vms[?ready=exec]`: create a VM and, with `ready_exec`, wait
+    /// for its first guest-agent command and report the timing.
+    pub async fn create_vm_ready(
+        &self,
+        req: &CreateVmRequest,
+        opts: &ReadyOptions<'_>,
+    ) -> Result<ReadyVm> {
+        let mut url = self.url("/v1/vms")?;
+        if opts.ready_exec {
+            url.query_pairs_mut().append_pair("ready", "exec");
+        }
+        let resp = self
+            .authed(self.keyed(self.http.post(url), opts.idempotency_key)?)
+            .json(req)
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `POST /v1/vms/{id}/fork[?ready=exec]`: start `count` running children
+    /// from one memory snapshot of a running `flux-vm` VM.
+    pub async fn fork_vm(
+        &self,
+        id: Uuid,
+        req: &ForkVmRequest,
+        opts: &ReadyOptions<'_>,
+    ) -> Result<ForkVmResponse> {
+        let mut url = self.url(&format!("/v1/vms/{id}/fork"))?;
+        if opts.ready_exec {
+            url.query_pairs_mut().append_pair("ready", "exec");
+        }
+        let resp = self
+            .authed(self.keyed(self.http.post(url), opts.idempotency_key)?)
+            .json(req)
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `POST /v1/vms/{id}/snapshot`: save a named snapshot of a VM.
+    pub async fn snapshot_vm(&self, id: Uuid, tag: &str, key: Option<&str>) -> Result<()> {
+        let resp = self
+            .authed(self.keyed(
+                self.http.post(self.url(&format!("/v1/vms/{id}/snapshot"))?),
+                key,
+            )?)
+            .json(&serde_json::json!({ "tag": tag }))
+            .send()
+            .await?;
+        let _: serde_json::Value = Self::parse(resp).await?;
+        Ok(())
+    }
+
+    /// `POST /v1/vms/{id}/restore`: restore a running VM in place from `tag`,
+    /// or relaunch a stopped one from it.
+    pub async fn restore_vm(&self, id: Uuid, tag: &str) -> Result<VmRecord> {
+        let resp = self
+            .authed(self.http.post(self.url(&format!("/v1/vms/{id}/restore"))?))
+            .json(&serde_json::json!({ "tag": tag }))
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `GET /v1/vms/{id}/snapshots`.
+    pub async fn list_vm_snapshots(&self, id: Uuid) -> Result<Vec<VmSnapshotInfo>> {
+        #[derive(Deserialize)]
+        struct Items {
+            items: Vec<VmSnapshotInfo>,
+        }
+        let resp = self
+            .authed(self.http.get(self.url(&format!("/v1/vms/{id}/snapshots"))?))
+            .send()
+            .await?;
+        Ok(Self::parse::<Items>(resp).await?.items)
+    }
+
+    /// `DELETE /v1/vms/{id}/snapshots/{tag}`. The tag is escaped as a single
+    /// path segment, so a tag containing `/` or `?` cannot change the route.
+    pub async fn delete_vm_snapshot(&self, id: Uuid, tag: &str) -> Result<()> {
+        let mut url = self.url(&format!("/v1/vms/{id}/snapshots/"))?;
+        url.path_segments_mut()
+            .map_err(|_| anyhow::anyhow!("FluxVM base URL cannot carry a path"))?
+            .pop_if_empty()
+            .push(tag);
+        let resp = self.authed(self.http.delete(url)).send().await?;
+        if resp.status().is_success() {
+            Ok(())
+        } else {
+            bail!("DELETE snapshot {tag} of {id} failed: {}", resp.status())
+        }
+    }
+
+    fn keyed(
+        &self,
+        builder: reqwest::RequestBuilder,
+        key: Option<&str>,
+    ) -> Result<reqwest::RequestBuilder> {
+        match key {
+            Some(k) => with_idempotency_key(builder, k),
+            None => Ok(builder),
+        }
     }
 
     /// `DELETE /v1/vms/{id}` with an `Idempotency-Key`, so a retried delete
