@@ -6,10 +6,10 @@
 use chrono::{Duration, Utc};
 use serde_json::json;
 use uuid::Uuid;
-use wiremock::matchers::{body_partial_json, header, method, path};
+use wiremock::matchers::{body_json, body_partial_json, header, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 use zyvor_fabric_fluxvm_client::{
-    CreateVmRequest, FluxVmClient, MigrationReceiverRequest, VmStatus,
+    CreateVmRequest, FluxVmClient, ForkVmRequest, MigrationReceiverRequest, ReadyOptions, VmStatus,
 };
 
 fn sample_create_req() -> CreateVmRequest {
@@ -285,6 +285,42 @@ async fn create_vm_posts_direct_l2_uplink() {
 }
 
 #[tokio::test]
+async fn create_and_delete_send_idempotency_key() {
+    let server = MockServer::start().await;
+    let id = Uuid::parse_str("00000000-0000-0000-0000-0000000000bb").unwrap();
+    let req = sample_create_req();
+
+    Mock::given(method("POST"))
+        .and(path("/v1/vms"))
+        .and(header("Idempotency-Key", "create-recv-1"))
+        .respond_with(ResponseTemplate::new(201).set_body_json(vm_record(id, "recv", &req)))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("DELETE"))
+        .and(path(format!("/v1/vms/{id}")))
+        .and(header("Idempotency-Key", "delete-recv-1"))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    let created = client
+        .create_vm_idempotent(&req, "create-recv-1")
+        .await
+        .expect("create");
+    assert_eq!(created.id, id);
+    client
+        .delete_vm_idempotent(id, "delete-recv-1")
+        .await
+        .expect("delete");
+
+    // A malformed key is rejected before any request goes out.
+    assert!(client.create_vm_idempotent(&req, "bad key").await.is_err());
+}
+
+#[tokio::test]
 async fn host_gpu_list_bind_release_paths() {
     use zyvor_fabric_fluxvm_client::{GpuBindRequest, GpuReleaseRequest};
 
@@ -363,4 +399,126 @@ async fn host_gpu_list_bind_release_paths() {
         .await
         .unwrap();
     assert_eq!(released.bdf, "0000:01:00.0");
+}
+
+#[tokio::test]
+async fn fork_sends_exact_body_ready_query_and_key_and_decodes_timing() {
+    let server = MockServer::start().await;
+    let src = Uuid::parse_str("00000000-0000-0000-0000-0000000000c0").unwrap();
+    let child = Uuid::parse_str("00000000-0000-0000-0000-0000000000c1").unwrap();
+    let req = sample_create_req();
+
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{src}/fork")))
+        .and(query_param("ready", "exec"))
+        .and(header("Idempotency-Key", "fork-1"))
+        // FluxVM rejects unknown fields, so the body must be exactly this.
+        .and(body_json(json!({ "count": 2, "namePrefix": "kid" })))
+        .respond_with(ResponseTemplate::new(201).set_body_json(json!({
+            "items": [vm_record(child, "kid-1", &req)],
+            "elapsed_ms": 41,
+            "first_command_ms": 87,
+            "first_command": [{ "first_command_ms": 87 }]
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    let out = client
+        .fork_vm(
+            src,
+            &ForkVmRequest {
+                count: 2,
+                name_prefix: Some("kid".into()),
+            },
+            &ReadyOptions {
+                ready_exec: true,
+                idempotency_key: Some("fork-1"),
+            },
+        )
+        .await
+        .expect("fork");
+    assert_eq!(out.items[0].id, child);
+    assert_eq!(out.first_command_ms, Some(87));
+    assert_eq!(out.elapsed_ms, 41);
+}
+
+#[tokio::test]
+async fn create_ready_decodes_flattened_timing_and_probe_error() {
+    let server = MockServer::start().await;
+    let id = Uuid::parse_str("00000000-0000-0000-0000-0000000000d0").unwrap();
+    let req = sample_create_req();
+    let mut body = vm_record(id, "recv", &req);
+    body["first_command_error"] = json!("agent not ready");
+
+    Mock::given(method("POST"))
+        .and(path("/v1/vms"))
+        .and(query_param("ready", "exec"))
+        .respond_with(ResponseTemplate::new(201).set_body_json(body))
+        .mount(&server)
+        .await;
+
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    let out = client
+        .create_vm_ready(
+            &req,
+            &ReadyOptions {
+                ready_exec: true,
+                ..Default::default()
+            },
+        )
+        .await
+        .expect("create");
+    // The VM still comes back when only the timing probe failed.
+    assert_eq!(out.vm.id, id);
+    assert_eq!(out.first_command_ms, None);
+    assert_eq!(out.first_command_error.as_deref(), Some("agent not ready"));
+}
+
+#[tokio::test]
+async fn snapshot_restore_list_delete_paths_and_tag_escaping() {
+    let server = MockServer::start().await;
+    let id = Uuid::parse_str("00000000-0000-0000-0000-0000000000e0").unwrap();
+    let req = sample_create_req();
+
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/snapshot")))
+        .and(body_json(json!({ "tag": "pre-upgrade" })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "ok": true })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/restore")))
+        .and(body_json(json!({ "tag": "pre-upgrade" })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(vm_record(id, "recv", &req)))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(format!("/v1/vms/{id}/snapshots")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "items": [{ "tag": "pre-upgrade", "created_at": null, "size_bytes": 4096 }]
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    // A tag with a slash must stay one path segment (%2F), not become a route.
+    Mock::given(method("DELETE"))
+        .and(path(format!("/v1/vms/{id}/snapshots/a%2Fb")))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    client.snapshot_vm(id, "pre-upgrade", None).await.unwrap();
+    assert_eq!(client.restore_vm(id, "pre-upgrade").await.unwrap().id, id);
+    let snaps = client.list_vm_snapshots(id).await.unwrap();
+    assert_eq!(
+        (snaps[0].tag.as_str(), snaps[0].size_bytes),
+        ("pre-upgrade", 4096)
+    );
+    client.delete_vm_snapshot(id, "a/b").await.unwrap();
 }
