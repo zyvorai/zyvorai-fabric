@@ -285,6 +285,42 @@ async fn create_vm_posts_direct_l2_uplink() {
 }
 
 #[tokio::test]
+async fn create_and_delete_send_idempotency_key() {
+    let server = MockServer::start().await;
+    let id = Uuid::parse_str("00000000-0000-0000-0000-0000000000bb").unwrap();
+    let req = sample_create_req();
+
+    Mock::given(method("POST"))
+        .and(path("/v1/vms"))
+        .and(header("Idempotency-Key", "create-recv-1"))
+        .respond_with(ResponseTemplate::new(201).set_body_json(vm_record(id, "recv", &req)))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("DELETE"))
+        .and(path(format!("/v1/vms/{id}")))
+        .and(header("Idempotency-Key", "delete-recv-1"))
+        .respond_with(ResponseTemplate::new(204))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    let created = client
+        .create_vm_idempotent(&req, "create-recv-1")
+        .await
+        .expect("create");
+    assert_eq!(created.id, id);
+    client
+        .delete_vm_idempotent(id, "delete-recv-1")
+        .await
+        .expect("delete");
+
+    // A malformed key is rejected before any request goes out.
+    assert!(client.create_vm_idempotent(&req, "bad key").await.is_err());
+}
+
+#[tokio::test]
 async fn host_gpu_list_bind_release_paths() {
     use zyvor_fabric_fluxvm_client::{GpuBindRequest, GpuReleaseRequest};
 

@@ -1263,6 +1263,23 @@ pub enum AgentResponse {
 // Client
 // ============================================================================
 
+/// Attach an `Idempotency-Key` header. FluxVM accepts 1-255 visible ASCII
+/// characters and rejects anything else, so check here for a clearer error.
+pub fn with_idempotency_key(
+    builder: reqwest::RequestBuilder,
+    key: &str,
+) -> Result<reqwest::RequestBuilder> {
+    validate_idempotency_key(key)?;
+    Ok(builder.header("Idempotency-Key", key))
+}
+
+pub fn validate_idempotency_key(key: &str) -> Result<()> {
+    if key.is_empty() || key.len() > 255 || !key.bytes().all(|b| (0x21..=0x7e).contains(&b)) {
+        bail!("Idempotency-Key must be 1-255 visible ASCII characters");
+    }
+    Ok(())
+}
+
 /// A REST client for one `fluxvm serve` instance.
 #[derive(Clone)]
 pub struct FluxVmClient {
@@ -1468,6 +1485,20 @@ impl FluxVmClient {
         Self::parse(resp).await
     }
 
+    /// `POST /v1/vms` with an `Idempotency-Key`: a retry with the same key
+    /// replays FluxVM's first answer instead of creating a second VM.
+    pub async fn create_vm_idempotent(&self, req: &CreateVmRequest, key: &str) -> Result<VmRecord> {
+        let resp = self
+            .authed(with_idempotency_key(
+                self.http.post(self.url("/v1/vms")?),
+                key,
+            )?)
+            .json(req)
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
     pub async fn list_vms(&self) -> Result<Vec<VmRecord>> {
         let resp = self
             .authed(self.http.get(self.url("/v1/vms")?))
@@ -1555,6 +1586,23 @@ impl FluxVmClient {
             .send()
             .await?;
         Self::parse(resp).await
+    }
+
+    /// `DELETE /v1/vms/{id}` with an `Idempotency-Key`, so a retried delete
+    /// replays the first outcome.
+    pub async fn delete_vm_idempotent(&self, id: Uuid, key: &str) -> Result<()> {
+        let resp = self
+            .authed(with_idempotency_key(
+                self.http.delete(self.url(&format!("/v1/vms/{id}"))?),
+                key,
+            )?)
+            .send()
+            .await?;
+        if resp.status().is_success() {
+            Ok(())
+        } else {
+            bail!("DELETE /v1/vms/{id} failed: {}", resp.status())
+        }
     }
 
     pub async fn delete_vm(&self, id: Uuid) -> Result<()> {
@@ -2833,5 +2881,21 @@ mod runtime_boundary_contract_tests {
         let sc = rz.secure_containers.expect("secure_containers");
         assert!(sc.available && sc.shim_installed);
         assert!(!sc.guest_image_present);
+    }
+}
+
+#[cfg(test)]
+mod idempotency_key_tests {
+    use super::*;
+
+    #[test]
+    fn validation_matches_fluxvm() {
+        assert!(validate_idempotency_key("create-vm-7f3a").is_ok());
+        assert!(validate_idempotency_key(&"k".repeat(255)).is_ok());
+        assert!(validate_idempotency_key("").is_err());
+        assert!(validate_idempotency_key(&"k".repeat(256)).is_err());
+        assert!(validate_idempotency_key("has space").is_err());
+        assert!(validate_idempotency_key("tab\tkey").is_err());
+        assert!(validate_idempotency_key("naïve").is_err());
     }
 }
