@@ -329,6 +329,32 @@ HTML=$(curl -sf "$API/keep/cockpit?session=$SID")
 check "cockpit HTML serves" "Keep cockpit" "$HTML"
 check "keepctl cockpit" "$SID" "$("$KEEPCTL" cockpit "$SID")"
 
+echo "==> speculate, review, approve (FluxVM stub; changeset body is a real captured response)"
+SSTATUS=$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/v1/sessions/$SID" | json_get status || true)
+if [[ "$SSTATUS" != "running" ]]; then
+  echo "SKIP  speculate (session is $SSTATUS, not running)"
+else
+  AUTH=(-H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json')
+  CODE=$(http_code "${AUTH[@]}" -X POST "$API/v1/sessions/$SID/speculate" -d '{"command":"echo hello > /tmp/specdir/a.txt"}')
+  check_eq "speculate without paths is refused" 400 "$CODE"
+  CODE=$(http_code "${AUTH[@]}" -X POST "$API/v1/sessions/$SID/speculate" \
+    -d '{"command":"echo hello > /tmp/specdir/a.txt","paths":["/tmp"]}')
+  check_eq "speculate opens a pending approval" 201 "$CODE"
+  check "approval is a changeset" '"kind":"changeset"' "$(body)"
+  AID=$(body | json_get approval.id)
+  check "the diff is shown before anything is applied" "/tmp/specdir/a.txt" "$(body)"
+  OPS=$(python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl")
+  check_eq "speculating alone changed nothing on FluxVM" "speculate" "$OPS"
+  check_eq "operator approves" 200 "$(http_code "${AUTH[@]}" -X POST "$API/v1/approvals/$AID" -d '{"decision":"approved"}')"
+  OPS=$(python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl")
+  check_eq "approve then apply reached FluxVM" "speculate,approve,apply" "$OPS"
+  CODE=$(http_code "${AUTH[@]}" -X POST "$API/v1/sessions/$SID/speculate" -d '{"command":"rm -rf /tmp/specdir","paths":["/tmp"]}')
+  AID2=$(body | json_get approval.id)
+  check_eq "operator denies the second one" 200 "$(http_code "${AUTH[@]}" -X POST "$API/v1/approvals/$AID2" -d '{"decision":"denied"}')"
+  OPS=$(python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl")
+  check_eq "denied changeset was rejected, never applied" "speculate,approve,apply,speculate,reject" "$OPS"
+fi
+
 echo "==> user-held unwrap scaffold (refused without SNP/TDX)"
 UH=$("$KEEPCTL" user-held-challenge 300)
 check "user-held challenge has nonce" "nonce" "$UH"

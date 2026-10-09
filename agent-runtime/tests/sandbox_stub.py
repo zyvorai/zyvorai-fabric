@@ -27,6 +27,8 @@ ROOT = os.environ.get("SANDBOX_STUB_ROOT") or tempfile.mkdtemp(prefix="zyvor-san
 os.makedirs(ROOT, exist_ok=True)
 LOCK = threading.Lock()
 SANDBOXES: dict[str, dict] = {}
+CHANGESETS: dict[str, dict] = {}
+CHANGESET_FIXTURE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "fluxvm-changeset.json")
 
 
 def record(kind: str, row: dict) -> None:
@@ -120,6 +122,45 @@ class Handler(BaseHTTPRequestHandler):
                 # `simulated` makes the runtime label every run here as not sealed (see agent-runtime/src/demos.rs `run_badge`).
                 {"id": sandbox_id, "guest_ip": "127.0.0.1", "status": "running", "simulated": True},
             )
+            return
+
+        # Speculative execution. The changeset body is a response captured from a real FluxVM
+        # (tests/fixtures/fluxvm-changeset.json); only ids and the state machine are the stub's.
+        # Like FluxVM: paths are required for a VM sandbox, and apply before approve is a 409.
+        spec = re.fullmatch(r"/v1/sandboxes/([^/]+)/speculate", path)
+        if method == "POST" and spec:
+            body = self._read_json()
+            if not body.get("paths"):
+                self._send(400, {"error": "paths is required for a VM sandbox"})
+                return
+            changeset = json.load(open(CHANGESET_FIXTURE))
+            changeset.update(
+                id=str(uuid.uuid4()),
+                sandbox_id=spec.group(1),
+                command=body.get("command", ""),
+                paths=body["paths"],
+                state="pending",
+            )
+            with LOCK:
+                CHANGESETS[changeset["id"]] = changeset
+            record("changeset", {"op": "speculate", "id": changeset["id"]})
+            self._send(200, changeset)
+            return
+        verb = re.fullmatch(r"/v1/sandboxes/([^/]+)/changesets/([^/]+)/(approve|reject|apply)", path)
+        if method == "POST" and verb:
+            with LOCK:
+                changeset = CHANGESETS.get(verb.group(2))
+                if changeset is None:
+                    self._send(404, {"error": "changeset not found"})
+                    return
+                op = verb.group(3)
+                allowed = {"approve": "pending", "reject": "pending", "apply": "approved"}
+                if changeset["state"] != allowed[op]:
+                    self._send(409, {"error": f"cannot {op} a {changeset['state']} changeset"})
+                    return
+                changeset["state"] = {"approve": "approved", "reject": "rejected", "apply": "applied"}[op]
+            record("changeset", {"op": op, "id": changeset["id"]})
+            self._send(200, changeset)
             return
 
         write = re.fullmatch(r"/v1/sandboxes/([^/]+)/fs/write", path)
