@@ -792,4 +792,18 @@ mod tests {
         let empty: HostSecurityCapabilities = serde_json::from_value(json!({})).unwrap();
         assert!(!empty.snp_launch_verified && !empty.tdx_launch_verified);
     }
+
+    /// A changeset exactly as a real FluxVM (current HEAD, in-tree KVM, run on
+    /// the lab host) returned it. Guards `Changeset` against drift.
+    #[test]
+    fn decodes_a_real_fluxvm_changeset() {
+        let cs: Changeset =
+            serde_json::from_str(include_str!("../tests/fixtures/fluxvm-changeset.json")).unwrap();
+        assert_eq!(cs.state, "pending");
+        assert_eq!(cs.exit_code, 0);
+        assert_eq!(cs.paths, ["/tmp"]);
+        assert_eq!(cs.changes["added"][0], "/tmp/specdir/a.txt");
+        assert!(cs.unstaged.is_empty());
+        assert_eq!(cs.error, None);
+    }
 }

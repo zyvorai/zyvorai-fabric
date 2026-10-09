@@ -3732,6 +3732,20 @@ async fn speculate_session(
             "command must be at most {MAX_SPECULATE_COMMAND_BYTES} bytes"
         )));
     }
+    // A Keep cell is a VM, and FluxVM refuses to scan a VM's whole root: it
+    // needs the directories to compare, and they must exist in the guest.
+    let paths: Vec<String> = req
+        .paths
+        .unwrap_or_default()
+        .into_iter()
+        .map(|p| p.trim().to_string())
+        .filter(|p| !p.is_empty())
+        .collect();
+    if paths.is_empty() {
+        return Err(ApiError::bad_request(
+            "paths is required: name the guest directories to compare, for example [\"/work\"]",
+        ));
+    }
     let changeset = state
         .fluxvm
         .speculate(
@@ -3739,7 +3753,7 @@ async fn speculate_session(
             &crate::fluxvm::SpeculateRequest {
                 command: command.to_string(),
                 timeout_seconds: req.timeout_seconds,
-                paths: req.paths,
+                paths: Some(paths),
                 ttl_seconds: req.ttl_seconds,
             },
         )
@@ -4333,7 +4347,7 @@ mod tests {
         Json(SpeculateSessionRequest {
             command: command.into(),
             timeout_seconds: None,
-            paths: None,
+            paths: Some(vec!["/work".into()]),
             ttl_seconds: None,
         })
     }
@@ -4447,6 +4461,14 @@ mod tests {
             .await
             .unwrap_err();
         assert_eq!(err.status, StatusCode::BAD_REQUEST);
+        // FluxVM needs directories to compare; fail here with a clear message.
+        let Json(mut no_paths) = speculate_req("ls");
+        no_paths.paths = Some(vec!["  ".into()]);
+        let err = speculate_session(State(state.clone()), Path(running.id), Json(no_paths))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::BAD_REQUEST);
+        assert!(err.message.contains("paths is required"), "{}", err.message);
         let long = "x".repeat(MAX_SPECULATE_COMMAND_BYTES + 1);
         let err = speculate_session(State(state), Path(running.id), speculate_req(&long))
             .await
