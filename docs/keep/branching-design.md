@@ -61,5 +61,5 @@ Do not build this yet. Order of work if it is wanted:
 3. Only then add `POST /v1/sessions/{id}/branch`, refusing when the parent has a pending approval, with
    e2e coverage against the stub and a live run before any claim goes in the README.
 
-Until then the README and Pages must not describe Keep as branching sessions. `fabricctl fork` (a plain
+Until then the README and Pages must not describe Keep as branching sessions. `fabricctl live-fork` (a plain
 VM fork) is shipped and is a different, simpler thing.
