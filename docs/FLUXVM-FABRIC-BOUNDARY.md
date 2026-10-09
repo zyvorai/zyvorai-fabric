@@ -109,6 +109,25 @@ Operator docs: [ebpf-service-fabric.md](ebpf-service-fabric.md) ·
 FluxVM [service-fabric.md](https://github.com/zyvorai/fluxvm/blob/main/docs/service-fabric.md) ·
 Examples: [examples/service-fabric-v3/](examples/service-fabric-v3/).
 
+## FluxVM routes Fabric consumes beyond migration
+
+Fabric talks to FluxVM over REST only. These routes are wired in `fluxvm-client` and Keep's
+`FluxVm` client. "Live" means exercised against a real FluxVM on KVM; everything else is
+tested against in-process fakes.
+
+| FluxVM route | Used by | Status |
+| --- | --- | --- |
+| `Idempotency-Key` on `POST /v1/vms`, `DELETE /v1/vms/{id}`, snapshot, fork | `fluxvm-client` | Live |
+| `POST /v1/vms/{id}/fork`, snapshots list/restore/delete, `?ready=exec` | `fluxvm-client` | Live (needs the `flux-vm` backend on the KVM engine) |
+| `POST /v1/sandboxes/{id}/speculate`, `changesets/*` approve, reject, apply | Keep `POST /v1/sessions/{id}/speculate`; a human approval applies it | Client shape live; Keep handler fake-tested |
+| `POST /v1/sandboxes/{id}/grants` | Keep `/v1/sessions/{id}/grants`, only for credentials with no Keep-side limits | Fake-tested |
+| `policy` / `enforcement` on guest exec | `agent_exec_confined`, `FluxVm::process_confined` (fails closed) | Fake-tested |
+| `GET\|POST /v1/vms/{id}/balloon`, `GET /v1/vms/{id}/memory` | `fabricctl memory\|balloon`, fabricd `/vms/{name}/memory\|balloon` | **Beta**: FluxVM itself lists balloon as not live-verified |
+| `POST /v1/vms/{id}/cdroms/{name}/eject` | `FluxVmClient::eject_cdrom` | Fake-tested |
+| `backend: "vz"` | `BackendKind::Vz` (VMs on a macOS FluxVM host) | Decodes and encodes; not run on a Mac |
+
+`POST /v1/sandboxes` is not covered by FluxVM's idempotency, so Keep does not send a key there.
+
 ## Standalone FluxVM fleet mode
 
 `fluxvm-agent` stays useful as a lightweight standalone multi-host option. It

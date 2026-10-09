@@ -608,3 +608,28 @@ async fn balloon_and_memory_paths_and_decoding() {
     assert_eq!(m.usage.unwrap().pss_kib, 2);
     assert!(m.balloon.is_none());
 }
+
+#[tokio::test]
+async fn eject_cdrom_escapes_the_name_and_vz_backend_round_trips() {
+    let server = MockServer::start().await;
+    let id = Uuid::new_v4();
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/cdroms/inst%2Fall/eject")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "id": id, "name": "vm", "backend": "vz", "status": "running", "pid": null,
+            "created_at": "2026-01-01T00:00:00Z", "expires_at": null,
+            "workspace": "/tmp", "disk": "/tmp/disk.raw", "seed_disk": null,
+            "tap_name": null, "control_socket": null, "log_path": "/tmp/log", "error": null,
+            "request": sample_create_req(), "virtiofsd_pids": [], "dhcp_leasefile": null
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    let vm = client.eject_cdrom(id, "inst/all").await.unwrap();
+    assert_eq!(
+        serde_json::to_value(vm.backend).unwrap(),
+        json!("vz"),
+        "a vz VM must decode and re-encode as vz"
+    );
+}

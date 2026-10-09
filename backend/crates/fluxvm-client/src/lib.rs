@@ -51,6 +51,8 @@ pub enum BackendKind {
     Firecracker,
     /// In-tree FluxVM hypervisor (agent-sandbox execution track).
     FluxVm,
+    /// Apple Virtualization.framework, on a macOS host running FluxVM (`fluxvm-vz-runner`).
+    Vz,
     /// Resolved to a concrete backend server-side; never appears on a
     /// stored `VmRecord`, only ever sent on a `CreateVmRequest`.
     Auto,
@@ -2495,6 +2497,18 @@ impl FluxVmClient {
             )
             .send()
             .await?;
+        Self::parse(resp).await
+    }
+
+    /// `POST /v1/vms/{id}/cdroms/{name}/eject` (admin): remove the named CD-ROM from the VM.
+    /// The name is sent as one path segment.
+    pub async fn eject_cdrom(&self, id: Uuid, name: &str) -> Result<VmRecord> {
+        let mut url = self.url(&format!("/v1/vms/{id}/cdroms"))?;
+        url.path_segments_mut()
+            .map_err(|_| anyhow::anyhow!("base URL cannot carry a path"))?
+            .push(name)
+            .push("eject");
+        let resp = self.authed(self.http.post(url)).send().await?;
         Self::parse(resp).await
     }
 
