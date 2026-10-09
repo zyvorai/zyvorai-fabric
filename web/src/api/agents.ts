@@ -85,6 +85,8 @@ export interface KeepCockpit {
     status: string
     kind?: string
     subject?: string | null
+    /** For a `changeset` approval: the diff to review (see lib/changeset.ts). */
+    planned_action?: unknown
   }>
   last_decisions?: Array<{
     action?: string
