@@ -22,6 +22,7 @@ import { usePageLoader } from '../hooks/usePageLoader'
 import { useToastContext } from '../contexts/ToastContext'
 import { toastFailure } from '../utils/toastError'
 import { useKeepText } from '../i18n/useKeepText'
+import { changeCount, summarizeChangeset } from '../lib/changeset'
 
 const ALLOWED_BROWSER_SHOT_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
@@ -32,6 +33,43 @@ function browserShotMime(mime: string | undefined): string {
 
 function browserShotDataUrl(mime: string | undefined, imageBase64: string): string {
   return `data:${browserShotMime(mime)};base64,${imageBase64}`
+}
+
+function ChangesetReview({ planned }: { planned: unknown }) {
+  const cs = summarizeChangeset(planned)
+  if (!cs) return null
+  const row = (sign: string, color: string, paths: string[]) =>
+    paths.map((p) => (
+      <li key={sign + p} className={color}>
+        {sign} {p}
+      </li>
+    ))
+  return (
+    <div className="mt-2 space-y-1 text-xs" data-testid="changeset-review">
+      <div className="font-mono text-[var(--zf-muted)]">
+        $ {cs.command || '(command not shown)'}
+        {cs.exitCode !== null ? ` · exit ${cs.exitCode}` : ''}
+      </div>
+      {changeCount(cs) === 0 ? (
+        <p className="text-[var(--zf-muted)]">No file changes.</p>
+      ) : (
+        <ul className="font-mono">
+          {row('+', 'text-green-600', cs.added)}
+          {row('~', 'text-amber-600', cs.modified)}
+          {row('−', 'text-red-600', cs.deleted)}
+        </ul>
+      )}
+      {cs.unstaged.length > 0 && (
+        <p className="text-amber-600">Not captured, so not applied: {cs.unstaged.join(', ')}</p>
+      )}
+      {cs.nonReplayable.length > 0 && (
+        <p className="text-amber-600">Cannot be replayed: {cs.nonReplayable.join('; ')}</p>
+      )}
+      <p className="text-[var(--zf-muted)]">
+        Nothing reaches the sandbox until you approve.{cs.egress ? ` Network: ${cs.egress}.` : ''}
+      </p>
+    </div>
+  )
 }
 
 /** One Keep view: goal → current task → evidence → approval → outcome. */
@@ -398,6 +436,7 @@ export default function KeepSession() {
                 <div className="text-[var(--zf-muted)] text-xs mt-1">
                   {a.kind ?? 'custom'} {a.subject ? `· ${a.subject}` : ''}
                 </div>
+                <ChangesetReview planned={a.planned_action} />
                 <div className="flex gap-2 mt-2">
                   <button
                     type="button"
