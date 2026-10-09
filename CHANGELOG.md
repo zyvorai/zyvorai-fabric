@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **Keep: speculative execution behind an approval.** `POST /v1/sessions/{id}/speculate` runs a command in an isolated
+  copy of the cell and opens a `changeset` approval carrying the diff. A person's approve makes FluxVM approve then apply;
+  a deny rejects it. The agent cannot approve. `paths` is required (FluxVM needs existing guest directories for a VM).
+  `keepctl speculate` / `keepctl decide`, a diff view in the console's Keep session page, and e2e coverage against the
+  FluxVM stub. The FluxVM calls were run against a real FluxVM; Keep's own handler was tested against fakes only.
+- **Keep: FluxVM credential grants.** `/v1/sessions/{id}/grants` (POST, GET, DELETE) forward to FluxVM's broker, only for
+  credentials whose Keep limits a grant can keep: an `Authorization` header, no approval, method, path or per-user limits,
+  hosts inside the credential's host. The secret is sent once and never returned or audited.
+- **`fluxvm-client`:** `Idempotency-Key` on create and delete, fork, snapshot, restore, snapshot list and delete,
+  `?ready=exec` timing, guest exec `policy` with the guest's `enforcement` result (Keep's `process_confined` fails closed
+  when the guest did not enforce what was asked), balloon and PSS memory, CD-ROM eject, and `BackendKind::Vz`.
+- **`fabricctl live-fork`, `fabricctl memory`, `fabricctl balloon`** and the fabricd routes behind them
+  (`POST /vms/{name}/live-fork`, `GET /vms/{name}/memory`, `GET|POST /vms/{name}/balloon`). Balloon is Beta: FluxVM lists
+  it as not live-verified. `live-fork` needs the `flux-vm` backend on the KVM engine; the existing
+  `POST /vms/{name}/fork` is a separate disk clone.
+- **Demos:** `scripts/record-demos.sh` and `scripts/demo/cast.py` render real command runs (and clearly labelled
+  illustrative replays) to GIF, MP4 and WebM under `docs/assets/demos/`. `docs/use-cases.md` says which part to use for
+  which problem. `docs/FLUXVM-FABRIC-BOUNDARY.md` lists every FluxVM route Fabric uses and whether it was run live.
+- **Design note:** `docs/keep/branching-design.md` explains why Keep sessions are not branched with fork yet.
+
+### Fixed
+- `scripts/lib/deploy-common.sh` printed `s: unbound variable` after every deploy.
+- The website lockfile no longer carries the Trivy findings (`tinypool` is overridden to 2.x).
+- `zyvor-fabricd` registered `POST /vms/{name}/fork` twice during one commit window on `main`, which panicked at
+  startup; the new route is `/vms/{name}/live-fork`.
+
 ## 0.3.0
 
 ### Changed
