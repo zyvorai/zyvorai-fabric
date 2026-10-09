@@ -576,3 +576,35 @@ async fn confined_exec_sends_policy_and_decodes_enforcement() {
         other => panic!("{other:?}"),
     }
 }
+
+#[tokio::test]
+async fn balloon_and_memory_paths_and_decoding() {
+    let server = MockServer::start().await;
+    let id = Uuid::new_v4();
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/balloon")))
+        .and(body_json(json!({"balloon_mib": 256})))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"memory_mib": 1024, "target_mib": 256, "actual_mib": 192})),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(format!("/v1/vms/{id}/memory")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "vm_id": id, "configured_mib": 1024,
+            "usage": {"rss_kib": 3, "pss_kib": 2, "private_kib": 1, "shared_kib": 2, "swap_kib": 0},
+            "balloon": null
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    let b = client.set_balloon(id, 256).await.unwrap();
+    assert_eq!((b.target_mib, b.actual_mib), (256, 192));
+    let m = client.get_memory(id).await.unwrap();
+    assert_eq!(m.usage.unwrap().pss_kib, 2);
+    assert!(m.balloon.is_none());
+}

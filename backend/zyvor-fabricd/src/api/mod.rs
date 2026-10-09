@@ -18,6 +18,7 @@ pub mod firmware;
 pub mod guest_rescue;
 pub mod hotplug;
 pub mod images;
+pub mod memory;
 pub mod migration;
 pub mod network_cloud;
 pub mod network_cloud_discover;

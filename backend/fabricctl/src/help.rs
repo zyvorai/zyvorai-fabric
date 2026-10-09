@@ -33,6 +33,16 @@ const GROUPS: &[CmdGroup] = &[
                 about: "Get VM information",
             },
             CmdEntry {
+                emoji: "🧠",
+                name: "memory",
+                about: "Show a VM's real memory footprint (PSS) and balloon",
+            },
+            CmdEntry {
+                emoji: "🎈",
+                name: "balloon",
+                about: "Show or set a VM's memory balloon (Beta)",
+            },
+            CmdEntry {
                 emoji: "✨",
                 name: "create",
                 about: "Create a new VM",

@@ -1224,6 +1224,37 @@ struct ExecRequest<'a> {
     policy: Option<&'a serde_json::Value>,
 }
 
+/// Balloon state of a VM (`GET|POST /v1/vms/{id}/balloon`).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BalloonStatus {
+    pub memory_mib: u64,
+    /// What was requested.
+    pub target_mib: u64,
+    /// What the guest driver has reached so far.
+    pub actual_mib: u64,
+}
+
+/// VMM-process memory use, in KiB. PSS divides shared pages between the processes sharing them.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MemoryUsage {
+    pub rss_kib: u64,
+    pub pss_kib: u64,
+    pub private_kib: u64,
+    pub shared_kib: u64,
+    pub swap_kib: u64,
+}
+
+/// `GET /v1/vms/{id}/memory`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VmMemory {
+    pub vm_id: Uuid,
+    pub configured_mib: u64,
+    /// `None` when the VM has no VMM process or its smaps are unreadable.
+    pub usage: Option<MemoryUsage>,
+    /// `None` when the VM has no balloon.
+    pub balloon: Option<BalloonStatus>,
+}
+
 /// What the guest enforced for one confined exec (`enforcement` in the response).
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
@@ -2462,6 +2493,36 @@ impl FluxVmClient {
                 self.http
                     .post(self.url(&format!("/v1/vms/{id}/network/migration/resume"))?),
             )
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `GET /v1/vms/{id}/balloon`. Only a running VM on the flux-vm KVM engine has a
+    /// balloon; FluxVM answers 400 for anything else. Beta: FluxVM lists balloon as
+    /// unit-tested, not live-verified.
+    pub async fn get_balloon(&self, id: Uuid) -> Result<BalloonStatus> {
+        let resp = self
+            .authed(self.http.get(self.url(&format!("/v1/vms/{id}/balloon"))?))
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `POST /v1/vms/{id}/balloon` (admin). `0` deflates.
+    pub async fn set_balloon(&self, id: Uuid, balloon_mib: u64) -> Result<BalloonStatus> {
+        let resp = self
+            .authed(self.http.post(self.url(&format!("/v1/vms/{id}/balloon"))?))
+            .json(&serde_json::json!({ "balloon_mib": balloon_mib }))
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `GET /v1/vms/{id}/memory`: the VMM process's real (PSS) footprint and the balloon.
+    pub async fn get_memory(&self, id: Uuid) -> Result<VmMemory> {
+        let resp = self
+            .authed(self.http.get(self.url(&format!("/v1/vms/{id}/memory"))?))
             .send()
             .await?;
         Self::parse(resp).await

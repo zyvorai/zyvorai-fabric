@@ -165,6 +165,15 @@ enum Commands {
     List,
     /// Get VM information
     Info { name: String },
+    /// Show a VM's real memory footprint (PSS) and balloon
+    Memory { name: String },
+    /// Show or set a VM's memory balloon (Beta; flux-vm KVM engine only)
+    Balloon {
+        name: String,
+        /// Inflate to this many MiB taken from the guest; 0 deflates. Omit to just show it.
+        #[arg(long)]
+        mib: Option<u64>,
+    },
     /// Create a new VM
     Create {
         name: String,
@@ -1852,6 +1861,45 @@ impl Cli {
                 }
             }
 
+            Commands::Memory { name } => {
+                let mem: serde_json::Value = client
+                    .get(format!("{}/vms/{}/memory", api_base(), name))
+                    .send()
+                    .await?
+                    .error_for_status()
+                    .context("get VM memory")?
+                    .json()
+                    .await?;
+                match fmt {
+                    OutputFormat::Table => print_memory(&mem),
+                    _ => println!("{}", format_output(&mem, fmt)?),
+                }
+            }
+
+            Commands::Balloon { name, mib } => {
+                let url = format!("{}/vms/{}/balloon", api_base(), name);
+                let req = match mib {
+                    Some(m) => client
+                        .post(url)
+                        .json(&serde_json::json!({ "balloon_mib": m })),
+                    None => client.get(url),
+                };
+                let resp = req.send().await?;
+                if !resp.status().is_success() {
+                    let status = resp.status();
+                    let body = resp.text().await.unwrap_or_default();
+                    anyhow::bail!("balloon: {status}: {body}");
+                }
+                let b: serde_json::Value = resp.json().await?;
+                match fmt {
+                    OutputFormat::Table => println!(
+                        "balloon: target {} MiB, reached {} MiB of {} MiB",
+                        b["target_mib"], b["actual_mib"], b["memory_mib"]
+                    ),
+                    _ => println!("{}", format_output(&b, fmt)?),
+                }
+            }
+
             Commands::Create {
                 name,
                 image,
@@ -3395,6 +3443,59 @@ impl Cli {
         }
 
         Ok(())
+    }
+}
+
+/// Render `GET /vms/{name}/memory`. PSS is the honest per-VM cost: pages shared with other
+/// VMs are divided between them, so summing PSS over VMs does not double count.
+fn print_memory(m: &serde_json::Value) {
+    let mib = |kib: &serde_json::Value| kib.as_u64().map(|k| k as f64 / 1024.0);
+    println!("Configured: {} MiB", m["configured_mib"]);
+    match m.get("usage").filter(|u| !u.is_null()) {
+        Some(u) => {
+            for (label, key) in [
+                ("PSS", "pss_kib"),
+                ("Private", "private_kib"),
+                ("Shared", "shared_kib"),
+                ("RSS", "rss_kib"),
+            ] {
+                if let Some(v) = mib(&u[key]) {
+                    println!("{label:<11} {v:.1} MiB");
+                }
+            }
+        }
+        None => println!("Usage:      unavailable (no VMM process or unreadable smaps)"),
+    }
+    match m.get("balloon").filter(|b| !b.is_null()) {
+        Some(b) => println!(
+            "Balloon:    target {} MiB, reached {} MiB",
+            b["target_mib"], b["actual_mib"]
+        ),
+        None => println!("Balloon:    none"),
+    }
+}
+
+#[cfg(test)]
+mod memory_cli_tests {
+    use super::*;
+
+    #[test]
+    fn memory_and_balloon_parse() {
+        let cli = Cli::try_parse_from(["fabricctl", "memory", "vm1"]).unwrap();
+        assert!(matches!(cli.command, Some(Commands::Memory { .. })));
+        let cli = Cli::try_parse_from(["fabricctl", "balloon", "vm1", "--mib", "256"]).unwrap();
+        match cli.command {
+            Some(Commands::Balloon { name, mib }) => {
+                assert_eq!((name.as_str(), mib), ("vm1", Some(256)))
+            }
+            _ => panic!("expected Balloon"),
+        }
+        let cli = Cli::try_parse_from(["fabricctl", "balloon", "vm1"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Balloon { mib: None, .. })
+        ));
+        assert!(Cli::try_parse_from(["fabricctl", "balloon", "vm1", "--mib", "-1"]).is_err());
     }
 }
 
