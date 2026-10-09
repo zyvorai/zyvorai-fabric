@@ -19,6 +19,11 @@
 
 <img src="docs/social/fabric-hero-dark.jpg" alt="Zyvor Fabric - One daemon. Four front doors." width="100%">
 
+<p align="center">
+  <img src="docs/assets/demos/keep-speculate.gif" alt="Keep: an agent proposes a file change, a person approves it, and only then does FluxVM apply it. A second proposal is denied and never applied." width="820">
+</p>
+<p align="center"><sub><b>An agent proposes. A person decides.</b> A real run of the Keep runtime; FluxVM is the CI stub, so no VM boots here. <a href="docs/assets/demos/README.md">How these are made</a></sub></p>
+
 ### One daemon. Four front doors.
 
 **Private cloud control plane for Linux.** VMs, networking, storage, security and AI inference from **one daemon**: one ~15MB Rust daemon that deploys in about 5 minutes on any Linux server with KVM, driven the same way from the CLI, the web console, the Kubernetes operator and Terraform.
@@ -35,6 +40,9 @@
 
 | Release | What landed |
 |---|---|
+| **Keep** | Speculative execution: `POST /v1/sessions/{id}/speculate` runs a command in an isolated copy of the cell and holds the file changes behind a `changeset` approval. A person's approve applies them on FluxVM; a deny rejects them. The agent cannot approve |
+| **Keep** | FluxVM credential grants through `/v1/sessions/{id}/grants`, only for credentials whose Keep limits a grant can keep (no approval, method, path or per-user limits) |
+| **FluxVM** | `fluxvm-client` gains fork, snapshot, restore, `?ready=exec`, `Idempotency-Key` on create and delete, guest exec policy, balloon and PSS memory (`fabricctl memory`, `fabricctl balloon`; balloon is Beta), CD-ROM eject and the `vz` backend. Fork, snapshot, restore and idempotency were run against a real FluxVM on KVM; see [the boundary doc](docs/FLUXVM-FABRIC-BOUNDARY.md) for what was and was not |
 | **Keep** | Credential secrets from a file or from HashiCorp Vault (`source vault`), with Vault AppRole and Kubernetes login and chart values |
 | **Keep** | The runtime rejects policy fields it does not enforce |
 | **0.3.0** | `POST /v1/agui`: an AG-UI endpoint over Keep sessions, validated against the official `@ag-ui/core` 1.0.0 schemas; it cannot approve anything |
@@ -44,6 +52,16 @@
 | **0.3.0** | Fixed: use-case cells now get a host-applied deny-all policy and fail closed; finished runs delete their cell at once |
 
 Full history: [CHANGELOG.md](CHANGELOG.md).
+
+## Where you can use it
+
+| If you are… | Use it for | Start here |
+|---|---|---|
+| Building with AI agents | A sealed microVM per agent run, network rules the host sets, approvals you hold | [Keep](docs/keep/README.md) |
+| Running a private cloud | VMs, networking, storage and security from one daemon on any Linux server with KVM | [Quickstart](#quickstart) |
+| Running Kubernetes | VMs as `VirtualMachine` resources next to your pods | [Kubernetes](docs/KUBERNETES.md) |
+| Managing a Mac fleet | Solvor, the native Mac client for Keep | [Solvor](integrations/macos-keep) |
+| Wanting inference near your VMs | OpenAI-compatible endpoints on the same daemon (single-cluster Beta) | [AI Workloads](docs/ai-workloads.md) |
 
 ## Why Zyvor Fabric
 

@@ -76,6 +76,34 @@ export default function KeepPage(): ReactNode {
           </Section>
 
           <Section
+            id="see-it"
+            eyebrow="See it"
+            title="The agent proposes. A person decides."
+            lede="A real run of the Keep runtime: the agent’s change waits behind an approval, and nothing reaches the sandbox until a person says yes."
+            wide>
+            <Reveal>
+              <figure style={{margin: '0 auto', maxWidth: 960}}>
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  controls
+                  poster={useBaseUrl('/demos/keep-speculate.gif')}
+                  style={{width: '100%', borderRadius: 12}}>
+                  <source src={useBaseUrl('/demos/keep-speculate.webm')} type="video/webm" />
+                  <source src={useBaseUrl('/demos/keep-speculate.mp4')} type="video/mp4" />
+                </video>
+                <figcaption style={{marginTop: 12, fontSize: '0.9rem', opacity: 0.8}}>
+                  Real Keep runtime. FluxVM is the CI stub, so no VM boots in this recording; the changeset it
+                  returns is a response captured from a real FluxVM. Reproduce it with{' '}
+                  <code>./scripts/record-demos.sh keep-speculate</code>.
+                </figcaption>
+              </figure>
+            </Reveal>
+          </Section>
+
+          <Section
             id="cockpit"
             eyebrow="The cockpit"
             title="What you watch while it works."

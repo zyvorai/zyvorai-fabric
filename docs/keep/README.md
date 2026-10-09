@@ -23,6 +23,12 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 </div>
 
 <p align="center">
+  <img src="../assets/demos/keep-speculate.gif" alt="Keep: an agent proposes a file change, a person approves it, and only then does FluxVM apply it" width="820">
+</p>
+
+<p align="center"><sub>A real run of the Keep runtime; FluxVM is the CI stub. <a href="../assets/demos/README.md">How these are made</a>.</sub></p>
+
+<p align="center">
   <img src="../assets/keep/demo-static.svg" alt="Real output of ./scripts/keep-e2e.sh: 39 checks passed, 0 failed" width="760">
 </p>
 
