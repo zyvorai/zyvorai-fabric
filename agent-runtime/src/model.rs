@@ -1217,6 +1217,8 @@ pub enum ApprovalKind {
     Egress,
     Purchase,
     Send,
+    /// A speculative run's file changes, held until a person applies or rejects them.
+    Changeset,
 }
 
 impl ApprovalKind {
@@ -1226,6 +1228,7 @@ impl ApprovalKind {
             Self::Egress => "egress",
             Self::Purchase => "purchase",
             Self::Send => "send",
+            Self::Changeset => "changeset",
         }
     }
 }

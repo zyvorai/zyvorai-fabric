@@ -110,6 +110,49 @@ pub struct SandboxVolume {
     pub guest_path: String,
 }
 
+/// A speculative run and its decision state (`/v1/sandboxes/{id}/changesets`).
+/// Only the fields Keep shows or acts on are typed; `changes` and
+/// `side_effects` stay raw JSON so a FluxVM that adds fields keeps working.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Changeset {
+    pub id: Uuid,
+    pub sandbox_id: Uuid,
+    /// `pending`, `approved`, `applied`, `rejected`, `expired` or `failed`.
+    pub state: String,
+    #[serde(default)]
+    pub expires_at: u64,
+    pub command: String,
+    #[serde(default)]
+    pub exit_code: i32,
+    #[serde(default)]
+    pub stdout: String,
+    #[serde(default)]
+    pub stderr: String,
+    #[serde(default)]
+    pub paths: Vec<String>,
+    #[serde(default)]
+    pub changes: Value,
+    #[serde(default)]
+    pub side_effects: Value,
+    /// Changed files whose contents could not be kept; FluxVM refuses to apply while any.
+    #[serde(default)]
+    pub unstaged: Vec<String>,
+    #[serde(default)]
+    pub error: Option<String>,
+}
+
+/// What to run speculatively. `command` is passed to the guest as given.
+#[derive(Debug, Clone, Serialize)]
+pub struct SpeculateRequest {
+    pub command: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout_seconds: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub paths: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ttl_seconds: Option<u64>,
+}
+
 /// What a sandbox gets beyond its template: volumes, size, confidential launch.
 #[derive(Debug, Default)]
 pub struct SandboxOptions<'a> {
@@ -392,6 +435,57 @@ impl FluxVm {
             .await?;
         let _: Value = self.parse(response).await?;
         Ok(())
+    }
+
+    /// Run `req.command` in an isolated copy of the sandbox and return the
+    /// pending changeset. Nothing reaches the real sandbox until
+    /// [`Self::apply_changeset`].
+    pub async fn speculate(&self, id: Uuid, req: &SpeculateRequest) -> Result<Changeset> {
+        let response = self
+            .auth(
+                self.http
+                    .post(self.url(&format!("/v1/sandboxes/{id}/speculate"))?),
+            )
+            .json(req)
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    pub async fn get_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
+        let response = self
+            .auth(
+                self.http
+                    .get(self.url(&format!("/v1/sandboxes/{id}/changesets/{changeset}"))?),
+            )
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    /// `verb` is `approve`, `reject` or `apply`. FluxVM answers 409 for an
+    /// invalid transition, an expired changeset or a base that moved on.
+    async fn changeset_verb(&self, id: Uuid, changeset: Uuid, verb: &str) -> Result<Changeset> {
+        let response = self
+            .auth(
+                self.http
+                    .post(self.url(&format!("/v1/sandboxes/{id}/changesets/{changeset}/{verb}"))?),
+            )
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    pub async fn approve_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
+        self.changeset_verb(id, changeset, "approve").await
+    }
+
+    pub async fn reject_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
+        self.changeset_verb(id, changeset, "reject").await
+    }
+
+    pub async fn apply_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
+        self.changeset_verb(id, changeset, "apply").await
     }
 
     pub async fn delete(&self, id: Uuid) -> Result<()> {
