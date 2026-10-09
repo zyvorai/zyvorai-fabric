@@ -119,9 +119,9 @@ tested against in-process fakes.
 | --- | --- | --- |
 | `Idempotency-Key` on `POST /v1/vms`, `DELETE /v1/vms/{id}`, snapshot, fork | `fluxvm-client` | Live |
 | `POST /v1/vms/{id}/fork`, snapshots list/restore/delete, `?ready=exec` | `fluxvm-client` | Live (needs the `flux-vm` backend on the KVM engine) |
-| `POST /v1/sandboxes/{id}/speculate`, `changesets/*` approve, reject, apply | Keep `POST /v1/sessions/{id}/speculate`; a human approval applies it | Client shape live; Keep handler fake-tested |
+| `POST /v1/sandboxes/{id}/speculate`, `changesets/*` approve, reject, apply | Keep `POST /v1/sessions/{id}/speculate`; a human approval applies it | **Live**: Keep speculate, approve (apply) and deny (reject) ran against a real FluxVM microVM and the file landed in or stayed out of the guest |
 | `POST /v1/sandboxes/{id}/grants` | Keep `/v1/sessions/{id}/grants`, only for credentials with no Keep-side limits | Fake-tested |
-| `policy` / `enforcement` on guest exec | `agent_exec_confined`, `FluxVm::process_confined` (fails closed) | Fake-tested |
+| `policy` / `enforcement` on guest exec | `agent_exec_confined`, `FluxVm::process_confined` (fails closed) | Fake-tested. Live check: the guest agent baked into the lab image (Sep 28) predates exec policy, so FluxVM **ignored the policy and returned no `enforcement`** (a write outside the allowed path succeeded). That is the case `process_confined` refuses; the image needs a newer guest agent before policy is real there |
 | `GET\|POST /v1/vms/{id}/balloon`, `GET /v1/vms/{id}/memory` | `fabricctl memory\|balloon`, fabricd `/vms/{name}/memory\|balloon` | **Beta**: FluxVM itself lists balloon as not live-verified |
 | `POST /v1/vms/{id}/cdroms/{name}/eject` | `FluxVmClient::eject_cdrom` | Fake-tested |
 | `backend: "vz"` | `BackendKind::Vz` (VMs on a macOS FluxVM host) | Decodes and encodes; not run on a Mac |

@@ -7,6 +7,7 @@
 #   ./scripts/record-demos.sh keep-speculate  # one demo
 #   RENDER_ONLY=1 ./scripts/record-demos.sh   # re-render from the committed .cast.jsonl files
 #
+# keep-live-speculate needs LAB_HOST=user@host and a prepared lab host; re-render it with RENDER_ONLY=1.
 # Each demo is a real run of a command (cast.py record) or, where the lab cannot run it, a scripted
 # replay that says "illustrative" in its first frame. See docs/assets/demos/README.md.
 set -euo pipefail
@@ -17,6 +18,7 @@ CAST="python3 scripts/demo/cast.py"
 # name | command that produces the output | command shown at the prompt | window title
 DEMOS=(
   "keep-speculate|scripts/demo/run-speculate.sh|KEEP_E2E_DEMO=speculate-demo.sh ./scripts/keep-e2e.sh|keep: speculate, review, approve"
+  "keep-live-speculate|scripts/demo/run-live-speculate.sh|ssh lab-host live-speculate.sh|keep + a real FluxVM microVM"
   "credential-broker|bash scripts/demo/illustrative-broker.sh|bash scripts/demo/illustrative-broker.sh|illustrative: credential broker"
 )
 
