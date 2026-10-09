@@ -34,8 +34,8 @@ const GROUPS: &[CmdGroup] = &[
             },
             CmdEntry {
                 emoji: "🍴",
-                name: "fork",
-                about: "Fork a running VM into copies (flux-vm KVM engine)",
+                name: "live-fork",
+                about: "Fork a running VM into copies of its memory (flux-vm KVM engine)",
             },
             CmdEntry {
                 emoji: "🧠",

@@ -100,10 +100,11 @@ fn one() -> u32 {
 /// Children one fork may start. FluxVM enforces the same limit; checking here gives a clear 400.
 pub const MAX_FORK_COUNT: u32 = 32;
 
-/// POST /api/vms/{name}/fork  `{"count": N, "name_prefix": "...", "ready": true}`
+/// POST /api/vms/{name}/live-fork  `{"count": N, "name_prefix": "...", "ready": true}`
 ///
-/// Needs the flux-vm backend on the KVM engine; anything else comes back from FluxVM as an error.
-pub async fn fork_vm(
+/// Unlike `POST /api/vms/{name}/fork` (a disk copy-on-write clone), this forks the *running* VM's
+/// memory. Needs the flux-vm backend on the KVM engine; anything else comes back from FluxVM as an error.
+pub async fn live_fork_vm(
     RequireWrite(_claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
