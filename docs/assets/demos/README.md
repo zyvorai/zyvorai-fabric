@@ -7,6 +7,7 @@ Regenerate with `./scripts/record-demos.sh` (needs `python3`, Pillow and `ffmpeg
 | Demo | What it is | Honesty label |
 |---|---|---|
 | `keep-speculate` | A real run of the Keep runtime (`scripts/keep-e2e.sh`). The agent proposes a change, a person approves or denies it, and the demo prints what FluxVM was asked to do. | Keep is real. **FluxVM is the CI stub**, so no VM boots; the changeset body is a response captured from a real FluxVM. The frame says so. |
+| `credential-broker` | A scripted replay of the credential-broker idea (`scripts/demo/illustrative-broker.sh`). It runs nothing and prints fixed text. | **Illustrative.** The first frame says so, the title bar says so, and it has no numbers. |
 
 Rules for adding one:
 
