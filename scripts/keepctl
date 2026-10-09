@@ -30,6 +30,9 @@
 #   keepctl diff <older-artifact-id> <newer-artifact-id>   # line diff of two runs
 #   keepctl audit [<session-id>] [--limit <n>]             # journal + hash-chain check
 #   keepctl approvals [pending|approved|denied]            # approval inbox and history
+#   keepctl speculate <session-id> --paths /work[,/data] [--ttl <s>] -- <command>
+#                                   # run it in an isolated copy of the cell; the file changes wait behind an approval
+#   keepctl decide <approval-id> approved|denied           # a person's decision; approved applies a changeset on FluxVM
 #
 set -euo pipefail
 
@@ -598,6 +601,39 @@ for a in json.load(sys.stdin)["items"]:
     if want and a["status"] != want:
         continue
     print("%s  %-9s %-8s %s  %s" % (a["id"], a["status"], a["kind"], a["created_at"][:19], a.get("subject") or ""))'
+    ;;
+
+  speculate)
+    id="${1:-}"
+    [[ -n "$id" ]] || { echo "usage: keepctl speculate <session-id> --paths /work[,/data] [--ttl <s>] -- <command>" >&2; exit 1; }
+    shift
+    paths="" ttl=""
+    while [[ $# -gt 0 && "$1" != "--" ]]; do
+      case "$1" in
+        --paths) paths="${2:-}"; shift 2 ;;
+        --ttl) ttl="${2:-}"; shift 2 ;;
+        *) echo "unknown option: $1" >&2; exit 1 ;;
+      esac
+    done
+    [[ "${1:-}" == "--" ]] && shift
+    [[ -n "$paths" ]] || { echo "--paths is required: name the guest directories to compare, for example --paths /work" >&2; exit 1; }
+    [[ $# -gt 0 ]] || { echo "a command is required after --" >&2; exit 1; }
+    body=$(PATHS="$paths" TTL="$ttl" python3 -c '
+import json, os, sys
+b = {"command": " ".join(sys.argv[1:]), "paths": [p for p in os.environ["PATHS"].split(",") if p]}
+if os.environ["TTL"]:
+    b["ttl_seconds"] = int(os.environ["TTL"])
+print(json.dumps(b))' "$@")
+    api POST "/v1/sessions/${id}/speculate" -H 'Content-Type: application/json' -d "$body"
+    echo
+    ;;
+
+  decide)
+    aid="${1:-}" decision="${2:-}"
+    case "$decision" in approved|denied) ;; *) echo "usage: keepctl decide <approval-id> approved|denied" >&2; exit 1 ;; esac
+    [[ -n "$aid" ]] || { echo "usage: keepctl decide <approval-id> approved|denied" >&2; exit 1; }
+    api POST "/v1/approvals/${aid}" -H 'Content-Type: application/json' -d "{\"decision\":\"${decision}\"}"
+    echo
     ;;
 
   *)
