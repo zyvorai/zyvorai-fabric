@@ -522,3 +522,57 @@ async fn snapshot_restore_list_delete_paths_and_tag_escaping() {
     );
     client.delete_vm_snapshot(id, "a/b").await.unwrap();
 }
+
+#[tokio::test]
+async fn confined_exec_sends_policy_and_decodes_enforcement() {
+    let server = MockServer::start().await;
+    let id = Uuid::new_v4();
+    let policy = json!({"read": ["/usr"], "write": ["/work"], "max_memory": 67108864});
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/agent")))
+        .and(body_json(json!({
+            "command": "id",
+            "timeout_seconds": 5,
+            "policy": policy,
+        })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "result": "exec", "exit_code": 0, "stdout": "ok", "stderr": "",
+            "enforcement": {"landlock_abi": 4, "filesystem": true, "seccomp": true,
+                            "not_enforced": ["max_memory"]}
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    // An unconfined exec must not send a `policy` key at all.
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/agent")))
+        .and(body_json(json!({"command": "true"})))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(
+                json!({"result": "exec", "exit_code": 0, "stdout": "", "stderr": ""}),
+            ),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    match client
+        .agent_exec_confined(id, "id", Some(5), &policy)
+        .await
+        .unwrap()
+    {
+        zyvor_fabric_fluxvm_client::AgentResponse::Exec { enforcement, .. } => {
+            let e = enforcement.expect("enforcement");
+            assert!(e.filesystem && e.seccomp && !e.tcp_connect);
+            assert_eq!(e.not_enforced, vec!["max_memory"]);
+        }
+        other => panic!("{other:?}"),
+    }
+    match client.agent_exec(id, "true", None).await.unwrap() {
+        zyvor_fabric_fluxvm_client::AgentResponse::Exec { enforcement, .. } => {
+            assert!(enforcement.is_none())
+        }
+        other => panic!("{other:?}"),
+    }
+}

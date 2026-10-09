@@ -1216,10 +1216,28 @@ struct CleanCatalogResponse {
 }
 
 #[derive(Debug, Serialize)]
-struct ExecRequest {
+struct ExecRequest<'a> {
     command: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     timeout_seconds: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    policy: Option<&'a serde_json::Value>,
+}
+
+/// What the guest enforced for one confined exec (`enforcement` in the response).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ExecEnforcement {
+    pub landlock_abi: u32,
+    pub filesystem: bool,
+    pub tcp_connect: bool,
+    pub tcp_bind: bool,
+    pub seccomp: bool,
+    pub uid_dropped: bool,
+    pub namespaces: bool,
+    pub network_isolated: bool,
+    /// Everything the policy asked for that this run did NOT enforce.
+    pub not_enforced: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -1247,6 +1265,9 @@ pub enum AgentResponse {
         exit_code: i32,
         stdout: String,
         stderr: String,
+        /// What the guest actually enforced; present only when the request carried a `policy`.
+        #[serde(default)]
+        enforcement: Option<ExecEnforcement>,
     },
     FileWritten,
     FileContent {
@@ -1795,6 +1816,29 @@ impl FluxVmClient {
             .json(&ExecRequest {
                 command: command.into(),
                 timeout_seconds,
+                policy: None,
+            })
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// Like [`Self::agent_exec`], confined by a guest exec `policy` (the `fluxvm-procbox`
+    /// shape: `read`, `write`, `tcp_connect`, `max_memory`, ...). The response's
+    /// `enforcement` says what the guest really applied; anything in `not_enforced` was not.
+    pub async fn agent_exec_confined(
+        &self,
+        id: Uuid,
+        command: impl Into<String>,
+        timeout_seconds: Option<u64>,
+        policy: &serde_json::Value,
+    ) -> Result<AgentResponse> {
+        let resp = self
+            .authed(self.http.post(self.url(&format!("/v1/vms/{id}/agent"))?))
+            .json(&ExecRequest {
+                command: command.into(),
+                timeout_seconds,
+                policy: Some(policy),
             })
             .send()
             .await?;

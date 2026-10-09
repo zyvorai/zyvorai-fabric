@@ -312,6 +312,57 @@ impl FluxVm {
         self.parse(response).await
     }
 
+    /// Run `command` confined by a guest exec `policy` (Landlock + seccomp, the
+    /// `fluxvm-procbox` shape). The result is returned only if the guest enforced
+    /// everything the policy asked for: a non-empty `enforcement.not_enforced`, or an
+    /// older FluxVM that reports no `enforcement` at all, is an error, because a caller
+    /// who asked for confinement must never believe it got it when it did not.
+    /// Set `"best_effort": true` in the policy to accept partial enforcement; the
+    /// returned `enforcement` then says exactly what was missing.
+    pub async fn process_confined(
+        &self,
+        id: Uuid,
+        command: &str,
+        timeout_seconds: Option<u64>,
+        policy: &Value,
+    ) -> Result<Value> {
+        let response = self
+            .auth(
+                self.http
+                    .post(self.url(&format!("/v1/sandboxes/{id}/process"))?),
+            )
+            .json(&json!({
+                "command": command,
+                "timeout_seconds": timeout_seconds,
+                "policy": policy,
+            }))
+            .send()
+            .await?;
+        let out: Value = self.parse(response).await?;
+        let best_effort = policy
+            .get("best_effort")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        let enforcement = out.get("enforcement").filter(|e| !e.is_null());
+        let Some(enforcement) = enforcement else {
+            bail!(
+                "FluxVM did not report `enforcement` for a confined exec; it predates guest exec policy, so the command was not confined"
+            );
+        };
+        let missing: Vec<&str> = enforcement
+            .get("not_enforced")
+            .and_then(Value::as_array)
+            .map(|a| a.iter().filter_map(Value::as_str).collect())
+            .unwrap_or_default();
+        if !missing.is_empty() && !best_effort {
+            bail!(
+                "the guest did not enforce the requested exec policy: {}",
+                missing.join(", ")
+            );
+        }
+        Ok(out)
+    }
+
     /// Host-channel exec refused when the session's confidential launch is active.
     pub async fn process_for_session(
         &self,
@@ -581,6 +632,76 @@ impl FluxVm {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    async fn serve_process(
+        reply: Value,
+    ) -> (FluxVm, std::sync::Arc<std::sync::Mutex<Option<Value>>>) {
+        let seen = std::sync::Arc::new(std::sync::Mutex::new(None));
+        let sink = seen.clone();
+        let app = axum::Router::new().route(
+            "/v1/sandboxes/{id}/process",
+            axum::routing::post(move |axum::Json(body): axum::Json<Value>| {
+                let sink = sink.clone();
+                let reply = reply.clone();
+                async move {
+                    *sink.lock().unwrap() = Some(body);
+                    axum::Json(reply)
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        (FluxVm::new(&format!("http://{addr}"), None).unwrap(), seen)
+    }
+
+    #[tokio::test]
+    async fn process_confined_sends_the_policy_and_accepts_full_enforcement() {
+        let (client, seen) = serve_process(json!({
+            "exit_code": 0, "stdout": "ok", "stderr": "",
+            "enforcement": {"filesystem": true, "seccomp": true, "not_enforced": []}
+        }))
+        .await;
+        let policy = json!({"read": ["/usr"], "write": ["/work"]});
+        let out = client
+            .process_confined(Uuid::new_v4(), "id", Some(5), &policy)
+            .await
+            .unwrap();
+        assert_eq!(out["stdout"], "ok");
+        assert_eq!(seen.lock().unwrap().clone().unwrap()["policy"], policy);
+    }
+
+    #[tokio::test]
+    async fn process_confined_refuses_partial_or_unreported_enforcement() {
+        let partial = json!({
+            "exit_code": 0, "stdout": "", "stderr": "",
+            "enforcement": {"not_enforced": ["tcp_connect", "max_memory"]}
+        });
+        let (client, _) = serve_process(partial.clone()).await;
+        let err = client
+            .process_confined(Uuid::new_v4(), "id", None, &json!({}))
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("tcp_connect, max_memory"), "{err}");
+
+        // best_effort opts in to partial enforcement and still returns what was missing.
+        let (client, _) = serve_process(partial).await;
+        let out = client
+            .process_confined(Uuid::new_v4(), "id", None, &json!({"best_effort": true}))
+            .await
+            .unwrap();
+        assert_eq!(out["enforcement"]["not_enforced"][0], "tcp_connect");
+
+        // An old FluxVM that ignores `policy` runs the command unconfined: never accept that.
+        let (client, _) = serve_process(json!({"exit_code": 0, "stdout": "", "stderr": ""})).await;
+        let err = client
+            .process_confined(Uuid::new_v4(), "id", None, &json!({}))
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("predates guest exec policy"), "{err}");
+    }
 
     #[tokio::test]
     async fn set_network_policy_posts_the_policy_to_the_vm() {
