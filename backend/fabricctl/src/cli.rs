@@ -166,6 +166,7 @@ enum Commands {
     /// Get VM information
     Info { name: String },
     /// Fork a running VM into copies that share its memory snapshot (flux-vm KVM engine)
+    #[command(name = "live-fork")]
     Fork {
         name: String,
         /// Children to start (1-32)
@@ -1885,7 +1886,7 @@ impl Cli {
                 idempotency_key,
             } => {
                 let resp = client
-                    .post(format!("{}/vms/{}/fork", api_base(), name))
+                    .post(format!("{}/vms/{}/live-fork", api_base(), name))
                     .json(&serde_json::json!({
                         "count": count,
                         "name_prefix": prefix,
@@ -3574,7 +3575,8 @@ mod memory_cli_tests {
     #[test]
     fn fork_parses_and_bounds_count() {
         let cli =
-            Cli::try_parse_from(["fabricctl", "fork", "vm1", "--count", "16", "--ready"]).unwrap();
+            Cli::try_parse_from(["fabricctl", "live-fork", "vm1", "--count", "16", "--ready"])
+                .unwrap();
         match cli.command {
             Some(Commands::Fork {
                 name,
@@ -3590,10 +3592,10 @@ mod memory_cli_tests {
             }
             _ => panic!("expected Fork"),
         }
-        assert!(Cli::try_parse_from(["fabricctl", "fork", "vm1", "--count", "0"]).is_err());
-        assert!(Cli::try_parse_from(["fabricctl", "fork", "vm1", "--count", "33"]).is_err());
+        assert!(Cli::try_parse_from(["fabricctl", "live-fork", "vm1", "--count", "0"]).is_err());
+        assert!(Cli::try_parse_from(["fabricctl", "live-fork", "vm1", "--count", "33"]).is_err());
         assert!(matches!(
-            Cli::try_parse_from(["fabricctl", "fork", "vm1"])
+            Cli::try_parse_from(["fabricctl", "live-fork", "vm1"])
                 .unwrap()
                 .command,
             Some(Commands::Fork { count: 1, .. })
