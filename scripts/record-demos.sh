@@ -17,6 +17,7 @@ CAST="python3 scripts/demo/cast.py"
 # name | command that produces the output | command shown at the prompt | window title
 DEMOS=(
   "keep-speculate|scripts/demo/run-speculate.sh|KEEP_E2E_DEMO=speculate-demo.sh ./scripts/keep-e2e.sh|keep: speculate, review, approve"
+  "credential-broker|bash scripts/demo/illustrative-broker.sh|bash scripts/demo/illustrative-broker.sh|illustrative: credential broker"
 )
 
 for row in "${DEMOS[@]}"; do

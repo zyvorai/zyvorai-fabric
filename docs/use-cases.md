@@ -19,6 +19,12 @@ Pick the row that sounds like your problem. Each links to the page that gets you
 - **Fabric decides what should exist. FluxVM makes it exist.** Fabric talks to FluxVM over REST only, so every feature here is a documented FluxVM route. [FLUXVM-FABRIC-BOUNDARY.md](FLUXVM-FABRIC-BOUNDARY.md) lists which routes are used and which were exercised on a real FluxVM and which only against fakes.
 - **Keep is the agent workstation.** It adds signed policy, approvals and an audit journal on top of a FluxVM cell. The recorded demo ([how it is made](assets/demos/README.md)) is a real Keep run against a FluxVM stub, labelled as such.
 
+## Credentials the agent never holds
+
+<p align="center"><img src="assets/demos/credential-broker.gif" alt="Illustrative replay: a person grants a credential for named hosts, the agent's request succeeds without the key in its environment, and after revoking, the request goes out without it" width="760"></p>
+
+<sub>**Illustrative**: a scripted replay of the idea, not a recording of a run. It prints fixed text and no measured numbers.</sub>
+
 ## Not yet
 
 Be wary of anything on a landing page that is not in the table above. Fork fan-out for Keep sessions, a changeset view in the console and the Terraform and operator surfaces for the newer FluxVM features are follow-ups, not shipped.
