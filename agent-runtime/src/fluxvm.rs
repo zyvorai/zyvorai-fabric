@@ -312,6 +312,63 @@ impl FluxVm {
         self.parse(response).await
     }
 
+    /// Give the sandbox's egress proxy a secret to attach as `Authorization` on requests to
+    /// `hosts` (`POST /v1/sandboxes/{id}/grants`). The guest never sees `value`. FluxVM's
+    /// response is secret-free; it is returned as-is.
+    pub async fn add_grant(
+        &self,
+        id: Uuid,
+        secret_ref: &str,
+        value: &str,
+        hosts: &[String],
+        ttl_seconds: Option<i64>,
+    ) -> Result<Value> {
+        let response = self
+            .auth(
+                self.http
+                    .post(self.url(&format!("/v1/sandboxes/{id}/grants"))?),
+            )
+            .json(&json!({
+                "secret_ref": secret_ref,
+                "value": value,
+                "hosts": hosts,
+                "ttl_seconds": ttl_seconds,
+            }))
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    pub async fn list_grants(&self, id: Uuid) -> Result<Value> {
+        let response = self
+            .auth(
+                self.http
+                    .get(self.url(&format!("/v1/sandboxes/{id}/grants"))?),
+            )
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    /// Revoke one grant, or every grant of the sandbox when `grant_id` is `None`.
+    pub async fn revoke_grants(&self, id: Uuid, grant_id: Option<&str>) -> Result<Value> {
+        if let Some(g) = grant_id {
+            if g.is_empty()
+                || !g
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+            {
+                bail!("grant id must be alphanumeric, '-' or '_'");
+            }
+        }
+        let path = match grant_id {
+            Some(g) => format!("/v1/sandboxes/{id}/grants/{g}"),
+            None => format!("/v1/sandboxes/{id}/grants"),
+        };
+        let response = self.auth(self.http.delete(self.url(&path)?)).send().await?;
+        self.parse(response).await
+    }
+
     /// Run `command` confined by a guest exec `policy` (Landlock + seccomp, the
     /// `fluxvm-procbox` shape). The result is returned only if the guest enforced
     /// everything the policy asked for: a non-empty `enforcement.not_enforced`, or an
@@ -701,6 +758,52 @@ mod tests {
             .unwrap_err()
             .to_string();
         assert!(err.contains("predates guest exec policy"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn add_grant_sends_the_value_once_and_revoke_validates_the_id() {
+        let seen = std::sync::Arc::new(std::sync::Mutex::new(None));
+        let sink = seen.clone();
+        let app = axum::Router::new().route(
+            "/v1/sandboxes/{id}/grants",
+            axum::routing::post(move |axum::Json(body): axum::Json<Value>| {
+                let sink = sink.clone();
+                async move {
+                    *sink.lock().unwrap() = Some(body);
+                    (
+                        axum::http::StatusCode::CREATED,
+                        axum::Json(json!({"id": "g1", "secret_ref": "k", "hosts": ["h"]})),
+                    )
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        let client = FluxVm::new(&format!("http://{addr}"), None).unwrap();
+
+        let info = client
+            .add_grant(
+                Uuid::new_v4(),
+                "k",
+                "Bearer s3cret",
+                &["h".into()],
+                Some(60),
+            )
+            .await
+            .unwrap();
+        assert!(!info.to_string().contains("s3cret"));
+        let body = seen.lock().unwrap().clone().unwrap();
+        assert_eq!(body["value"], "Bearer s3cret");
+        assert_eq!(body["hosts"], json!(["h"]));
+        assert_eq!(body["ttl_seconds"], 60);
+
+        let err = client
+            .revoke_grants(Uuid::new_v4(), Some("../x"))
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("grant id"), "{err}");
     }
 
     #[tokio::test]

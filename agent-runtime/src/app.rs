@@ -511,6 +511,16 @@ pub fn public_router(state: Arc<AppState>) -> Router {
         .route("/v1/approvals", get(list_approvals).post(create_approval))
         .route("/v1/approvals/{id}", post(decide_approval))
         .route("/v1/sessions/{id}/speculate", post(speculate_session))
+        .route(
+            "/v1/sessions/{id}/grants",
+            post(create_session_grant)
+                .get(list_session_grants)
+                .delete(revoke_session_grants),
+        )
+        .route(
+            "/v1/sessions/{id}/grants/{grant_id}",
+            axum::routing::delete(revoke_session_grant),
+        )
         .route("/v1/audit", get(list_audit))
         .route("/v1/export/audit", get(export_audit))
         .route(
@@ -3698,6 +3708,179 @@ async fn create_approval(
 
 /// Longest command a speculative run accepts. FluxVM runs it in a shell, so
 /// this only bounds what lands in the audit journal and the approval card.
+/// Why `name` may not be handed to FluxVM's credential broker, if it may not.
+///
+/// A FluxVM grant attaches one `Authorization` value to every request for its hosts. It has no
+/// method or path filter, no per-request approval and no per-user check, so a Keep credential
+/// that relies on any of those must stay with Keep's own egress broker, which enforces them.
+fn grant_refusal(
+    name: &str,
+    d: &crate::credentials::CredentialDescriptor,
+    hosts: &[String],
+) -> Option<String> {
+    let why = |r: &str| {
+        Some(format!(
+            "credential '{name}' cannot be granted to FluxVM: {r}"
+        ))
+    };
+    if d.kind != "provider" && !d.kind.is_empty() {
+        return why("only plain provider credentials are supported");
+    }
+    if !d.header.eq_ignore_ascii_case("authorization") {
+        return why("FluxVM injects the Authorization header only");
+    }
+    if d.source.is_some() || d.oauth.is_some() {
+        return why("it is read from a source or refreshed, which a grant cannot follow");
+    }
+    if !d.requires_approval.is_empty() {
+        return why("it needs a human decision per request, which a grant would bypass");
+    }
+    if !d.allowed_methods.is_empty() || !d.path_prefixes.is_empty() {
+        return why("its method/path limits would not be enforced by a grant");
+    }
+    if !d.allowed_users.is_empty() {
+        return why("its per-user limits would not be enforced by a grant");
+    }
+    if hosts.is_empty() {
+        return Some("hosts is required".into());
+    }
+    for h in hosts {
+        if !crate::credentials::host_matches(&d.host, h) {
+            return Some(format!(
+                "host {h} is outside what credential '{name}' may reach ({})",
+                d.host
+            ));
+        }
+    }
+    None
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct CreateSessionGrantRequest {
+    credential: String,
+    hosts: Vec<String>,
+    #[serde(default)]
+    ttl_seconds: Option<i64>,
+}
+
+/// `POST /v1/sessions/{id}/grants`: let FluxVM's egress proxy attach one of the agent's own
+/// credentials to requests for `hosts`. The secret is read from Keep's vault, sent to FluxVM
+/// and never returned or audited.
+async fn create_session_grant(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<CreateSessionGrantRequest>,
+) -> ApiResult<(StatusCode, Json<Value>)> {
+    let session = require_session(&state, id).await?;
+    if session.status != SessionStatus::Running {
+        return Err(ApiError::conflict("only running sessions can hold grants"));
+    }
+    let agent = state
+        .store
+        .get_agent(&session.agent)
+        .await
+        .ok_or_else(|| ApiError::not_found("agent not found"))?;
+    if !agent
+        .manifest
+        .credentials
+        .iter()
+        .any(|c| c == &req.credential)
+    {
+        return Err(ApiError::forbidden(format!(
+            "agent {} is not granted credential '{}'",
+            session.agent, req.credential
+        )));
+    }
+    let (descriptor, value) = state
+        .credentials
+        .resolve_for(&req.credential, session.user_id.as_deref())
+        .map_err(ApiError::bad_request)?;
+    if let Some(reason) = grant_refusal(&req.credential, descriptor, &req.hosts) {
+        return Err(ApiError::bad_request(reason));
+    }
+    let info = state
+        .fluxvm
+        .add_grant(
+            session.sandbox_id,
+            &req.credential,
+            &value,
+            &req.hosts,
+            req.ttl_seconds,
+        )
+        .await
+        .map_err(|e| ApiError::bad_gateway(format!("grant: {e:#}")))?;
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(id),
+            AuditPhase::Performed,
+            "credential.grant",
+            None,
+            json!({ "credential": req.credential, "hosts": req.hosts, "grant": info.get("id") }),
+        )
+        .await
+    {
+        tracing::error!(%error, "failed to write audit entry");
+    }
+    Ok((StatusCode::CREATED, Json(info)))
+}
+
+async fn list_session_grants(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Value>> {
+    let session = require_session(&state, id).await?;
+    state
+        .fluxvm
+        .list_grants(session.sandbox_id)
+        .await
+        .map(Json)
+        .map_err(|e| ApiError::bad_gateway(format!("grants: {e:#}")))
+}
+
+async fn revoke_session_grants(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Value>> {
+    revoke_for(&state, id, None).await
+}
+
+async fn revoke_session_grant(
+    State(state): State<Arc<AppState>>,
+    Path((id, grant_id)): Path<(Uuid, String)>,
+) -> ApiResult<Json<Value>> {
+    revoke_for(&state, id, Some(grant_id)).await
+}
+
+async fn revoke_for(
+    state: &AppState,
+    id: Uuid,
+    grant_id: Option<String>,
+) -> ApiResult<Json<Value>> {
+    let session = require_session(state, id).await?;
+    let out = state
+        .fluxvm
+        .revoke_grants(session.sandbox_id, grant_id.as_deref())
+        .await
+        .map_err(|e| ApiError::bad_gateway(format!("revoke: {e:#}")))?;
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(id),
+            AuditPhase::Performed,
+            "credential.revoke",
+            None,
+            json!({ "grant": grant_id }),
+        )
+        .await
+    {
+        tracing::error!(%error, "failed to write audit entry");
+    }
+    Ok(Json(out))
+}
+
 const MAX_SPECULATE_COMMAND_BYTES: usize = 8 * 1024;
 
 #[derive(Debug, serde::Deserialize)]
@@ -4309,6 +4492,41 @@ mod tests {
         let url = format!("http://{}", listener.local_addr().unwrap());
         tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
         url
+    }
+
+    fn descriptor(extra: Value) -> crate::credentials::CredentialDescriptor {
+        let mut base = json!({"host": "api.example.com", "header": "Authorization", "env": "X"});
+        base.as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        serde_json::from_value(base).unwrap()
+    }
+
+    #[test]
+    fn only_unrestricted_authorization_credentials_may_be_granted() {
+        let hosts = vec!["api.example.com".to_string()];
+        assert_eq!(grant_refusal("k", &descriptor(json!({})), &hosts), None);
+        // A sub-domain of the credential's host is still inside its scope.
+        let sub = vec!["eu.api.example.com".to_string()];
+        assert_eq!(grant_refusal("k", &descriptor(json!({})), &sub), None);
+
+        for (extra, needle) in [
+            (json!({"header": "x-api-key"}), "Authorization header only"),
+            (json!({"requires_approval": ["POST"]}), "per request"),
+            (json!({"allowed_methods": ["GET"]}), "method/path"),
+            (json!({"path_prefixes": ["/v1/"]}), "method/path"),
+            (json!({"allowed_users": ["alice"]}), "per-user"),
+            (json!({"kind": "fabric"}), "provider"),
+        ] {
+            let why = grant_refusal("k", &descriptor(extra.clone()), &hosts)
+                .unwrap_or_else(|| panic!("{extra} must be refused"));
+            assert!(why.contains(needle), "{extra}: {why}");
+        }
+
+        let other = vec!["evil.example.net".to_string()];
+        let why = grant_refusal("k", &descriptor(json!({})), &other).unwrap();
+        assert!(why.contains("outside what credential"), "{why}");
+        assert!(grant_refusal("k", &descriptor(json!({})), &[]).is_some());
     }
 
     async fn running_session(state: &AppState, status: SessionStatus) -> SessionRecord {
