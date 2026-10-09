@@ -129,6 +129,7 @@ Detailed documentation for each major feature area.
 | [Networking Overview](networking.md) | Network architecture, SDN stack, and VM edge dataplane |
 | [VM edge dataplane (Network Fabric schema v4)](guides/vm-drivers/fluxvm-dataplane.md) | Fabric proxy of FluxVM TC/eBPF — API, Web, CLI, lab UX |
 | [Service Fabric v6 (Maglev VIP LB)](ebpf-service-fabric.md) | FluxVM Maglev/NAT/DSR/EDT/flows/policy + Fabric leases, HA, FRR/BIRD |
+| [Where it fits](use-cases.md) | Which part to use for agent sandboxes, a private cloud, Kubernetes, Macs and inference |
 | [AI Workloads (Beta)](ai-workloads.md) | GPU VMs, Janus lab upstream, PCI MIG flag, admit webhook, fabric-inference JWT, revisioned rollouts, gateway limits, Maglev, Terraform, operator CRDs |
 | [User: VM Dataplane](user/pages/infrastructure/dataplane.md) | Console walkthrough for Status / Policy / Effective / Stats / Flows |
 | [User: Edge Dataplane](user/pages/infrastructure/edge-dataplane.md) | Cluster groups / CNP / Maglev Services / health / observe console |
