@@ -1,0 +1,18 @@
+{"t": 1.875, "s": "\u001b[1mKeep: an agent proposes a change. A person decides.\u001b[0m\n"}
+{"t": 3.08, "s": "\u001b[2mreal Keep runtime \u00b7 FluxVM is a test stub (no VM)\u001b[0m\n"}
+{"t": 4.288, "s": "\n"}
+{"t": 4.288, "s": "\u001b[33magent wants to run:\u001b[0m echo hello > /tmp/specdir/a.txt\n"}
+{"t": 5.503, "s": "\u001b[36m$ curl -X POST $KEEP/v1/sessions/$SID/speculate -d '{command, paths:[\"/tmp\"]}'\u001b[0m\n"}
+{"t": 6.422, "s": "  approval   \u001b[1mpending\u001b[0m  kind=changeset\n"}
+{"t": 7.681, "s": "  would add  \u001b[32m[\"/tmp/specdir/a.txt\"]\u001b[0m\n"}
+{"t": 8.946, "s": "  egress     blocked\n"}
+{"t": 10.156, "s": "\n"}
+{"t": 10.201, "s": "\u001b[1mNothing has been applied.\u001b[0m  FluxVM saw: speculate\n"}
+{"t": 11.41, "s": "\n"}
+{"t": 11.41, "s": "\u001b[33mthe person reviews the diff and approves\u001b[0m\n"}
+{"t": 12.621, "s": "\u001b[36m$ curl -X POST $KEEP/v1/approvals/def38919\u2026 -d '{\"decision\":\"approved\"}'\u001b[0m\n"}
+{"t": 13.492, "s": "  approval   \u001b[32m\u001b[1mapproved\u001b[0m\n"}
+{"t": 14.739, "s": "\u001b[1mNow it is applied.\u001b[0m  FluxVM saw: speculate -> approve -> apply\n"}
+{"t": 15.948, "s": "\n"}
+{"t": 15.948, "s": "\u001b[33ma second proposal is denied\u001b[0m\n"}
+{"t": 17.242, "s": "\u001b[1mRejected, never applied.\u001b[0m  FluxVM saw: speculate -> approve -> apply -> speculate -> reject\n"}

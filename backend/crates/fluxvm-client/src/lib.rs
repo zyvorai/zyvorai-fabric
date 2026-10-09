@@ -51,6 +51,8 @@ pub enum BackendKind {
     Firecracker,
     /// In-tree FluxVM hypervisor (agent-sandbox execution track).
     FluxVm,
+    /// Apple Virtualization.framework, on a macOS host running FluxVM (`fluxvm-vz-runner`).
+    Vz,
     /// Resolved to a concrete backend server-side; never appears on a
     /// stored `VmRecord`, only ever sent on a `CreateVmRequest`.
     Auto,
@@ -1216,10 +1218,59 @@ struct CleanCatalogResponse {
 }
 
 #[derive(Debug, Serialize)]
-struct ExecRequest {
+struct ExecRequest<'a> {
     command: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     timeout_seconds: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    policy: Option<&'a serde_json::Value>,
+}
+
+/// Balloon state of a VM (`GET|POST /v1/vms/{id}/balloon`).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BalloonStatus {
+    pub memory_mib: u64,
+    /// What was requested.
+    pub target_mib: u64,
+    /// What the guest driver has reached so far.
+    pub actual_mib: u64,
+}
+
+/// VMM-process memory use, in KiB. PSS divides shared pages between the processes sharing them.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MemoryUsage {
+    pub rss_kib: u64,
+    pub pss_kib: u64,
+    pub private_kib: u64,
+    pub shared_kib: u64,
+    pub swap_kib: u64,
+}
+
+/// `GET /v1/vms/{id}/memory`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VmMemory {
+    pub vm_id: Uuid,
+    pub configured_mib: u64,
+    /// `None` when the VM has no VMM process or its smaps are unreadable.
+    pub usage: Option<MemoryUsage>,
+    /// `None` when the VM has no balloon.
+    pub balloon: Option<BalloonStatus>,
+}
+
+/// What the guest enforced for one confined exec (`enforcement` in the response).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct ExecEnforcement {
+    pub landlock_abi: u32,
+    pub filesystem: bool,
+    pub tcp_connect: bool,
+    pub tcp_bind: bool,
+    pub seccomp: bool,
+    pub uid_dropped: bool,
+    pub namespaces: bool,
+    pub network_isolated: bool,
+    /// Everything the policy asked for that this run did NOT enforce.
+    pub not_enforced: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -1247,6 +1298,9 @@ pub enum AgentResponse {
         exit_code: i32,
         stdout: String,
         stderr: String,
+        /// What the guest actually enforced; present only when the request carried a `policy`.
+        #[serde(default)]
+        enforcement: Option<ExecEnforcement>,
     },
     FileWritten,
     FileContent {
@@ -1795,6 +1849,29 @@ impl FluxVmClient {
             .json(&ExecRequest {
                 command: command.into(),
                 timeout_seconds,
+                policy: None,
+            })
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// Like [`Self::agent_exec`], confined by a guest exec `policy` (the `fluxvm-procbox`
+    /// shape: `read`, `write`, `tcp_connect`, `max_memory`, ...). The response's
+    /// `enforcement` says what the guest really applied; anything in `not_enforced` was not.
+    pub async fn agent_exec_confined(
+        &self,
+        id: Uuid,
+        command: impl Into<String>,
+        timeout_seconds: Option<u64>,
+        policy: &serde_json::Value,
+    ) -> Result<AgentResponse> {
+        let resp = self
+            .authed(self.http.post(self.url(&format!("/v1/vms/{id}/agent"))?))
+            .json(&ExecRequest {
+                command: command.into(),
+                timeout_seconds,
+                policy: Some(policy),
             })
             .send()
             .await?;
@@ -2418,6 +2495,48 @@ impl FluxVmClient {
                 self.http
                     .post(self.url(&format!("/v1/vms/{id}/network/migration/resume"))?),
             )
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `POST /v1/vms/{id}/cdroms/{name}/eject` (admin): remove the named CD-ROM from the VM.
+    /// The name is sent as one path segment.
+    pub async fn eject_cdrom(&self, id: Uuid, name: &str) -> Result<VmRecord> {
+        let mut url = self.url(&format!("/v1/vms/{id}/cdroms"))?;
+        url.path_segments_mut()
+            .map_err(|_| anyhow::anyhow!("base URL cannot carry a path"))?
+            .push(name)
+            .push("eject");
+        let resp = self.authed(self.http.post(url)).send().await?;
+        Self::parse(resp).await
+    }
+
+    /// `GET /v1/vms/{id}/balloon`. Only a running VM on the flux-vm KVM engine has a
+    /// balloon; FluxVM answers 400 for anything else. Beta: FluxVM lists balloon as
+    /// unit-tested, not live-verified.
+    pub async fn get_balloon(&self, id: Uuid) -> Result<BalloonStatus> {
+        let resp = self
+            .authed(self.http.get(self.url(&format!("/v1/vms/{id}/balloon"))?))
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `POST /v1/vms/{id}/balloon` (admin). `0` deflates.
+    pub async fn set_balloon(&self, id: Uuid, balloon_mib: u64) -> Result<BalloonStatus> {
+        let resp = self
+            .authed(self.http.post(self.url(&format!("/v1/vms/{id}/balloon"))?))
+            .json(&serde_json::json!({ "balloon_mib": balloon_mib }))
+            .send()
+            .await?;
+        Self::parse(resp).await
+    }
+
+    /// `GET /v1/vms/{id}/memory`: the VMM process's real (PSS) footprint and the balloon.
+    pub async fn get_memory(&self, id: Uuid) -> Result<VmMemory> {
+        let resp = self
+            .authed(self.http.get(self.url(&format!("/v1/vms/{id}/memory"))?))
             .send()
             .await?;
         Self::parse(resp).await

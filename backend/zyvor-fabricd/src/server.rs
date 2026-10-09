@@ -1017,6 +1017,11 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/migration/receivers/{id}",
             axum::routing::delete(api::migration::abort_native_receiver),
         )
+        .route("/vms/{name}/memory", get(api::memory::get_memory))
+        .route(
+            "/vms/{name}/balloon",
+            get(api::memory::get_balloon).post(api::memory::set_balloon),
+        )
         .route("/vms/{name}/qga/ping", post(api::qga::qga_ping))
         .route("/vms/{name}/qga/exec", post(api::qga::qga_exec))
         .route(

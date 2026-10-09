@@ -38,6 +38,7 @@ impl ShellDriver for FluxVmDriver {
                 exit_code,
                 stdout,
                 stderr,
+                ..
             } => Ok(ShellOutput {
                 stdout,
                 stderr,

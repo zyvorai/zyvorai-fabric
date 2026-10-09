@@ -955,13 +955,18 @@ pub(crate) mod tests {
     use axum::extract::{Path, Query, State};
 
     pub(crate) async fn test_state() -> Arc<AppState> {
+        test_state_with_fluxvm("http://127.0.0.1:1").await
+    }
+
+    /// Like [`test_state`], with FluxVM calls going to `fluxvm_url`.
+    pub(crate) async fn test_state_with_fluxvm(fluxvm_url: &str) -> Arc<AppState> {
         let root = std::env::temp_dir().join(format!("zyvor-goals-{}", Uuid::new_v4()));
         let config = Config {
             listen: "127.0.0.1:0".parse().unwrap(),
             egress_listen: "127.0.0.1:0".parse().unwrap(),
             state_dir: root.join("state"),
             snapshot_dir: root.join("snap"),
-            fluxvm_url: "http://127.0.0.1:1".into(),
+            fluxvm_url: fluxvm_url.into(),
             fluxvm_token: None,
             api_token: None,
             credentials_file: None,

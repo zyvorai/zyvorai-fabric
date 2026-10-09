@@ -522,3 +522,114 @@ async fn snapshot_restore_list_delete_paths_and_tag_escaping() {
     );
     client.delete_vm_snapshot(id, "a/b").await.unwrap();
 }
+
+#[tokio::test]
+async fn confined_exec_sends_policy_and_decodes_enforcement() {
+    let server = MockServer::start().await;
+    let id = Uuid::new_v4();
+    let policy = json!({"read": ["/usr"], "write": ["/work"], "max_memory": 67108864});
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/agent")))
+        .and(body_json(json!({
+            "command": "id",
+            "timeout_seconds": 5,
+            "policy": policy,
+        })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "result": "exec", "exit_code": 0, "stdout": "ok", "stderr": "",
+            "enforcement": {"landlock_abi": 4, "filesystem": true, "seccomp": true,
+                            "not_enforced": ["max_memory"]}
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    // An unconfined exec must not send a `policy` key at all.
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/agent")))
+        .and(body_json(json!({"command": "true"})))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(
+                json!({"result": "exec", "exit_code": 0, "stdout": "", "stderr": ""}),
+            ),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    match client
+        .agent_exec_confined(id, "id", Some(5), &policy)
+        .await
+        .unwrap()
+    {
+        zyvor_fabric_fluxvm_client::AgentResponse::Exec { enforcement, .. } => {
+            let e = enforcement.expect("enforcement");
+            assert!(e.filesystem && e.seccomp && !e.tcp_connect);
+            assert_eq!(e.not_enforced, vec!["max_memory"]);
+        }
+        other => panic!("{other:?}"),
+    }
+    match client.agent_exec(id, "true", None).await.unwrap() {
+        zyvor_fabric_fluxvm_client::AgentResponse::Exec { enforcement, .. } => {
+            assert!(enforcement.is_none())
+        }
+        other => panic!("{other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn balloon_and_memory_paths_and_decoding() {
+    let server = MockServer::start().await;
+    let id = Uuid::new_v4();
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/balloon")))
+        .and(body_json(json!({"balloon_mib": 256})))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"memory_mib": 1024, "target_mib": 256, "actual_mib": 192})),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path(format!("/v1/vms/{id}/memory")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "vm_id": id, "configured_mib": 1024,
+            "usage": {"rss_kib": 3, "pss_kib": 2, "private_kib": 1, "shared_kib": 2, "swap_kib": 0},
+            "balloon": null
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    let b = client.set_balloon(id, 256).await.unwrap();
+    assert_eq!((b.target_mib, b.actual_mib), (256, 192));
+    let m = client.get_memory(id).await.unwrap();
+    assert_eq!(m.usage.unwrap().pss_kib, 2);
+    assert!(m.balloon.is_none());
+}
+
+#[tokio::test]
+async fn eject_cdrom_escapes_the_name_and_vz_backend_round_trips() {
+    let server = MockServer::start().await;
+    let id = Uuid::new_v4();
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/cdroms/inst%2Fall/eject")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "id": id, "name": "vm", "backend": "vz", "status": "running", "pid": null,
+            "created_at": "2026-01-01T00:00:00Z", "expires_at": null,
+            "workspace": "/tmp", "disk": "/tmp/disk.raw", "seed_disk": null,
+            "tap_name": null, "control_socket": null, "log_path": "/tmp/log", "error": null,
+            "request": sample_create_req(), "virtiofsd_pids": [], "dhcp_leasefile": null
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    let vm = client.eject_cdrom(id, "inst/all").await.unwrap();
+    assert_eq!(
+        serde_json::to_value(vm.backend).unwrap(),
+        json!("vz"),
+        "a vz VM must decode and re-encode as vz"
+    );
+}

@@ -110,6 +110,49 @@ pub struct SandboxVolume {
     pub guest_path: String,
 }
 
+/// A speculative run and its decision state (`/v1/sandboxes/{id}/changesets`).
+/// Only the fields Keep shows or acts on are typed; `changes` and
+/// `side_effects` stay raw JSON so a FluxVM that adds fields keeps working.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Changeset {
+    pub id: Uuid,
+    pub sandbox_id: Uuid,
+    /// `pending`, `approved`, `applied`, `rejected`, `expired` or `failed`.
+    pub state: String,
+    #[serde(default)]
+    pub expires_at: u64,
+    pub command: String,
+    #[serde(default)]
+    pub exit_code: i32,
+    #[serde(default)]
+    pub stdout: String,
+    #[serde(default)]
+    pub stderr: String,
+    #[serde(default)]
+    pub paths: Vec<String>,
+    #[serde(default)]
+    pub changes: Value,
+    #[serde(default)]
+    pub side_effects: Value,
+    /// Changed files whose contents could not be kept; FluxVM refuses to apply while any.
+    #[serde(default)]
+    pub unstaged: Vec<String>,
+    #[serde(default)]
+    pub error: Option<String>,
+}
+
+/// What to run speculatively. `command` is passed to the guest as given.
+#[derive(Debug, Clone, Serialize)]
+pub struct SpeculateRequest {
+    pub command: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout_seconds: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub paths: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ttl_seconds: Option<u64>,
+}
+
 /// What a sandbox gets beyond its template: volumes, size, confidential launch.
 #[derive(Debug, Default)]
 pub struct SandboxOptions<'a> {
@@ -269,6 +312,114 @@ impl FluxVm {
         self.parse(response).await
     }
 
+    /// Give the sandbox's egress proxy a secret to attach as `Authorization` on requests to
+    /// `hosts` (`POST /v1/sandboxes/{id}/grants`). The guest never sees `value`. FluxVM's
+    /// response is secret-free; it is returned as-is.
+    pub async fn add_grant(
+        &self,
+        id: Uuid,
+        secret_ref: &str,
+        value: &str,
+        hosts: &[String],
+        ttl_seconds: Option<i64>,
+    ) -> Result<Value> {
+        let response = self
+            .auth(
+                self.http
+                    .post(self.url(&format!("/v1/sandboxes/{id}/grants"))?),
+            )
+            .json(&json!({
+                "secret_ref": secret_ref,
+                "value": value,
+                "hosts": hosts,
+                "ttl_seconds": ttl_seconds,
+            }))
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    pub async fn list_grants(&self, id: Uuid) -> Result<Value> {
+        let response = self
+            .auth(
+                self.http
+                    .get(self.url(&format!("/v1/sandboxes/{id}/grants"))?),
+            )
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    /// Revoke one grant, or every grant of the sandbox when `grant_id` is `None`.
+    pub async fn revoke_grants(&self, id: Uuid, grant_id: Option<&str>) -> Result<Value> {
+        if let Some(g) = grant_id {
+            if g.is_empty()
+                || !g
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+            {
+                bail!("grant id must be alphanumeric, '-' or '_'");
+            }
+        }
+        let path = match grant_id {
+            Some(g) => format!("/v1/sandboxes/{id}/grants/{g}"),
+            None => format!("/v1/sandboxes/{id}/grants"),
+        };
+        let response = self.auth(self.http.delete(self.url(&path)?)).send().await?;
+        self.parse(response).await
+    }
+
+    /// Run `command` confined by a guest exec `policy` (Landlock + seccomp, the
+    /// `fluxvm-procbox` shape). The result is returned only if the guest enforced
+    /// everything the policy asked for: a non-empty `enforcement.not_enforced`, or an
+    /// older FluxVM that reports no `enforcement` at all, is an error, because a caller
+    /// who asked for confinement must never believe it got it when it did not.
+    /// Set `"best_effort": true` in the policy to accept partial enforcement; the
+    /// returned `enforcement` then says exactly what was missing.
+    pub async fn process_confined(
+        &self,
+        id: Uuid,
+        command: &str,
+        timeout_seconds: Option<u64>,
+        policy: &Value,
+    ) -> Result<Value> {
+        let response = self
+            .auth(
+                self.http
+                    .post(self.url(&format!("/v1/sandboxes/{id}/process"))?),
+            )
+            .json(&json!({
+                "command": command,
+                "timeout_seconds": timeout_seconds,
+                "policy": policy,
+            }))
+            .send()
+            .await?;
+        let out: Value = self.parse(response).await?;
+        let best_effort = policy
+            .get("best_effort")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        let enforcement = out.get("enforcement").filter(|e| !e.is_null());
+        let Some(enforcement) = enforcement else {
+            bail!(
+                "FluxVM did not report `enforcement` for a confined exec; it predates guest exec policy, so the command was not confined"
+            );
+        };
+        let missing: Vec<&str> = enforcement
+            .get("not_enforced")
+            .and_then(Value::as_array)
+            .map(|a| a.iter().filter_map(Value::as_str).collect())
+            .unwrap_or_default();
+        if !missing.is_empty() && !best_effort {
+            bail!(
+                "the guest did not enforce the requested exec policy: {}",
+                missing.join(", ")
+            );
+        }
+        Ok(out)
+    }
+
     /// Host-channel exec refused when the session's confidential launch is active.
     pub async fn process_for_session(
         &self,
@@ -394,6 +545,57 @@ impl FluxVm {
         Ok(())
     }
 
+    /// Run `req.command` in an isolated copy of the sandbox and return the
+    /// pending changeset. Nothing reaches the real sandbox until
+    /// [`Self::apply_changeset`].
+    pub async fn speculate(&self, id: Uuid, req: &SpeculateRequest) -> Result<Changeset> {
+        let response = self
+            .auth(
+                self.http
+                    .post(self.url(&format!("/v1/sandboxes/{id}/speculate"))?),
+            )
+            .json(req)
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    pub async fn get_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
+        let response = self
+            .auth(
+                self.http
+                    .get(self.url(&format!("/v1/sandboxes/{id}/changesets/{changeset}"))?),
+            )
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    /// `verb` is `approve`, `reject` or `apply`. FluxVM answers 409 for an
+    /// invalid transition, an expired changeset or a base that moved on.
+    async fn changeset_verb(&self, id: Uuid, changeset: Uuid, verb: &str) -> Result<Changeset> {
+        let response = self
+            .auth(
+                self.http
+                    .post(self.url(&format!("/v1/sandboxes/{id}/changesets/{changeset}/{verb}"))?),
+            )
+            .send()
+            .await?;
+        self.parse(response).await
+    }
+
+    pub async fn approve_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
+        self.changeset_verb(id, changeset, "approve").await
+    }
+
+    pub async fn reject_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
+        self.changeset_verb(id, changeset, "reject").await
+    }
+
+    pub async fn apply_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
+        self.changeset_verb(id, changeset, "apply").await
+    }
+
     pub async fn delete(&self, id: Uuid) -> Result<()> {
         let response = self
             .auth(self.http.delete(self.url(&format!("/v1/vms/{id}"))?))
@@ -487,6 +689,122 @@ impl FluxVm {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    async fn serve_process(
+        reply: Value,
+    ) -> (FluxVm, std::sync::Arc<std::sync::Mutex<Option<Value>>>) {
+        let seen = std::sync::Arc::new(std::sync::Mutex::new(None));
+        let sink = seen.clone();
+        let app = axum::Router::new().route(
+            "/v1/sandboxes/{id}/process",
+            axum::routing::post(move |axum::Json(body): axum::Json<Value>| {
+                let sink = sink.clone();
+                let reply = reply.clone();
+                async move {
+                    *sink.lock().unwrap() = Some(body);
+                    axum::Json(reply)
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        (FluxVm::new(&format!("http://{addr}"), None).unwrap(), seen)
+    }
+
+    #[tokio::test]
+    async fn process_confined_sends_the_policy_and_accepts_full_enforcement() {
+        let (client, seen) = serve_process(json!({
+            "exit_code": 0, "stdout": "ok", "stderr": "",
+            "enforcement": {"filesystem": true, "seccomp": true, "not_enforced": []}
+        }))
+        .await;
+        let policy = json!({"read": ["/usr"], "write": ["/work"]});
+        let out = client
+            .process_confined(Uuid::new_v4(), "id", Some(5), &policy)
+            .await
+            .unwrap();
+        assert_eq!(out["stdout"], "ok");
+        assert_eq!(seen.lock().unwrap().clone().unwrap()["policy"], policy);
+    }
+
+    #[tokio::test]
+    async fn process_confined_refuses_partial_or_unreported_enforcement() {
+        let partial = json!({
+            "exit_code": 0, "stdout": "", "stderr": "",
+            "enforcement": {"not_enforced": ["tcp_connect", "max_memory"]}
+        });
+        let (client, _) = serve_process(partial.clone()).await;
+        let err = client
+            .process_confined(Uuid::new_v4(), "id", None, &json!({}))
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("tcp_connect, max_memory"), "{err}");
+
+        // best_effort opts in to partial enforcement and still returns what was missing.
+        let (client, _) = serve_process(partial).await;
+        let out = client
+            .process_confined(Uuid::new_v4(), "id", None, &json!({"best_effort": true}))
+            .await
+            .unwrap();
+        assert_eq!(out["enforcement"]["not_enforced"][0], "tcp_connect");
+
+        // An old FluxVM that ignores `policy` runs the command unconfined: never accept that.
+        let (client, _) = serve_process(json!({"exit_code": 0, "stdout": "", "stderr": ""})).await;
+        let err = client
+            .process_confined(Uuid::new_v4(), "id", None, &json!({}))
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("predates guest exec policy"), "{err}");
+    }
+
+    #[tokio::test]
+    async fn add_grant_sends_the_value_once_and_revoke_validates_the_id() {
+        let seen = std::sync::Arc::new(std::sync::Mutex::new(None));
+        let sink = seen.clone();
+        let app = axum::Router::new().route(
+            "/v1/sandboxes/{id}/grants",
+            axum::routing::post(move |axum::Json(body): axum::Json<Value>| {
+                let sink = sink.clone();
+                async move {
+                    *sink.lock().unwrap() = Some(body);
+                    (
+                        axum::http::StatusCode::CREATED,
+                        axum::Json(json!({"id": "g1", "secret_ref": "k", "hosts": ["h"]})),
+                    )
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        let client = FluxVm::new(&format!("http://{addr}"), None).unwrap();
+
+        let info = client
+            .add_grant(
+                Uuid::new_v4(),
+                "k",
+                "Bearer s3cret",
+                &["h".into()],
+                Some(60),
+            )
+            .await
+            .unwrap();
+        assert!(!info.to_string().contains("s3cret"));
+        let body = seen.lock().unwrap().clone().unwrap();
+        assert_eq!(body["value"], "Bearer s3cret");
+        assert_eq!(body["hosts"], json!(["h"]));
+        assert_eq!(body["ttl_seconds"], 60);
+
+        let err = client
+            .revoke_grants(Uuid::new_v4(), Some("../x"))
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("grant id"), "{err}");
+    }
 
     #[tokio::test]
     async fn set_network_policy_posts_the_policy_to_the_vm() {
@@ -697,5 +1015,19 @@ mod tests {
         assert!(!caps.tdx_launch_verified);
         let empty: HostSecurityCapabilities = serde_json::from_value(json!({})).unwrap();
         assert!(!empty.snp_launch_verified && !empty.tdx_launch_verified);
+    }
+
+    /// A changeset exactly as a real FluxVM (current HEAD, in-tree KVM, run on
+    /// the lab host) returned it. Guards `Changeset` against drift.
+    #[test]
+    fn decodes_a_real_fluxvm_changeset() {
+        let cs: Changeset =
+            serde_json::from_str(include_str!("../tests/fixtures/fluxvm-changeset.json")).unwrap();
+        assert_eq!(cs.state, "pending");
+        assert_eq!(cs.exit_code, 0);
+        assert_eq!(cs.paths, ["/tmp"]);
+        assert_eq!(cs.changes["added"][0], "/tmp/specdir/a.txt");
+        assert!(cs.unstaged.is_empty());
+        assert_eq!(cs.error, None);
     }
 }

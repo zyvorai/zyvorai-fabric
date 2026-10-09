@@ -510,6 +510,17 @@ pub fn public_router(state: Arc<AppState>) -> Router {
         )
         .route("/v1/approvals", get(list_approvals).post(create_approval))
         .route("/v1/approvals/{id}", post(decide_approval))
+        .route("/v1/sessions/{id}/speculate", post(speculate_session))
+        .route(
+            "/v1/sessions/{id}/grants",
+            post(create_session_grant)
+                .get(list_session_grants)
+                .delete(revoke_session_grants),
+        )
+        .route(
+            "/v1/sessions/{id}/grants/{grant_id}",
+            axum::routing::delete(revoke_session_grant),
+        )
         .route("/v1/audit", get(list_audit))
         .route("/v1/export/audit", get(export_audit))
         .route(
@@ -3695,6 +3706,359 @@ async fn create_approval(
     Ok((StatusCode::CREATED, Json(record)))
 }
 
+/// Longest command a speculative run accepts. FluxVM runs it in a shell, so
+/// this only bounds what lands in the audit journal and the approval card.
+/// Why `name` may not be handed to FluxVM's credential broker, if it may not.
+///
+/// A FluxVM grant attaches one `Authorization` value to every request for its hosts. It has no
+/// method or path filter, no per-request approval and no per-user check, so a Keep credential
+/// that relies on any of those must stay with Keep's own egress broker, which enforces them.
+fn grant_refusal(
+    name: &str,
+    d: &crate::credentials::CredentialDescriptor,
+    hosts: &[String],
+) -> Option<String> {
+    let why = |r: &str| {
+        Some(format!(
+            "credential '{name}' cannot be granted to FluxVM: {r}"
+        ))
+    };
+    if d.kind != "provider" && !d.kind.is_empty() {
+        return why("only plain provider credentials are supported");
+    }
+    if !d.header.eq_ignore_ascii_case("authorization") {
+        return why("FluxVM injects the Authorization header only");
+    }
+    if d.source.is_some() || d.oauth.is_some() {
+        return why("it is read from a source or refreshed, which a grant cannot follow");
+    }
+    if !d.requires_approval.is_empty() {
+        return why("it needs a human decision per request, which a grant would bypass");
+    }
+    if !d.allowed_methods.is_empty() || !d.path_prefixes.is_empty() {
+        return why("its method/path limits would not be enforced by a grant");
+    }
+    if !d.allowed_users.is_empty() {
+        return why("its per-user limits would not be enforced by a grant");
+    }
+    if hosts.is_empty() {
+        return Some("hosts is required".into());
+    }
+    for h in hosts {
+        if !crate::credentials::host_matches(&d.host, h) {
+            return Some(format!(
+                "host {h} is outside what credential '{name}' may reach ({})",
+                d.host
+            ));
+        }
+    }
+    None
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct CreateSessionGrantRequest {
+    credential: String,
+    hosts: Vec<String>,
+    #[serde(default)]
+    ttl_seconds: Option<i64>,
+}
+
+/// `POST /v1/sessions/{id}/grants`: let FluxVM's egress proxy attach one of the agent's own
+/// credentials to requests for `hosts`. The secret is read from Keep's vault, sent to FluxVM
+/// and never returned or audited.
+async fn create_session_grant(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<CreateSessionGrantRequest>,
+) -> ApiResult<(StatusCode, Json<Value>)> {
+    let session = require_session(&state, id).await?;
+    if session.status != SessionStatus::Running {
+        return Err(ApiError::conflict("only running sessions can hold grants"));
+    }
+    let agent = state
+        .store
+        .get_agent(&session.agent)
+        .await
+        .ok_or_else(|| ApiError::not_found("agent not found"))?;
+    if !agent
+        .manifest
+        .credentials
+        .iter()
+        .any(|c| c == &req.credential)
+    {
+        return Err(ApiError::forbidden(format!(
+            "agent {} is not granted credential '{}'",
+            session.agent, req.credential
+        )));
+    }
+    let (descriptor, value) = state
+        .credentials
+        .resolve_for(&req.credential, session.user_id.as_deref())
+        .map_err(ApiError::bad_request)?;
+    if let Some(reason) = grant_refusal(&req.credential, descriptor, &req.hosts) {
+        return Err(ApiError::bad_request(reason));
+    }
+    let info = state
+        .fluxvm
+        .add_grant(
+            session.sandbox_id,
+            &req.credential,
+            &value,
+            &req.hosts,
+            req.ttl_seconds,
+        )
+        .await
+        .map_err(|e| ApiError::bad_gateway(format!("grant: {e:#}")))?;
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(id),
+            AuditPhase::Performed,
+            "credential.grant",
+            None,
+            json!({ "credential": req.credential, "hosts": req.hosts, "grant": info.get("id") }),
+        )
+        .await
+    {
+        tracing::error!(%error, "failed to write audit entry");
+    }
+    Ok((StatusCode::CREATED, Json(info)))
+}
+
+async fn list_session_grants(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Value>> {
+    let session = require_session(&state, id).await?;
+    state
+        .fluxvm
+        .list_grants(session.sandbox_id)
+        .await
+        .map(Json)
+        .map_err(|e| ApiError::bad_gateway(format!("grants: {e:#}")))
+}
+
+async fn revoke_session_grants(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Value>> {
+    revoke_for(&state, id, None).await
+}
+
+async fn revoke_session_grant(
+    State(state): State<Arc<AppState>>,
+    Path((id, grant_id)): Path<(Uuid, String)>,
+) -> ApiResult<Json<Value>> {
+    revoke_for(&state, id, Some(grant_id)).await
+}
+
+async fn revoke_for(
+    state: &AppState,
+    id: Uuid,
+    grant_id: Option<String>,
+) -> ApiResult<Json<Value>> {
+    let session = require_session(state, id).await?;
+    let out = state
+        .fluxvm
+        .revoke_grants(session.sandbox_id, grant_id.as_deref())
+        .await
+        .map_err(|e| ApiError::bad_gateway(format!("revoke: {e:#}")))?;
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(id),
+            AuditPhase::Performed,
+            "credential.revoke",
+            None,
+            json!({ "grant": grant_id }),
+        )
+        .await
+    {
+        tracing::error!(%error, "failed to write audit entry");
+    }
+    Ok(Json(out))
+}
+
+const MAX_SPECULATE_COMMAND_BYTES: usize = 8 * 1024;
+
+#[derive(Debug, serde::Deserialize)]
+struct SpeculateSessionRequest {
+    command: String,
+    #[serde(default)]
+    timeout_seconds: Option<u64>,
+    #[serde(default)]
+    paths: Option<Vec<String>>,
+    #[serde(default)]
+    ttl_seconds: Option<u64>,
+}
+
+/// `POST /v1/sessions/{id}/speculate`: run a command in an isolated copy of the
+/// session's sandbox and hold the file changes behind a pending approval.
+/// Nothing reaches the sandbox until a person approves; the agent cannot.
+async fn speculate_session(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<SpeculateSessionRequest>,
+) -> ApiResult<(StatusCode, Json<Value>)> {
+    let session = require_session(&state, id).await?;
+    if session.status != SessionStatus::Running {
+        return Err(ApiError::conflict("only running sessions can speculate"));
+    }
+    let command = req.command.trim();
+    if command.is_empty() {
+        return Err(ApiError::bad_request("command is required"));
+    }
+    if command.len() > MAX_SPECULATE_COMMAND_BYTES {
+        return Err(ApiError::bad_request(format!(
+            "command must be at most {MAX_SPECULATE_COMMAND_BYTES} bytes"
+        )));
+    }
+    // A Keep cell is a VM, and FluxVM refuses to scan a VM's whole root: it
+    // needs the directories to compare, and they must exist in the guest.
+    let paths: Vec<String> = req
+        .paths
+        .unwrap_or_default()
+        .into_iter()
+        .map(|p| p.trim().to_string())
+        .filter(|p| !p.is_empty())
+        .collect();
+    if paths.is_empty() {
+        return Err(ApiError::bad_request(
+            "paths is required: name the guest directories to compare, for example [\"/work\"]",
+        ));
+    }
+    let changeset = state
+        .fluxvm
+        .speculate(
+            session.sandbox_id,
+            &crate::fluxvm::SpeculateRequest {
+                command: command.to_string(),
+                timeout_seconds: req.timeout_seconds,
+                paths: Some(paths),
+                ttl_seconds: req.ttl_seconds,
+            },
+        )
+        .await
+        .map_err(|e| ApiError::bad_gateway(format!("speculate: {e:#}")))?;
+    if changeset.state != "pending" {
+        return Ok((
+            StatusCode::OK,
+            Json(json!({ "approval": null, "changeset": changeset })),
+        ));
+    }
+    let record = ApprovalRecord {
+        id: Uuid::new_v4(),
+        session_id: id,
+        kind: ApprovalKind::Changeset,
+        subject: Some(changeset.id.to_string()),
+        planned_action: Some(json!({
+            "changeset_id": changeset.id,
+            "command": changeset.command,
+            "exit_code": changeset.exit_code,
+            "paths": changeset.paths,
+            "changes": changeset.changes,
+            "side_effects": changeset.side_effects,
+            "unstaged": changeset.unstaged,
+            "expires_at": changeset.expires_at,
+        })),
+        prompt: format!("Apply the file changes from `{}`?", changeset.command),
+        status: ApprovalStatus::Pending,
+        comment: None,
+        created_at: Utc::now(),
+        decided_at: None,
+        source_seq: None,
+        grant_scope: None,
+        preview: None,
+        broker_held: false,
+    };
+    state
+        .store
+        .save_approval(record.clone())
+        .await
+        .map_err(ApiError::internal)?;
+    audit_approval_planned(&state, &record).await;
+    Ok((
+        StatusCode::CREATED,
+        Json(json!({ "approval": record, "changeset": changeset })),
+    ))
+}
+
+/// Carry out a person's decision on a changeset approval. Approve means
+/// FluxVM approve then apply; deny means reject. The approval is already
+/// recorded, so a FluxVM failure is audited and reported, not hidden.
+async fn settle_changeset(
+    state: &AppState,
+    session: &SessionRecord,
+    record: &ApprovalRecord,
+) -> ApiResult<()> {
+    let Some(changeset_id) = record
+        .planned_action
+        .as_ref()
+        .and_then(|a| a.get("changeset_id"))
+        .and_then(Value::as_str)
+        .and_then(|s| Uuid::parse_str(s).ok())
+    else {
+        return Err(ApiError::internal("changeset approval has no changeset_id"));
+    };
+    let approved = record.status == ApprovalStatus::Approved;
+    let outcome = if approved {
+        match state
+            .fluxvm
+            .approve_changeset(session.sandbox_id, changeset_id)
+            .await
+        {
+            Ok(_) => {
+                state
+                    .fluxvm
+                    .apply_changeset(session.sandbox_id, changeset_id)
+                    .await
+            }
+            Err(e) => Err(e),
+        }
+    } else {
+        state
+            .fluxvm
+            .reject_changeset(session.sandbox_id, changeset_id)
+            .await
+    };
+    let (phase, action) = match (&outcome, approved) {
+        (Ok(_), true) => (AuditPhase::Performed, "changeset.apply"),
+        (Ok(_), false) => (AuditPhase::Performed, "changeset.reject"),
+        (Err(_), true) => (AuditPhase::Failed, "changeset.apply"),
+        (Err(_), false) => (AuditPhase::Failed, "changeset.reject"),
+    };
+    let detail = match &outcome {
+        Ok(cs) => {
+            json!({ "approval_id": record.id, "changeset_id": changeset_id, "state": cs.state })
+        }
+        Err(e) => {
+            json!({ "approval_id": record.id, "changeset_id": changeset_id, "error": format!("{e:#}") })
+        }
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(record.session_id),
+            phase,
+            action.to_string(),
+            record.subject.clone(),
+            detail,
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %record.id, "failed to write audit entry");
+    }
+    outcome.map(|_| ()).map_err(|e| {
+        ApiError::bad_gateway(format!(
+            "your decision is recorded, but FluxVM could not {} the changeset: {e:#}",
+            if approved { "apply" } else { "reject" }
+        ))
+    })
+}
+
 async fn decide_approval(
     State(state): State<Arc<AppState>>,
     Extension(principal): Extension<Principal>,
@@ -3761,6 +4125,12 @@ async fn decide_approval(
         "decision": record.status,
         "comment": record.comment,
     });
+    // A changeset is held by the host, not the agent: carry out the decision on
+    // FluxVM and leave the agent alone.
+    if record.kind == ApprovalKind::Changeset {
+        settle_changeset(&state, &session, &record).await?;
+        return Ok(Json(record));
+    }
     // An approval the broker is holding (egress, or a send/purchase/DLP/taint hold)
     // unblocks a request already in flight; the agent is not waiting for steering,
     // so there is nothing to send it.
@@ -4067,5 +4437,260 @@ mod tests {
             err.message()
         );
         assert!(err.message().contains("only 0 free"), "{}", err.message());
+    }
+
+    /// A FluxVM that records which changeset calls reach it.
+    #[derive(Clone, Default)]
+    struct FakeFlux {
+        calls: Arc<std::sync::Mutex<Vec<String>>>,
+        fail_apply: bool,
+    }
+
+    fn fake_changeset(sandbox: &str, cs: &str, state: &str) -> Value {
+        json!({
+            "id": cs, "sandbox_id": sandbox, "state": state, "expires_at": 0,
+            "command": "sed -i s/a/b/ notes.txt", "exit_code": 0,
+            "stdout": "", "stderr": "", "paths": ["notes.txt"],
+            "changes": { "modified": ["notes.txt"] }, "side_effects": {}, "unstaged": []
+        })
+    }
+
+    async fn start_fake_flux(fake: FakeFlux) -> String {
+        use axum::{extract::Path, routing::post, Router};
+        let cs = "00000000-0000-0000-0000-00000000c0de";
+        let record = fake.clone();
+        let speculate = move |Path(id): Path<String>| {
+            let record = record.clone();
+            async move {
+                record.calls.lock().unwrap().push("speculate".into());
+                Json(fake_changeset(&id, cs, "pending"))
+            }
+        };
+        let record = fake.clone();
+        let verb = move |Path((id, cs, verb)): Path<(String, String, String)>| {
+            let record = record.clone();
+            async move {
+                record.calls.lock().unwrap().push(verb.clone());
+                if verb == "apply" && record.fail_apply {
+                    return (
+                        StatusCode::CONFLICT,
+                        Json(json!({ "error": "base moved on" })),
+                    );
+                }
+                let state = match verb.as_str() {
+                    "approve" => "approved",
+                    "apply" => "applied",
+                    _ => "rejected",
+                };
+                (StatusCode::OK, Json(fake_changeset(&id, &cs, state)))
+            }
+        };
+        let app = Router::new()
+            .route("/v1/sandboxes/{id}/speculate", post(speculate))
+            .route("/v1/sandboxes/{id}/changesets/{cs}/{verb}", post(verb));
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        url
+    }
+
+    fn descriptor(extra: Value) -> crate::credentials::CredentialDescriptor {
+        let mut base = json!({"host": "api.example.com", "header": "Authorization", "env": "X"});
+        base.as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        serde_json::from_value(base).unwrap()
+    }
+
+    #[test]
+    fn only_unrestricted_authorization_credentials_may_be_granted() {
+        let hosts = vec!["api.example.com".to_string()];
+        assert_eq!(grant_refusal("k", &descriptor(json!({})), &hosts), None);
+        // A sub-domain of the credential's host is still inside its scope.
+        let sub = vec!["eu.api.example.com".to_string()];
+        assert_eq!(grant_refusal("k", &descriptor(json!({})), &sub), None);
+
+        for (extra, needle) in [
+            (json!({"header": "x-api-key"}), "Authorization header only"),
+            (json!({"requires_approval": ["POST"]}), "per request"),
+            (json!({"allowed_methods": ["GET"]}), "method/path"),
+            (json!({"path_prefixes": ["/v1/"]}), "method/path"),
+            (json!({"allowed_users": ["alice"]}), "per-user"),
+            (json!({"kind": "fabric"}), "provider"),
+        ] {
+            let why = grant_refusal("k", &descriptor(extra.clone()), &hosts)
+                .unwrap_or_else(|| panic!("{extra} must be refused"));
+            assert!(why.contains(needle), "{extra}: {why}");
+        }
+
+        let other = vec!["evil.example.net".to_string()];
+        let why = grant_refusal("k", &descriptor(json!({})), &other).unwrap();
+        assert!(why.contains("outside what credential"), "{why}");
+        assert!(grant_refusal("k", &descriptor(json!({})), &[]).is_some());
+    }
+
+    async fn running_session(state: &AppState, status: SessionStatus) -> SessionRecord {
+        let now = Utc::now();
+        let record = SessionRecord {
+            id: Uuid::new_v4(),
+            agent: "a".into(),
+            agent_version: "v".into(),
+            sandbox_id: Uuid::new_v4(),
+            status,
+            input: json!({}),
+            created_at: now,
+            updated_at: now,
+            last_event_seq: 0,
+            guest_event_cursor: 0,
+            request_id: None,
+            start_policy: SessionStartPolicy::PreferWarm,
+            start_mode: SessionStartMode::Cold,
+            startup_ms: None,
+            expires_at: None,
+            sandbox_released: false,
+            capability_token: "cap".into(),
+            error: None,
+            parent_session_id: None,
+            user_id: None,
+            tainted_by: vec![],
+            confidential: None,
+            agent_paused_reason: None,
+            browse: Default::default(),
+        };
+        state.store.save_session(record.clone()).await.unwrap();
+        record
+    }
+
+    fn speculate_req(command: &str) -> Json<SpeculateSessionRequest> {
+        Json(SpeculateSessionRequest {
+            command: command.into(),
+            timeout_seconds: None,
+            paths: Some(vec!["/work".into()]),
+            ttl_seconds: None,
+        })
+    }
+
+    async fn decide(
+        state: &Arc<AppState>,
+        approval: Uuid,
+        decision: ApprovalStatus,
+    ) -> ApiResult<Json<ApprovalRecord>> {
+        decide_approval(
+            State(state.clone()),
+            Extension(Principal::Operator),
+            Path(approval),
+            Json(DecideApprovalRequest {
+                decision,
+                scope: None,
+                comment: None,
+                device_id: None,
+                signature: None,
+            }),
+        )
+        .await
+    }
+
+    async fn speculate_for_test(state: &Arc<AppState>, session: Uuid) -> (Uuid, Vec<String>) {
+        let (code, Json(body)) = speculate_session(
+            State(state.clone()),
+            Path(session),
+            speculate_req("sed -i s/a/b/ notes.txt"),
+        )
+        .await
+        .unwrap();
+        assert_eq!(code, StatusCode::CREATED);
+        assert_eq!(body["approval"]["kind"], "changeset");
+        assert_eq!(body["approval"]["status"], "pending");
+        let id = Uuid::parse_str(body["approval"]["id"].as_str().unwrap()).unwrap();
+        (id, vec![])
+    }
+
+    #[tokio::test]
+    async fn approving_a_changeset_approves_then_applies_it_on_fluxvm() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        // Speculating alone must not change anything on the sandbox.
+        assert_eq!(*fake.calls.lock().unwrap(), ["speculate"]);
+
+        let Json(done) = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        assert_eq!(done.status, ApprovalStatus::Approved);
+        assert_eq!(
+            *fake.calls.lock().unwrap(),
+            ["speculate", "approve", "apply"]
+        );
+    }
+
+    #[tokio::test]
+    async fn denying_a_changeset_rejects_it_and_never_applies() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let Json(done) = decide(&state, approval, ApprovalStatus::Denied)
+            .await
+            .unwrap();
+        assert_eq!(done.status, ApprovalStatus::Denied);
+        assert_eq!(*fake.calls.lock().unwrap(), ["speculate", "reject"]);
+    }
+
+    #[tokio::test]
+    async fn a_failed_apply_is_reported_and_the_decision_stays_recorded() {
+        let fake = FakeFlux {
+            fail_apply: true,
+            ..Default::default()
+        };
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let err = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::BAD_GATEWAY);
+        assert!(err.message.contains("could not apply"), "{}", err.message);
+        // The person's decision is not lost, and a second decision is refused.
+        let stored = state.store.get_approval(approval).await.unwrap();
+        assert_eq!(stored.status, ApprovalStatus::Approved);
+        assert!(decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .is_err());
+    }
+
+    #[tokio::test]
+    async fn speculate_needs_a_running_session_and_a_command() {
+        let state = crate::goals::tests::test_state().await;
+        let stopped = running_session(&state, SessionStatus::Completed).await;
+        let err = speculate_session(State(state.clone()), Path(stopped.id), speculate_req("ls"))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::CONFLICT);
+
+        let running = running_session(&state, SessionStatus::Running).await;
+        let err = speculate_session(State(state.clone()), Path(running.id), speculate_req("   "))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::BAD_REQUEST);
+        // FluxVM needs directories to compare; fail here with a clear message.
+        let Json(mut no_paths) = speculate_req("ls");
+        no_paths.paths = Some(vec!["  ".into()]);
+        let err = speculate_session(State(state.clone()), Path(running.id), Json(no_paths))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::BAD_REQUEST);
+        assert!(err.message.contains("paths is required"), "{}", err.message);
+        let long = "x".repeat(MAX_SPECULATE_COMMAND_BYTES + 1);
+        let err = speculate_session(State(state), Path(running.id), speculate_req(&long))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::BAD_REQUEST);
     }
 }
