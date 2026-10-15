@@ -951,6 +951,30 @@ pub async fn session_host_recover(
     .await
 }
 
+/// Run a command in the session's VM without keeping its file changes.
+///
+/// Keep returns a `changeset` approval; a person settles it through
+/// `POST /approvals/{id}`. The agent cannot approve its own changeset.
+pub async fn session_speculate(
+    RequireWrite(claims): RequireWrite,
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+    Json(body): Json<Value>,
+) -> Response {
+    if let Err(resp) = session_owned(&state, &claims, &id).await {
+        return resp;
+    }
+    proxy(
+        &state,
+        Method::POST,
+        &format!("/v1/sessions/{id}/speculate"),
+        None,
+        Some(body),
+        None,
+    )
+    .await
+}
+
 /// Keep vault status (credential names + user-held flags; never secret values).
 pub async fn vault_status(
     RequireRead(_claims): RequireRead,

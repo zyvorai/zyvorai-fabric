@@ -1244,6 +1244,10 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             post(api::agent_runtime::session_host_recover),
         )
         .route(
+            "/sessions/{id}/speculate",
+            post(api::agent_runtime::session_speculate),
+        )
+        .route(
             "/sessions/{id}/browser/view",
             get(api::agent_runtime::session_browser_view),
         )
