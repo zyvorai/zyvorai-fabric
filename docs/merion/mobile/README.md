@@ -66,14 +66,22 @@ The same relays also get **notices**: things a person should know that are not d
 `GET /v1/inbox` (with the user's token) returns the pending approvals; each has a `sign` block:
 
 ```json
-{ "format": "keep-approval-v1", "challenge": "…32 hex…", "expires_at": 1790000000,
+{ "format": "keep-approval-v1", "formats": ["keep-approval-v1", "merion-approval-v1"],
+  "challenge": "…32 hex…", "expires_at": 1790000000,
   "action_sha256": "…", "algorithms": ["p256", "ed25519"] }
 ```
+
+`format` is the name a client built before the rename signs, and it stays that way. `formats` is what the host verifies:
+a signature over either text is accepted, and the signed line (the first line below) is the only difference, so a signature
+over one never verifies as the other. A new client that knows `merion-approval-v1` should sign it when `formats` lists it;
+an older client keeps working unchanged. `cases` in [test-vectors.json](test-vectors.json) are `keep-approval-v1`;
+`cases_merion` are the same decisions under `merion-approval-v1`. Which format a decision used is recorded in the
+`approval.device_signature` audit row (`format`), so you can see when no device signs the old one any more.
 
 Sign this exact text (UTF-8, every line ends in `\n`), with the decision the person chose:
 
 ```
-keep-approval-v1
+keep-approval-v1               (or: merion-approval-v1, see above)
 approval: <approval id>
 decision: approved            (or: denied)
 kind: <kind>
