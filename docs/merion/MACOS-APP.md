@@ -6,14 +6,14 @@ sidebar_position: 10
 
 ![Solvor: drop a file, get answers, see the proof](../assets/merion/solvor-home.png)
 
-Solvor is a native macOS app (SwiftUI, macOS 26 and later, built on Liquid Glass with the system accent colour) for using Keep from a Mac. Source: [`integrations/macos-merion`](https://github.com/zyvorai/fabric/tree/main/integrations/macos-merion).
+Solvor is a native macOS app (SwiftUI, macOS 26 and later, built on Liquid Glass with the system accent colour) for using Merion from a Mac. Source: [`integrations/macos-merion`](https://github.com/zyvorai/fabric/tree/main/integrations/macos-merion).
 
-**What it is.** A client. You choose or drop a file; the app uploads it to a Keep host you run; the host reads it in a sealed cell that has
+**What it is.** A client. You choose or drop a file; the app uploads it to a Merion host you run; the host reads it in a sealed cell that has
 no network; the summary comes back and is kept in a history. Every use case the host lists is available: the built-ins, the
 [scenario packs](SCENARIOS.md) and your own.
 
 **What it is not.** It does not run commands on your Mac (the "how to get this file" command is shown so you run it yourself), does not drive other
-apps (no AppleScript or Accessibility automation), and is not an agent that operates the desktop: a Keep cell is a Linux microVM. It is
+apps (no AppleScript or Accessibility automation), and is not an agent that operates the desktop: a Merion cell is a Linux microVM. It is
 also not a signed, notarized release; it builds locally with ad-hoc signing.
 
 ## What it does
@@ -33,14 +33,14 @@ also not a signed, notarized release; it builds locally with ad-hoc signing.
 | Talk to Solvor | Microphone button: Speech transcribes in the language you pick, Apple's on-device Translation turns it into English, a fixed set of commands is recognised (read the browser email, summarise a file or your latest download, show runs, approvals, watch folders). It shows "I heard, I will" and waits for a click | Command parser unit-tested; microphone, Speech and Translation need your permissions and were **not run here** |
 | Menu bar | An ask box and a drop target routed into the same Agent Home conversation, up to two waiting approvals as compact cards (opens the full window to decide — a popover has no room for Touch ID), recent runs, run the clipboard as a text use case | Built; not exercised |
 | Ask anywhere (⌥Space) | A global hotkey opens a small chat panel over any app, wired to Agent Home; no Accessibility permission needed (`NSEvent` monitors, not a system-wide event tap) | Key-matching logic unit-tested; **not verified against a real keypress or the panel's on-screen appearance** |
-| Services | "Send to Keep" in Finder's Services menu (an `NSServices` entry, no extension target) | In Info.plist; not exercised |
+| Services | "Send to Merion" in Finder's Services menu (an `NSServices` entry, no extension target) | In Info.plist; not exercised |
 | Shortcuts and Siri | App Shortcuts ("Read my email with Solvor", "Summarise my latest download with Solvor", "Show my approvals in Solvor") so Siri and Shortcuts can start the same actions. Siri matches phrases the app registered; it does not translate | Built; **not verified**: Siri and the Shortcuts registration were not run here |
 | `keep://run?usecase=…&path=…` | Starts a run from a link | In Info.plist; LaunchServices did not bind the scheme for a build run from a temporary folder, so **unverified** |
 
 ## Safety
 
-- Email is **untrusted data**. Reading happens only when you click; the preview always appears before anything is sent; the text goes to your Keep host,
-  never to the mail site; Solvor never sends, replies, deletes or clicks anything in your mail and never touches mail credentials. Keep's packs are
+- Email is **untrusted data**. Reading happens only when you click; the preview always appears before anything is sent; the text goes to your Merion host,
+  never to the mail site; Solvor never sends, replies, deletes or clicks anything in your mail and never touches mail credentials. Merion's packs are
   extractive (no model), so an email cannot give the summary an instruction.
 - **Voice can never approve or deny.** Approvals need Touch ID. Voice, Siri and Shortcuts cannot send, delete or approve, and a file is only offered
   after it is shown to you and passes the same secret scan and size check as a click.
@@ -81,4 +81,4 @@ approval surfaced as a chat-only notice — never a decision made from the strea
 
 No Share-sheet extension (it needs a signed extension target), no notarized build or dmg, no push relay (approvals are polled every 20 s
 while the app runs), and the hooks marked "not verified" above still need a run on a Mac with the app installed in `/Applications`. See
-[RECIPES.md](RECIPES.md) for calling Keep from Shortcuts, scripts and other agents without this app.
+[RECIPES.md](RECIPES.md) for calling Merion from Shortcuts, scripts and other agents without this app.

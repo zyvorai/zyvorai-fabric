@@ -1,6 +1,6 @@
 # node22-agent
 
-The cell template every Keep use case runs in: Ubuntu 24.04, Node 22, `poppler-utils` (for `pdftotext`), `tesseract-ocr` with the English data (for photos and screenshots) and the
+The cell template every Merion use case runs in: Ubuntu 24.04, Node 22, `poppler-utils` (for `pdftotext`), `tesseract-ocr` with the English data (for photos and screenshots) and the
 FluxVM guest agent. Nothing else. Node runs the fixed extractor scripts for `.docx`, `.xlsx`, `.pptx`, `.html`,
 `.eml` / `.mbox`; poppler reads PDFs; tesseract reads images. A template baked before OCR was added still works for everything else: an image
 run is refused with "The template has no tesseract". All of the one-click use cases and the scenario packs in

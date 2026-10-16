@@ -1,6 +1,6 @@
-# Tutorial 16: Keep — open workstation for an untrusted agent
+# Tutorial 16: Merion — open workstation for an untrusted agent
 
-Run a **Keep**: a personal Linux cell for an agent you do not have to trust,
+Run a **Merion**: a personal Linux cell for an agent you do not have to trust,
 with a Sentinel policy you can read, approvals out of band, and an honest
 measured security profile.
 
@@ -8,7 +8,7 @@ measured security profile.
 **Time:** 45 minutes  
 **Repos:** Fabric agent-runtime, FluxVM reachable, `curl`, `jq`, Node 20+ optional for bundles.
 
-> **Honesty.** Until Keep 0.2 on real SNP/TDX with a user-held key, *the host
+> **Honesty.** Until Merion 0.2 on real SNP/TDX with a user-held key, *the host
 > can still see a measured VM.* Evidence class `software-test` must never be
 > marketed as “the operator cannot read this.” See [docs/merion/MERION.md](../merion/MERION.md).
 
@@ -20,9 +20,9 @@ Lab live FluxVM gate: [`./scripts/merion-live-lab.sh`](../../scripts/merion-live
 
 ## What you will learn
 
-1. How Keep maps onto Fabric agent-runtime + FluxVM (no third repo).
-2. How to run the CI suite and the Keep 0.1 live lab gate.
-3. How to run **Keep mode** (fail-closed signed policy).
+1. How Merion maps onto Fabric agent-runtime + FluxVM (no third repo).
+2. How to run the CI suite and the Merion 0.1 live lab gate.
+3. How to run **Merion mode** (fail-closed signed policy).
 4. How to export/import `merion.policy.yaml` with `merionctl`.
 5. How to open cockpit + browser live view.
 6. How training stays off unless you mint an export token.
@@ -39,7 +39,7 @@ cargo test --manifest-path agent-runtime/Cargo.toml policy -- --nocapture
 ./scripts/merionctl --help
 ```
 
-Expect ~143 lib tests green and stub e2e PASS. That is the same gate as the Keep workflow.
+Expect ~143 lib tests green and stub e2e PASS. That is the same gate as the Merion workflow.
 
 On a host with FluxVM up:
 
@@ -51,7 +51,7 @@ On a host with FluxVM up:
 
 ---
 
-## Step 1 — Start the agent runtime (Keep mode)
+## Step 1 — Start the agent runtime (Merion mode)
 
 ```bash
 # Generate a one-off Ed25519 seed for this lab (32-byte hex)
@@ -65,14 +65,14 @@ export ZYVOR_AGENT_FLUXVM_URL=http://127.0.0.1:7788
 export ZYVOR_AGENT_MERION_MODE=1
 export ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB"
 export ZYVOR_AGENT_CONFINE=1          # optional but recommended
-export ZYVOR_AGENT_SECURITY_PROFILE=measured  # default under Keep mode
+export ZYVOR_AGENT_SECURITY_PROFILE=measured  # default under Merion mode
 # optional: approval webhook your phone/CLI can reach
 # export ZYVOR_AGENT_APPROVAL_WEBHOOK=https://…
 
 cargo run --manifest-path agent-runtime/Cargo.toml --release
 ```
 
-Keep mode **refuses to start** without trusted signers, and refuses unsigned
+Merion mode **refuses to start** without trusted signers, and refuses unsigned
 `PUT /v1/agents/{name}/policy`.
 
 ```bash
@@ -83,9 +83,9 @@ curl -sS -H "Authorization: Bearer $MERION_TOKEN" "$MERION_API/healthz"
 
 ---
 
-## Step 2 — Deploy an agent (Keep cell)
+## Step 2 — Deploy an agent (Merion cell)
 
-Use Tutorial 11’s deploy JSON shape, and add Keep fields:
+Use Tutorial 11’s deploy JSON shape, and add Merion fields:
 
 ```json
 {
@@ -113,7 +113,7 @@ Use Tutorial 11’s deploy JSON shape, and add Keep fields:
 ```
 
 `model_socket` is the BYO brain — swap Grok / local GGUF / vLLM without rebuilding the cell.  
-`cell_backend: firecracker` records the Keep 0.1 intent (agent kernel ≠ host kernel); the live sandbox still follows FluxVM’s sandbox API today.  
+`cell_backend: firecracker` records the Merion 0.1 intent (agent kernel ≠ host kernel); the live sandbox still follows FluxVM’s sandbox API today.  
 Console UX: marketing `/keep` → **Open Agents** when signed in.
 
 ---
@@ -128,14 +128,14 @@ Console UX: marketing `/keep` → **Open Agents** when signed in.
 ./scripts/merionctl policy set keep-demo /tmp/merion.policy.yaml /tmp/merion.policy.yaml.sig
 ```
 
-Unsigned `PUT` returns **403** in Keep mode. Example schema:
+Unsigned `PUT` returns **403** in Merion mode. Example schema:
 [docs/merion/sentinel/merion.policy.yaml](../merion/sentinel/merion.policy.yaml).
 
 High-risk actions (buy / send / delete) must go through `/v1/approvals` / your
 webhook — never confirm inside the agent chat.
 
 Credentials use host-side `authorize_resolve` allowlists
-([vault/README.md](../merion/vault/README.md)); secrets remain host-readable until Keep 0.2.
+([vault/README.md](../merion/vault/README.md)); secrets remain host-readable until Merion 0.2.
 
 ---
 
@@ -155,7 +155,7 @@ open "$MERION_API/merion/browser?session=$SID"
 ```
 
 Untrusted reads paint `tainted_by`; egress flips to ask. Screencast and input
-takeover are **not** in Keep 0.1 — see [browser/README.md](../merion/browser/README.md).
+takeover are **not** in Merion 0.1 — see [browser/README.md](../merion/browser/README.md).
 
 ---
 
@@ -194,7 +194,7 @@ curl -sS -X POST http://127.0.0.1:7788/v1/vms \
   --data @examples/qemu-measured.json
 ```
 
-Under Keep mode the agent-runtime defaults `ZYVOR_AGENT_SECURITY_PROFILE=measured`
+Under Merion mode the agent-runtime defaults `ZYVOR_AGENT_SECURITY_PROFILE=measured`
 on sandbox create. Cockpit still labels evidence `software-test`.
 
 FluxVM CI for that path: `./scripts/test-security-profiles.sh` in the fluxvm repo.
@@ -206,10 +206,10 @@ FluxVM CI for that path: `./scripts/test-security-profiles.sh` in the fluxvm rep
 - Approvals inside the agent chat  
 - Calling `software-test` evidence “hardware attestation”  
 - Treating QEMU `extra_args` as proof of confidential launch  
-- Running production Keep without `ZYVOR_AGENT_MERION_MODE=1` and trusted signers  
-- Opening a third Keep git repository — Keep lives in Fabric  
+- Running production Merion without `ZYVOR_AGENT_MERION_MODE=1` and trusted signers  
+- Opening a third Merion git repository — Merion lives in Fabric  
 
-Keep 0.2 **soft** scaffolding (receipt, screencast, user-held challenge, fabricd
+Merion 0.2 **soft** scaffolding (receipt, screencast, user-held challenge, fabricd
 proxies) is already in tree — see [KEEP-0.2.md](../merion/MERION-0.2.md). Hardware
 SNP/TDX + real user-held unwrap is still required before unread-by-operator claims.
 
@@ -244,7 +244,7 @@ CI syntax check: `./scripts/merion-bake-browser-smoke.sh`.
 
 ## Appendix — Packaged agents (infra, migration, deploy)
 
-Keep ships Fabric-facing packs under [`examples/merion-agents/`](../../examples/merion-agents/):
+Merion ships Fabric-facing packs under [`examples/merion-agents/`](../../examples/merion-agents/):
 
 | Pack | Reads | Writes (ask) | Artifact |
 |---|---|---|---|

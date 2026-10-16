@@ -1,6 +1,6 @@
 # Live cockpit
 
-Operator surfaces shipped in Keep 0.1 / 0.2 soft scaffold:
+Operator surfaces shipped in Merion 0.1 / 0.2 soft scaffold:
 
 | Surface | What you get |
 |---|---|
@@ -14,7 +14,7 @@ Operator surfaces shipped in Keep 0.1 / 0.2 soft scaffold:
 | fabricd `WS /ws/sessions/{id}/browser/screencast` | Same, JWT `?token=` for console |
 | `GET /keep/browser?session=` | HTML: tab listing + screencast button |
 
-**Egress proof:** `egress_connects` counts Keep audit `egress.connect` / `ebpf.*`.
+**Egress proof:** `egress_connects` counts Merion audit `egress.connect` / `ebpf.*`.
 FluxVM `drop_reasons` appears when the dataplane is attached. PacketWolf is
 optional — see [confine.md](../confine.md) and [demos/pdf-brief.md](../demos/pdf-brief.md).
 

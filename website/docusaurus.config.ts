@@ -77,7 +77,7 @@ const config: Config = {
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
           editUrl: 'https://github.com/zyvorai/zyvorai-fabric/tree/main/docs/',
-          // docs/merion/README.md is the GitHub landing page for Keep. The site
+          // docs/merion/README.md is the GitHub landing page for Merion. The site
           // already has /keep and docs/merion/MERION.md (the folder index), so
           // keep the README out of the docs build to avoid a duplicate route.
           exclude: [
@@ -112,7 +112,7 @@ const config: Config = {
       items: [
         {
           to: '/merion',
-          label: 'Keep',
+          label: 'Merion',
           position: 'right',
         },
         {
@@ -145,11 +145,11 @@ const config: Config = {
           title: 'Docs',
           items: [
             {label: 'Quick start', to: '/docs/getting-started/Quick-Start'},
-            {label: 'Keep', to: '/merion'},
-            {label: 'Keep for phone makers', to: '/merion/phones'},
-            {label: 'Keep use cases', to: '/merion/packs'},
+            {label: 'Merion', to: '/merion'},
+            {label: 'Merion for phone makers', to: '/merion/phones'},
+            {label: 'Merion use cases', to: '/merion/packs'},
             {label: 'Fabric vs the field', to: '/#matrix'},
-            {label: 'Keep docs', to: '/docs/merion/'},
+            {label: 'Merion docs', to: '/docs/merion/'},
             {label: 'Tutorial 17 — PDF brief', to: '/docs/tutorials/merion-pdf-brief'},
             {label: 'Product overview', to: '/docs/PRODUCT_OVERVIEW'},
             {label: 'FAQ', to: '/docs/quick-reference/faq'},
@@ -173,7 +173,7 @@ const config: Config = {
           title: 'Zyvor Enterprise',
           items: [
             {label: 'zyvor.dev', href: 'https://zyvor.dev'},
-            {label: 'Keep on zyvor.dev', href: 'https://zyvor.dev/merion'},
+            {label: 'Merion on zyvor.dev', href: 'https://zyvor.dev/merion'},
             {label: 'sales@zyvor.dev', href: 'mailto:sales@zyvor.dev'},
           ],
         },

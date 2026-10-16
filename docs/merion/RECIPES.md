@@ -2,14 +2,14 @@
 sidebar_position: 9
 ---
 
-# Recipes: calling Keep from the tools you already use
+# Recipes: calling Merion from the tools you already use
 
-Keep already has the ways in: the HTTP API with user tokens, signed webhook and folder triggers, and the `POST /mcp`
+Merion already has the ways in: the HTTP API with user tokens, signed webhook and folder triggers, and the `POST /mcp`
 endpoint ([TENANCY.md](TENANCY.md), [TRIGGERS.md](TRIGGERS.md), the [runtime README](https://github.com/zyvorai/fabric/blob/main/agent-runtime/README.md)). There is
 no Siri, Mac or Windows connector, and none is needed: a tool that can send an HTTP request with a file can run a use case.
 These recipes show how, using the same two calls every time.
 
-**Verified** below means the call was made against a real Keep host. **Unverified** means the client side (Siri, Shortcuts,
+**Verified** below means the call was made against a real Merion host. **Unverified** means the client side (Siri, Shortcuts,
 launchd, Task Scheduler) was not run here; the steps follow those tools' documented behaviour, so try them on a test file first.
 
 ## The two calls
@@ -51,14 +51,14 @@ repeated failures escalating to exit 4, and bad URLs refused. Not verified: cron
 
 Siri runs a Shortcut by its name, and a Shortcut can send the two calls above. In the Shortcuts app:
 
-1. New Shortcut, named for what you will say, for example **Summarise with Keep**. Set it to accept **Files** from the Share Sheet.
+1. New Shortcut, named for what you will say, for example **Summarise with Merion**. Set it to accept **Files** from the Share Sheet.
 2. Add **Get Contents of URL**: URL `https://YOUR-GATEWAY/v1/demos/pdf-brief`, Method **POST**, Headers `Authorization: Bearer <your user token>`,
    Request Body **Form**, a **File** field named `file` set to *Shortcut Input*.
 3. Add **Get Dictionary Value** for `artifacts`, take its first item, get `id`.
 4. Add **Get Contents of URL** again: `https://YOUR-GATEWAY/v1/artifacts/<that id>`, header as above, then **Get Dictionary Value** `body`.
 5. Add **Show Result** (or **Speak Text**).
 
-Then "Hey Siri, Summarise with Keep" runs it, and it works from the Share Sheet on a file. Siri itself only starts the Shortcut; it
+Then "Hey Siri, Summarise with Merion" runs it, and it works from the Share Sheet on a file. Siri itself only starts the Shortcut; it
 does not read the file. Keep the token in the Shortcut's own storage and do not share the Shortcut.
 
 ## macOS: a folder that runs a use case (unverified)
@@ -76,7 +76,7 @@ curl -s -H "Authorization: Bearer $TOKEN" "$MERION_API/v1/artifacts/$ID" > "${2%
 
 Store the token once with `security add-generic-password -s keep-token -a "$USER" -w`. To run it whenever a file lands in a folder,
 use an Automator **Folder Action**, or a launchd job with a `WatchPaths` entry pointing at the folder that runs the script. Or skip the
-script and use a **folder trigger** on the Keep side ([TRIGGERS.md](TRIGGERS.md)) if the folder is on the Keep host.
+script and use a **folder trigger** on the Merion side ([TRIGGERS.md](TRIGGERS.md)) if the folder is on the Merion host.
 
 ## Windows: PowerShell and Task Scheduler (unverified)
 
@@ -97,7 +97,7 @@ Run it on a schedule with **Task Scheduler** (an action that starts `pwsh -File 
 - **A system that can POST:** a signed **webhook trigger** runs a use case when it fires (`merionctl trigger add-webhook <pack>`, then
   `merionctl trigger fire`). *Verified* in the live scenarios script.
 - **Another agent (Claude, Codex, a script):** `POST /mcp` speaks MCP over JSON-RPC (`tools/list`, `tools/call`) on the same bearer
-  token, and the plain HTTP calls above work from any agent that can run `curl`. No change is needed on the Keep side.
+  token, and the plain HTTP calls above work from any agent that can run `curl`. No change is needed on the Merion side.
 
 ## A pack that watches for you, on its own schedule
 
@@ -112,4 +112,4 @@ same way as any other artifact, `GET /v1/artifacts/{id}`.
 They send a file you choose and bring back a summary. They do not give Siri, Shortcuts or a Windows task any access to your files
 beyond the one you pass, and they do not send mail, post to a ledger or change anything on your machine. Keep the token out of
 scripts and chat, prefer a short-lived scoped user token, and remember the evidence class is `software-test`: whoever operates the
-Keep host could read a cell's memory ([VENDORS.md](VENDORS.md)).
+Merion host could read a cell's memory ([VENDORS.md](VENDORS.md)).

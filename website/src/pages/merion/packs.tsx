@@ -25,11 +25,11 @@ export default function PackGalleryPage(): ReactNode {
 
   return (
     <Layout
-      title="Keep use cases: drop a file, get the answer"
-      description="Every Keep use case, generated from the packs in the repository: statements, chats, logs, decks, receipts and bills from photos, bank operations files and more.">
+      title="Merion use cases: drop a file, get the answer"
+      description="Every Merion use case, generated from the packs in the repository: statements, chats, logs, decks, receipts and bills from photos, bank operations files and more.">
       <Page>
         <HeroShell
-          eyebrow="Zyvor Keep · use cases"
+          eyebrow="Zyvor Merion · use cases"
           title="Drop a file."
           accent="Get the answer."
           sub={`${GALLERY_PACKS.length} ready-made use cases. Each one is a small declarative pack you can read, and each runs in a sealed cell with no network.`}

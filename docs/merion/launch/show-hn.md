@@ -1,10 +1,10 @@
 # Show HN draft
 
-**Title:** Show HN: Keep, read your files in a network-less microVM and see the proof (open source)
+**Title:** Show HN: Merion, read your files in a network-less microVM and see the proof (open source)
 
 **Body**
 
-I built Keep because I wanted to summarise bank statements, contracts and phone exports without uploading them anywhere. Each file is read
+I built Merion because I wanted to summarise bank statements, contracts and phone exports without uploading them anywhere. Each file is read
 inside a throw-away microVM with no network, on a host you run. The result page shows the number of outbound connections the cell made
 (zero), counted by the host's egress broker rather than by the cell.
 

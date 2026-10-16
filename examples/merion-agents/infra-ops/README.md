@@ -1,4 +1,4 @@
-# infra-ops — Keep packaged agent
+# infra-ops — Merion packaged agent
 
 Fabric-facing infrastructure operator. Reads system alerts, VM inventory, and
 lifecycle compliance; proposes VM restart / remediation **only after approval**.

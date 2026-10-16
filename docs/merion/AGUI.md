@@ -2,10 +2,10 @@
 sidebar_position: 10
 ---
 
-# AG-UI: drive a Keep agent from a chat client
+# AG-UI: drive a Merion agent from a chat client
 
 `POST /v1/agui` lets a chat client that speaks the [AG-UI protocol](https://github.com/ag-ui-protocol/ag-ui) talk to an agent that runs in a sealed cell. The client posts a
-`RunAgentInput` and reads a stream of server-sent events. Keep maps the run onto a session; it adds no new authority. Sessions are started and steered through the same code as
+`RunAgentInput` and reads a stream of server-sent events. Merion maps the run onto a session; it adds no new authority. Sessions are started and steered through the same code as
 `POST /v1/sessions` and `POST /v1/sessions/{id}/steer`, so scopes, quotas, tenancy and the agent's own policy apply unchanged, and a user token needs the `run` scope.
 
 ```bash
@@ -16,7 +16,7 @@ curl -N -X POST "$MERION_API/v1/agui" -H "Authorization: Bearer $MERION_TOKEN" -
 }'
 ```
 
-`forwardedProps.agent` names a deployed Keep agent. In a CopilotKit or other AG-UI client, point the HTTP agent at this URL and put the agent name in `forwardedProps`.
+`forwardedProps.agent` names a deployed Merion agent. In a CopilotKit or other AG-UI client, point the HTTP agent at this URL and put the agent name in `forwardedProps`.
 
 ## A small web chat: `scripts/merion-chat.py`
 
@@ -27,9 +27,9 @@ MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-chat.py --age
 ```
 
 Your token stays in that process; the browser never sees it. The agent is fixed by `--agent` (the page cannot choose another), it listens on `127.0.0.1` only and refuses a
-foreign `Host` or `Origin`. Besides the chat run it forwards three thread routes (`GET /threads`, `GET /threads/<id>/messages`, `DELETE /threads/<id>`), and a thread is reachable only if the Keep host itself lists it for this agent (and, with the operator token, for `--user`, default `operator`); nothing else on the host is reachable.
+foreign `Host` or `Origin`. Besides the chat run it forwards three thread routes (`GET /threads`, `GET /threads/<id>/messages`, `DELETE /threads/<id>`), and a thread is reachable only if the Merion host itself lists it for this agent (and, with the operator token, for `--user`, default `operator`); nothing else on the host is reachable.
 The page is laid out like a messaging app: a chat list (avatar, title, message count, time, a two-click Forget), a header with the agent and its live status (working, waiting for your approval), grouped bubbles with times and ticks, a typing indicator and a glowing composer while the agent works, day separators, dark and light, and on a phone width the list slides over the chat. It reopens the conversation you had after a reload. It renders text with `textContent` only, streams the reply as it arrives, shows an approval request as a notice, and cannot approve it.
-The left panel has three tabs. **Chats** is the list above. **Goals** lists the person's goals for this agent with a progress bar and their steps, adds a goal from a title and one step per line (with a "run the steps automatically" switch, so the [goal worker](goals/README.md) runs them), pauses or resumes one, and cancels one (two clicks). **Memory** shows the switch (off by default), adds a note, lists what the agent remembers with a two-click Forget, and shows what the agent *suggested* (marked "suggested by your agent", and "came from unverified content" when it was) with Accept and Reject. The proxy forwards only these routes for them (`/goals`, `/memory`): each reads or changes only what the Keep host itself lists for this person (and, for goals, this agent), lets only named fields through, needs a same-origin request for every write, and learns who the token is from `GET /v1/whoami` (with the operator token it uses `--user`, default `operator`).
+The left panel has three tabs. **Chats** is the list above. **Goals** lists the person's goals for this agent with a progress bar and their steps, adds a goal from a title and one step per line (with a "run the steps automatically" switch, so the [goal worker](goals/README.md) runs them), pauses or resumes one, and cancels one (two clicks). **Memory** shows the switch (off by default), adds a note, lists what the agent remembers with a two-click Forget, and shows what the agent *suggested* (marked "suggested by your agent", and "came from unverified content" when it was) with Accept and Reject. The proxy forwards only these routes for them (`/goals`, `/memory`): each reads or changes only what the Merion host itself lists for this person (and, for goals, this agent), lets only named fields through, needs a same-origin request for every write, and learns who the token is from `GET /v1/whoami` (with the operator token it uses `--user`, default `operator`).
 It is the lightest client, not a product: one agent, no search, and no attachments. With `scripts/merion-demo-local.sh` (a simulator, not sealed) the example agent is already deployed.
 
 ## What happens
@@ -41,7 +41,7 @@ It is the lightest client, not a product: one agent, no search, and no attachmen
   one caller: two users who pick the same `threadId` never share a thread or a session. Sending the same `runId` again (a client retry) returns the session it already started and stores nothing twice.
 - **Events.** The agent's session events become AG-UI events:
 
-| Keep session event | AG-UI events |
+| Merion session event | AG-UI events |
 |---|---|
 | (start) | `RUN_STARTED` |
 | `session.log`, stdout | `TEXT_MESSAGE_START` (once), `TEXT_MESSAGE_CONTENT` per line |
@@ -84,5 +84,5 @@ runtime's message (`sandbox did not report a default gateway; use tap+netns or s
   route's authorisation (a user token may POST `/v1/agui`, and nothing else on that path).
 - **The chat page and its proxy:** 28 unit tests against a fake host (`agent-runtime/tests/merion-chat-test.py`: token added server-side, agent fixed, events streamed as they arrive, foreign host and origin refused, size and JSON limits, errors passed through, and the thread routes: only this agent's continuable threads listed and only those reachable, nothing deletable or readable unless the host lists it, a host that cannot list is a 502),
   a `demos-ci.sh` check against a real runtime and a stub cell, and the page driven in a real browser (typed text is shown literally, the agent's progress note and reply appear). The Goals and Memory tabs were driven in a real browser too (below). The redesigned page with threads was driven in a real browser (desktop and a 430 px phone width) against a real local runtime with the simulator: a message and its reply appear with times, HTML is shown literally, the chat list shows the conversation, a second message after the first session ended continues the same thread, a reload reopens it with all its messages, and the back button opens the list on a phone. The typing indicator and the glow were checked by forcing the page's working state (the echo agent answers too fast to catch), so they are verified as rendering only. Forgetting a chat and the approval notice were not clicked through in the browser (the proxy's forget route is unit tested).
-- **On the real lab host (FluxVM, Keep mode):** a signed `echo-agent` was deployed and a run posted to `/v1/agui`. The stream from a real cold-started cell (about 20 s) was `RUN_STARTED`, two `CUSTOM` events, `TEXT_MESSAGE_START/CONTENT/END` ("You said: ...") and `RUN_FINISHED`, and it validated against the `@ag-ui/core` 1.0.0 schemas with the same ordering checks (7 events valid). Reaching that took three fixes: the cell image now brings its NIC up with DHCP, the host needs `dnsmasq`, and the worker must accept requests without a `Host` header (the FluxVM build on that host forwards none, and Node answers 400). This was one run by hand; it is not part of `demos-ci.sh`, which uses a stub cell.
+- **On the real lab host (FluxVM, Merion mode):** a signed `echo-agent` was deployed and a run posted to `/v1/agui`. The stream from a real cold-started cell (about 20 s) was `RUN_STARTED`, two `CUSTOM` events, `TEXT_MESSAGE_START/CONTENT/END` ("You said: ...") and `RUN_FINISHED`, and it validated against the `@ag-ui/core` 1.0.0 schemas with the same ordering checks (7 events valid). Reaching that took three fixes: the cell image now brings its NIC up with DHCP, the host needs `dnsmasq`, and the worker must accept requests without a `Host` header (the FluxVM build on that host forwards none, and Node answers 400). This was one run by hand; it is not part of `demos-ci.sh`, which uses a stub cell.
 - **Not tested:** an actual CopilotKit or other AG-UI client. Model-backed agents on a real cell (the `echo-agent` needs no model).

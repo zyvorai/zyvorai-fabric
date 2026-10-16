@@ -1,11 +1,11 @@
 # Reference vendor gateway
 
-A small service that shows how a phone vendor puts its **accounts, regions and push** in front of many Keep
+A small service that shows how a phone vendor puts its **accounts, regions and push** in front of many Merion
 shards. It is a **reference**: read it, copy what you need, replace the adapters with your own. It has no
 dependencies (Node 20+), and it is not production-hardened (see the end).
 
 ```
-phone ── vendor login (JWT) ──> gateway ──> the user's shard (Keep host)
+phone ── vendor login (JWT) ──> gateway ──> the user's shard (Merion host)
    ▲                              │  mints a short-lived, scoped user token per user
    └── push ◄── /relay/push ◄─────┘  (a shard's signed approval message → your push provider)
 ```
@@ -20,7 +20,7 @@ widen what a user can reach beyond what the shard allows that token. Keep the op
 |---|---|
 | **Identity** | Verifies a pinned OIDC issuer, audience and JWKS (RS256/ES256), or a local HS256 reference token. Needs `sub`; optional `region`, `acr` |
 | **User ids** | Maps an account id to the runtime's `[a-z0-9._-]{1,32}`: kept if it fits, otherwise a stable hash. Two accounts never share one |
-| **Placement** | On first sight, puts the user on **one shard in their region** (rendezvous hashing) and remembers it in `stateFile`. A user never moves: Keep does not migrate cells between hosts |
+| **Placement** | On first sight, puts the user on **one shard in their region** (rendezvous hashing) and remembers it in `stateFile`. A user never moves: Merion does not migrate cells between hosts |
 | **Tokens** | Mints a user token per (shard, user) with the shard's operator token, caches it for 15 minutes, re-mints once on a 401 |
 | **Proxy** | `/api/<x>` → shard `/v1/<x>` for `sessions`, `approvals`, `artifacts`, `audit`, `demos`, `usage`, `inbox` only. Uploads and event streams pass through |
 | **Devices** | `POST /api/devices` enrols a phone's public key for the caller, **only with a strong login** (`acr: "strong"`). Enrolling uses the operator token, so a stolen user token can never add a key |

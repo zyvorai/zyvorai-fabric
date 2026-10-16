@@ -4,8 +4,8 @@ sidebar_position: 3
 
 # Security profiles
 
-Keep never labels a cell with more evidence than it has. The profile is set on the
-FluxVM side (Phase 6 `security_profile`); Keep reads it and says so in the cockpit.
+Merion never labels a cell with more evidence than it has. The profile is set on the
+FluxVM side (Phase 6 `security_profile`); Merion reads it and says so in the cockpit.
 
 | Profile | Evidence | Hardware attestation? | What you may claim |
 |---|---|---|---|
@@ -15,7 +15,7 @@ FluxVM side (Phase 6 `security_profile`); Keep reads it and says so in the cockp
 
 ## The attestation receipt
 
-The cockpit `attestation` object (console Keep view and `/keep/cockpit`) carries:
+The cockpit `attestation` object (console Merion view and `/keep/cockpit`) carries:
 
 | Field | Meaning |
 |---|---|
@@ -40,10 +40,10 @@ The cockpit `attestation` object (console Keep view and `/keep/cockpit`) carries
 ## Honesty
 
 Measured is `software-test`, not a TEE claim: *the host can still see a measured VM.*
-That is intentional. Until Keep 0.2 runs on real SNP/TDX hardware with a user-held key,
-Keep does not claim the operator cannot read the guest. Muse's Secure VM is described
+That is intentional. Until Merion 0.2 runs on real SNP/TDX hardware with a user-held key,
+Merion does not claim the operator cannot read the guest. Muse's Secure VM is described
 as having the same limit today; public detail on Muse is thin, so treat that as a
 characterization, not an audit.
 
-See also [Keep 0.2](MERION-0.2.md), [confidential agent VMs](../design/confidential-agent-vms.md),
+See also [Merion 0.2](MERION-0.2.md), [confidential agent VMs](../design/confidential-agent-vms.md),
 and FluxVM's [security profiles](https://github.com/zyvorai/fluxvm/blob/main/docs/security-profiles.md).

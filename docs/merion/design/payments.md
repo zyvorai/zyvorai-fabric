@@ -3,7 +3,7 @@
 ## Why
 
 Meta's announcement lists shopping through a payment provider as available. The value is real (book, buy, renew), and so is the risk: money
-moves, and can rarely be moved back. Keep's rule is that an agent never holds a secret. For a card, that must hold in the strongest form.
+moves, and can rarely be moved back. Merion's rule is that an agent never holds a secret. For a card, that must hold in the strongest form.
 
 ## What exists today
 
@@ -46,11 +46,11 @@ and a fake provider in CI, exactly as Google and Microsoft were done: fixture fi
 
 ## What I would refuse to build
 
-- Storing a card or bank details on the Keep host, or accepting them in the chat.
+- Storing a card or bank details on the Merion host, or accepting them in the chat.
 - Any purchase without a signed approval, including "small" ones, "trusted merchant" ones and recurring ones. (Recurring is a separate design: a
   bounded, revocable grant, not a habit.)
 - An agent that can choose the merchant after the person approved.
-- Investment, trading or transfers between people's accounts. Those are out of scope entirely; Keep is not a financial advisor or broker.
+- Investment, trading or transfers between people's accounts. Those are out of scope entirely; Merion is not a financial advisor or broker.
 
 ## How I would verify it
 

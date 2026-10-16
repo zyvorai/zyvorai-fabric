@@ -1,6 +1,6 @@
 # browser-agent template
 
-A FluxVM sandbox template with Node.js, Chromium (loopback CDP), and the Keep
+A FluxVM sandbox template with Node.js, Chromium (loopback CDP), and the Merion
 a11y driver (Playwright private). Sized like a per-user desktop-style agent VM
 (2 vCPU, ~7.7 GB).
 

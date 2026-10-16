@@ -2,11 +2,11 @@
 sidebar_position: 9
 ---
 
-# Many users on one Keep
+# Many users on one Merion
 
 The runtime started as one operator's tool: one bearer token that can do everything. To serve many people (a
 phone vendor's agent service, a team), the layer above hands each person a **user token** that reaches only that
-person's data. Keep stays a single-host building block; you run many hosts and route each user to one
+person's data. Merion stays a single-host building block; you run many hosts and route each user to one
 ([VENDORS.md](VENDORS.md)).
 
 ![Two users on one shard: each token reaches only its own sessions, cells, approvals, artifacts and audit rows; the other user answers 404; operator routes are 403.](../assets/merion/tenant-isolation.svg)

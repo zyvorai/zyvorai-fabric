@@ -546,7 +546,7 @@ curl -s "$FABRIC_HOST/api/backups/policies" \
 
 ### Backup Strategy
 
-1. **3-2-1 rule:** Keep 3 copies of data, on 2 different media, with 1 offsite.
+1. **3-2-1 rule:** Merion 3 copies of data, on 2 different media, with 1 offsite.
 2. **Combine full + incremental:** Weekly full backups with daily incrementals
    balance storage cost and recovery speed.
 3. **Test restores regularly:** A backup you cannot restore is not a backup.

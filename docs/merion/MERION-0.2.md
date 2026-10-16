@@ -1,4 +1,4 @@
-# Keep 0.2 — gated on hardware
+# Merion 0.2 — gated on hardware
 
 Do **not** claim unread-by-operator until a real SNP/TDX integration run flips
 FluxVM `security.snp_launch_verified` / `security.tdx_launch_verified`.
@@ -20,7 +20,7 @@ These ship so the product never mislabels a measured VM:
 1. **Attestation receipt** — cockpit `attestation` object: profile, soft
    `image_hash`, `evidence_class`, `snp_launch_verified` /
    `tdx_launch_verified` (false until hardware), `host_recover_allowed`,
-   `operator_can_read`, honesty text. Console Keep view + `/keep/cockpit` show it.
+   `operator_can_read`, honesty text. Console Merion view + `/keep/cockpit` show it.
 2. **No host recover on confidential** — `POST /v1/sessions/{id}/host-recover`
    always 403 when the profile is confidential or confidential launch is active.
    On measured/standard, dual keys (`ZYVOR_AGENT_RECOVER_KEY_A` + `_B`) are
@@ -37,4 +37,4 @@ These ship so the product never mislabels a measured VM:
    fabricd proxies `/api/vault/status` and `/api/vault/user-held/*`.
 6. **browser-agent bake script** — [`scripts/merion-bake-browser-agent.sh`](../../scripts/merion-bake-browser-agent.sh).
 
-Soft scaffolding for Keep 0.2 is **complete**. Until hardware: *the host can still see a measured VM.* That is intentional.
+Soft scaffolding for Merion 0.2 is **complete**. Until hardware: *the host can still see a measured VM.* That is intentional.

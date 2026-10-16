@@ -1,6 +1,6 @@
 ---
 name: keep-cli
-description: Drive a Keep runtime with merionctl. Use when asked to run a Keep use case, deploy a pack, list runs or artifacts, read the audit journal, or check pending approvals.
+description: Drive a Merion runtime with merionctl. Use when asked to run a Merion use case, deploy a pack, list runs or artifacts, read the audit journal, or check pending approvals.
 ---
 
 # merionctl

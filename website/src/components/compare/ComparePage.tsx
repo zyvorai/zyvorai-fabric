@@ -28,7 +28,7 @@ const UNDOC = c('Not documented publicly', 'na');
 /*
  * Muse cells are "as publicly described" — public detail is thin, see the
  * sourcing note on the page. Like the /keep page, only rows stated in
- * docs/merion/MERION.md keep a Muse claim; the rest read "Not documented publicly". Keep/Fabric/FluxVM cells trace to
+ * docs/merion/MERION.md keep a Muse claim; the rest read "Not documented publicly". Merion/Fabric/FluxVM cells trace to
  * docs/merion/MERION.md, docs/PRODUCT_OVERVIEW.md and fluxvm/README.md.
  */
 const GROUPS: Group[] = [
@@ -223,7 +223,7 @@ const USE_CASES: UseCase[] = [
       'Write an incident timeline',
       'Apply the fix — blocked until you approve',
     ],
-    guards: ['Fix step is requires_approval', 'Fabric API via a vault credential', 'Mutations go through Keep ask'],
+    guards: ['Fix step is requires_approval', 'Fabric API via a vault credential', 'Mutations go through Merion ask'],
     out: 'Incident timeline (markdown) + proposed_fix JSON',
     cmd: './scripts/merion-pack-demo.sh infra-ops',
     href: `${GH}/infra-ops`,
@@ -422,7 +422,7 @@ function Hero(): ReactNode {
       eyebrow="Zyvor Fabric"
       title="Private cloud control plane for Linux."
       accent="See how it stacks up."
-      sub="Fabric vs Proxmox, OpenStack and libvirt — then Keep and FluxVM for the agent stack you run yourself."
+      sub="Fabric vs Proxmox, OpenStack and libvirt — then Merion and FluxVM for the agent stack you run yourself."
       buttons={
         <>
           <a className="button button--primary button--lg" href="#matrix">
@@ -446,7 +446,7 @@ function Hero(): ReactNode {
 
 function StackScene(): ReactNode {
   const layers = [
-    ['Keep', 'Product layer', 'Policy, vault, approvals, browser, demos'],
+    ['Merion', 'Product layer', 'Policy, vault, approvals, browser, demos'],
     ['Fabric', 'Control plane', 'Console, JWT, Agents / Sessions'],
     ['FluxVM', 'Hypervisor', 'The cell + the host TC/eBPF pin'],
   ] as const;
@@ -487,7 +487,7 @@ function StackScene(): ReactNode {
 
 const MUSE_COLS: Col[] = [
   {key: 'muse', label: 'Muse', sub: 'as publicly described', dim: true},
-  {key: 'keep', label: 'Keep', sub: 'product layer', hl: true},
+  {key: 'keep', label: 'Merion', sub: 'product layer', hl: true},
   {key: 'fabric', label: 'Fabric', sub: 'control plane'},
   {key: 'flux', label: 'FluxVM', sub: 'hypervisor'},
 ];
@@ -510,9 +510,9 @@ const TABS: {
 }[] = [
   {
     id: 'stack',
-    label: 'Muse vs the Keep stack',
+    label: 'Muse vs the Merion stack',
     caption:
-      'Muse compared with Keep, Fabric and FluxVM across trust, isolation, network proof and portability.',
+      'Muse compared with Merion, Fabric and FluxVM across trust, isolation, network proof and portability.',
     cols: MUSE_COLS,
     groups: MUSE_GROUPS,
     note: null,
@@ -751,7 +751,7 @@ function Proof(): ReactNode {
           <p className={clsx(shell.lede, shell.onDarkMuted)}>
             The PDF-brief demo runs an agent through a vendor SOW behind a host-side eBPF pin —{' '}
             <code>deny_udp</code> plus gateway-only ports. It expects <code>egress_connects: 0</code>,
-            read from Keep’s journal and FluxVM’s <code>drop_reasons</code>.
+            read from Merion’s journal and FluxVM’s <code>drop_reasons</code>.
           </p>
           <div className={shell.btnrow}>
             <Link className="button button--primary button--lg" to="/docs/tutorials/merion-pdf-brief">
@@ -771,7 +771,7 @@ function Proof(): ReactNode {
             <code>egress_connects</code>
           </div>
           <ul className={styles.sources}>
-            <li>Keep audit journal</li>
+            <li>Merion audit journal</li>
             <li>FluxVM host TC/eBPF pin</li>
           </ul>
         </Reveal>
@@ -782,11 +782,11 @@ function Proof(): ReactNode {
 
 const CARDS = [
   {
-    name: 'Keep',
+    name: 'Merion',
     role: 'The agent workstation',
     points: ['Signed policy that fails closed', 'Vault, approvals, brokered browser', 'pack / unpack to leave'],
     to: '/docs/merion/',
-    cta: 'Keep docs',
+    cta: 'Merion docs',
   },
   {
     name: 'Fabric',
@@ -810,7 +810,7 @@ export default function ComparePage(): ReactNode {
   return (
     <Layout
       title="Zyvor Fabric — private cloud control plane"
-      description="Fabric vs the field: compare Zyvor Fabric with Proxmox, OpenStack and libvirt — then Keep, FluxVM, proof, and a runnable quickstart.">
+      description="Fabric vs the field: compare Zyvor Fabric with Proxmox, OpenStack and libvirt — then Merion, FluxVM, proof, and a runnable quickstart.">
       <PageMetadata image="/img/compare-social.png" />
       <Page>
         <Hero />
@@ -819,7 +819,7 @@ export default function ComparePage(): ReactNode {
             id="matrix"
             eyebrow="The matrix"
             title="Side by side."
-            lede="Start with Fabric vs the field. Switch tabs for Muse vs the Keep stack, or FluxVM vs libvirt."
+            lede="Start with Fabric vs the field. Switch tabs for Muse vs the Merion stack, or FluxVM vs libvirt."
             wide>
             <Matrix />
           </Section>
@@ -827,7 +827,7 @@ export default function ComparePage(): ReactNode {
           <Section
             eyebrow="What Muse got right"
             title="Same threat model. Credit where due."
-            lede="Muse’s public story gets the shape right. Keep starts from the same five ideas."
+            lede="Muse’s public story gets the shape right. Merion starts from the same five ideas."
             tint>
             <ul className={shell.tiles}>
               {GOT_RIGHT.map(([h, b], i) => (
@@ -845,7 +845,7 @@ export default function ComparePage(): ReactNode {
             id="stack"
             eyebrow="The stack"
             title="One outsider. Three layers you own."
-            lede="Keep, Fabric and FluxVM aren’t rivals — they’re one stack. Muse is the reference point outside it.">
+            lede="Merion, Fabric and FluxVM aren’t rivals — they’re one stack. Muse is the reference point outside it.">
             <StackScene />
           </Section>
 
@@ -853,7 +853,7 @@ export default function ComparePage(): ReactNode {
             id="profiles"
             eyebrow="Security profiles"
             title="Three rungs. One says what it can’t prove."
-            lede="Keep labels every cell with the evidence it actually has. Measured is software-test; hardware attestation stays gated until a verified run."
+            lede="Merion labels every cell with the evidence it actually has. Measured is software-test; hardware attestation stays gated until a verified run."
             tint
             wide>
             <ProfileLadder />
@@ -897,7 +897,7 @@ export default function ComparePage(): ReactNode {
             id="roadmap"
             eyebrow="Roadmap"
             title="Shipped, gated, next."
-            lede="What is done, what waits on hardware, and what comes after — straight from STATUS.md and the Keep 0.2 notes."
+            lede="What is done, what waits on hardware, and what comes after — straight from STATUS.md and the Merion 0.2 notes."
             tint
             wide>
             <Roadmap />
@@ -937,7 +937,7 @@ export default function ComparePage(): ReactNode {
           <HonestyBand
             items={[
               <>
-                Until Keep 0.2 runs on real SNP/TDX with a user-held key, evidence stays{' '}
+                Until Merion 0.2 runs on real SNP/TDX with a user-held key, evidence stays{' '}
                 <code>software-test</code> — never “the operator cannot read this.” Muse’s Secure VM
                 has the same limit today.
               </>,
@@ -954,7 +954,7 @@ export default function ComparePage(): ReactNode {
               Quick start
             </Link>
             <Link className="button button--outline button--lg button--secondary" to="/merion">
-              Meet Keep
+              Meet Merion
             </Link>
           </CtaBand>
         </main>

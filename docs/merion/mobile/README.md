@@ -1,7 +1,7 @@
-# The phone side of Keep
+# The phone side of Merion
 
 A user's phone is where they approve what their agent wants to do. This page is for the team building the phone
-app (or the vendor gateway behind it). The idea in one line: **the phone holds a private key; Keep holds the
+app (or the vendor gateway behind it). The idea in one line: **the phone holds a private key; Merion holds the
 matching public key and only accepts an approval the phone signed.**
 
 ```
@@ -34,14 +34,14 @@ POST /v1/users/{user_id}/devices          (operator)
 ## 2. Wake the phone
 
 Set `ZYVOR_AGENT_PUSH_RELAYS='{"fcm":"https://your-relay.example/push","mipush":"https://…"}'` on the runtime. When an
-approval opens, for each of the user's devices whose `push.kind` has a relay, Keep POSTs a signed message to it:
+approval opens, for each of the user's devices whose `push.kind` has a relay, Merion POSTs a signed message to it:
 
 - `x-zyvor-event: approval.requested`, `x-zyvor-signature: sha256=<HMAC-SHA256 of the body>`, keyed with
   `ZYVOR_AGENT_PUSH_RELAY_SECRET` (or the approval webhook's secret). **Verify it.**
 - The body names the device and the approval (kind, subject, prompt) and carries the `sign` block below. It never
   carries the request's contents.
 
-Keep does **not** embed FCM, Mi Push, HMS, OPPO or vivo push. The relay is a small service you run that turns this
+Merion does **not** embed FCM, Mi Push, HMS, OPPO or vivo push. The relay is a small service you run that turns this
 message into your platform's push. Retries: twice, then an `approval.push` failure is written to the audit journal.
 
 ### Notices (not approvals)
@@ -51,7 +51,7 @@ The same relays also get **notices**: things a person should know that are not d
 ```json
 { "event": "goal.blocked", "channel": "out_of_band", "kind": "notice",
   "device": { "id": "ana-phone", "user_id": "ana", "push": { "kind": "fcm", "token": "..." } },
-  "ui": { "title": "A goal needs your attention", "body": "Open Keep to see what happened." },
+  "ui": { "title": "A goal needs your attention", "body": "Open Merion to see what happened." },
   "data": { "goal_id": "...", "step_id": "s2" },
   "note": "A notification only: nothing can be approved or decided from it." }
 ```

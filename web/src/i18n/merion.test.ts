@@ -27,7 +27,7 @@ describe('keep strings', () => {
   })
 
   it('keeps the product name untranslated', () => {
-    expect(DICTIONARIES['zh-CN']['keep.title']).toBe('Keep')
+    expect(DICTIONARIES['zh-CN']['keep.title']).toBe('Merion')
     expect(DICTIONARIES['zh-CN']['home.connects']).toContain('连接')
   })
 })

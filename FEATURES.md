@@ -382,12 +382,12 @@ Same daemon port as Fabric (default **9095**). Catalog uses `daemon.public_url` 
 - Docker and Podman support -- `zyvor-fabricd` + FluxVM companion, see `docs/DOCKER.md`
 - Kubernetes manifests under `k8s/base/` and chart under `charts/zyvor-fabric/`
 
-## Keep (agent-runtime)
+## Merion (agent-runtime)
 
-- Soft Keep 0.2: vault ceremony, screencast, user-held challenge scaffold, fabricd proxies
+- Soft Merion 0.2: vault ceremony, screencast, user-held challenge scaffold, fabricd proxies
 - **Brokered browser:** Chromium CDP `:9222` + a11y driver `:9230` (`browser-agent` template)
-- **Keep Browser 0.3:** split-sight pause, trajectory-as-code, origin IFC, SNI-identity, goal tabs, honesty badge
-- **Keep host eBPF (FluxVM):** `deny_udp`, gateway-only L4, cockpit `egress_connects` / `drop_reasons`, `ebpf_deny` freeze — no PacketWolf dependency
+- **Merion Browser 0.3:** split-sight pause, trajectory-as-code, origin IFC, SNI-identity, goal tabs, honesty badge
+- **Merion host eBPF (FluxVM):** `deny_udp`, gateway-only L4, cockpit `egress_connects` / `drop_reasons`, `ebpf_deny` freeze — no PacketWolf dependency
 - **PDF brief one-click demo:** `/app/merion` → Brief this PDF; `POST /api/demos/pdf-brief`; expect 0 CONNECT
 - MCP tools `browser_open|snapshot|act|tabs|close` (no HTML/DOM/evaluate to the model)
 - Host `POST …/browser/fill-secret` after vault `authorize_resolve` (password never in transcript)
@@ -395,4 +395,4 @@ Same daemon port as Fabric (default **9095**). Catalog uses `daemon.public_url` 
 - Operator: `merionctl browser|session|browse`, MerionSession capability + honesty badge
 - Pack: `examples/merion-agents/browser-research/`
 - Docs: [DRIVER.md](docs/merion/browser/DRIVER.md), [BROWSER-0.3.md](docs/merion/browser/BROWSER-0.3.md)
-- Evidence class remains **software-test** until SNP/TDX (hardware Keep 0.2 gated)
+- Evidence class remains **software-test** until SNP/TDX (hardware Merion 0.2 gated)

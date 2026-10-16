@@ -97,7 +97,7 @@ export default function Sessions() {
           {detail.error && <div className="text-red-700">Error: {detail.error}</div>}
           <div className="flex flex-wrap gap-2 pt-2">
             <Link to={`/app/merion/${detail.id}`} className="zf-btn zf-btn-primary zf-btn-sm">
-              Keep view
+              Merion view
             </Link>
             <button type="button" className="zf-btn zf-btn-ghost zf-btn-sm" onClick={() => void act(detail.id, 'hibernate')}>
               Hibernate

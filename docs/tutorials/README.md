@@ -44,13 +44,13 @@ curl -sk "$FABRIC_HOST/readyz" | jq '{ok, store, fluxvm_ok: .fluxvm.ok}'
 | 13 | [Deploy an Agent from the Console](13-deploy-agent-from-console.md) | Beginner | 20 min | Build a bundle with `fabric-agent build`, deploy and run it from the web console. |
 | 14 | [How Users Interact with Agents](14-interacting-with-agents.md) | Beginner | 25 min | Use cases: ops, coding, research, cron, webhook, loop, approval, handoff, IDE chat, and fan-out. |
 | 15 | [AI Workloads (Beta)](15-ai-workloads.md) | Intermediate | 45 min | Model → profile → deploy → OpenAI chat; Janus lab GPU or real NVIDIA; MIG and admit. |
-| 16 | [Keep workstation](16-merion-workstation.md) | Intermediate | 45 min | Keep 0.1: Keep mode, signed policy, merionctl, cockpit, browser view, live lab gate; CI stub without KVM. |
-| 17 | [Keep PDF brief](17-merion-pdf-brief.md) | Beginner | 20 min | One-click PDF → brief.md; prove 0 CONNECT via audit + FluxVM host eBPF (no PacketWolf). |
+| 16 | [Merion workstation](16-merion-workstation.md) | Intermediate | 45 min | Merion 0.1: Merion mode, signed policy, merionctl, cockpit, browser view, live lab gate; CI stub without KVM. |
+| 17 | [Merion PDF brief](17-merion-pdf-brief.md) | Beginner | 20 min | One-click PDF → brief.md; prove 0 CONNECT via audit + FluxVM host eBPF (no PacketWolf). |
 
 Deep-dive series (groups, CNP, observe, UX):
 [edge-dataplane/](edge-dataplane/README.md).
 
-**Keep** product docs: [docs/merion/MERION.md](../merion/MERION.md) · [confine](../merion/confine.md) · [PDF demo](../merion/demos/pdf-brief.md) · production gate: [docs/merion/PRODUCTION.md](../merion/PRODUCTION.md) · CI: [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml) · lab: `./scripts/merion-live-lab.sh` · demo: `./scripts/merion-demo-pdf.sh`.
+**Merion** product docs: [docs/merion/MERION.md](../merion/MERION.md) · [confine](../merion/confine.md) · [PDF demo](../merion/demos/pdf-brief.md) · production gate: [docs/merion/PRODUCTION.md](../merion/PRODUCTION.md) · CI: [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml) · lab: `./scripts/merion-live-lab.sh` · demo: `./scripts/merion-demo-pdf.sh`.
 
 ---
 

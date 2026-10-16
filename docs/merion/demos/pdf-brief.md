@@ -1,6 +1,6 @@
 # PDF brief demo
 
-One-click Keep demo: **PDF in → `brief.md` out.** No browser. Expect **0 CONNECT**.
+One-click Merion demo: **PDF in → `brief.md` out.** No browser. Expect **0 CONNECT**.
 
 ## Surfaces
 
@@ -27,7 +27,7 @@ One-click Keep demo: **PDF in → `brief.md` out.** No browser. Expect **0 CONNE
 
 ## Honesty
 
-PacketWolf is optional. Zero CONNECT is a **Keep audit** claim (plus FluxVM
+PacketWolf is optional. Zero CONNECT is a **Merion audit** claim (plus FluxVM
 `drop_reasons` when the dataplane is attached). Do not claim wire product
 surfaces you did not attach.
 

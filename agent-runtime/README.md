@@ -31,7 +31,7 @@ Deploy JavaScript/TypeScript agents like serverless functions while giving every
 - cron schedules, HMAC webhooks, and bounded loops
 - an MCP endpoint for listing agents, listing executions, and chatting
 - GitHub session CI that runs those paths with no FluxVM and no model key
-- **Keep** product surface (0.1 live proof): Keep mode fail-closed signed
+- **Merion** product surface (0.1 live proof): Merion mode fail-closed signed
   `merion.policy.yaml`, BYO `model_socket`, credential `authorize_resolve`, session
   cockpit + browser live view, measured/`software-test` labeling, `scripts/merionctl`,
   scoped export tokens, `./scripts/merion-live-lab.sh` —
@@ -229,7 +229,7 @@ Deploy with `"persistent": true`, then declare a workstation: `PUT /v1/workstati
 With `"browser_port": 9222` (Chromium started with remote debugging on that port, bound so FluxVM's sandbox proxy can reach it), an operator can:
 
 - `GET /v1/sessions/{id}/browser/json/list` (also `json`, `json/version`, `json/protocol`) — raw DevTools listings with WebSocket/frontend URLs stripped
-- `GET /v1/sessions/{id}/browser/view` — Keep 0.1 live tab summary (title + URL)
+- `GET /v1/sessions/{id}/browser/view` — Merion 0.1 live tab summary (title + URL)
 - `GET /merion/browser?session=<uuid>` — HTML that polls the live view
 
 Only listing paths are forwarded, plus a screenshot and a read-only screencast through the host CDP bridge. **Input takeover is not implemented.**
@@ -345,10 +345,10 @@ Configuration:
 | `ZYVOR_AGENT_FLUXVM_URL` | `http://127.0.0.1:7788` | FluxVM API |
 | `ZYVOR_AGENT_FLUXVM_TOKEN` | unset | FluxVM bearer token |
 | `ZYVOR_AGENT_API_TOKEN` | unset | public Agent Runtime bearer token |
-| `ZYVOR_AGENT_MERION_MODE` | unset | `1` = Keep 0.1 fail-closed: trusted signers required; unsigned policy refused |
+| `ZYVOR_AGENT_MERION_MODE` | unset | `1` = Merion 0.1 fail-closed: trusted signers required; unsigned policy refused |
 | `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS` | unset | comma-separated hex Ed25519 public keys for `merion.policy.yaml` |
-| `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE` | auto | ignored when Keep mode is on; otherwise `1`/`0` |
-| `ZYVOR_AGENT_SECURITY_PROFILE` | unset / `measured` in Keep mode | passed to FluxVM on sandbox create |
+| `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE` | auto | ignored when Merion mode is on; otherwise `1`/`0` |
+| `ZYVOR_AGENT_SECURITY_PROFILE` | unset / `measured` in Merion mode | passed to FluxVM on sandbox create |
 | `ZYVOR_AGENT_CONFINE` | unset | `1` forces `confinement: strict` for every agent |
 | `ZYVOR_AGENT_SKILL_SCOPES_FILE` | unset | JSON policy: which skill scopes each agent `skill_scope` may mount (see Skills) |
 | `ZYVOR_AGENT_ALLOW_NO_AUTH` | unset | explicit opt-out to start without `ZYVOR_AGENT_API_TOKEN` |
@@ -571,7 +571,7 @@ Session metadata, TTL deadlines, warm-pool claims and the host event journal sur
 
 `.github/workflows/agent-runtime.yml` typechecks the crate, builds the example bundles, and runs a real session on the GitHub runner. Runners have no FluxVM, so [`agent-runtime/tests/sandbox_stub.py`](tests/sandbox_stub.py) stores the guest files and starts `worker.mjs` or `harness.mjs` with Node on the runner. Provider APIs are not called.
 
-**Keep** (policy YAML, cockpit routes, merionctl, docs) has its own workflow:
+**Merion** (policy YAML, cockpit routes, merionctl, docs) has its own workflow:
 [`.github/workflows/merion.yml`](../.github/workflows/merion.yml). Locally:
 
 ```bash

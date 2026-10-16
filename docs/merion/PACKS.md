@@ -1,4 +1,4 @@
-# Keep packs: `pack.json` reference
+# Merion packs: `pack.json` reference
 
 A **pack** is a directory with a `pack.json`. One file drives everything: the console,
 `merionctl deploy`, `fabric-agent pack`, and the docs. Three kinds:
@@ -55,7 +55,7 @@ Extractors:
 | `html` | `.html`, `.htm` | 2 MiB / 8 MiB | Visible text; scripts and styles are dropped |
 | `eml` | `.eml`, `.mbox` | 2 MiB / 8 MiB | From, Date, Subject and the text body of up to 500 messages |
 
-`docx`, `xlsx`, `pptx`, `html` and `eml` run a fixed Node script that Keep writes into the cell; it needs
+`docx`, `xlsx`, `pptx`, `html` and `eml` run a fixed Node script that Merion writes into the cell; it needs
 `node` in the template (the agent templates have it). A damaged file is refused with a 400, never
 summarised. A **zip** upload is a container for any use case: the files inside it that the use case
 accepts each run in their own cell, as a batch (see [TRIGGERS.md](TRIGGERS.md)).
@@ -96,7 +96,7 @@ If the pack has a `merion.policy.yaml` it is applied after the deploy.
 
 ## Signing
 
-In Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) the runtime only accepts a deploy signed by a trusted
+In Merion mode (`ZYVOR_AGENT_MERION_MODE=1`) the runtime only accepts a deploy signed by a trusted
 signer. The signature is Ed25519 over the **exact bytes** of the request body (and over the
 policy YAML for the policy).
 

@@ -13,6 +13,6 @@ the file as above; a whole hour is many megabytes. The layout is `--style compac
 where the type is `E` error, `F` fault, `Df`, `I`, `Db`); the sample uses placeholder processes. Messages can name
 files, accounts and apps, so read the output before sharing it.
 
-**Not this:** Keep does not connect to your Mac. It reads a file you export, in a sealed Linux cell.
+**Not this:** Merion does not connect to your Mac. It reads a file you export, in a sealed Linux cell.
 
 These files describe a real machine and can contain hostnames, user names and installed software, so treat the summary as sensitive as the export. The cell has no network (the run reports `0` outbound connections) and no model reads the file, but the evidence class is `software-test`: whoever operates the host could still read a cell's memory ([VENDORS.md](../../../docs/merion/VENDORS.md)).

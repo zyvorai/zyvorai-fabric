@@ -10,7 +10,7 @@ tested. Commands are given so you can reproduce a number; where a check needs a 
 ## The lab host
 
 One machine, used for every "live" number below: Intel Xeon E-2336 (12 threads), 31 GiB RAM, Ubuntu 26.04, kernel 7.0, FluxVM with the `node22-agent` cell
-template (Node 22, poppler, tesseract), the Keep runtime in Keep mode. Cells are Firecracker/KVM microVMs with a 2 GiB template size. This is a software-test
+template (Node 22, poppler, tesseract), the Merion runtime in Merion mode. Cells are Firecracker/KVM microVMs with a 2 GiB template size. This is a software-test
 environment, not a hardware-attested one ([SECURITY-PROFILES.md](SECURITY-PROFILES.md)).
 
 ## Automated checks
@@ -64,7 +64,7 @@ Keychain services and the iOS bundle id. This is what was run afterwards, on `ma
 | iOS app | builds for the simulator, unsigned; **not run** | `xcodegen generate && xcodebuild -scheme MerionPhone -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build` in `integrations/ios-merion` |
 | Website | `npm run build` succeeds (it failed after the rename until the docs category id was fixed in #377) | `npm ci && npm run build` in `website/` |
 | fabricd on Linux | compiled on the lab host during `deploy-merion.sh`; `/health` 200 | `./scripts/deploy-merion.sh user@host` |
-| Redeploy of the Keep runtime | services active, `/healthz` 200, `/v1/merion/status` 401 without a token, the CSV smoke test ran in a sealed cell with **0 CONNECT** | `./scripts/deploy-merion.sh user@host` |
+| Redeploy of the Merion runtime | services active, `/healthz` 200, `/v1/merion/status` 401 without a token, the CSV smoke test ran in a sealed cell with **0 CONNECT** | `./scripts/deploy-merion.sh user@host` |
 
 ### Signed approvals on a host, with required signatures on
 

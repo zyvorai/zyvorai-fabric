@@ -35,7 +35,7 @@ export default function MerionPage(): ReactNode {
 
   return (
     <Layout
-      title="Keep — your agent gets a real computer"
+      title="Merion — your agent gets a real computer"
       description="An open-source workstation for an untrusted AI agent: a sealed FluxVM cell, signed policy and network rules enforced on the host, on hardware you control.">
       <Head>
         <meta property="og:image" content={card} />
@@ -43,7 +43,7 @@ export default function MerionPage(): ReactNode {
       </Head>
       <Page>
         <HeroShell
-          eyebrow="Zyvor Keep"
+          eyebrow="Zyvor Merion"
           title={headline}
           accent={accent.join(' ')}
           sub={marketing.lede}
@@ -79,7 +79,7 @@ export default function MerionPage(): ReactNode {
             id="see-it"
             eyebrow="See it"
             title="The agent proposes. A person decides."
-            lede="A real run of the Keep runtime: the agent’s change waits behind an approval, and nothing reaches the sandbox until a person says yes."
+            lede="A real run of the Merion runtime: the agent’s change waits behind an approval, and nothing reaches the sandbox until a person says yes."
             wide>
             <Reveal>
               <figure style={{margin: '0 auto', maxWidth: 960}}>
@@ -95,7 +95,7 @@ export default function MerionPage(): ReactNode {
                   <source src={useBaseUrl('/demos/merion-live-speculate.mp4')} type="video/mp4" />
                 </video>
                 <figcaption style={{marginTop: 12, fontSize: '0.9rem', opacity: 0.8}}>
-                  A real run: the Keep runtime and a real FluxVM microVM on KVM, on a shared lab host. The waits are
+                  A real run: the Merion runtime and a real FluxVM microVM on KVM, on a shared lab host. The waits are
                   trimmed; the printed times are what that loaded host took, not a benchmark. A stub-backed version
                   that anyone can run is <code>./scripts/record-demos.sh merion-speculate</code>.
                 </figcaption>
@@ -115,7 +115,7 @@ export default function MerionPage(): ReactNode {
 
           <Section
             id="why"
-            eyebrow="Why Keep"
+            eyebrow="Why Merion"
             title="You run it. You read it. You take it with you."
             wide>
             <ul className={shell.cards}>
@@ -146,7 +146,7 @@ export default function MerionPage(): ReactNode {
             id="profiles"
             eyebrow="Security profiles"
             title="Three rungs. One says what it can’t prove."
-            lede="Keep labels every cell with the evidence it actually has. Measured is software-test; hardware attestation stays gated until a verified run."
+            lede="Merion labels every cell with the evidence it actually has. Measured is software-test; hardware attestation stays gated until a verified run."
             tint
             wide>
             <ProfileLadder />
@@ -166,13 +166,13 @@ export default function MerionPage(): ReactNode {
               <div className={styles.phonesFigure}>
                 <img
                   src={useBaseUrl('/merion/vendor-architecture.svg')}
-                  alt="Phone, vendor gateway and push relay on the vendor side; shards running Keep cells on the Keep side."
+                  alt="Phone, vendor gateway and push relay on the vendor side; shards running Merion cells on the Merion side."
                   loading="lazy"
                 />
               </div>
             </Reveal>
             <Link className={styles.more} to="/merion/phones">
-              Keep for phone makers ›
+              Merion for phone makers ›
             </Link>
           </Section>
 
@@ -180,7 +180,7 @@ export default function MerionPage(): ReactNode {
             id="desktop"
             eyebrow="Mac, Windows, developer and office files"
             title="Files from a Mac or a PC, read in a sealed cell."
-            lede="Ready-made use cases for what people export from their machines and tools (GitHub, Xcode, VS Code, browsers, Excel) and for the paperwork around invoices, purchase orders, staff and claims. Keep reads the file you give it; it does not connect to the computer or drive its desktop, and it is not your books of account."
+            lede="Ready-made use cases for what people export from their machines and tools (GitHub, Xcode, VS Code, browsers, Excel) and for the paperwork around invoices, purchase orders, staff and claims. Merion reads the file you give it; it does not connect to the computer or drive its desktop, and it is not your books of account."
             tint
             wide>
             <ul className={styles.features}>
@@ -211,7 +211,7 @@ export default function MerionPage(): ReactNode {
 
           <Section
             id="muse"
-            eyebrow="Meta Muse vs Keep"
+            eyebrow="Meta Muse vs Merion"
             title="Same threat model. Different owner."
             tint>
             <div className={styles.rows}>

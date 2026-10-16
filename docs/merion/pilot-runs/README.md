@@ -1,4 +1,4 @@
-# Keep 0.1 pilot
+# Merion 0.1 pilot
 
 Labeled when [`./scripts/merion-pilot-gate.sh`](../../../scripts/merion-pilot-gate.sh) passes **twice** on a FluxVM host (happy + deny), with archived logs under `docs/merion/pilot-runs/`.
 
@@ -7,7 +7,7 @@ Labeled when [`./scripts/merion-pilot-gate.sh`](../../../scripts/merion-pilot-ga
 | Check | Result |
 |---|---|
 | Template required | Missing template → FAIL |
-| Keep mode policy | Unsigned PUT refused; empty signers refuse start |
+| Merion mode policy | Unsigned PUT refused; empty signers refuse start |
 | Session + cockpit | `evidence_class: software-test`; restart recovers session |
 | OOB approval | Webhook + approve **and** deny paths; no unapproved mutate |
 | Packaged agents | `examples/merion-agents/` + goals/artifacts |
@@ -43,4 +43,4 @@ Latest FC archive: [20260924T182930Z](20260924T182930Z/) (`template=node22-fc`,
 
 ## Honesty
 
-Measured profile remains **software-test**. Keep 0.2 + hardware for unread-by-operator claims.
+Measured profile remains **software-test**. Merion 0.2 + hardware for unread-by-operator claims.

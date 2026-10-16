@@ -16,7 +16,7 @@ export interface AgentManifest {
   max_concurrent_sessions?: number
   idle_hibernate_seconds?: number
   warm_pool_size?: number
-  /** Per-user home disk — sessions must pass user_id (multi-tenant Keep). */
+  /** Per-user home disk — sessions must pass user_id (multi-tenant Merion). */
   home_volume?: { per_user?: boolean; name?: string }
   /** node runs worker.mjs. claude, codex, and gemini run that CLI inside the template. */
   runtime?: 'node' | 'claude' | 'codex' | 'gemini'
@@ -231,7 +231,7 @@ export interface BatchResult {
 /** Kept for existing imports; the PDF brief is one demo among several. */
 export type PdfBriefDemoResult = DemoResult
 
-/** The one-click Keep demos this runtime can run. */
+/** The one-click Merion demos this runtime can run. */
 export async function listDemos(): Promise<DemoInfo[]> {
   const out = await apiGet<{ demos: DemoInfo[] }>('/api/demos')
   return out.demos ?? []
@@ -258,7 +258,7 @@ export interface MerionStatus {
   demos: { builtin: number; custom: number }
 }
 
-/** Keep readiness: Keep mode, trusted signers, FluxVM, demo counts. */
+/** Merion readiness: Merion mode, trusted signers, FluxVM, demo counts. */
 export function merionStatus(): Promise<MerionStatus> {
   return apiGet<MerionStatus>('/api/merion/status')
 }

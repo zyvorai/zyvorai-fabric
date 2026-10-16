@@ -101,7 +101,7 @@ const BEATS: Beat[] = [
   {
     id: 'proof',
     title: 'Proof, not promises',
-    body: 'Brief a vendor PDF and the cockpit counts outbound connections from Keep’s own audit journal, enforced on the host.',
+    body: 'Brief a vendor PDF and the cockpit counts outbound connections from Merion’s own audit journal, enforced on the host.',
     visual: (
       <div className={styles.panel}>
         <p className={styles.tag}>PDF brief demo</p>

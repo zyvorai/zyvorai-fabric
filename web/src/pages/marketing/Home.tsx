@@ -68,7 +68,7 @@ export default function Home() {
       <section className="mkt-band">
         <h2>From bare metal to fleet.</h2>
         <p>
-          Web console, CLI, Kubernetes operator, and Terraform — one API underneath. Keep gives an
+          Web console, CLI, Kubernetes operator, and Terraform — one API underneath. Merion gives an
           untrusted agent a real computer; you keep the keys and the CONNECT proof.
         </p>
         <div className="flex flex-wrap gap-3 mt-6">
@@ -76,7 +76,7 @@ export default function Home() {
             See the platform
           </Link>
           <Link to="/merion" className="zf-btn zf-btn-secondary">
-            Meet Keep →
+            Meet Merion →
           </Link>
         </div>
       </section>

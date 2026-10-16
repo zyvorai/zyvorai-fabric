@@ -18,9 +18,9 @@ export default defineAgent(async (ctx) => {
 
 See `../../agent-runtime/README.md` for runtime deployment, credentials, session APIs, hibernation and security details.
 
-## Keep approvals and evidence
+## Merion approvals and evidence
 
-The SDK exposes Keep's existing operator APIs. Supply a runtime API token; a user token is
+The SDK exposes Merion's existing operator APIs. Supply a runtime API token; a user token is
 restricted to its own sessions and needs the `approve` scope to decide an approval.
 An agent's sandbox token cannot call these operator routes.
 
@@ -35,7 +35,7 @@ const pending = (await keep.approvals.list()).filter(
   (a) => a.session_id === session.id && a.status === "pending",
 );
 // Show prompt, subject and planned_action to an authorized human before deciding.
-// Keep itself never approves an action on the agent's behalf.
+// Merion itself never approves an action on the agent's behalf.
 if (pending.length) await keep.approvals.decide(pending[0].id, "denied", { comment: "Review first" });
 
 const cockpit = await keep.evidence.cockpit(session.id);
@@ -138,7 +138,7 @@ Standby VMs are single-use. Fabric never returns a sandbox to the pool after use
 `fabric-agent pack` deploys a directory with a `pack.json` (see [docs/merion/PACKS.md](../../docs/merion/PACKS.md)):
 
 ```bash
-export MERION_POLICY_SEED=$(openssl rand -hex 32)       # your signing key (Keep mode)
+export MERION_POLICY_SEED=$(openssl rand -hex 32)       # your signing key (Merion mode)
 fabric-agent pack keys                                # public key to register on the runtime
 fabric-agent pack deploy ./my-pack --run              # build, sign, deploy, apply policy, start a session
 fabric-agent pack deploy ./my-usecase --test          # declarative use case: save, run on its sample, need 0 CONNECT

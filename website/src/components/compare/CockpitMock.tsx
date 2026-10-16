@@ -103,7 +103,7 @@ export default function CockpitMock(): ReactNode {
     <div className={styles.mock} ref={ref}>
       <div
         role="img"
-        aria-label="Illustrative Keep cockpit: a goal advances, pauses for approval, then finishes with zero egress connects.">
+        aria-label="Illustrative Merion cockpit: a goal advances, pauses for approval, then finishes with zero egress connects.">
       <div className={styles.chrome} aria-hidden>
         <i /><i /><i />
         <span>/app/merion · session</span>

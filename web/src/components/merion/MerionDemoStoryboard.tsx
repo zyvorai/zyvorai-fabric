@@ -64,7 +64,7 @@ export default function MerionDemoStoryboard() {
           <span className="keep-mkt-connect-num">0</span>
         </div>
         <p className="keep-mkt-storyboard-note">
-          Counted from Keep’s own audit log and enforced on the host.
+          Counted from Merion’s own audit log and enforced on the host.
         </p>
       </div>
     </div>

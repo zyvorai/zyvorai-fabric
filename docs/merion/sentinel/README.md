@@ -1,12 +1,12 @@
-# Keep Sentinel — policy schema
+# Merion Sentinel — policy schema
 
 Policy is a **signed file** you can diff in git.
 
-**Keep mode** (`ZYVOR_AGENT_MERION_MODE=1`): runtime refuses to start without
+**Merion mode** (`ZYVOR_AGENT_MERION_MODE=1`): runtime refuses to start without
 `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`, and every `PUT …/policy` must carry
 `X-Merion-Policy-Signature`. Unsigned policy must not load.
 
-Without Keep mode, signatures are required only when trusted signers are configured
+Without Merion mode, signatures are required only when trusted signers are configured
 (unless `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE=0`).
 
 ## Example (`merion.policy.yaml`)

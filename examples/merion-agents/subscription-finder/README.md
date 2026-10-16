@@ -8,7 +8,7 @@ will be charged, the amounts, and who is charging.
 ```
 
 **Scenario.** A user shares a month of billing mail (an `.mbox` export) from the vendor app. Compare two months with
-**Keep history → Runs → Compare selected** to see what is new.
+**Merion history → Runs → Compare selected** to see what is new.
 
 Keywords are English; add your language's words in `pack.json`. It reads text bodies only. For a general mailbox
 summary see [mailbox-triage](../mailbox-triage/README.md).

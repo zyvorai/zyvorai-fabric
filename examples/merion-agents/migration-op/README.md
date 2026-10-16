@@ -1,4 +1,4 @@
-# migration-op — Keep packaged agent
+# migration-op — Merion packaged agent
 
 Migration operator against **Fabric** [`/api/migrations`](../../../docs/migration.md)
 and GuestKit `inspect` / `rescue` (`/api/vms/{name}/inspect`, `/rescue`).
@@ -25,4 +25,4 @@ Session input examples:
 ## Artifacts
 
 - Wave plan + preflight report + cutover checklist (markdown)
-- Mutating create/cancel/rescue always hit `fabric-api` approval + Keep ask
+- Mutating create/cancel/rescue always hit `fabric-api` approval + Merion ask

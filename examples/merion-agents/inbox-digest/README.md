@@ -20,7 +20,7 @@ writes most. A declarative use case, so there is no code, only an extractor and 
 - **Keywords, not understanding.** It does not sort into folders, group by thread or rank importance.
   Tune the keyword lists in `pack.json` to your own mail.
 - **Repeated headers dominate the last list.** Every message repeats `Date:` and `To:`, so read the `From:` lines under them.
-- **No mailbox connection.** You export; Keep reads the file. Live IMAP or SMTP access is not part of Keep.
+- **No mailbox connection.** You export; Merion reads the file. Live IMAP or SMTP access is not part of Merion.
 
 `sample.txt` is a made-up export (example.com addresses only) so the use case runs in one click.
 See [Tutorial 20](../../../docs/tutorials/20-sort-a-mail-export.md) and [Tutorial 19](../../../docs/tutorials/19-build-your-own-use-case.md).

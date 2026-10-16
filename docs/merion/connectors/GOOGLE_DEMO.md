@@ -1,12 +1,12 @@
-# Try Keep on your own Gmail and Calendar (a demo on your laptop)
+# Try Merion on your own Gmail and Calendar (a demo on your laptop)
 
-`scripts/merion-demo-google.sh` runs the [Gmail and Calendar agents](README.md) against **your** Google account, on this machine, in a few minutes. It is a demo, not a deployment: the agent's cell is a simulator (no VM, no network policy) and the "phone" is a key file on this machine. What is real is the part that matters for trust: Keep, not the agent, holds your Google token; the host mints short-lived access tokens; and a draft, a send or a new event waits for your decision, with the recipients, subject and text that **the host read out of the request**.
+`scripts/merion-demo-google.sh` runs the [Gmail and Calendar agents](README.md) against **your** Google account, on this machine, in a few minutes. It is a demo, not a deployment: the agent's cell is a simulator (no VM, no network policy) and the "phone" is a key file on this machine. What is real is the part that matters for trust: Merion, not the agent, holds your Google token; the host mints short-lived access tokens; and a draft, a send or a new event waits for your decision, with the recipients, subject and text that **the host read out of the request**.
 
 ## What you do in Google (about 10 minutes, in your own browser)
 
 I cannot do this part for you, and the client id and secret are for you alone; nobody else needs them.
 
-1. Open the [Google Cloud console](https://console.cloud.google.com/) and create a project (any name, for example "Keep demo").
+1. Open the [Google Cloud console](https://console.cloud.google.com/) and create a project (any name, for example "Merion demo").
 2. **APIs & Services → Library:** enable the **Gmail API** and the **Google Calendar API**.
 3. **OAuth consent screen** (Google Auth Platform → Audience/Branding): user type **External**, publishing status **Testing**, and add **your own Google address as a test user**. Fill the app name and your email where it asks.
 4. **Credentials → Create credentials → OAuth client ID:** application type **Desktop app**. Copy the **client ID** and the **client secret**.
@@ -36,7 +36,7 @@ The downloaded file holds the client secret in plain text: keep it out of the re
   ```
   draft
   to: you@example.com
-  subject: Hello from Keep
+  subject: Hello from Merion
 
   A test message.
   ```

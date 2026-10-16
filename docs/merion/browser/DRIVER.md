@@ -1,6 +1,6 @@
-# Keep browser driver
+# Merion browser driver
 
-Brokered Chromium in the Keep cell. The model never sees Playwright, raw DOM, or
+Brokered Chromium in the Merion cell. The model never sees Playwright, raw DOM, or
 passwords. Evidence remains **software-test** until SNP/TDX.
 
 ## Ports (guest loopback)

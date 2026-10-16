@@ -1,4 +1,4 @@
-# Fabric connector for Keep packaged agents
+# Fabric connector for Merion packaged agents
 
 Shared helpers live here. Each pack (`infra-ops`, `migration-op`, `deploy-op`)
 imports `client.ts` and grants the `fabric-api` credential.
@@ -18,7 +18,7 @@ Credential injection requires **HTTPS** to fabricd.
 ## Policy recipe
 
 [`merion.policy.fabric.yaml`](./merion.policy.fabric.yaml) — allow GET without ask,
-mutate always ask. Sign in Keep mode before `PUT /v1/agents/{name}/policy`.
+mutate always ask. Sign in Merion mode before `PUT /v1/agents/{name}/policy`.
 
 ## Client
 

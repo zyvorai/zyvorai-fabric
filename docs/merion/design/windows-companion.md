@@ -2,9 +2,9 @@
 
 ## Why
 
-Keep's clients are a Mac app (Solvor), an iPhone app and a chat page. A person on Windows or Linux can use the chat page, but cannot
+Merion's clients are a Mac app (Solvor), an iPhone app and a chat page. A person on Windows or Linux can use the chat page, but cannot
 **approve** anything there: approvals are signed with a key held in a phone's Secure Enclave or a Mac's, and the chat page deliberately
-cannot decide them. So today a Windows-only person cannot use the part of Keep that matters most.
+cannot decide them. So today a Windows-only person cannot use the part of Merion that matters most.
 
 ## What exists
 
@@ -29,7 +29,7 @@ in the runtime:
   `navigator.credentials.get`. It still **cannot decide anything without the authenticator**.
 This gives Windows, Linux and Android a signing path with hardware protection when the authenticator has it, and no installer.
 
-**2. A Windows tray app only for what a browser cannot do:** watched folders (the same idea as Solvor's), a drop zone and a "send to Keep" verb.
+**2. A Windows tray app only for what a browser cannot do:** watched folders (the same idea as Solvor's), a drop zone and a "send to Merion" verb.
 Not before (1) exists and someone asks for it, because (1) is what unblocks Windows people, and (2) is convenience.
 
 ## What it must never do

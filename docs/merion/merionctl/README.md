@@ -8,7 +8,7 @@ export MERION_TOKEN=…   # ZYVOR_AGENT_API_TOKEN
 
 merionctl create -f deploy.json
 merionctl policy show my-agent
-# Keep mode: signature required
+# Merion mode: signature required
 merionctl policy set my-agent docs/merion/sentinel/merion.policy.yaml merion.policy.yaml.sig
 merionctl pack   /tmp/keep-pack my-agent
 merionctl unpack /tmp/keep-pack my-agent

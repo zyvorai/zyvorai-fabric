@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Strings for the Keep console pages in English and Simplified Chinese.
+ * Strings for the Merion console pages in English and Simplified Chinese.
  *
  * Partial on purpose: navigation, headings, buttons and status are translated. The long explanatory
  * paragraphs and the honesty notes stay in English so their meaning is never softened in translation;
@@ -12,7 +12,7 @@
 export type Locale = 'en' | 'zh-CN'
 
 const en = {
-  'keep.title': 'Keep',
+  'keep.title': 'Merion',
   'keep.history': 'History',
   'keep.agents': 'Agents',
   'keep.language': '中文',
@@ -40,7 +40,7 @@ const en = {
   'home.done': 'done',
   'home.failed': 'failed',
 
-  'hist.title': 'Keep history',
+  'hist.title': 'Merion history',
   'hist.tab.runs': 'Runs',
   'hist.tab.triggers': 'Triggers',
   'hist.tab.audit': 'Audit',
@@ -70,8 +70,8 @@ const en = {
 
   'session.detail': 'Session detail',
   'session.missing': 'Missing session',
-  'session.missingHint': 'Open Keep from a session detail link.',
-  'session.loadFailed': 'Could not load Keep view',
+  'session.missingHint': 'Open Merion from a session detail link.',
+  'session.loadFailed': 'Could not load Merion view',
   'session.approve': 'Approve',
   'session.deny': 'Deny',
   'session.approved': 'Approved',
@@ -83,7 +83,7 @@ const en = {
 export type MerionKey = keyof typeof en
 
 const zh: Record<MerionKey, string> = {
-  'keep.title': 'Keep',
+  'keep.title': 'Merion',
   'keep.history': '历史记录',
   'keep.agents': '智能体',
   'keep.language': 'English',
@@ -111,7 +111,7 @@ const zh: Record<MerionKey, string> = {
   'home.done': '完成',
   'home.failed': '失败',
 
-  'hist.title': 'Keep 历史记录',
+  'hist.title': 'Merion 历史记录',
   'hist.tab.runs': '运行',
   'hist.tab.triggers': '触发器',
   'hist.tab.audit': '审计',
@@ -141,8 +141,8 @@ const zh: Record<MerionKey, string> = {
 
   'session.detail': '会话详情',
   'session.missing': '缺少会话',
-  'session.missingHint': '请从会话详情链接打开 Keep。',
-  'session.loadFailed': '无法加载 Keep 视图',
+  'session.missingHint': '请从会话详情链接打开 Merion。',
+  'session.loadFailed': '无法加载 Merion 视图',
   'session.approve': '批准',
   'session.deny': '拒绝',
   'session.approved': '已批准',

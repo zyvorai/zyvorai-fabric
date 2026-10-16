@@ -14,7 +14,7 @@ function subscribe(fn: () => void) {
   }
 }
 
-/** The Keep pages' language and translator. The choice is shared across pages and remembered. */
+/** The Merion pages' language and translator. The choice is shared across pages and remembered. */
 export function useMerionText() {
   const locale = useSyncExternalStore(subscribe, () => current, () => 'en' as Locale)
   const t = useCallback(

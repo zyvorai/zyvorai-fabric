@@ -1,6 +1,6 @@
 # Ahead of Muse — what this PR does and does not claim
 
-Muse owns distribution. Keep owns the cell.
+Muse owns distribution. Merion owns the cell.
 
 | Claim | This PR | Not this PR |
 |---|---|---|

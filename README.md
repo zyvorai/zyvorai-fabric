@@ -3,7 +3,7 @@
 # Zyvor Fabric
 
 [![CI](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ci.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=CI)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ci.yml)
-[![Keep](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Keep)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/merion.yml)
+[![Merion](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Merion)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/merion.yml)
 [![Agent Runtime](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/agent-runtime.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Agent%20Runtime)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/agent-runtime.yml)
 [![AI Workloads](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ai-workloads.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=AI%20Workloads)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ai-workloads.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0071e3?style=flat-square&labelColor=1d1d1f)](LICENSE)
@@ -20,9 +20,9 @@
 <img src="docs/social/fabric-hero-dark.jpg" alt="Zyvor Fabric - One daemon. Four front doors." width="100%">
 
 <p align="center">
-  <img src="docs/assets/demos/merion-live-speculate.gif" alt="Keep with a real FluxVM microVM: an agent proposes a file change, a person approves it, and only then is it applied in the guest. A second proposal is denied and the file stays." width="820">
+  <img src="docs/assets/demos/merion-live-speculate.gif" alt="Merion with a real FluxVM microVM: an agent proposes a file change, a person approves it, and only then is it applied in the guest. A second proposal is denied and the file stays." width="820">
 </p>
-<p align="center"><sub><b>An agent proposes. A person decides.</b> A real run: the Keep runtime and a real FluxVM microVM on KVM, on a shared lab host. The waits are trimmed; the printed times (75 s to speculate, 118 s to apply) are what that loaded host took, not a benchmark. <a href="docs/assets/demos/README.md">How these are made</a></sub></p>
+<p align="center"><sub><b>An agent proposes. A person decides.</b> A real run: the Merion runtime and a real FluxVM microVM on KVM, on a shared lab host. The waits are trimmed; the printed times (75 s to speculate, 118 s to apply) are what that loaded host took, not a benchmark. <a href="docs/assets/demos/README.md">How these are made</a></sub></p>
 
 ### One daemon. Four front doors.
 
@@ -30,7 +30,7 @@
 
 **780+ REST endpoints** · **53 Rust crates** · **4 front doors, one API** · **92-page web console** · **Built on FluxVM + GuestKit**
 
-[**Quickstart**](#quickstart) · [**Keep**](docs/merion/README.md) · [**AI Workloads**](docs/ai-workloads.md) · [**Deploy**](#deploy) · [**Docs**](docs/index.md) · [**Talk to Zyvor**](https://zyvor.dev)
+[**Quickstart**](#quickstart) · [**Merion**](docs/merion/README.md) · [**AI Workloads**](docs/ai-workloads.md) · [**Deploy**](#deploy) · [**Docs**](docs/index.md) · [**Talk to Zyvor**](https://zyvor.dev)
 
 </div>
 
@@ -45,13 +45,13 @@
 | **Merion** | **Keep is now Merion**, end to end: headers, packs, console paths, the Helm chart, the iOS app. Checked after the rename: 533 runtime tests, a 64-check end-to-end run, and a clean redeploy to a real host with a sealed cell making 0 outbound connections. [Details](docs/merion/VERIFICATION.md#after-the-keep--merion-rename-2026-10-16) |
 | **Merion** | **Approvals only your phone can give.** With signatures required, a decision with no signature, a flipped decision or a forged key is refused (403) and the approval stays waiting; a valid one goes through once (a replay is refused). Both `keep-approval-v1` and `merion-approval-v1` are accepted, and the audit log says which |
 | **Merion** | **Auto-approve, in dry run.** Write a policy for a safe class of change (a folder, a file type, a size) and see what it *would* have approved, with the reason when it would not. It approves nothing yet; the agent can never write the policy |
-| **Keep** | Speculative execution: `POST /v1/sessions/{id}/speculate` runs a command in an isolated copy of the cell and holds the file changes behind a `changeset` approval. A person's approve applies them on FluxVM; a deny rejects them. The agent cannot approve |
-| **Keep** | FluxVM credential grants through `/v1/sessions/{id}/grants`, only for credentials whose Keep limits a grant can keep (no approval, method, path or per-user limits) |
-| **FluxVM** | `fluxvm-client` gains fork, snapshot, restore, `?ready=exec`, `Idempotency-Key` on create and delete, guest exec policy, balloon and PSS memory (`fabricctl live-fork`, `fabricctl memory`, `fabricctl balloon`; balloon is Beta), CD-ROM eject and the `vz` backend. Fork, snapshot, restore, idempotency and Keep speculate/approve/deny were run against a real FluxVM on KVM; see [the boundary doc](docs/FLUXVM-FABRIC-BOUNDARY.md) for what was and was not |
-| **Keep** | Credential secrets from a file or from HashiCorp Vault (`source vault`), with Vault AppRole and Kubernetes login and chart values |
-| **Keep** | The runtime rejects policy fields it does not enforce |
-| **0.3.0** | `POST /v1/agui`: an AG-UI endpoint over Keep sessions, validated against the official `@ag-ui/core` 1.0.0 schemas; it cannot approve anything |
-| **0.3.0** | **Solvor**, a native SwiftUI Mac client for Keep (`integrations/macos-merion`), plus `merionctl init` to scaffold a new use-case pack |
+| **Merion** | Speculative execution: `POST /v1/sessions/{id}/speculate` runs a command in an isolated copy of the cell and holds the file changes behind a `changeset` approval. A person's approve applies them on FluxVM; a deny rejects them. The agent cannot approve |
+| **Merion** | FluxVM credential grants through `/v1/sessions/{id}/grants`, only for credentials whose Merion limits a grant can keep (no approval, method, path or per-user limits) |
+| **FluxVM** | `fluxvm-client` gains fork, snapshot, restore, `?ready=exec`, `Idempotency-Key` on create and delete, guest exec policy, balloon and PSS memory (`fabricctl live-fork`, `fabricctl memory`, `fabricctl balloon`; balloon is Beta), CD-ROM eject and the `vz` backend. Fork, snapshot, restore, idempotency and Merion speculate/approve/deny were run against a real FluxVM on KVM; see [the boundary doc](docs/FLUXVM-FABRIC-BOUNDARY.md) for what was and was not |
+| **Merion** | Credential secrets from a file or from HashiCorp Vault (`source vault`), with Vault AppRole and Kubernetes login and chart values |
+| **Merion** | The runtime rejects policy fields it does not enforce |
+| **0.3.0** | `POST /v1/agui`: an AG-UI endpoint over Merion sessions, validated against the official `@ag-ui/core` 1.0.0 schemas; it cannot approve anything |
+| **0.3.0** | **Solvor**, a native SwiftUI Mac client for Merion (`integrations/macos-merion`), plus `merionctl init` to scaffold a new use-case pack |
 | **0.3.0** | OCR for photos and screenshots inside the cell, six bank operations packs, and more everyday use cases |
 | **0.3.0** | `zyvorctl` is now `fabricctl`, and it finds a TLS daemon on `localhost:9095` without `--server` |
 | **0.3.0** | Fixed: use-case cells now get a host-applied deny-all policy and fail closed; finished runs delete their cell at once |
@@ -62,10 +62,10 @@ Full history: [CHANGELOG.md](CHANGELOG.md).
 
 | If you are… | Use it for | Start here |
 |---|---|---|
-| Building with AI agents | A sealed microVM per agent run, network rules the host sets, approvals you hold | [Keep](docs/merion/README.md) |
+| Building with AI agents | A sealed microVM per agent run, network rules the host sets, approvals you hold | [Merion](docs/merion/README.md) |
 | Running a private cloud | VMs, networking, storage and security from one daemon on any Linux server with KVM | [Quickstart](#quickstart) |
 | Running Kubernetes | VMs as `VirtualMachine` resources next to your pods | [Kubernetes](docs/KUBERNETES.md) |
-| Managing a Mac fleet | Solvor, the native Mac client for Keep | [Solvor](integrations/macos-merion) |
+| Managing a Mac fleet | Solvor, the native Mac client for Merion | [Solvor](integrations/macos-merion) |
 | Wanting inference near your VMs | OpenAI-compatible endpoints on the same daemon (single-cluster Beta) | [AI Workloads](docs/ai-workloads.md) |
 
 ## Why Zyvor Fabric
@@ -76,7 +76,7 @@ Full history: [CHANGELOG.md](CHANGELOG.md).
 | VM lifecycle is tied to libvirt XML or systemd units | FluxVM supervises each VM's hypervisor process directly, and host networking uses direct netlink calls |
 | Auth, RBAC and audit are a separate project | PAM/LDAP/OIDC sign-in, JWT auth, 3-tier RBAC, audit export and encryption at rest, built in, with a 31-round security audit report |
 | You want private inference next to your VMs, not in someone else's cloud | OpenAI-compatible inference on the same daemon: models, Maglev-weighted backends and API keys (single-cluster Beta) |
-| You want to give an AI agent a computer without giving it your network | Keep: a sealed microVM whose network policy the host sets, with approvals you hold |
+| You want to give an AI agent a computer without giving it your network | Merion: a sealed microVM whose network policy the host sets, with approvals you hold |
 | Deploying a private cloud is a multi-week project | One daemon on any Linux server with KVM: bare metal, Docker, Kubernetes or Operator only |
 
 ![Capabilities at a glance: Compute, Network, Secure, AI](docs/ux/readme-capabilities.jpg)
@@ -111,9 +111,9 @@ OpenAI-compatible inference on the same daemon: models, Maglev-weighted backends
 </tr>
 <tr>
 <td valign="top" width="33%">
-<b>Keep</b><br>
+<b>Merion</b><br>
 An open agent workstation: drop a file, get answers, in a sealed microVM whose network policy the host sets. The docs say exactly what its evidence class does not prove.<br>
-<a href="docs/merion/README.md">Keep</a>
+<a href="docs/merion/README.md">Merion</a>
 </td>
 <td valign="top" width="33%">
 <b>Kubernetes, Operator, Terraform</b><br>
@@ -159,13 +159,13 @@ A 92-page web console and <code>fabricctl</code>, both first-class against the s
 
 *The console dashboard — fleet health, capability status and live VM metrics at a glance.*
 
-[![Keep: your agent, your hardware, your keys](docs/assets/merion-hero.jpg)](docs/merion/README.md)
+[![Merion: your agent, your hardware, your keys](docs/assets/merion-hero.jpg)](docs/merion/README.md)
 
-**Keep it yours.** *[Keep](docs/merion/README.md) is the sealed agent runtime you run, read and take with you. Muse column from its public announcement; evidence class today is `software-test`.*
+**Keep it yours.** *[Merion](docs/merion/README.md) is the sealed agent runtime you run, read and take with you. Muse column from its public announcement; evidence class today is `software-test`.*
 
-<img src="docs/assets/merion/solvor-home.png" alt="Solvor, the Mac client for Keep: use cases" width="49%"> <img src="docs/assets/merion/solvor-result.png" alt="Solvor: a run's result" width="49%">
+<img src="docs/assets/merion/solvor-home.png" alt="Solvor, the Mac client for Merion: use cases" width="49%"> <img src="docs/assets/merion/solvor-result.png" alt="Solvor: a run's result" width="49%">
 
-*Solvor, the native Mac client for Keep: pick a use case, then read the result of a run in a sealed cell.*
+*Solvor, the native Mac client for Merion: pick a use case, then read the result of a run in a sealed cell.*
 
 </div>
 
@@ -230,7 +230,7 @@ Four first-class ways to run Fabric. Pick one; the full guide is [docs/deploy.md
 | Architecture | [docs/architecture.md](docs/architecture.md) · [docs/architecture-fluxvm-guestkit.md](docs/architecture-fluxvm-guestkit.md) |
 | REST API, OIDC/SSO and networking | [docs/api.md](docs/api.md) · [docs/oidc.md](docs/oidc.md) · [docs/networking.md](docs/networking.md) |
 | AI Workloads (Beta) | [docs/ai-workloads.md](docs/ai-workloads.md) · [Tutorial 15](docs/tutorials/15-ai-workloads.md) |
-| Keep (open agent workstation) | [docs/merion/README.md](docs/merion/README.md) · [docs/merion/at-a-glance.md](docs/merion/at-a-glance.md) |
+| Merion (open agent workstation) | [docs/merion/README.md](docs/merion/README.md) · [docs/merion/at-a-glance.md](docs/merion/at-a-glance.md) |
 | Tutorials and user manuals | [docs/tutorials/README.md](docs/tutorials/README.md) · [docs/user/README.md](docs/user/README.md) |
 
 ## Contributing
@@ -254,7 +254,7 @@ make lint && make fmt
 | VM lifecycle, networking, storage, security, CLI, console, operator, Terraform | Shipped; see [FEATURES.md](FEATURES.md) |
 | Live migration | Disk-copy path GA; native FluxVM transport **preview**; full HA cutover **pre-GA** ([comparison matrix](docs/guides/decision-support/comparison-matrix.md)) |
 | AI Workloads | Single-cluster **Beta**; multi-site HA store stays **Preview**; **not GA** ([at a glance](docs/ai-workloads-at-a-glance.md)) |
-| Keep (now Merion) | Evidence class `software-test`; Keep 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/merion/STATUS.md)) |
+| Merion (was Keep) | Evidence class `software-test`; Merion 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/merion/STATUS.md)) |
 
 ---
 

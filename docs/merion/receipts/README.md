@@ -1,6 +1,6 @@
 # Action receipts and at-most-once
 
-When an agent does something a person had to approve, Keep now writes down **what was done**, and an agent that retries can no longer do it twice.
+When an agent does something a person had to approve, Merion now writes down **what was done**, and an agent that retries can no longer do it twice.
 
 ## Receipts
 

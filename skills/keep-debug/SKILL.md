@@ -1,9 +1,9 @@
 ---
 name: keep-debug
-description: Diagnose why a Keep cell was blocked, froze, or made an unexpected connection. Use when a run fails closed, exits 2, shows egress_connects above zero, or an agent is paused with ebpf_deny.
+description: Diagnose why a Merion cell was blocked, froze, or made an unexpected connection. Use when a run fails closed, exits 2, shows egress_connects above zero, or an agent is paused with ebpf_deny.
 ---
 
-# Debug a Keep cell
+# Debug a Merion cell
 
 References: `docs/merion/confine.md`, `docs/merion/merionctl/README.md`, `docs/merion/THREAT-MODEL.md`.
 

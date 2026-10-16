@@ -1,6 +1,6 @@
 # Host confinement (FluxVM eBPF)
 
-Keep treats the guest as untrusted the moment it reads a page (or a PDF).
+Merion treats the guest as untrusted the moment it reads a page (or a PDF).
 **Enforcement is on the host** — FluxVM TC/eBPF on the sandbox veth — never
 inside guest Chromium. PacketWolf / netevd are optional observers, not required.
 
@@ -15,11 +15,11 @@ could not be found, and the cell ran under FluxVM's default-allow policy.
 The `egress_connects: 0` a run reports counts connections that went **through the egress broker**. It shows the cell
 did not use the broker; the host policy above is what stops it using anything else.
 
-## Policy Keep posts (agent sessions)
+## Policy Merion posts (agent sessions)
 
 Agent-runtime `confine::strict_policy` → `POST /v1/vms/{id}/network/policy`:
 
-| Field | Keep use |
+| Field | Merion use |
 |---|---|
 | `default_allow: false` | Deny by default |
 | `allow_cidrs` | Gateway only (`/32` or `/128`) |

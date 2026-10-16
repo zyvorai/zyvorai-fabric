@@ -4,7 +4,7 @@ sidebar_position: 7
 
 # Threat model for one-click use cases
 
-What Keep protects when you drop a file on a use case, against whom, what it does **not** protect, and how to check each claim. It is
+What Merion protects when you drop a file on a use case, against whom, what it does **not** protect, and how to check each claim. It is
 written for someone deciding whether to trust the design, so it says what is enforced, what is only observed, and what is missing.
 It covers use-case runs (a file in, a summary out). Agent sessions, browsing and approvals have their own pages
 ([KEEP.md](MERION.md), [confine.md](confine.md), [SECURITY-PROFILES.md](SECURITY-PROFILES.md)).
@@ -51,7 +51,7 @@ a host without that policy would prove nothing, which is why the policy is appli
   the cell's memory. Run the host yourself, or accept that the operator is trusted. Do not describe this as confidential computing.
 - **From a compromise of the host or of FluxVM.** The design assumes the host is sound. A kernel or hypervisor escape defeats it.
 - **Hardware attestation.** AMD SEV-SNP and Intel TDX profiles exist in the design and are gated on a verified hardware run that has not happened.
-  Until then Keep does not claim the operator cannot read the guest ([SECURITY-PROFILES.md](SECURITY-PROFILES.md), [TODO.md](TODO.md)).
+  Until then Merion does not claim the operator cannot read the guest ([SECURITY-PROFILES.md](SECURITY-PROFILES.md), [TODO.md](TODO.md)).
 - **Metadata.** The host sees who ran which use case, when, and how big the file was. The run history stores results until they expire.
 - **Wrong answers.** Extractive rules can miss or mislabel: a pattern that does not fit your bank's layout, OCR that misreads a digit. Check amounts against the
   original; the bank packs are not yet validated on real exports.

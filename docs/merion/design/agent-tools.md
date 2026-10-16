@@ -4,12 +4,12 @@
 
 A useful agent will often need something it does not have: a new small capability (call this API, parse that file, wrap a routine). If
 every such tool needs the operator to write, sign and deploy it, the agent is only as capable as its last deploy. If the agent can add tools
-to itself freely, it can add **authority** to itself, which is the thing Keep exists to prevent.
+to itself freely, it can add **authority** to itself, which is the thing Merion exists to prevent.
 
 ## What exists
 
 - Agents are packs: a bundle plus a manifest (egress mode and allowed hosts, credentials the agent may name, resources, memory, model socket,
-  approval timeout). In Keep mode a deploy needs a bundle **signed by a trusted signer** and a signed policy; the deploy route
+  approval timeout). In Merion mode a deploy needs a bundle **signed by a trusted signer** and a signed policy; the deploy route
   (`POST /v1/agents`) is the operator's, and a user token cannot reach it ([TENANCY.md](../TENANCY.md)).
 - A credential an agent lists is checked against the vault at deploy; a use of it is still checked at the egress broker (host, method, path, port,
   approval, device signature).

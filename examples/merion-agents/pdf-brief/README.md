@@ -1,6 +1,6 @@
 # pdf-brief pack
 
-One-click Keep demo: PDF in → `brief.md` out. **No browser. Zero CONNECT.**
+One-click Merion demo: PDF in → `brief.md` out. **No browser. Zero CONNECT.**
 
 ```bash
 ./scripts/merion-demo-pdf.sh examples/merion-agents/pdf-brief/sample.pdf

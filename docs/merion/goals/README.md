@@ -1,4 +1,4 @@
-# Keep goals, plans, and artifacts
+# Merion goals, plans, and artifacts
 
 Thin product loop on agent-runtime (not a separate platform):
 
