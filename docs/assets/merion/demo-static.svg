@@ -19,7 +19,7 @@
 <text x="28" y="328" fill="#8b9bb0">==> out-of-band approval webhook shape (phone path)</text>
 <text x="28" y="350" fill="#6ee7b7">PASS  approval webhook event</text>
 <text x="28" y="372" fill="#6ee7b7">PASS    …out_of_band channel</text>
-<text x="28" y="394" fill="#6ee7b7" font-weight="700">passed=82 failed=0</text>
+<text x="28" y="394" fill="#6ee7b7" font-weight="700">passed=85 failed=0</text>
 <text x="28" y="416" fill="#6ee7b7" font-weight="700">OK — Merion end-to-end passed</text>
 </g>
 <text x="28" y="472" fill="#8b9bb0" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="11">Live runtime + FluxVM sandbox stub + merionctl. No KVM. Evidence class: software-test.</text>

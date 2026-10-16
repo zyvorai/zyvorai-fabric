@@ -409,6 +409,9 @@ else
   check_eq "outside the policy: speculate returns" 201 "$(http_code "${AUTH[@]}" -X POST "$API/v1/sessions/$ASID/speculate" -d "$SPEC")"
   check "outside the policy: stays pending" '"status":"pending"' "$(body)"
   check_eq "outside the policy: nothing applied" "$BEFORE,speculate,approve,apply,speculate" "$(ops)"
+  check "merionctl policy set" '"version":3' "$("$KEEPCTL" changeset-policy set autouser keep-desk --paths /tmp --max-files 3 2>&1)"
+  check "merionctl policy list" keep-desk "$("$KEEPCTL" changeset-policy list autouser 2>&1)"
+  check "merionctl policy show" '"max_files":3' "$("$KEEPCTL" changeset-policy show autouser keep-desk 2>&1)"
   check_eq "operator removes the policy" 204 "$(http_code "${AUTH[@]}" -X DELETE "$API/v1/users/autouser/changeset-policies/keep-desk")"
   check_eq "removed policy is gone" 404 "$(http_code "${AUTH[@]}" "$API/v1/users/autouser/changeset-policies/keep-desk")"
 fi
