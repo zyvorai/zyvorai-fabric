@@ -154,7 +154,7 @@ async fn check_gpus(
         .append(
             Some(session_id),
             AuditPhase::Performed,
-            "keep.cell.gpus",
+            "merion.cell.gpus",
             Some(agent.name.clone()),
             json!({"devices": devices}),
         )
@@ -2448,7 +2448,7 @@ async fn export_audit(
         .append(
             query.session_id,
             AuditPhase::Performed,
-            "keep.audit.exported",
+            "merion.audit.exported",
             None,
             json!({"limit": limit}),
         )
@@ -2517,7 +2517,7 @@ async fn clear_binary_pins(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.binary_pins.cleared",
+            "merion.binary_pins.cleared",
             Some(name.clone()),
             json!({"removed": removed, "path": query.path}),
         )
@@ -2662,7 +2662,7 @@ async fn put_agent_policy(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.policy.set",
+            "merion.policy.set",
             Some(name),
             json!({
                 "version": record.version,
@@ -2856,7 +2856,7 @@ async fn host_recover_session(
             .append(
                 Some(id),
                 AuditPhase::Denied,
-                "keep.host_recover.refused",
+                "merion.host_recover.refused",
                 None,
                 json!({
                     "reason": "confidential",
@@ -2889,7 +2889,7 @@ async fn host_recover_session(
             .append(
                 Some(id),
                 AuditPhase::Denied,
-                "keep.host_recover.bad_keys",
+                "merion.host_recover.bad_keys",
                 None,
                 json!({"security_profile": receipt.security_profile}),
             )
@@ -2904,7 +2904,7 @@ async fn host_recover_session(
         .append(
             Some(id),
             AuditPhase::Performed,
-            "keep.host_recover.granted",
+            "merion.host_recover.granted",
             None,
             json!({
                 "security_profile": receipt.security_profile,
@@ -2951,7 +2951,7 @@ async fn mint_export_token(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.export_token.minted",
+            "merion.export_token.minted",
             None,
             json!({"scope": record.scope, "expires_at": record.expires_at}),
         )
@@ -2997,7 +2997,7 @@ async fn mint_unwrap_token(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.unwrap_token.minted",
+            "merion.unwrap_token.minted",
             None,
             json!({
                 "scope": record.scope,
@@ -3034,7 +3034,7 @@ async fn unlock_vault(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.vault.unlocked",
+            "merion.vault.unlocked",
             None,
             json!({
                 "until": until,
@@ -3111,7 +3111,7 @@ async fn user_held_challenge(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.vault.user_held.challenge",
+            "merion.vault.user_held.challenge",
             None,
             json!({
                 "id": challenge.id,
@@ -3148,7 +3148,7 @@ async fn user_held_complete(
             .append(
                 None,
                 AuditPhase::Denied,
-                "keep.vault.user_held.complete_refused",
+                "merion.vault.user_held.complete_refused",
                 None,
                 json!({
                     "challenge_id": challenge.id,
@@ -3170,7 +3170,7 @@ async fn user_held_complete(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.vault.user_held.complete",
+            "merion.vault.user_held.complete",
             None,
             json!({
                 "challenge_id": challenge.id,
@@ -3437,7 +3437,7 @@ async fn mint_user_token(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.user_token.minted",
+            "merion.user_token.minted",
             Some(req.user_id.clone()),
             json!({ "scopes": claims.scopes, "expires_at": claims.expires_at }),
         )
@@ -3472,7 +3472,7 @@ async fn revoke_user_tokens(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.user_token.revoked",
+            "merion.user_token.revoked",
             Some(user.clone()),
             json!({ "not_before": floor }),
         )
@@ -3622,7 +3622,7 @@ async fn enroll_device(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.device.enrolled",
+            "merion.device.enrolled",
             Some(user.clone()),
             json!({ "device_id": record.device_id, "alg": record.alg, "push_kind": record.push.as_ref().map(|p| p.kind.clone()) }),
         )
@@ -3654,7 +3654,7 @@ async fn remove_device(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.device.removed",
+            "merion.device.removed",
             Some(user),
             json!({ "device_id": device }),
         )
@@ -4439,7 +4439,7 @@ mod tests {
         let rows = state.store.audit.list(Some(session), 10).await.unwrap();
         let row = rows
             .iter()
-            .find(|r| r.action == "keep.cell.gpus")
+            .find(|r| r.action == "merion.cell.gpus")
             .expect("a gpu journal row");
         assert_eq!(
             row.detail["devices"],

@@ -444,7 +444,7 @@ pub(crate) async fn revoke_grant(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.model_grant.revoked",
+            "merion.model_grant.revoked",
             None,
             json!({ "key": key }),
         )

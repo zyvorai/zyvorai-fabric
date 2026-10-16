@@ -4,7 +4,7 @@ When an agent does something a person had to approve, Keep now writes down **wha
 
 ## Receipts
 
-Whenever the egress broker performs a request that needed an approval (a credential with `requires_approval`, a secret-shaped request, a write from a tainted session), it records a **receipt** after the upstream answered: the person, agent and session, the credential, the method, the URL **without its query string**, the body's size and SHA-256 (**never the body**), the approval that allowed it, and the status the upstream returned. Receipts are append-only in `receipts/receipts.jsonl` on the host, and each one is also journaled as `keep.action.performed` (ids and status only). The agent's reply carries `receipt_id`.
+Whenever the egress broker performs a request that needed an approval (a credential with `requires_approval`, a secret-shaped request, a write from a tainted session), it records a **receipt** after the upstream answered: the person, agent and session, the credential, the method, the URL **without its query string**, the body's size and SHA-256 (**never the body**), the approval that allowed it, and the status the upstream returned. Receipts are append-only in `receipts/receipts.jsonl` on the host, and each one is also journaled as `merion.action.performed` (ids and status only). The agent's reply carries `receipt_id`.
 
 `GET /v1/receipts` lists them, newest first (`?limit=`, at most 500). A user token sees only its own; the operator sees everyone's, or one person's with `?user_id=`.
 A request the upstream answered with a 5xx, and one that never reached it, leave no receipt (they may be retried); a denied or expired approval leaves none either.
@@ -16,7 +16,7 @@ A retry (a goal step tried again after a failure, a client timeout) would otherw
 | The request | The broker |
 |---|---|
 | first time this key is used | holds it for approval as usual, sends it, keeps the receipt |
-| the **same** request again (same method, URL with query, body) | does **not** send it and does **not** ask again: it answers with the recorded status and a small JSON body `{"replayed": true, "receipt_id": ..., "original_status": ...}` (headers `x-keep-replayed`, `x-keep-receipt`); journaled as `keep.action.replayed` |
+| the **same** request again (same method, URL with query, body) | does **not** send it and does **not** ask again: it answers with the recorded status and a small JSON body `{"replayed": true, "receipt_id": ..., "original_status": ...}` (headers `x-keep-replayed`, `x-keep-receipt`); journaled as `merion.action.replayed` |
 | the same key with a **different** request | refused, 409 |
 | the same key while the first is still waiting or running | refused, 409 (never two in flight) |
 | an invalid key (empty, spaces, over 128 characters) | refused, 400, before anything is asked or sent |

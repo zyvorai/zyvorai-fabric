@@ -483,7 +483,7 @@ pub(crate) async fn delete_thread(
         .append(
             thread.session_id,
             AuditPhase::Performed,
-            "keep.thread.delete",
+            "merion.thread.delete",
             Some(thread.agent.clone()),
             json!({ "thread_id": thread.id, "user_id": thread.user_id, "messages": thread.message_count }),
         )

@@ -403,7 +403,7 @@ pub async fn record_proposal(
                 .append(
                     Some(session.id),
                     AuditPhase::Planned,
-                    "keep.suggestion.proposed",
+                    "merion.suggestion.proposed",
                     Some(session.agent.clone()),
                     json!({ "user_id": user, "suggestion_id": item.id, "tainted": tainted }),
                 )
@@ -470,7 +470,7 @@ async fn subject(
                 .append(
                     None,
                     AuditPhase::Performed,
-                    "keep.suggestion.operator_access",
+                    "merion.suggestion.operator_access",
                     None,
                     json!({ "user_id": user, "action": what }),
                 )
@@ -576,7 +576,7 @@ pub(crate) async fn accept(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.suggestion.accepted",
+            "merion.suggestion.accepted",
             Some(goal.agent.clone()),
             json!({ "user_id": user, "suggestion_id": id, "goal_id": goal.id }),
         )
@@ -604,7 +604,7 @@ pub(crate) async fn dismiss(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.suggestion.dismissed",
+            "merion.suggestion.dismissed",
             None,
             json!({ "user_id": user, "suggestion_id": id }),
         )

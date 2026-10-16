@@ -470,7 +470,7 @@ pub(crate) async fn create_goal(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.goal.created",
+            "merion.goal.created",
             Some(record.agent.clone()),
             json!({ "goal_id": record.id, "title": record.title }),
         )
@@ -719,7 +719,7 @@ pub(crate) async fn advance_step(
             .append(
                 Some(session_id),
                 AuditPhase::Planned,
-                "keep.goal.step.approval",
+                "merion.goal.step.approval",
                 Some(goal.agent.clone()),
                 json!({ "goal_id": goal.id, "step_id": step_id, "approval_id": approval_id }),
             )
@@ -898,7 +898,7 @@ pub(crate) async fn create_artifact(
         .append(
             record.session_id,
             AuditPhase::Performed,
-            "keep.artifact.created",
+            "merion.artifact.created",
             record.agent.clone(),
             json!({ "artifact_id": record.id, "kind": record.kind, "title": record.title }),
         )

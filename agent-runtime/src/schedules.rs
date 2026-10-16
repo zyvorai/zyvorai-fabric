@@ -373,7 +373,7 @@ pub(crate) async fn create_schedule(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.schedule.created",
+            "merion.schedule.created",
             Some(record.agent.clone()),
             json!({ "schedule_id": record.id, "cron": record.cron, "user_id": record.user_id }),
         )
@@ -399,7 +399,7 @@ pub(crate) async fn delete_schedule(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.schedule.deleted",
+            "merion.schedule.deleted",
             None,
             json!({ "schedule_id": id }),
         )
@@ -450,7 +450,7 @@ pub(crate) async fn create_webhook(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.webhook.created",
+            "merion.webhook.created",
             Some(record.agent.clone()),
             json!({ "webhook_id": record.id, "user_id": record.user_id }),
         )
@@ -482,7 +482,7 @@ pub(crate) async fn delete_webhook(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.webhook.deleted",
+            "merion.webhook.deleted",
             None,
             json!({ "webhook_id": id }),
         )
@@ -537,7 +537,7 @@ pub(crate) async fn create_loop(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.loop.created",
+            "merion.loop.created",
             Some(record.agent.clone()),
             json!({ "loop_id": record.id, "user_id": record.user_id }),
         )
@@ -563,7 +563,7 @@ pub(crate) async fn delete_loop(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.loop.deleted",
+            "merion.loop.deleted",
             None,
             json!({ "loop_id": id }),
         )
@@ -922,13 +922,13 @@ mod tests {
         .unwrap();
         assert!(journal_kinds(&state)
             .await
-            .contains(&"keep.schedule.created".to_string()));
+            .contains(&"merion.schedule.created".to_string()));
         delete_schedule(State(state.clone()), Path(sched.id))
             .await
             .unwrap();
         assert!(journal_kinds(&state)
             .await
-            .contains(&"keep.schedule.deleted".to_string()));
+            .contains(&"merion.schedule.deleted".to_string()));
 
         let (_, Json(resp)) = create_webhook(
             State(state.clone()),
@@ -943,13 +943,13 @@ mod tests {
         .unwrap();
         assert!(journal_kinds(&state)
             .await
-            .contains(&"keep.webhook.created".to_string()));
+            .contains(&"merion.webhook.created".to_string()));
         delete_webhook(State(state.clone()), Path(resp.webhook.id))
             .await
             .unwrap();
         assert!(journal_kinds(&state)
             .await
-            .contains(&"keep.webhook.deleted".to_string()));
+            .contains(&"merion.webhook.deleted".to_string()));
 
         let (_, Json(lp)) = create_loop(
             State(state.clone()),
@@ -967,12 +967,12 @@ mod tests {
         .unwrap();
         assert!(journal_kinds(&state)
             .await
-            .contains(&"keep.loop.created".to_string()));
+            .contains(&"merion.loop.created".to_string()));
         delete_loop(State(state.clone()), Path(lp.id))
             .await
             .unwrap();
         assert!(journal_kinds(&state)
             .await
-            .contains(&"keep.loop.deleted".to_string()));
+            .contains(&"merion.loop.deleted".to_string()));
     }
 }

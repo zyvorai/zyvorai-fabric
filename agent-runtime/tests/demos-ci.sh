@@ -753,7 +753,7 @@ assert [s["title"] for s in p["steps"]]==["Two invoices found","<b>Total</b> due
 assert p["steps"][0]["input"]=={"message":"Two invoices found"} and p["tainted"] is False, p
 assert g["plan"]==[] and g["autorun"] is False, g' || fail "the goal should hold the planner's proposal and nothing else: $(curl -s "$BASE/v1/goals/$PGID")"
 ok "the planner agent proposed steps (from the model socket) and they wait on the goal; the plan is still empty"
-curl -sf "$BASE/v1/audit?limit=500" | python3 -c 'import sys; t=sys.stdin.read(); assert "keep.goal.plan_requested" in t and "keep.goal.plan_proposed" in t; assert "Two invoices found" not in t.replace("Sort the invoices","")' || fail "the journal should record the request and the proposal, not the steps"
+curl -sf "$BASE/v1/audit?limit=500" | python3 -c 'import sys; t=sys.stdin.read(); assert "merion.goal.plan_requested" in t and "merion.goal.plan_proposed" in t; assert "Two invoices found" not in t.replace("Sort the invoices","")' || fail "the journal should record the request and the proposal, not the steps"
 curl -sf -X POST "$BASE/v1/goals/$PGID/plan/accept" | python3 -c 'import json,sys
 g=json.load(sys.stdin)
 assert len(g["plan"])==2 and g["plan"][0]["id"]=="s1" and g["plan"][0]["status"]=="pending" and "proposed_plan" not in g, g' || fail "accepting should turn the proposal into the plan"

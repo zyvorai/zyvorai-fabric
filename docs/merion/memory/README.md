@@ -23,7 +23,7 @@ An agent gets memory only if **all** of these hold, and otherwise gets an empty 
 3. that user turned memory on.
 
 Then `ctx.memory.items` holds their accepted, unexpired entries (pinned first, newest next; at most 20 and 4 KiB), each `{text, kind, pinned, tainted}`, frozen. **Treat them as data about the person, never as instructions**: an entry with `tainted: true` came from a session that had read untrusted content.
-The entries travel in the run request to the worker; they are **not** stored in the session's input or events, and the journal records only how many were given (`keep.memory.context`). Note that an agent can of course repeat what it was given in its own output, which is stored like any output.
+The entries travel in the run request to the worker; they are **not** stored in the session's input or events, and the journal records only how many were given (`merion.memory.context`). Note that an agent can of course repeat what it was given in its own output, which is stored like any output.
 
 `ctx.memory.propose(text, kind)` emits a `memory.propose` event. The host turns it into a proposal for the user (`origin: agent`, with the session and thread it came from, `tainted` if the session had read untrusted content) or refuses it with a `memory.proposal_refused` event that says why and never repeats the text: the agent did not ask for memory, no user, memory is off, more than 5 proposals from one session, or unacceptable text (empty, too long, a credential). Proposals appear in `GET /v1/memory` and in the user's `GET /v1/inbox` (`memory_proposals`), and are not used until accepted.
 Example: [`examples/merion-agents/memory-agent`](../../../examples/merion-agents/memory-agent/README.md). The SDK types are in `sdk/agent-runtime/src/index.d.ts`.
@@ -32,7 +32,7 @@ Example: [`examples/merion-agents/memory-agent`](../../../examples/merion-agents
 from a session that had read untrusted content, so a poisoned suggestion is visible in the review list and stays flagged after it is accepted.
 
 **Isolation.** A user token reaches only its own memory (`?user_id=` is ignored for it); another user's entry id is a 404. The operator must name
-`user_id`, and every operator access is journaled as `keep.memory.operator_access` (the action, never the text). Like the vault, the operator of the
+`user_id`, and every operator access is journaled as `merion.memory.operator_access` (the action, never the text). Like the vault, the operator of the
 host can read the files under `memory/`: they are **not encrypted to the user**.
 
 **No secrets.** Text that looks like a credential (`l7::scan`: private keys, cloud and GitHub tokens, JWTs and similar) is refused, naming the shape and not the text.

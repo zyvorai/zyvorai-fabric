@@ -14,7 +14,7 @@
 //! * **Not in a cell.** The host mints short-lived access tokens from it and injects them at the egress broker; the agent only ever sees the
 //!   response. Disconnecting deletes the token and the cached access tokens at once.
 //! * **Only names the host offers.** A connection can be set only if some credential in the vault asks for that name.
-//! * Every route is scoped to the caller. The operator must name `user_id` and every operator access is journaled (`keep.connection.operator_access`).
+//! * Every route is scoped to the caller. The operator must name `user_id` and every operator access is journaled (`merion.connection.operator_access`).
 
 use crate::{
     app::ApiError, audit::AuditPhase, authz::Principal, model::validate_user_id, AppState,
@@ -217,7 +217,7 @@ async fn subject(
                 .append(
                     None,
                     AuditPhase::Performed,
-                    "keep.connection.operator_access",
+                    "merion.connection.operator_access",
                     None,
                     json!({ "user_id": user, "action": what, "connection": name }),
                 )
@@ -284,7 +284,7 @@ pub(crate) async fn put_connection(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.connection.connected",
+            "merion.connection.connected",
             None,
             json!({ "user_id": user, "connection": name }),
         )
@@ -320,7 +320,7 @@ pub(crate) async fn delete_connection(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.connection.disconnected",
+            "merion.connection.disconnected",
             None,
             json!({ "user_id": user, "connection": name }),
         )

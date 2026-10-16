@@ -176,7 +176,7 @@ Changing `egress_mode` or the timeout changes the agent's version, like any mani
 - Deploy refuses combinations that cannot work: it needs `"cell_backend": "qemu"` (only QEMU cells can be given a device), and it cannot be combined with `confidential`, `warm_pool_size` or `idle_hibernate_seconds`.
 - FluxVM must already have the GPUs bound to `vfio-pci` (`POST /v1/host/gpus/bind`); see `docs/gpu-passthrough.md`. A GPU in use by another VM is not picked.
 - **No free GPU is a 503** on session create, with FluxVM's count of how many are free. There is no queue; the caller retries. The `503` message starts `no GPU is free for this agent`.
-- **A CPU-only cell is never started by mistake.** After the create, the runtime reads the devices FluxVM assigned from the returned record. If there are fewer than the manifest asked for (an older FluxVM ignores `gpus`), the cell is deleted and the session fails with 502. The assigned addresses are journaled as `keep.cell.gpus`.
+- **A CPU-only cell is never started by mistake.** After the create, the runtime reads the devices FluxVM assigned from the returned record. If there are fewer than the manifest asked for (an older FluxVM ignores `gpus`), the cell is deleted and the session fails with 502. The assigned addresses are journaled as `merion.cell.gpus`.
 - The egress and credential policy are unchanged: a GPU cell still reaches the network only through the broker.
 - Not verified on real GPUs: the runtime's part is tested against a stand-in FluxVM, and FluxVM's picking logic is tested on its own. A passed-through device sits outside what the runtime can attest or snapshot, and the cell's own workload sees the GPU directly.
 

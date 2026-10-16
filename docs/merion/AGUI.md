@@ -55,6 +55,11 @@ It is the lightest client, not a product: one agent, no search, and no attachmen
 | `session.failed`, `cancelled`, `expired`, `deleted` | `RUN_ERROR` with a `code` |
 | (start, when the thread already has messages) | `MESSAGES_SNAPSHOT` right after `RUN_STARTED`: the stored conversation, including the message just sent |
 
+**Event names.** `CUSTOM` events are named `keep.<x>` by default, so clients built before the rename keep working. A client that sends
+`forwardedProps.eventNames: "merion"` gets `merion.<x>` instead (`merion.log`, `merion.approval_requested`, ...). Nothing else about the
+stream changes. Handle both prefixes if you can't control which runtime version you talk to. Audit rows written from this version on use
+`merion.*` action names; earlier rows keep `keep.*`, so a query over a long window should match both.
+
 Assistant message ids are `<runId>-a<n>` (one per message, so every message of a thread has its own id in the stream); the stored copies in `GET /v1/threads/{id}/messages` are `msg-<seq>`, and the snapshot uses those.
 
 ## What it cannot do, on purpose

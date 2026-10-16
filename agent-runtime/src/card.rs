@@ -165,7 +165,7 @@ pub async fn record_card(
         .append(
             Some(session.id),
             AuditPhase::Performed,
-            "keep.card.rendered",
+            "merion.card.rendered",
             Some(session.agent.clone()),
             json!({ "kind": kind, "artifact_id": artifact.id }),
         )
