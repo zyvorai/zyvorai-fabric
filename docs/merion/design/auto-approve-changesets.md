@@ -19,13 +19,18 @@ and is independent.
 - CLI: `merionctl changeset-policy list|show|set|rm`.
 - Not built: a tenant-wide ceiling, a console section, and a distinct `decided_by` field
   (the comment prefix is the marker for now).
-- **Live finding (2026-10-16, lab host):** on a real FluxVM cell, speculation reports `side_effects.egress: "unrestricted"`
-  even for an agent with `egress_mode: deny`, so the evaluator refuses every changeset ("egress is unrestricted") and
-  nothing is auto-approved there. That is the fail-closed rule working, but it means the feature does nothing on that
-  host until FluxVM reports `blocked` for a cell whose network is actually denied. The cause is on the FluxVM side
-  (guest agent, template or how it measures it) and was not investigated further. The approve-and-apply path through a
-  policy has therefore only run against the stub. The same run confirmed that a required phone signature stops it
-  (`a phone signature is required`), and that a session survives a runtime restart.
+- **Live finding (2026-10-16, lab host) and the fix:** on a real FluxVM cell, speculation reported
+  `side_effects.egress: "unrestricted"` even for an agent with `egress_mode: deny`, so the evaluator refused every
+  changeset ("egress is unrestricted"). Cause: FluxVM classified a VM as blocked only for `network = none` and
+  otherwise ignored the network policy Merion sets on the running cell (`POST /v1/vms/{id}/network/policy`, only the
+  host gateway on the broker and proxy ports). Two changes: FluxVM now reads that policy (zyvor-fluxvm #456: deny-all is
+  `blocked`, an allow-list is `allow_listed` with its destinations), and the evaluator accepts `allow_listed` **only**
+  when Merion vouches for it: the agent is `egress_mode: deny`, strictly confined, with no allowed host or browser, and every
+  destination FluxVM lists is Merion's own broker (`<gateway>/32 tcp/<port>`). Any other destination, or any other
+  non-replayable effect, is still a person's decision. This needs the FluxVM change deployed on the host; until then a
+  real cell still reports `unrestricted` and nothing is auto-approved. Not yet re-run on the host. The same run
+  confirmed that a required phone signature stops it (`a phone signature is required`) and that a session survives a
+  runtime restart.
 - Tested with `scripts/merion-e2e.sh` against the FluxVM stub (18 checks: no policy waits; a user token cannot set one;
   bad policy 400; inside the policy runs approve then apply on FluxVM; a tightened policy leaves it pending; delete).
   Not run on a real FluxVM host.

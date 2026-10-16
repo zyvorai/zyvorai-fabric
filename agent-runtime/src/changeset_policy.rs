@@ -64,6 +64,10 @@ pub struct Subject<'a> {
     pub staged: &'a Value,
     pub unstaged: &'a [String],
     pub tainted: bool,
+    /// Set by the caller only when the cell's network is confined to Merion's own egress broker and the agent
+    /// is set to deny egress: the destinations FluxVM may list for that cell (`<gateway>/32 tcp/<port>`).
+    /// With `None`, any egress that is not `blocked` disqualifies.
+    pub broker_destinations: Option<&'a [String]>,
 }
 
 impl ChangesetPolicy {
@@ -95,12 +99,38 @@ pub fn eligible(policy: &ChangesetPolicy, s: &Subject) -> Result<usize, String> 
     }
     let se = s.side_effects.as_object().ok_or("side effects not reported")?;
     // Egress must be reported as blocked (or absent); anything else sent something out.
+    let non_replayable = se.get("non_replayable").and_then(Value::as_array).ok_or("non-replayable side effects")?;
     match se.get("egress").and_then(Value::as_str) {
-        Some("blocked") | None => {}
+        Some("blocked") | None => {
+            if !non_replayable.is_empty() {
+                return Err("non-replayable side effects".into());
+            }
+        }
+        // The cell can only reach Merion's own broker, which the agent's `deny` mode refuses: FluxVM lists the
+        // broker as its one allowed destination and says it could not replay traffic there. Any other
+        // destination, or any other non-replayable effect, is still a person's decision.
+        Some("allow_listed") if s.broker_destinations.is_some() => {
+            let broker = s.broker_destinations.unwrap_or_default();
+            let listed = se.get("destinations").and_then(Value::as_array).ok_or("destinations not reported")?;
+            let mut expected = Vec::new();
+            for d in listed {
+                let d = d.as_str().ok_or("a destination is not text")?;
+                if !broker.iter().any(|b| b == d) {
+                    return Err(format!("egress is allowed to {d}, which is not Merion's broker"));
+                }
+                expected.push(format!("possible traffic to allow-listed destination {d}: recorded, never replayed"));
+            }
+            if listed.is_empty() {
+                return Err("egress is allow-listed with no destination".into());
+            }
+            for n in non_replayable {
+                let n = n.as_str().ok_or("a side effect is not text")?;
+                if !expected.iter().any(|e| e == n) {
+                    return Err("non-replayable side effects".into());
+                }
+            }
+        }
         Some(other) => return Err(format!("egress is {other}")),
-    }
-    if se.get("non_replayable").and_then(Value::as_array).is_none_or(|a| !a.is_empty()) {
-        return Err("non-replayable side effects".into());
     }
     let changes = s.changes.as_object().ok_or("changes not reported")?;
     if let Some(unknown) = changes.keys().find(|k| !KINDS.contains(&k.as_str()) && *k != "unchanged") {
@@ -191,12 +221,47 @@ mod tests {
         json!({"/work/a.txt":{"size":6}})
     }
     fn check(p: &ChangesetPolicy, changes: &Value, side: &Value, staged: &Value, exit: i32, unstaged: &[String], tainted: bool) -> Result<usize, String> {
-        eligible(p, &Subject { exit_code: exit, changes, side_effects: side, staged, unstaged, tainted })
+        eligible(p, &Subject { exit_code: exit, changes, side_effects: side, staged, unstaged, tainted, broker_destinations: None })
+    }
+    fn check_broker(side: &Value, broker: &[String]) -> Result<usize, String> {
+        eligible(
+            &policy(),
+            &Subject { exit_code: 0, changes: &ok_changes(), side_effects: side, staged: &staged(), unstaged: &[], tainted: false, broker_destinations: Some(broker) },
+        )
     }
 
     #[test]
     fn a_small_added_file_under_an_allowed_path_is_eligible() {
         assert_eq!(check(&policy(), &ok_changes(), &se(), &staged(), 0, &[], false), Ok(1));
+    }
+
+    const BROKER: &str = "10.0.0.1/32 tcp/9097";
+    fn listed(dests: &[&str], notes: &[&str]) -> Value {
+        json!({"egress":"allow_listed","destinations":dests,"non_replayable":notes,"replayable":[]})
+    }
+    fn note(d: &str) -> String {
+        format!("possible traffic to allow-listed destination {d}: recorded, never replayed")
+    }
+
+    #[test]
+    fn a_cell_confined_to_the_broker_is_eligible_only_when_the_caller_vouches_for_it() {
+        let side = listed(&[BROKER], &[&note(BROKER)]);
+        assert_eq!(check_broker(&side, &[BROKER.to_string()]), Ok(1));
+        // Without the caller's say-so, allow_listed is a person's decision as before.
+        assert!(check(&policy(), &ok_changes(), &side, &staged(), 0, &[], false).unwrap_err().contains("egress is allow_listed"));
+    }
+
+    #[test]
+    fn any_other_destination_or_effect_still_needs_a_person() {
+        let broker = [BROKER.to_string()];
+        let other = "10.9.9.9/32 tcp/443";
+        let e = check_broker(&listed(&[other], &[&note(other)]), &broker).unwrap_err();
+        assert!(e.contains("not Merion's broker"), "{e}");
+        assert!(check_broker(&listed(&[BROKER, other], &[]), &broker).is_err());
+        assert!(check_broker(&listed(&[], &[]), &broker).unwrap_err().contains("no destination"));
+        assert!(check_broker(&listed(&[BROKER], &[&note(BROKER), "sent mail"]), &broker).unwrap_err().contains("non-replayable"));
+        assert!(check_broker(&json!({"egress":"unrestricted","non_replayable":[]}), &broker).unwrap_err().contains("unrestricted"));
+        assert!(check_broker(&json!({"egress":"allow_listed","non_replayable":[]}), &broker).is_err());
     }
 
     #[test]

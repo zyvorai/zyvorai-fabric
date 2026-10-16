@@ -4056,6 +4056,7 @@ async fn auto_decide_changeset(
         return (record, None);
     };
     let policy = &stored.policy;
+    let broker = broker_destinations(state, session).await;
     let subject = Subject {
         exit_code: changeset.exit_code,
         changes: &changeset.changes,
@@ -4063,6 +4064,7 @@ async fn auto_decide_changeset(
         staged: &changeset.staged,
         unstaged: &changeset.unstaged,
         tainted: !session.tainted_by.is_empty(),
+        broker_destinations: broker.as_deref(),
     };
     let since = Utc::now() - chrono::Duration::hours(1);
     let recent = state
@@ -4150,6 +4152,31 @@ async fn auto_decide_changeset(
         .err()
         .map(|e| format!("{e:?}"));
     (decided, apply_error)
+}
+
+/// The destinations FluxVM will list for a cell confined to Merion's own egress broker, when it is safe to
+/// treat that as "nothing leaves": the agent denies egress, is strictly confined, and allows no host or
+/// browser. `None` for any other agent or when the gateway cannot be read, so egress that is not `blocked`
+/// stays a person's decision. The format matches FluxVM's allow-list report (`<cidr> tcp/<port>`).
+async fn broker_destinations(state: &AppState, session: &SessionRecord) -> Option<Vec<String>> {
+    let agent = state.store.get_agent(&session.agent).await?;
+    let m = &agent.manifest;
+    if m.egress_mode != crate::model::EgressMode::Deny
+        || m.confinement != crate::model::Confinement::Strict
+        || !m.egress_allow_hosts.is_empty()
+        || m.browser.is_some()
+    {
+        return None;
+    }
+    let host = match state.config.egress_advertise_host.as_deref() {
+        Some(v) => v.to_string(),
+        None => state.fluxvm.default_gateway(session.sandbox_id).await.ok()?,
+    };
+    let gateway = crate::confine::parse_gateway(&host).ok()?;
+    let prefix = if gateway.is_ipv4() { 32 } else { 128 };
+    let mut ports = vec![state.config.egress_listen.port()];
+    ports.extend(state.config.proxy_listen.map(|a| a.port()));
+    Some(ports.into_iter().map(|p| format!("{gateway}/{prefix} tcp/{p}")).collect())
 }
 
 /// The start of the comment an automatic approval carries, so it is never mistaken for a person's.
@@ -4248,6 +4275,7 @@ async fn dry_run_changeset_policy(
     let Some(path) = policy_file.filter(|p| !p.is_empty()) else {
         return;
     };
+    let broker = broker_destinations(state, session).await;
     let verdict = std::fs::read_to_string(path)
         .map_err(|e| format!("policy file unreadable: {e}"))
         .and_then(|text| ChangesetPolicy::parse(&text))
@@ -4259,6 +4287,7 @@ async fn dry_run_changeset_policy(
                 staged: &changeset.staged,
                 unstaged: &changeset.unstaged,
                 tainted: !session.tainted_by.is_empty(),
+                broker_destinations: broker.as_deref(),
             };
             eligible(&policy, &subject).map(|files| (policy.id, policy.version, files))
         });
