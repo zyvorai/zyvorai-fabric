@@ -49,7 +49,7 @@ syntactic: it reports what the change *adds*, and it is not a proof of what a ce
 
 A change with a High finding is refused with `409` and the reasons. Review it, then resend with
 `X-Keep-Policy-Ack-Risk: 1` (`MERION_POLICY_ACK_RISK=1 merionctl policy set …`). The response lists every finding under
-`risks`, and the audit row `keep.policy.set` records the codes and whether they were acknowledged. Per-host checks
+`risks`, and the audit row `merion.policy.set` records the codes and whether they were acknowledged. Per-host checks
 run for newly added hosts only, so an unchanged entry does not block later edits.
 
 ## Suggested rules from denials

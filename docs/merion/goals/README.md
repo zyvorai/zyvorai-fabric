@@ -42,7 +42,7 @@ For the first step that is not done or skipped the worker does exactly one thing
 An approval step here is a **checkpoint after the step ran**, before the goal moves on (an approval needs a session, and that is how the user's ownership of it is decided). It does **not** gate the step's own actions: a real send or purchase is decided where it happens, at the egress broker (a credential with `requires_approval`), which every step's session goes through like any other.
 
 What the worker never does: widen any authority (a step's session is an ordinary session with every policy, quota and approval of one started by hand), approve anything itself, run two steps of a goal at once, or retry what it blocked. Cancelling the goal (`PATCH {"status":"cancelled"}`) cancels the running step's session. A goal with `autorun` refuses `advance` (409) so two hands never move one goal; pause it first if you want to.
-Each start, retry, block and completion is journaled (`keep.goal.step.started`, `.retry`, `.blocked`, `.done`, `.approval`, `.cancelled`) with ids and reasons, never step inputs.
+Each start, retry, block and completion is journaled (`merion.goal.step.started`, `.retry`, `.blocked`, `.done`, `.approval`, `.cancelled`) with ids and reasons, never step inputs.
 
 ## Goals for a user
 

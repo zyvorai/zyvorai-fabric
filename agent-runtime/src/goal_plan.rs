@@ -243,7 +243,7 @@ pub(crate) async fn start_planning(
         .append(
             Some(view.id),
             AuditPhase::Planned,
-            "keep.goal.plan_requested",
+            "merion.goal.plan_requested",
             Some(goal.agent.clone()),
             json!({"goal_id": goal.id}),
         )
@@ -303,7 +303,7 @@ pub async fn record_proposal(state: &AppState, session: &SessionRecord, data: &V
         .append(
             Some(session.id),
             AuditPhase::Performed,
-            "keep.goal.plan_proposed",
+            "merion.goal.plan_proposed",
             Some(session.agent.clone()),
             json!({"goal_id": goal.id, "steps": n, "tainted": tainted}),
         )
@@ -390,7 +390,7 @@ pub(crate) async fn accept_plan(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.goal.plan_accepted",
+            "merion.goal.plan_accepted",
             Some(goal.agent.clone()),
             json!({"goal_id": goal.id, "steps": goal.plan.len(), "autorun": goal.autorun}),
         )
@@ -424,7 +424,7 @@ pub(crate) async fn reject_plan(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.goal.plan_rejected",
+            "merion.goal.plan_rejected",
             Some(goal.agent.clone()),
             json!({"goal_id": goal.id}),
         )

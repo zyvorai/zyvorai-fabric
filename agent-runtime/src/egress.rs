@@ -533,7 +533,7 @@ pub(crate) async fn proxy_inner(
                         .append(
                             Some(session.id),
                             AuditPhase::Performed,
-                            "keep.action.replayed",
+                            "merion.action.replayed",
                             Some(session.agent.clone()),
                             json!({ "receipt_id": receipt.id, "credential": receipt.credential, "method": receipt.method, "host": host.to_ascii_lowercase() }),
                         )
@@ -631,7 +631,7 @@ pub(crate) async fn proxy_inner(
                     .append(
                         Some(session.id),
                         AuditPhase::Performed,
-                        "keep.action.performed",
+                        "merion.action.performed",
                         Some(session.agent.clone()),
                         json!({ "receipt_id": receipt.id, "approval_id": approval_id, "credential": receipt.credential, "method": receipt.method, "host": host.to_ascii_lowercase(), "status": status, "keyed": idem.is_some() }),
                     )
@@ -1805,7 +1805,7 @@ pub(crate) mod ask_tests {
         let journal =
             serde_json::to_string(&state.store.audit.list(None, 100).await.unwrap()).unwrap();
         assert!(
-            journal.contains("keep.action.performed") && journal.contains("keep.action.replayed")
+            journal.contains("merion.action.performed") && journal.contains("merion.action.replayed")
         );
         assert!(
             !journal.contains("send this once"),

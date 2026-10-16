@@ -253,6 +253,24 @@ fn sse(v: &Value) -> Event {
     Event::default().data(v.to_string())
 }
 
+/// Whether the client asked for `merion.*` custom event names (`forwardedProps.eventNames: "merion"`).
+/// The default stays `keep.*` so clients that were built against the old names keep working.
+fn wants_merion_names(forwarded_props: &Value) -> bool {
+    forwarded_props.get("eventNames").and_then(Value::as_str) == Some("merion")
+}
+
+/// `sse`, with a `CUSTOM` event's `keep.` name prefix rewritten to `merion.` when the client opted in.
+fn sse_as(v: &Value, merion: bool) -> Event {
+    if merion && v.get("type").and_then(Value::as_str) == Some("CUSTOM") {
+        if let Some(rest) = v.get("name").and_then(Value::as_str).and_then(|n| n.strip_prefix("keep.")) {
+            let mut v = v.clone();
+            v["name"] = Value::String(format!("merion.{rest}"));
+            return sse(&v);
+        }
+    }
+    sse(v)
+}
+
 /// `POST /v1/agui`
 pub(crate) async fn agui_run(
     State(state): State<Arc<AppState>>,
@@ -383,28 +401,29 @@ pub(crate) async fn agui_run(
             .collect()
     };
 
+    let merion = wants_merion_names(&input.forwarded_props);
     let (client_thread, run_id, keep_thread) = (input.thread_id, input.run_id, thread.id);
     let stream = async_stream::stream! {
-        yield Ok(sse(&json!({"type": "RUN_STARTED", "threadId": client_thread, "runId": run_id})));
+        yield Ok(sse_as(&json!({"type": "RUN_STARTED", "threadId": client_thread, "runId": run_id}), merion));
         if !snapshot.is_empty() {
-            yield Ok(sse(&json!({"type": "MESSAGES_SNAPSHOT", "messages": snapshot})));
+            yield Ok(sse_as(&json!({"type": "MESSAGES_SNAPSHOT", "messages": snapshot}), merion));
         }
         let mut mapper = Mapper::default();
         let mut watch = ApprovalWatch::default();
         loop {
-            for v in watch.changes(&state.store.approvals_of_session(session_id).await) { yield Ok(sse(&v)); }
+            for v in watch.changes(&state.store.approvals_of_session(session_id).await) { yield Ok(sse_as(&v, merion)); }
             match state.store.events_after(session_id, cursor).await {
                 Ok(events) => {
                     for ev in events {
                         cursor = ev.seq;
                         let (out, done) = mapper.map(&ev, &client_thread, &run_id);
-                        for v in out { yield Ok(sse(&v)); }
+                        for v in out { yield Ok(sse_as(&v, merion)); }
                         store_closed(&state, keep_thread, session_id, cursor, &mut mapper).await;
                         if done { return; }
                     }
                 }
                 Err(e) => {
-                    yield Ok(sse(&json!({"type": "RUN_ERROR", "message": e.to_string(), "code": "events"})));
+                    yield Ok(sse_as(&json!({"type": "RUN_ERROR", "message": e.to_string(), "code": "events"}), merion));
                     return;
                 }
             }
@@ -415,11 +434,11 @@ pub(crate) async fn agui_run(
                     for ev in events {
                         cursor = ev.seq;
                         let (out, _) = mapper.map(&ev, &client_thread, &run_id);
-                        for v in out { yield Ok(sse(&v)); }
+                        for v in out { yield Ok(sse_as(&v, merion)); }
                         store_closed(&state, keep_thread, session_id, cursor, &mut mapper).await;
                     }
                 }
-                yield Ok(sse(&json!({"type": "RUN_ERROR", "message": "the session ended without a result", "code": "ended"})));
+                yield Ok(sse_as(&json!({"type": "RUN_ERROR", "message": "the session ended without a result", "code": "ended"}), merion));
                 return;
             }
             tokio::time::sleep(Duration::from_millis(250)).await;
@@ -804,5 +823,19 @@ mod tests {
             fresh.changes(&[never_seen]).is_empty(),
             "one decided before the chat looked says nothing"
         );
+    }
+
+    #[test]
+    fn custom_event_names_follow_the_clients_opt_in() {
+        assert!(!wants_merion_names(&json!({"agent": "a"})));
+        assert!(!wants_merion_names(&json!({"eventNames": "keep"})));
+        assert!(wants_merion_names(&json!({"eventNames": "merion"})));
+        let data = |e: Event| format!("{e:?}");
+        let ev = json!({"type": "CUSTOM", "name": "keep.approval_requested", "value": {}});
+        assert!(data(sse_as(&ev, true)).contains("merion.approval_requested"));
+        assert!(data(sse_as(&ev, false)).contains("keep.approval_requested"));
+        // Only CUSTOM events are renamed; other event types pass through untouched.
+        let text = json!({"type": "TEXT_MESSAGE_CONTENT", "name": "keep.x"});
+        assert!(data(sse_as(&text, true)).contains("keep.x"));
     }
 }

@@ -7,7 +7,7 @@
 //! write from a tainted session), it records a **receipt**: who, which agent and session, which credential, the method, the URL without its
 //! query, the size and digest of the body (never the body), the approval that allowed it, and the status the upstream answered. Receipts are
 //! append-only on the host (`receipts.jsonl`), a person sees their own (`GET /v1/receipts`), and each one is also journaled
-//! (`keep.action.performed`, without any body).
+//! (`merion.action.performed`, without any body).
 //!
 //! An agent that sets an `Idempotency-Key` header on such a request gets **at-most-once** behaviour, which matters when a retry (a goal
 //! step tried again, a network timeout) would otherwise send the same email twice:

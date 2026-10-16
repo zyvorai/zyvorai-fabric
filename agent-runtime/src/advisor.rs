@@ -231,7 +231,7 @@ mod tests {
         operator_no.detail["reason"] =
             json!("egress to shop.example.com was denied by an operator");
         let mut not_egress = denial(s, "x.example.com", "GET", 2);
-        not_egress.action = "keep.policy.set".into();
+        not_egress.action = "merion.policy.set".into();
         let mut performed = denial(s, "y.example.com", "GET", 3);
         performed.phase = AuditPhase::Performed;
         let rows = [

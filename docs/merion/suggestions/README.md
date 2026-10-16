@@ -21,7 +21,7 @@ agent (scheduled run for you)  --suggestion.propose-->  host keeps it for you  -
 - A suggestion whose title (ignoring case and spacing) matches one already waiting, accepted or dismissed is refused, so an agent cannot nag. The last 200 decided ones are remembered per person.
 - A session that had read untrusted content marks its suggestion `tainted`; accepting it needs `{"confirm_tainted": true}`.
 - A refused proposal shows up in the session's events as `suggestion.refused` with the reason, never the text.
-- Every route is scoped to the caller: another person's suggestion is a 404. The operator must name `user_id` and every access is journaled (`keep.suggestion.operator_access`). The journal records that a suggestion was proposed, accepted or dismissed (ids), never its text.
+- Every route is scoped to the caller: another person's suggestion is a 404. The operator must name `user_id` and every access is journaled (`merion.suggestion.operator_access`). The journal records that a suggestion was proposed, accepted or dismissed (ids), never its text.
 - **Retention** is per person: `PUT /v1/suggestions/settings {"retention_days": N}` (1 to 3650, returned back in `GET /v1/suggestions`) forgets undecided suggestions that old and decided ones that long after the decision (a forgotten dismissal can be proposed again). The operator's `ZYVOR_AGENT_SUGGESTION_RETENTION_DAYS` is only the default for a person who hasn't set their own. The last 200 decided per person are kept regardless. Counts only in the journal.
 - Like the vault and memory, the operator of the host can read the files (`suggestions/<user>.json`); they are not encrypted to you.
 

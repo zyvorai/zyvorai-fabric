@@ -458,7 +458,7 @@ pub(crate) async fn create_trigger(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.trigger.created",
+            "merion.trigger.created",
             Some(record.use_case.clone()),
             json!({ "trigger_id": record.id, "kind": record.kind, "dir": record.dir }),
         )
@@ -488,7 +488,7 @@ pub(crate) async fn delete_trigger(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.trigger.deleted",
+            "merion.trigger.deleted",
             None,
             json!({ "trigger_id": id }),
         )

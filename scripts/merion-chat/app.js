@@ -1,3 +1,5 @@
+// AG-UI custom events arrive as keep.<x> (default) or merion.<x> (forwardedProps.eventNames: "merion").
+function evName(e) { return typeof e.name === "string" ? e.name.replace(/^(keep|merion)\./, "") : ""; }
 // Keep chat: talks to /agui, /threads on this page's own server, which forwards to the Keep host with the token added there.
 // Text from the network or the user is only ever inserted with textContent; there is no innerHTML anywhere in this file.
 "use strict";
@@ -200,14 +202,14 @@ async function run(text, retried) {
       }
       case "TEXT_MESSAGE_END": bubbleEl = null; break;
       case "CUSTOM":
-        if (e.name === "keep.approval_requested") {
+        if (evName(e) === "approval_requested") {
           showTyping(false); setBusy(true, "waiting for your approval", true);
           if ((e.value || {}).approval_id) approvalCard(e.value);   // held by the host, with a preview
           else note("notice", "Waiting for your approval: " + String((e.value || {}).prompt ?? "") + "\nDecide it on your device; this chat cannot approve or deny.");
         }
-        else if (e.name === "keep.approval_decided") { approvalDecided(e.value || {}); showTyping(true); setBusy(true, "working…", true); }
-        else if (e.name === "keep.waiting") setBusy(true, "waiting…", true);
-        else if (e.name === "keep.event") note("meta", String((e.value || {}).kind ?? "event"));
+        else if (evName(e) === "approval_decided") { approvalDecided(e.value || {}); showTyping(true); setBusy(true, "working…", true); }
+        else if (evName(e) === "waiting") setBusy(true, "waiting…", true);
+        else if (evName(e) === "event") note("meta", String((e.value || {}).kind ?? "event"));
         break;
       case "RUN_FINISHED":
         showTyping(false); markMine("read");
