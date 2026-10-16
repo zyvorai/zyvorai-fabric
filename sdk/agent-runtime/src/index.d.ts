@@ -72,7 +72,7 @@ export interface SessionEvent {
   timestamp: string;
 }
 
-export interface KeepApproval {
+export interface MerionApproval {
   id: string;
   session_id: string;
   kind: string;
@@ -84,7 +84,7 @@ export interface KeepApproval {
   decided_at?: string | null;
 }
 
-export interface KeepReceipt {
+export interface MerionReceipt {
   id: string;
   at: string;
   session_id: string;
@@ -157,18 +157,18 @@ export declare class Fabric {
   };
   /** Decisions require an operator token or a user token with the approve scope. */
   approvals: {
-    list(): Promise<KeepApproval[]>;
+    list(): Promise<MerionApproval[]>;
     decide(id: string, decision: "approved" | "denied", options?: {
       comment?: string;
       /** Egress approvals only; session persists for the session lifetime. */
       scope?: "once" | "session";
-    }): Promise<KeepApproval>;
+    }): Promise<MerionApproval>;
   };
   evidence: {
     cockpit(sessionId: string): Promise<unknown>;
     /** Recent audit only; user tokens see only their own session rows. */
     audit(options?: { sessionId?: string; limit?: number }): Promise<AuditView>;
-    receipts(options?: { userId?: string; limit?: number }): Promise<KeepReceipt[]>;
+    receipts(options?: { userId?: string; limit?: number }): Promise<MerionReceipt[]>;
     /** Requires a separate scoped export token; never put that token in a URL. */
     exportAudit(options: { exportToken: string; sessionId?: string; limit?: number }): Promise<AuditView>;
   };

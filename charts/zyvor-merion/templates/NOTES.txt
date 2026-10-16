@@ -1,0 +1,12 @@
+Keep runtime installed as a hostNetwork DaemonSet: {{ include "zyvor-merion.fullname" . }}
+
+1. It needs FluxVM on the same node ({{ .Values.runtime.fluxvmUrl }}) and /dev/kvm. This chart does not install FluxVM; the zyvor-fabric chart does.
+2. Keep mode is {{ if .Values.merion.mode }}ON: policy and agent deployments need a signature from one of {{ len .Values.merion.trustedSigners }} trusted signer(s){{ else }}OFF (lab only): unsigned policy is accepted{{ end }}.
+3. The API listens on {{ .Values.runtime.listen }}. Reach it from your machine:
+     kubectl -n {{ .Release.Namespace }} get pods -l app.kubernetes.io/instance={{ .Release.Name }} -o name
+     kubectl -n {{ .Release.Namespace }} port-forward pod/<name> 9096:{{ (split ":" .Values.runtime.listen)._1 }}
+   Token (do not paste it into a chat or a log):
+     kubectl -n {{ .Release.Namespace }} get secret {{ include "zyvor-merion.secretName" . }} -o jsonpath='{.data.api-token}' | base64 -d; echo
+4. The egress broker ({{ .Values.runtime.egressListen }}) and CONNECT proxy ({{ .Values.runtime.proxyListen }}) are bound on the node. Limit them with the node firewall to the cells' network.
+5. Credentials: {{ if .Values.credentials.descriptors }}{{ len .Values.credentials.descriptors }} descriptor(s) mounted read-only at /etc/zyvor/credentials/credentials.json. They hold no secrets; a secret comes from an env variable or a `source` (a file you mount with runtime.extraVolumes, or Vault). Check where each stands with GET /v1/vault/status (operator token), never a value.{{ else }}none set (credentials.descriptors is empty).{{ end }}
+6. State is on the node at {{ .Values.runtime.stateHostPath }}. Back it up; deleting the release does not delete it.

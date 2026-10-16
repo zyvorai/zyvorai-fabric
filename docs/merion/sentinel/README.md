@@ -141,7 +141,7 @@ inner container's own PID namespace.
 Ed25519 over the exact YAML bytes the API receives (`X-Merion-Policy-Signature: <hex>`).
 
 ```bash
-./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" merion.policy.yaml \
+./agent-runtime/target/release/examples/merion_sign_policy sign "$SEED" merion.policy.yaml \
   > merion.policy.yaml.sig
 ./scripts/merionctl policy set <agent> merion.policy.yaml merion.policy.yaml.sig
 ```

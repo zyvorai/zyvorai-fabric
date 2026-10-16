@@ -143,7 +143,7 @@ def line(ok, text):
     print(("  ✓ " if ok else "  ✗ ") + text)
     bad += 0 if ok else 1
 line(s["fluxvm"]["ready"], "FluxVM ready" if s["fluxvm"]["ready"] else "FluxVM not ready: %s" % s["fluxvm"].get("error"))
-mode = "Keep mode (signed deploys required)" if s["keep_mode"] else "dev mode (signatures optional)"
+mode = "Keep mode (signed deploys required)" if s["merion_mode"] else "dev mode (signatures optional)"
 line(True, mode)
 if s["signature_required"]:
     line(s["trusted_signers"] > 0, "%d trusted signer(s)" % s["trusted_signers"] if s["trusted_signers"] else "no trusted signers: set ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS (pubkey from: fabric-agent pack keys)")
@@ -224,14 +224,14 @@ PY
         sign_bin=""
         for c in \
           "${MERION_SIGN_BIN:-}" \
-          "$(dirname "$0")/../agent-runtime/target/debug/examples/keep_sign_policy" \
-          "$(dirname "$0")/../agent-runtime/target/release/examples/keep_sign_policy"; do
+          "$(dirname "$0")/../agent-runtime/target/debug/examples/merion_sign_policy" \
+          "$(dirname "$0")/../agent-runtime/target/release/examples/merion_sign_policy"; do
           [[ -n "$c" && -x "$c" ]] && { sign_bin=$c; break; }
         done
         if [[ -z "$sign_bin" ]]; then
           root="$(cd "$(dirname "$0")/.." && pwd)"
-          cargo build --manifest-path "$root/agent-runtime/Cargo.toml" --example keep_sign_policy >&2
-          sign_bin="$root/agent-runtime/target/debug/examples/keep_sign_policy"
+          cargo build --manifest-path "$root/agent-runtime/Cargo.toml" --example merion_sign_policy >&2
+          sign_bin="$root/agent-runtime/target/debug/examples/merion_sign_policy"
         fi
         sig=$("$sign_bin" sign "$seed" "$file")
         printf '%s\n' "$sig" | tee "${file}.sig"

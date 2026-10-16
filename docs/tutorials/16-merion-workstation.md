@@ -13,7 +13,7 @@ measured security profile.
 > marketed as “the operator cannot read this.” See [docs/merion/MERION.md](../merion/MERION.md).
 
 GitHub Actions runs the unit/policy suite + stub e2e without KVM:
-[`.github/workflows/keep.yml`](../../.github/workflows/keep.yml).  
+[`.github/workflows/merion.yml`](../../.github/workflows/merion.yml).  
 Lab live FluxVM gate: [`./scripts/merion-live-lab.sh`](../../scripts/merion-live-lab.sh) · [PRODUCTION.md](../merion/PRODUCTION.md).
 
 ---
@@ -56,8 +56,8 @@ On a host with FluxVM up:
 ```bash
 # Generate a one-off Ed25519 seed for this lab (32-byte hex)
 SEED=$(python3 -c 'import os; print(os.urandom(32).hex())')
-PUB=$(./agent-runtime/target/release/examples/keep_sign_policy pubkey "$SEED" \
-  2>/dev/null || cargo run --manifest-path agent-runtime/Cargo.toml --example keep_sign_policy -- pubkey "$SEED")
+PUB=$(./agent-runtime/target/release/examples/merion_sign_policy pubkey "$SEED" \
+  2>/dev/null || cargo run --manifest-path agent-runtime/Cargo.toml --example merion_sign_policy -- pubkey "$SEED")
 
 export ZYVOR_AGENT_LISTEN=127.0.0.1:9096
 export ZYVOR_AGENT_API_TOKEN=dev-token
@@ -123,7 +123,7 @@ Console UX: marketing `/keep` → **Open Agents** when signed in.
 ```bash
 ./scripts/merionctl policy show keep-demo > /tmp/merion.policy.yaml
 # edit allow/deny/ask/taint, then sign and set:
-./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" /tmp/merion.policy.yaml \
+./agent-runtime/target/release/examples/merion_sign_policy sign "$SEED" /tmp/merion.policy.yaml \
   > /tmp/merion.policy.yaml.sig
 ./scripts/merionctl policy set keep-demo /tmp/merion.policy.yaml /tmp/merion.policy.yaml.sig
 ```

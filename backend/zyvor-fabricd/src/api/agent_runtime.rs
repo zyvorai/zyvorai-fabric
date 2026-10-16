@@ -500,7 +500,7 @@ pub async fn demo_list(
 
 /// Keep readiness for the console and `merionctl doctor`: Keep mode, signers,
 /// FluxVM readiness and demo counts.
-pub async fn keep_status(
+pub async fn merion_status(
     RequireRead(_claims): RequireRead,
     State(state): State<Arc<AppState>>,
 ) -> Response {
@@ -514,7 +514,7 @@ pub async fn keep_status(
 /// matches in Keep mode. The signer seed never leaves the author's machine:
 /// the console only uploads the result.
 #[derive(Debug)]
-struct KeepPack {
+struct MerionPack {
     name: String,
     deploy_json: String,
     signature: Option<String>,
@@ -522,7 +522,7 @@ struct KeepPack {
     policy_signature: Option<String>,
 }
 
-fn parse_keep_pack(bytes: &[u8]) -> Result<KeepPack, String> {
+fn parse_merion_pack(bytes: &[u8]) -> Result<MerionPack, String> {
     let v: Value = serde_json::from_slice(bytes).map_err(|e| format!("not valid JSON: {e}"))?;
     if v.get("format").and_then(Value::as_str) != Some("merionpack/1") {
         return Err("not a merionpack/1 file".into());
@@ -542,7 +542,7 @@ fn parse_keep_pack(bytes: &[u8]) -> Result<KeepPack, String> {
     if deployed_name.as_deref() != Some(name.as_str()) {
         return Err("pack name does not match the name inside deploy_json".into());
     }
-    Ok(KeepPack {
+    Ok(MerionPack {
         name,
         deploy_json,
         signature: text("signature").filter(|s| !s.is_empty()),
@@ -569,7 +569,7 @@ pub async fn pack_deploy(
                 .into_response();
         }
     };
-    let pack = match parse_keep_pack(&bytes) {
+    let pack = match parse_merion_pack(&bytes) {
         Ok(p) => p,
         Err(e) => {
             return (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response();
@@ -1437,7 +1437,7 @@ mod keep_pack_tests {
 
     #[test]
     fn a_pack_keeps_the_signed_bytes_and_optional_parts() {
-        let p = parse_keep_pack(&pack(
+        let p = parse_merion_pack(&pack(
             r#","signature":"ab","policy":"version: 1\n","policy_signature":"cd""#,
         ))
         .unwrap();
@@ -1450,21 +1450,21 @@ mod keep_pack_tests {
         assert_eq!(p.signature.as_deref(), Some("ab"));
         assert_eq!(p.policy.as_deref(), Some("version: 1\n"));
         assert_eq!(p.policy_signature.as_deref(), Some("cd"));
-        let bare = parse_keep_pack(&pack("")).unwrap();
+        let bare = parse_merion_pack(&pack("")).unwrap();
         assert!(bare.signature.is_none() && bare.policy.is_none());
     }
 
     #[test]
     fn a_bad_pack_is_refused() {
-        assert!(parse_keep_pack(b"nope").is_err());
-        assert!(parse_keep_pack(br#"{"format":"other"}"#).is_err());
+        assert!(parse_merion_pack(b"nope").is_err());
+        assert!(parse_merion_pack(br#"{"format":"other"}"#).is_err());
         // Name in the envelope must match the signed deploy body.
         let mismatched = br#"{"format":"merionpack/1","name":"a","deploy_json":"{\"name\":\"b\"}"}"#;
-        assert!(parse_keep_pack(mismatched)
+        assert!(parse_merion_pack(mismatched)
             .unwrap_err()
             .contains("does not match"));
         // Path-shaped names never reach the upstream URL.
         let evil = br#"{"format":"merionpack/1","name":"../x","deploy_json":"{\"name\":\"../x\"}"}"#;
-        assert!(parse_keep_pack(evil).is_err());
+        assert!(parse_merion_pack(evil).is_err());
     }
 }

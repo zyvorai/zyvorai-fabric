@@ -70,7 +70,7 @@ export async function getSession(id: string): Promise<SessionView> {
   return apiGet(`/api/sessions/${encodeURIComponent(id)}`)
 }
 
-export interface KeepCockpit {
+export interface MerionCockpit {
   session_id: string
   agent: string
   status: string
@@ -249,8 +249,8 @@ export async function deleteDemo(id: string): Promise<void> {
   return apiDelete(`/api/demos/${encodeURIComponent(id)}`)
 }
 
-export interface KeepStatus {
-  keep_mode: boolean
+export interface MerionStatus {
+  merion_mode: boolean
   signature_required: boolean
   trusted_signers: number
   fluxvm: { ready: boolean; error?: string | null }
@@ -259,8 +259,8 @@ export interface KeepStatus {
 }
 
 /** Keep readiness: Keep mode, trusted signers, FluxVM, demo counts. */
-export function keepStatus(): Promise<KeepStatus> {
-  return apiGet<KeepStatus>('/api/merion/status')
+export function merionStatus(): Promise<MerionStatus> {
+  return apiGet<MerionStatus>('/api/merion/status')
 }
 
 /**
@@ -334,7 +334,7 @@ export interface BrowserScreenshot {
   honesty?: string
 }
 
-export async function getSessionCockpit(id: string): Promise<KeepCockpit> {
+export async function getSessionCockpit(id: string): Promise<MerionCockpit> {
   return apiGet(`/api/sessions/${encodeURIComponent(id)}/cockpit`)
 }
 

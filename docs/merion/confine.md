@@ -27,7 +27,7 @@ Agent-runtime `confine::strict_policy` → `POST /v1/vms/{id}/network/policy`:
 | `deny_udp: true` | Kill WebRTC / QUIC / STUN (DHCP still allowed) |
 | `deny_cidrs` | Metadata + public recursive DNS (8.8.8.8, 1.1.1.1, …) |
 | `allow_fqdns` | Resolved into allow CIDRs from signed policy hosts |
-| `labels` | `keep.zyvor.dev/session=…`, `role=browser`, … |
+| `labels` | `merion.zyvor.dev/session=…`, `role=browser`, … |
 
 ## Proof surfaces
 

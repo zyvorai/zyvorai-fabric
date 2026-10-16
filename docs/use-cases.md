@@ -11,7 +11,7 @@ Pick the row that sounds like your problem. Each links to the page that gets you
 | Manage VMs from Kubernetes | The Fabric operator and its `VirtualMachine` CRDs | [Kubernetes](KUBERNETES.md) |
 | Drive the same cloud from Terraform or the CLI | The same REST API behind `fabricctl`, the console, the operator and Terraform | [API](api.md) |
 | Serve models next to your VMs | OpenAI-compatible inference on the same daemon (single-cluster Beta) | [AI Workloads](ai-workloads.md) |
-| Run agents on Macs | **Solvor**, the native Mac client for Keep | [Solvor](../integrations/macos-keep) |
+| Run agents on Macs | **Solvor**, the native Mac client for Keep | [Solvor](../integrations/macos-merion) |
 | See what a VM really costs in memory | `fabricctl memory <vm>` shows PSS; `fabricctl balloon` (Beta) reclaims guest memory | [Boundary doc](FLUXVM-FABRIC-BOUNDARY.md) |
 
 ## What each piece rests on

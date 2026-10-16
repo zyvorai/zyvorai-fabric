@@ -1,5 +1,5 @@
 # Shared Keep policy recipe for Fabric-facing packs.
-# Sign before PUT in Keep mode (keep_sign_policy / merionctl policy set).
+# Sign before PUT in Keep mode (merion_sign_policy / merionctl policy set).
 # Replace host with your fabricd hostname (must match egress_allow_hosts + credential host).
 version: 1
 default_egress: deny

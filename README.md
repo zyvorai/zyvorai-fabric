@@ -3,7 +3,7 @@
 # Zyvor Fabric
 
 [![CI](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ci.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=CI)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ci.yml)
-[![Keep](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Keep)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/keep.yml)
+[![Keep](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Keep)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/merion.yml)
 [![Agent Runtime](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/agent-runtime.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Agent%20Runtime)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/agent-runtime.yml)
 [![AI Workloads](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ai-workloads.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=AI%20Workloads)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ai-workloads.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0071e3?style=flat-square&labelColor=1d1d1f)](LICENSE)
@@ -46,7 +46,7 @@
 | **Keep** | Credential secrets from a file or from HashiCorp Vault (`source vault`), with Vault AppRole and Kubernetes login and chart values |
 | **Keep** | The runtime rejects policy fields it does not enforce |
 | **0.3.0** | `POST /v1/agui`: an AG-UI endpoint over Keep sessions, validated against the official `@ag-ui/core` 1.0.0 schemas; it cannot approve anything |
-| **0.3.0** | **Solvor**, a native SwiftUI Mac client for Keep (`integrations/macos-keep`), plus `merionctl init` to scaffold a new use-case pack |
+| **0.3.0** | **Solvor**, a native SwiftUI Mac client for Keep (`integrations/macos-merion`), plus `merionctl init` to scaffold a new use-case pack |
 | **0.3.0** | OCR for photos and screenshots inside the cell, six bank operations packs, and more everyday use cases |
 | **0.3.0** | `zyvorctl` is now `fabricctl`, and it finds a TLS daemon on `localhost:9095` without `--server` |
 | **0.3.0** | Fixed: use-case cells now get a host-applied deny-all policy and fail closed; finished runs delete their cell at once |
@@ -60,7 +60,7 @@ Full history: [CHANGELOG.md](CHANGELOG.md).
 | Building with AI agents | A sealed microVM per agent run, network rules the host sets, approvals you hold | [Keep](docs/merion/README.md) |
 | Running a private cloud | VMs, networking, storage and security from one daemon on any Linux server with KVM | [Quickstart](#quickstart) |
 | Running Kubernetes | VMs as `VirtualMachine` resources next to your pods | [Kubernetes](docs/KUBERNETES.md) |
-| Managing a Mac fleet | Solvor, the native Mac client for Keep | [Solvor](integrations/macos-keep) |
+| Managing a Mac fleet | Solvor, the native Mac client for Keep | [Solvor](integrations/macos-merion) |
 | Wanting inference near your VMs | OpenAI-compatible endpoints on the same daemon (single-cluster Beta) | [AI Workloads](docs/ai-workloads.md) |
 
 ## Why Zyvor Fabric

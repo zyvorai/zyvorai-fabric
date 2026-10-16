@@ -107,7 +107,7 @@ node sdk/agent-runtime/src/cli.js pack keys           # public key: register it 
 ```
 
 `fabric-agent pack` signs with Node's built-in crypto, so no Rust toolchain is needed. A Rust
-test pins a Node-made signature against `keep_sign_policy`, so the two cannot drift. The seed
+test pins a Node-made signature against `merion_sign_policy`, so the two cannot drift. The seed
 stays on your machine; the console only ever receives a finished, signed `.merionpack.json`.
 
 ## Where the boundary is

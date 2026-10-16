@@ -35,9 +35,9 @@ const ContainerGroups = lazy(() => import('./pages/ContainerGroups'))
 const Agents = lazy(() => import('./pages/Agents'))
 const AiWorkloads = lazy(() => import('./pages/AiWorkloads'))
 const Sessions = lazy(() => import('./pages/Sessions'))
-const KeepHome = lazy(() => import('./pages/KeepHome'))
-const KeepSession = lazy(() => import('./pages/KeepSession'))
-const KeepHistory = lazy(() => import('./pages/KeepHistory'))
+const MerionHome = lazy(() => import('./pages/MerionHome'))
+const MerionSession = lazy(() => import('./pages/MerionSession'))
+const MerionHistory = lazy(() => import('./pages/MerionHistory'))
 const Schedules = lazy(() => import('./pages/Schedules'))
 const AuditLogs = lazy(() => import('./pages/AuditLogs'))
 const Analytics = lazy(() => import('./pages/Analytics'))
@@ -151,9 +151,9 @@ function ConsoleRoutes() {
             <Route path="agents" element={<Agents />} />
             <Route path="sessions" element={<Sessions />} />
             <Route path="sessions/:id" element={<Sessions />} />
-            <Route path="merion" element={<KeepHome />} />
-            <Route path="merion/history" element={<KeepHistory />} />
-            <Route path="merion/:sessionId" element={<KeepSession />} />
+            <Route path="merion" element={<MerionHome />} />
+            <Route path="merion/history" element={<MerionHistory />} />
+            <Route path="merion/:sessionId" element={<MerionSession />} />
             <Route path="schedules" element={<Schedules />} />
             <Route path="autoscale" element={<AutoscalePage />} />
             <Route path="zones" element={<Zones />} />

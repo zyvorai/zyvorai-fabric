@@ -1229,8 +1229,8 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/sessions/{id}/cockpit",
             get(api::agent_runtime::session_cockpit),
         )
-        .route("/merion/status", get(api::agent_runtime::keep_status))
-        .route("/keep/status", get(api::agent_runtime::keep_status))
+        .route("/merion/status", get(api::agent_runtime::merion_status))
+        .route("/keep/status", get(api::agent_runtime::merion_status))
         .route("/packs", post(api::agent_runtime::pack_deploy))
         .route(
             "/demos",

@@ -1016,7 +1016,7 @@ JSON
 printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$PACK/merion.policy.yaml"
 
 st=$(curl -sf -H "Authorization: Bearer $MERION_TOKEN_VALUE" "$MERION_BASE/v1/merion/status")
-[[ "$(echo "$st" | json keep_mode)" == "True" && "$(echo "$st" | json trusted_signers)" == "1" ]] || fail "keep status unexpected: $st"
+[[ "$(echo "$st" | json merion_mode)" == "True" && "$(echo "$st" | json trusted_signers)" == "1" ]] || fail "keep status unexpected: $st"
 ok "/v1/merion/status: Keep mode on, 1 trusted signer"
 
 if FABRIC_AGENT_URL="$MERION_BASE" node "$CLI" pack deploy "$PACK" >"$WORK/unsigned.out" 2>&1; then

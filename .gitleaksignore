@@ -8,11 +8,11 @@ a363604c65393ce9012736c390b747d97437a2dc:agent-runtime/tests/demos-ci.sh:curl-au
 a363604c65393ce9012736c390b747d97437a2dc:agent-runtime/tests/demos-ci.sh:curl-auth-header:662
 a363604c65393ce9012736c390b747d97437a2dc:agent-runtime/tests/demos-ci.sh:curl-auth-header:663
 
-# integrations/macos-keep, commit 6c69fed3: a made-up AWS-style key that the app's own secret scanner is tested against
+# integrations/macos-merion, commit 6c69fed3: a made-up AWS-style key that the app's own secret scanner is tested against
 # (SafetyTests), and the Keychain service names in ApprovalSigner, which look like keys to the generic rule. No real credential.
 # The tests now build the fake key at run time, so later commits do not contain the literal.
-6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Sources/KeepKit/ApprovalSigner.swift:generic-api-key:42
-6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Sources/KeepKit/ApprovalSigner.swift:generic-api-key:43
-6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Tests/KeepKitTests/SafetyTests.swift:aws-access-token:6
-6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Tests/KeepKitTests/SafetyTests.swift:aws-access-token:23
-6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Tests/KeepKitTests/SafetyTests.swift:generic-api-key:6
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Sources/MerionKit/ApprovalSigner.swift:generic-api-key:42
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Sources/MerionKit/ApprovalSigner.swift:generic-api-key:43
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Tests/MerionKitTests/SafetyTests.swift:aws-access-token:6
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Tests/MerionKitTests/SafetyTests.swift:aws-access-token:23
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Tests/MerionKitTests/SafetyTests.swift:generic-api-key:6

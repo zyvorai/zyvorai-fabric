@@ -36,7 +36,7 @@ Deploy JavaScript/TypeScript agents like serverless functions while giving every
   cockpit + browser live view, measured/`software-test` labeling, `scripts/merionctl`,
   scoped export tokens, `./scripts/merion-live-lab.sh` —
   [docs/merion/MERION.md](../docs/merion/MERION.md) · [PRODUCTION.md](../docs/merion/PRODUCTION.md) ·
-  [Tutorial 16](../docs/tutorials/16-merion-workstation.md) · [CI](../.github/workflows/keep.yml)
+  [Tutorial 16](../docs/tutorials/16-merion-workstation.md) · [CI](../.github/workflows/merion.yml)
 
 The runtime is intentionally a standalone component in the Fabric repository. It consumes FluxVM's existing `/v1/sandboxes` API directly and does not alter the existing `zyvor-fabricd` VM API or backend workspace.
 
@@ -572,7 +572,7 @@ Session metadata, TTL deadlines, warm-pool claims and the host event journal sur
 `.github/workflows/agent-runtime.yml` typechecks the crate, builds the example bundles, and runs a real session on the GitHub runner. Runners have no FluxVM, so [`agent-runtime/tests/sandbox_stub.py`](tests/sandbox_stub.py) stores the guest files and starts `worker.mjs` or `harness.mjs` with Node on the runner. Provider APIs are not called.
 
 **Keep** (policy YAML, cockpit routes, merionctl, docs) has its own workflow:
-[`.github/workflows/keep.yml`](../.github/workflows/keep.yml). Locally:
+[`.github/workflows/merion.yml`](../.github/workflows/merion.yml). Locally:
 
 ```bash
 cargo test --manifest-path agent-runtime/Cargo.toml --lib

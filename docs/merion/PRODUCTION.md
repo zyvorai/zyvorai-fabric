@@ -20,15 +20,15 @@ Check a running install any time with `./scripts/merionctl doctor [--smoke]`.
 
 ## Install Keep on Kubernetes
 
-`charts/zyvor-keep` runs the Keep runtime as a `hostNetwork` DaemonSet next to FluxVM on each node. It does not install
+`charts/zyvor-merion` runs the Keep runtime as a `hostNetwork` DaemonSet next to FluxVM on each node. It does not install
 FluxVM: install the `zyvor-fabric` chart (or run FluxVM yourself) on the same nodes, which need `/dev/kvm`.
 
 ```bash
 # 1. build and push the runtime image (agent-runtime/Dockerfile), then:
-helm install keep charts/zyvor-keep -n keep --create-namespace \
+helm install keep charts/zyvor-merion -n keep --create-namespace \
   --set global.imageRegistry=registry.example.com \
   --set runtime.image.tag=0.3.0 \
-  --set 'keep.trustedSigners={<64-hex Ed25519 public key>}'
+  --set 'merion.trustedSigners={<64-hex Ed25519 public key>}'
 ```
 
 - Keep mode is on by default and the chart refuses to render without a well-formed trusted signer. The signing seed
@@ -73,7 +73,7 @@ pilot gate prefers `node22-fc` when registered.
 
 | Item | How to verify |
 |---|---|
-| Stub Keep e2e (CI) | `./scripts/merion-e2e.sh` · `.github/workflows/keep.yml` |
+| Stub Keep e2e (CI) | `./scripts/merion-e2e.sh` · `.github/workflows/merion.yml` |
 | **Live FluxVM Keep proof** | `MERION_E2E_FLUXVM=1 ./scripts/merion-e2e.sh` or `./scripts/merion-live-lab.sh` (needs `MERION_E2E_TEMPLATE`) |
 | Keep-mode signed policy | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; unsigned PUT → 403; unsigned deploy → 403; start refuses empty signers |
 | Credential authority | `authorize_resolve` allowlists host/method/path/user; secrets still host-env (not 0.2 unwrap) |

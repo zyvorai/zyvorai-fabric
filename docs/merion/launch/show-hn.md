@@ -25,5 +25,5 @@ Repo: https://github.com/zyvorai/fabric · Mac app: https://github.com/zyvorai/s
 - **Why not just run a local model?** You can, as a use case's model step; the point here is proving the reading step has no network.
 - **How do I know the count is honest?** The host counts CONNECT attempts at the egress broker, and `merion-e2e.sh` asserts it. But the count is a cross-check: the guarantee is the deny-all policy applied on the host before the file enters the cell, and the run fails closed if it cannot be applied.
 - **Can the operator see my file?** Yes (`software-test`). That is why the host is yours.
-- **Windows or Linux client?** Not yet. The API is plain HTTP; a client mirrors the small `KeepKit` library.
+- **Windows or Linux client?** Not yet. The API is plain HTTP; a client mirrors the small `MerionKit` library.
 - **Cost / hosted version?** No hosted service; self-hosted only.

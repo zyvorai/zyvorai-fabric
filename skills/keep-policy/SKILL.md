@@ -29,7 +29,7 @@ taint:
 Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) refuses unsigned policy. The signature is Ed25519 over the exact bytes of the file, so do not reformat the YAML after signing.
 
 ```bash
-./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" merion.policy.yaml > merion.policy.yaml.sig
+./agent-runtime/target/release/examples/merion_sign_policy sign "$SEED" merion.policy.yaml > merion.policy.yaml.sig
 ./scripts/merionctl policy set <agent> merion.policy.yaml merion.policy.yaml.sig
 merionctl policy show <agent>
 ```

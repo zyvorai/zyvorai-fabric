@@ -12,7 +12,7 @@
 //! draft for a person to read, sign and load with `PUT …/policy`, which lints it again.
 
 use crate::audit::{AuditEntry, AuditPhase};
-use crate::policy::{KeepAllow, KeepPolicy};
+use crate::policy::{MerionAllow, MerionPolicy};
 use crate::policy_lint::{self, Finding};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
@@ -33,7 +33,7 @@ pub struct Suggestion {
     /// A path from the most recent denial, for context only. It is agent-supplied text.
     pub example_path: String,
     /// The entry to add under `allow:`.
-    pub allow: KeepAllow,
+    pub allow: MerionAllow,
     /// What adding it would report, per [`policy_lint::review_change`].
     pub findings: Vec<Finding>,
     /// True when a High finding means `PUT …/policy` would demand an acknowledgement.
@@ -77,7 +77,7 @@ fn norm(h: &str) -> String {
 pub fn suggest(
     entries: &[AuditEntry],
     sessions: &HashSet<Uuid>,
-    current: &KeepPolicy,
+    current: &MerionPolicy,
 ) -> Vec<Suggestion> {
     let allowed: HashSet<String> = current.allow.iter().map(|a| norm(&a.host)).collect();
     let mut by_host: BTreeMap<String, Acc> = BTreeMap::new();
@@ -131,7 +131,7 @@ pub fn suggest(
     let mut out: Vec<Suggestion> = by_host
         .into_iter()
         .map(|(host, acc)| {
-            let allow = KeepAllow {
+            let allow = MerionAllow {
                 host: host.clone(),
                 methods: acc.methods.iter().cloned().collect(),
                 ask: Some("always".into()),
@@ -160,7 +160,7 @@ pub fn suggest(
 
 /// `current` plus every suggestion that needs no acknowledgement. Suggestions with a High
 /// finding are left out; a person adds those by hand if they mean them.
-pub fn candidate_policy(current: &KeepPolicy, suggestions: &[Suggestion]) -> KeepPolicy {
+pub fn candidate_policy(current: &MerionPolicy, suggestions: &[Suggestion]) -> MerionPolicy {
     let mut p = current.clone();
     p.allow.extend(
         suggestions
@@ -179,8 +179,8 @@ mod tests {
 
     const CUR: &str = "version: 1\ndefault_egress: deny\nallow:\n  - { host: api.github.com, methods: [GET], ask: first }\n";
 
-    fn cur() -> KeepPolicy {
-        KeepPolicy::from_yaml(CUR).unwrap()
+    fn cur() -> MerionPolicy {
+        MerionPolicy::from_yaml(CUR).unwrap()
     }
 
     fn denial(sid: Uuid, host: &str, method: &str, secs: u32) -> AuditEntry {
@@ -289,7 +289,7 @@ mod tests {
         let s = Uuid::new_v4();
         let out = suggest(&[denial(s, "api.example.com", "GET", 1)], &mine(s), &cur());
         let yaml = candidate_policy(&cur(), &out).to_yaml().unwrap();
-        let back = KeepPolicy::from_yaml(&yaml).unwrap();
+        let back = MerionPolicy::from_yaml(&yaml).unwrap();
         assert!(!policy_lint::needs_ack(&policy_lint::review_change(
             Some(&cur()),
             &back

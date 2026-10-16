@@ -1,0 +1,185 @@
+name: Keep
+
+# Keep product surface: unit tests + real end-to-end against a live agent-runtime
+# and FluxVM sandbox stub (no /dev/kvm). Also runs the agent-runtime control-plane
+# e2e (proxy, Sentinel, DLP, approvals).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, "feat/**"]
+    paths:
+      - "agent-runtime/**"
+      - "docs/merion/**"
+      - "scripts/merionctl"
+      - "scripts/merion-demo.sh"
+      - "scripts/merion-demo-pdf.sh"
+      - "sdk/agent-runtime/**"
+      - "reference/vendor-gateway/**"
+      - "scripts/merion-bench.sh"
+      - "scripts/merion-live-scenarios.sh"
+      - "scripts/merion-bake-node22-agent.sh"
+      - "examples/merion-agents/**"
+      - "scripts/merion-e2e.sh"
+      - "scripts/merion-bake-browser-agent.sh"
+      - "scripts/merion-bake-browser-smoke.sh"
+      - "docs/tutorials/16-merion-workstation.md"
+      - ".github/workflows/merion.yml"
+  pull_request:
+    paths:
+      - "agent-runtime/**"
+      - "docs/merion/**"
+      - "scripts/merionctl"
+      - "scripts/merion-demo.sh"
+      - "scripts/merion-demo-pdf.sh"
+      - "sdk/agent-runtime/**"
+      - "reference/vendor-gateway/**"
+      - "scripts/merion-bench.sh"
+      - "scripts/merion-live-scenarios.sh"
+      - "scripts/merion-bake-node22-agent.sh"
+      - "examples/merion-agents/**"
+      - "scripts/merion-e2e.sh"
+      - "scripts/merion-bake-browser-agent.sh"
+      - "scripts/merion-bake-browser-smoke.sh"
+      - "docs/tutorials/16-merion-workstation.md"
+      - ".github/workflows/merion.yml"
+
+jobs:
+  keep-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: agent-runtime
+      - name: Check formatting
+        run: cargo fmt --manifest-path agent-runtime/Cargo.toml -- --check
+      - name: Clippy
+        run: cargo clippy --manifest-path agent-runtime/Cargo.toml --all-targets --examples -- -D warnings
+      - name: Template bake script (--force builds a new image beside a locked one)
+        run: bash agent-runtime/tests/bake-fresh-image.sh
+      - name: keep-chat proxy (token stays server-side, one route, foreign hosts refused)
+        run: python3 agent-runtime/tests/merion-chat-test.py
+      - name: Google consent script (PKCE, scopes, token file mode) against a fake Google
+        run: python3 agent-runtime/tests/merion-google-auth-test.py
+      - name: keep-up starter (preflight, dry run, token)
+        run: bash agent-runtime/tests/merion-up.sh
+      - name: Keep / policy / credentials / export tests
+        run: |
+          cargo test --manifest-path agent-runtime/Cargo.toml policy -- --nocapture
+          cargo test --manifest-path agent-runtime/Cargo.toml export_tokens -- --nocapture
+          cargo test --manifest-path agent-runtime/Cargo.toml credentials -- --nocapture
+          cargo test --manifest-path agent-runtime/Cargo.toml notify -- --nocapture
+          cargo test --manifest-path agent-runtime/Cargo.toml --lib
+
+      - name: Sandbox create concurrency default (guestkit flock / fluxvm#104)
+        run: |
+          # Default must stay ≥4 now that guestkit serializes nbd allocate+connect.
+          # ZYVOR_AGENT_SANDBOX_CREATE_CONCURRENCY still overrides (1–64).
+          cargo test --manifest-path agent-runtime/Cargo.toml \
+            fluxvm::tests::sandbox_create_concurrency_parsing_is_bounded -- --exact --nocapture
+
+  keep-demos-e2e:
+    # The one-click demos, a user-defined use case, and a signed pack deploy in
+    # Keep mode, against the real runtime binary and the FluxVM stand-in.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: agent-runtime
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: Install poppler and tesseract (the PDF and photo demos)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils tesseract-ocr python3-pil
+      - name: Build the runtime and install the SDK
+        run: |
+          cargo build --manifest-path agent-runtime/Cargo.toml
+          npm ci --prefix sdk/agent-runtime --no-audit --no-fund
+      - name: SDK tests (pack composition, signing, phone client, model socket)
+        run: npm test --prefix sdk/agent-runtime
+      - name: Vendor gateway tests
+        run: npm test --prefix reference/vendor-gateway
+      - name: Demos, custom use cases and signed packs
+        run: bash agent-runtime/tests/demos-ci.sh
+
+  keep-browser-bake-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: browser-agent template smoke (no KVM)
+        run: |
+          chmod +x scripts/merion-bake-browser-smoke.sh
+          ./scripts/merion-bake-browser-smoke.sh
+
+  keep-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: agent-runtime
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: Build agent-runtime + signer
+        run: |
+          cargo build --manifest-path agent-runtime/Cargo.toml
+          cargo build --manifest-path agent-runtime/Cargo.toml --example merion_sign_policy
+      - name: Keep end-to-end (runtime + FluxVM stub + merionctl)
+        run: |
+          chmod +x scripts/merionctl scripts/merion-e2e.sh
+          ./scripts/merion-e2e.sh
+      - name: Runtime control-plane e2e (proxy / Sentinel / DLP / approvals)
+        run: |
+          cargo build --manifest-path agent-runtime/Cargo.toml --release
+          BIN=agent-runtime/target/release/zyvor-fabric-agent-runtime \
+            bash agent-runtime/scripts/e2e-no-fluxvm.sh
+      - name: merionctl CLI surface
+        run: |
+          scripts/merionctl --help | grep -q policy
+          scripts/merionctl --help | grep -q pack
+          scripts/merionctl --help | grep -q export-token
+      - name: Docs present
+        run: |
+          test -f docs/merion/MERION.md
+          test -f docs/merion/MERION-0.2.md
+          test -f docs/merion/PRODUCTION.md
+          test -f docs/merion/sentinel/merion.policy.yaml
+          test -f docs/tutorials/16-merion-workstation.md
+          test -f scripts/merion-e2e.sh
+          test -f agent-runtime/examples/merion_sign_policy.rs
+          test -f docs/merion/VENDORS.md
+          test -f docs/merion/TENANCY.md
+          test -f docs/merion/mobile/test-vectors.json
+          test -f agent-runtime/templates/node22-agent/build.json
+      - name: How to re-run locally
+        if: always()
+        run: |
+          cat <<'EOF'
+          Locally (full Keep e2e, no KVM):
+            ./scripts/merion-e2e.sh
+            BIN=agent-runtime/target/release/zyvor-fabric-agent-runtime \
+              ./agent-runtime/scripts/e2e-no-fluxvm.sh
+
+          Against a live FluxVM lab:
+            MERION_E2E_FLUXVM=1 ZYVOR_AGENT_FLUXVM_URL=http://127.0.0.1:7788 ./scripts/merion-e2e.sh
+
+          Production knobs:
+            ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS=<hex32 pubkeys>
+            ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE=1
+            X-Merion-Export-Token for GET /v1/export/audit and GET /v1/agents/{name}/pack
+
+          Tutorial: docs/tutorials/16-merion-workstation.md
+          Honesty: measured = software-test; TEE host-memory = Keep 0.2 + hardware only.
+          EOF

@@ -80,10 +80,10 @@ script and use a **folder trigger** on the Keep side ([TRIGGERS.md](TRIGGERS.md)
 
 ## Windows: PowerShell and Task Scheduler (unverified)
 
-With PowerShell 7 (`-Form` needs it), install the `Microsoft.PowerShell.SecretManagement` module with a vault, store the token (`Set-Secret -Name KeepToken`), then:
+With PowerShell 7 (`-Form` needs it), install the `Microsoft.PowerShell.SecretManagement` module with a vault, store the token (`Set-Secret -Name MerionToken`), then:
 
 ```powershell
-$token = Get-Secret -Name KeepToken -AsPlainText
+$token = Get-Secret -Name MerionToken -AsPlainText
 $r = Invoke-RestMethod -Method Post -Uri "$env:MERION_API/v1/demos/pdf-brief" `
       -Headers @{ Authorization = "Bearer $token" } -Form @{ file = Get-Item .\report.pdf }
 (Invoke-RestMethod -Uri "$env:MERION_API/v1/artifacts/$($r.artifacts[0].id)" -Headers @{ Authorization = "Bearer $token" }).body

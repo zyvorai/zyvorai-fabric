@@ -33,7 +33,7 @@ BIN=agent-runtime/target/release/zyvor-fabric-agent-runtime \
   ./agent-runtime/scripts/e2e-no-fluxvm.sh
 ```
 
-GitHub Actions: [`.github/workflows/keep.yml`](../../.github/workflows/keep.yml)  
+GitHub Actions: [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml)  
 Hands-on: [Tutorial 16](../tutorials/16-merion-workstation.md) · [Tutorial 17 — PDF brief](../tutorials/17-merion-pdf-brief.md)  
 Evidence and status: [Security profiles](SECURITY-PROFILES.md) · [Roadmap](ROADMAP.md)  
 Production checklist: [PRODUCTION.md](PRODUCTION.md)  
