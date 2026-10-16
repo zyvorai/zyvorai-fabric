@@ -88,16 +88,19 @@ Limits: the signer was a Node script, not a phone or the Solvor app, and not a S
 Secure Enclave key migration after the rename are **not verified**. The enrolled test device is removed; the test sessions and approvals stay in the
 append-only journal.
 
-### Auto-approve, stage one (dry run only)
+### Auto-approve policies
 
-`agent-runtime/src/changeset_policy.rs` judges a speculate changeset against an operator policy file and journals `changeset.policy.dry_run`.
-It decides nothing. Covered by unit tests only (each disqualifier, the deny floor, malformed policies, a check that a dry run leaves the approval
-pending and FluxVM sees only `speculate`); **not run on the lab host**. See [the design note](design/auto-approve-changesets.md).
+Stage one (`agent-runtime/src/changeset_policy.rs`) judges a speculate changeset against a policy and journals `changeset.policy.dry_run`. Stage two
+(operator-set policies per user and agent, `/v1/users/{id}/changeset-policies/{agent}`, `merionctl changeset-policy`) decides: a changeset inside the
+policy takes the same approve-then-apply path as a person's approval. Covered by unit tests and 21 checks in `merion-e2e.sh` against the FluxVM stub
+(no policy waits, a user token cannot set one, a bad policy is refused, inside the policy applies, a tightened policy leaves it pending, delete). The
+lab-host run is in the section at the end of this page: the routes work and a required phone signature wins, but a real cell reported open egress, so
+**approve and apply through a policy has not run on real FluxVM**. See [the design note](design/auto-approve-changesets.md).
 
 ### Not run
 
 CI results for `c2d6a42a` (the runs were queued when this was written); grants, confined exec, balloon and branching on a real FluxVM (need a newer
-guest image and, for branching, a reflink host); speculate approve and deny against a long-lived session on the lab host.
+guest image and, for branching, a reflink host); speculate approve and deny against a long-lived session on the lab host (a human deny ran there; a policy approve did not, see the last section).
 
 ## Feature matrix
 

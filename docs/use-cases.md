@@ -5,7 +5,7 @@ Pick the row that sounds like your problem. Each links to the page that gets you
 | You want to… | Use | Start here |
 |---|---|---|
 | Give an AI agent a computer without giving it your network | **Merion**: a sealed FluxVM microVM per run, egress rules the host sets, approvals only a person can give | [Merion](merion/README.md) |
-| Let an agent try a change and have a person approve it | **Merion speculate**: the command runs in an isolated copy of the cell; its file changes wait behind an approval | [Merion](merion/README.md), `merionctl speculate` |
+| Let an agent try a change and have a person approve it | **Merion speculate**: the command runs in an isolated copy of the cell; its file changes wait behind an approval | [Merion](merion/README.md), `merionctl speculate`; a bounded class can skip the click with an operator-set policy (`merionctl changeset-policy`, off by default) |
 | Merion an API key out of the agent's reach | **Merion credentials**: secrets from a file or Vault, injected by the host; optionally handed to FluxVM's broker as a grant | [Merion credentials](merion/README.md) |
 | Run a private cloud on Linux servers you own | **Fabric**: VMs, networking, storage and security from one daemon | [Quickstart](../README.md#quickstart) |
 | Manage VMs from Kubernetes | The Fabric operator and its `VirtualMachine` CRDs | [Kubernetes](KUBERNETES.md) |

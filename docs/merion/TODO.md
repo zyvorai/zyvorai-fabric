@@ -10,6 +10,12 @@ Everything that can be built and tested without these is done or in flight. This
 owner can provide**, what it unblocks, and how to tell when it is done. The plan behind it: make Merion and Solvor easy to try, easy to
 trust, and easy to talk about ([ROADMAP.md](ROADMAP.md) has the product side).
 
+## Needs a fix on the FluxVM side
+
+| Item | Needs | Unblocks | Done when |
+|---|---|---|---|
+| **A real cell reports `egress: blocked` when its network is denied** | Someone with FluxVM access to find why speculation on the lab cell says `unrestricted` for an agent with `egress_mode: deny` (guest agent, template, or how it is measured) | Auto-approve policies (`merionctl changeset-policy`): today they refuse every changeset on that host | A policy-matching speculate on the lab host ends `approved` and the file lands in the guest |
+
 ## Needs a resource
 
 | Item | Needs | Unblocks | Done when |
