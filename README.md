@@ -40,6 +40,9 @@
 
 | Release | What landed |
 |---|---|
+| **Merion** | **Keep is now Merion**, end to end: headers, packs, console paths, the Helm chart, the iOS app. Checked after the rename: 533 runtime tests, a 64-check end-to-end run, and a clean redeploy to a real host with a sealed cell making 0 outbound connections. [Details](docs/merion/VERIFICATION.md#after-the-keep--merion-rename-2026-10-16) |
+| **Merion** | **Approvals only your phone can give.** With signatures required, a decision with no signature, a flipped decision or a forged key is refused (403) and the approval stays waiting; a valid one goes through once (a replay is refused). Both `keep-approval-v1` and `merion-approval-v1` are accepted, and the audit log says which |
+| **Merion** | **Auto-approve, in dry run.** Write a policy for a safe class of change (a folder, a file type, a size) and see what it *would* have approved, with the reason when it would not. It approves nothing yet; the agent can never write the policy |
 | **Keep** | Speculative execution: `POST /v1/sessions/{id}/speculate` runs a command in an isolated copy of the cell and holds the file changes behind a `changeset` approval. A person's approve applies them on FluxVM; a deny rejects them. The agent cannot approve |
 | **Keep** | FluxVM credential grants through `/v1/sessions/{id}/grants`, only for credentials whose Keep limits a grant can keep (no approval, method, path or per-user limits) |
 | **FluxVM** | `fluxvm-client` gains fork, snapshot, restore, `?ready=exec`, `Idempotency-Key` on create and delete, guest exec policy, balloon and PSS memory (`fabricctl live-fork`, `fabricctl memory`, `fabricctl balloon`; balloon is Beta), CD-ROM eject and the `vz` backend. Fork, snapshot, restore, idempotency and Keep speculate/approve/deny were run against a real FluxVM on KVM; see [the boundary doc](docs/FLUXVM-FABRIC-BOUNDARY.md) for what was and was not |
@@ -249,7 +252,7 @@ make lint && make fmt
 | VM lifecycle, networking, storage, security, CLI, console, operator, Terraform | Shipped; see [FEATURES.md](FEATURES.md) |
 | Live migration | Disk-copy path GA; native FluxVM transport **preview**; full HA cutover **pre-GA** ([comparison matrix](docs/guides/decision-support/comparison-matrix.md)) |
 | AI Workloads | Single-cluster **Beta**; multi-site HA store stays **Preview**; **not GA** ([at a glance](docs/ai-workloads-at-a-glance.md)) |
-| Keep | Evidence class `software-test`; Keep 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/merion/STATUS.md)) |
+| Keep (now Merion) | Evidence class `software-test`; Keep 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/merion/STATUS.md)) |
 
 ---
 

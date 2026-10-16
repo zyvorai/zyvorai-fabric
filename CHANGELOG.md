@@ -2,7 +2,24 @@
 
 ## Unreleased
 
+### Changed (breaking)
+- **Keep is now Merion in every identifier.** Wire and config names moved: `X-Keep-*` headers are now `X-Merion-*` with **no compatibility**
+  (a client still sending the old header is ignored); `merion.policy.yaml`; `.merionpack.json` (`merionpack/1`; saved `.keeppack.json`
+  bundles are refused); `/app/merion`, `/merion`, `/api/merion/status`; audit actions `keep.*` → `merion.*` for new rows. `MERION_*` env
+  vars win and `KEEP_*` still work as a fallback. Swift: Keychain services `dev.zyvor.merion.*` (old items are read once and moved), iOS bundle id
+  `dev.zyvor.merion.phone` (**phones must re-enroll**), `MerionKit`, `MerionPhone`. Helm: chart `charts/zyvor-merion`, values key `merion:`, label
+  domain `merion.zyvor.dev` (**a new release**; move values from `keep.*`). AG-UI `CUSTOM` event names stay `keep.*` unless the caller sends
+  `forwardedProps.eventNames: "merion"`.
+- **Approval signatures accept both formats.** The host verifies `keep-approval-v1` and `merion-approval-v1`; `sign.format` stays the legacy name,
+  `sign.formats` lists both, and the `approval.device_signature` audit row records which one was used. The SDK reference phone and the Swift
+  `ApprovalSigner` now sign `merion-approval-v1` when the host lists it and fall back to the announced format otherwise.
+
 ### Added
+- **Auto-approve, stage one (dry run).** `ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE` names an operator policy file; each speculate then journals
+  `changeset.policy.dry_run` saying whether the policy *would* have approved the changeset, and why not. It never decides: the approval stays pending.
+  The evaluator (`changeset_policy.rs`) matches on what FluxVM measured (paths, kinds, file count, size from `staged`, exit code), refuses tainted
+  sessions, unstaged changes, egress, non-replayable side effects and unknown change kinds, and keeps a deny floor (`.ssh`, `.pem`, `.key`, `.env`,
+  dotfiles) that a policy can extend but not remove. `Changeset` now deserializes `staged`. Design: `docs/merion/design/auto-approve-changesets.md`.
 - **Keep: speculative execution behind an approval.** `POST /v1/sessions/{id}/speculate` runs a command in an isolated
   copy of the cell and opens a `changeset` approval carrying the diff. A person's approve makes FluxVM approve then apply;
   a deny rejects it. The agent cannot approve. `paths` is required (FluxVM needs existing guest directories for a VM).
@@ -24,6 +41,7 @@
 - **Design note:** `docs/merion/branching-design.md` explains why Keep sessions are not branched with fork yet.
 
 ### Fixed
+- The website build failed with "Can't find any doc with ID keep/KEEP": the docs category now points at `merion/MERION`.
 - `scripts/lib/deploy-common.sh` printed `s: unbound variable` after every deploy.
 - The website lockfile no longer carries the Trivy findings (`tinypool` is overridden to 2.x).
 - `zyvor-fabricd` registered `POST /vms/{name}/fork` twice during one commit window on `main`, which panicked at
