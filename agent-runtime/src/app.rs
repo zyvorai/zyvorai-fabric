@@ -3885,13 +3885,53 @@ const MAX_SPECULATE_COMMAND_BYTES: usize = 8 * 1024;
 
 #[derive(Debug, serde::Deserialize)]
 struct SpeculateSessionRequest {
+    #[serde(default)]
     command: String,
+    /// Several commands run in order as one changeset; stops at the first failure.
+    /// Give this or `command`, not both.
+    #[serde(default)]
+    commands: Vec<String>,
     #[serde(default)]
     timeout_seconds: Option<u64>,
     #[serde(default)]
     paths: Option<Vec<String>>,
     #[serde(default)]
     ttl_seconds: Option<u64>,
+}
+
+const MAX_SPECULATE_COMMANDS: usize = 16;
+
+/// One command, or `commands` joined so they run in order and stop at the first
+/// failure. Each is wrapped in a brace group so a `;` or a trailing `#` inside one
+/// cannot change how its neighbours combine. The result is still one changeset.
+fn build_speculate_command(command: &str, commands: &[String]) -> Result<String, String> {
+    let command = command.trim();
+    if !commands.is_empty() {
+        if !command.is_empty() {
+            return Err("give either command or commands, not both".into());
+        }
+        if commands.len() > MAX_SPECULATE_COMMANDS {
+            return Err(format!(
+                "commands must have at most {MAX_SPECULATE_COMMANDS} entries"
+            ));
+        }
+        let parts: Vec<&str> = commands.iter().map(|c| c.trim()).collect();
+        if parts.iter().any(|c| c.is_empty()) {
+            return Err("commands must not contain an empty command".into());
+        }
+        if parts.len() == 1 {
+            return Ok(parts[0].to_string());
+        }
+        return Ok(parts
+            .iter()
+            .map(|c| format!("{{ {c}\n}}"))
+            .collect::<Vec<_>>()
+            .join(" && "));
+    }
+    if command.is_empty() {
+        return Err("command is required".into());
+    }
+    Ok(command.to_string())
 }
 
 /// `POST /v1/sessions/{id}/speculate`: run a command in an isolated copy of the
@@ -3906,10 +3946,9 @@ async fn speculate_session(
     if session.status != SessionStatus::Running {
         return Err(ApiError::conflict("only running sessions can speculate"));
     }
-    let command = req.command.trim();
-    if command.is_empty() {
-        return Err(ApiError::bad_request("command is required"));
-    }
+    let command = build_speculate_command(&req.command, &req.commands)
+        .map_err(ApiError::bad_request)?;
+    let command = command.as_str();
     if command.len() > MAX_SPECULATE_COMMAND_BYTES {
         return Err(ApiError::bad_request(format!(
             "command must be at most {MAX_SPECULATE_COMMAND_BYTES} bytes"
@@ -4561,9 +4600,26 @@ mod tests {
         record
     }
 
+    #[test]
+    fn speculate_command_building() {
+        let v = |xs: &[&str]| xs.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert_eq!(build_speculate_command(" ls ", &[]).unwrap(), "ls");
+        assert!(build_speculate_command("  ", &[]).is_err());
+        assert!(build_speculate_command("a", &v(&["b"])).is_err());
+        assert!(build_speculate_command("", &v(&["a", " "])).is_err());
+        assert_eq!(build_speculate_command("", &v(&[" a "])).unwrap(), "a");
+        assert_eq!(
+            build_speculate_command("", &v(&["a; b", "c # note"])).unwrap(),
+            "{ a; b\n} && { c # note\n}"
+        );
+        let many: Vec<String> = (0..=MAX_SPECULATE_COMMANDS).map(|i| format!("c{i}")).collect();
+        assert!(build_speculate_command("", &many).is_err());
+    }
+
     fn speculate_req(command: &str) -> Json<SpeculateSessionRequest> {
         Json(SpeculateSessionRequest {
             command: command.into(),
+            commands: Vec::new(),
             timeout_seconds: None,
             paths: Some(vec!["/work".into()]),
             ttl_seconds: None,
