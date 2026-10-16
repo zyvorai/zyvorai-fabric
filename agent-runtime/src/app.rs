@@ -4017,10 +4017,65 @@ async fn speculate_session(
         .await
         .map_err(ApiError::internal)?;
     audit_approval_planned(&state, &record).await;
+    let policy_file = std::env::var("ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE").ok();
+    dry_run_changeset_policy(&state, &session, &record, &changeset, policy_file.as_deref()).await;
     Ok((
         StatusCode::CREATED,
         Json(json!({ "approval": record, "changeset": changeset })),
     ))
+}
+
+/// Stage one of auto-approval (docs/merion/design/auto-approve-changesets.md): say whether an operator's
+/// policy file *would* have approved this changeset, and journal the answer. It never decides anything; the
+/// approval stays pending. The file is read on every call, so editing or removing it takes effect at once.
+async fn dry_run_changeset_policy(
+    state: &AppState,
+    session: &SessionRecord,
+    record: &ApprovalRecord,
+    changeset: &crate::fluxvm::Changeset,
+    policy_file: Option<&str>,
+) {
+    use crate::changeset_policy::{eligible, ChangesetPolicy, Subject};
+    let Some(path) = policy_file.filter(|p| !p.is_empty()) else {
+        return;
+    };
+    let verdict = std::fs::read_to_string(path)
+        .map_err(|e| format!("policy file unreadable: {e}"))
+        .and_then(|text| ChangesetPolicy::parse(&text))
+        .and_then(|policy| {
+            let subject = Subject {
+                exit_code: changeset.exit_code,
+                changes: &changeset.changes,
+                side_effects: &changeset.side_effects,
+                staged: &changeset.staged,
+                unstaged: &changeset.unstaged,
+                tainted: !session.tainted_by.is_empty(),
+            };
+            eligible(&policy, &subject).map(|files| (policy.id, policy.version, files))
+        });
+    let detail = match verdict {
+        Ok((id, version, files)) => json!({
+            "approval_id": record.id, "dry_run": true, "would_auto_approve": true,
+            "policy_id": id, "policy_version": version, "files": files,
+        }),
+        Err(reason) => json!({
+            "approval_id": record.id, "dry_run": true, "would_auto_approve": false, "reason": reason,
+        }),
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(record.session_id),
+            AuditPhase::Planned,
+            "changeset.policy.dry_run".to_string(),
+            record.subject.clone(),
+            detail,
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %record.id, "failed to write audit entry");
+    }
 }
 
 /// Carry out a person's decision on a changeset approval. Approve means
@@ -4658,6 +4713,59 @@ mod tests {
         assert_eq!(body["approval"]["status"], "pending");
         let id = Uuid::parse_str(body["approval"]["id"].as_str().unwrap()).unwrap();
         (id, vec![])
+    }
+
+    async fn dry_run_detail(policy: Option<&str>, changes: Value) -> (Value, ApprovalStatus, Vec<&'static str>) {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let record = state.store.get_approval(approval).await.unwrap();
+        let mut cs: crate::fluxvm::Changeset =
+            serde_json::from_value(fake_changeset(&session.sandbox_id.to_string(), "00000000-0000-0000-0000-00000000c0de", "pending")).unwrap();
+        cs.changes = changes;
+        cs.side_effects = json!({"egress": "blocked", "non_replayable": []});
+        cs.staged = json!({"/work/a.txt": {"size": 6}});
+        let file = std::env::temp_dir().join(format!("policy-{}.json", Uuid::new_v4()));
+        if let Some(text) = policy {
+            std::fs::write(&file, text).unwrap();
+        }
+        dry_run_changeset_policy(&state, &session, &record, &cs, policy.map(|_| file.to_str().unwrap())).await;
+        let _ = std::fs::remove_file(&file);
+        let entries = state.store.audit.list(Some(session.id), 100).await.unwrap();
+        let entry = entries.into_iter().rev().find(|e| e.action == "changeset.policy.dry_run").map(|e| e.detail).unwrap_or(Value::Null);
+        let after = state.store.get_approval(approval).await.unwrap();
+        let calls = fake.calls.lock().unwrap().iter().map(|_| "call").collect();
+        (entry, after.status, calls)
+    }
+
+    #[tokio::test]
+    async fn the_dry_run_reports_what_a_policy_would_do_and_decides_nothing() {
+        let policy = r#"{"id":"notes","version":3,"paths":["/work"],"max_bytes":100}"#;
+        let ok = json!({"added": ["/work/a.txt"], "modified": [], "deleted": []});
+        let (detail, status, calls) = dry_run_detail(Some(policy), ok).await;
+        assert_eq!(detail["would_auto_approve"], true);
+        assert_eq!(detail["policy_id"], "notes");
+        assert_eq!(detail["policy_version"], 3);
+        assert_eq!(status, ApprovalStatus::Pending, "a dry run never approves");
+        assert_eq!(calls.len(), 1, "only the speculate call reached FluxVM");
+
+        let outside = json!({"added": ["/etc/x"], "modified": [], "deleted": []});
+        let (detail, status, _) = dry_run_detail(Some(policy), outside).await;
+        assert_eq!(detail["would_auto_approve"], false);
+        assert!(detail["reason"].as_str().unwrap().contains("outside"));
+        assert_eq!(status, ApprovalStatus::Pending);
+    }
+
+    #[tokio::test]
+    async fn no_policy_file_or_a_broken_one_writes_nothing_or_a_refusal() {
+        let ok = json!({"added": ["/work/a.txt"], "modified": [], "deleted": []});
+        let (detail, _, _) = dry_run_detail(None, ok.clone()).await;
+        assert_eq!(detail, Value::Null, "off by default");
+        let (detail, status, _) = dry_run_detail(Some("{not json"), ok).await;
+        assert_eq!(detail["would_auto_approve"], false);
+        assert_eq!(status, ApprovalStatus::Pending);
     }
 
     #[tokio::test]

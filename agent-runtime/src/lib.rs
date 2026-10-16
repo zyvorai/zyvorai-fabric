@@ -12,6 +12,7 @@ pub mod binary_id;
 pub mod browse_ifc;
 pub mod browser;
 pub mod card;
+pub mod changeset_policy;
 pub mod config;
 pub mod confine;
 pub mod connections;

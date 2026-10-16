@@ -134,6 +134,9 @@ pub struct Changeset {
     pub changes: Value,
     #[serde(default)]
     pub side_effects: Value,
+    /// Files FluxVM kept, by path, with their `size` and `mode`.
+    #[serde(default)]
+    pub staged: Value,
     /// Changed files whose contents could not be kept; FluxVM refuses to apply while any.
     #[serde(default)]
     pub unstaged: Vec<String>,

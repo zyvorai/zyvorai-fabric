@@ -1,7 +1,19 @@
 # Design: auto-approve low-risk changesets
 
-Status: **proposal, nothing implemented.** Decide this before any code, because it removes a human from a
-step that is the whole point of speculation today.
+Status: **stage one built (dry run only). Nothing is auto-approved.** Stage two, which actually decides, is not
+built and still removes a human from the step that is the whole point of speculation today.
+
+Stage one (`agent-runtime/src/changeset_policy.rs`): a pure evaluator plus a journal entry. If
+`ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE` names a JSON policy file, every speculate writes an audit entry
+`changeset.policy.dry_run` saying whether that policy *would* have approved, with the reason when not. The
+approval stays pending either way. The file is read per request, so editing or deleting it takes effect at
+once. It is set by the operator, not by an agent or a pack. Policy shape:
+`{"id","version","paths":["/work"],"kinds":["added"],"max_files":20,"max_bytes":100000,"deny_globs":[],"require_exit_code":0}`.
+
+Answered while building: FluxVM does report per-file size (`staged[path].size`), so `max_bytes` is usable; a
+file with no reported size disqualifies when `max_bytes` is set. Unknown change kinds disqualify. Still open
+for stage two: per-user policy storage and routes, per-agent versus per-session, the tenant ceiling, and the
+signed-approval override.
 
 ## The problem
 
