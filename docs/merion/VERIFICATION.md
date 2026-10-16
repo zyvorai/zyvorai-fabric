@@ -142,5 +142,5 @@ MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-bench.sh --ru
 | Policy routes (`PUT`/`GET`/`DELETE`, bad policy, no token) | 200 / 200 / 204, 400, 401 |
 | Required phone signature with a matching policy | not auto-approved, journaled `a phone signature is required` |
 | Signature not required, matching policy, real FluxVM cell | **not auto-approved**: FluxVM reported `egress: unrestricted`, journaled `egress is unrestricted` |
-| Approve then apply through a policy on real FluxVM | **not proven**; only the FluxVM stub has run it (`merion-e2e.sh`, 85/85) |
+| Approve then apply through a policy on real FluxVM | **not proven**; only the FluxVM stub has run it (`merion-e2e.sh`, 85/85). Cause found: FluxVM ignored the cell's network policy; fixed in zyvor-fluxvm #456 plus a broker-only rule here (unit-tested, 535 runtime tests); needs a FluxVM deploy and a re-run |
 
