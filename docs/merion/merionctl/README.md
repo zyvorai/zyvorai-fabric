@@ -27,6 +27,7 @@ merionctl audit <session-uuid> --limit 20           # journal rows; the hash-cha
 merionctl approvals pending                         # pending | approved | denied, or none for all
 merionctl speculate <session-id> --paths /work -- <cmd>   # run in an isolated copy of the cell; changes wait behind a `changeset` approval
 merionctl decide <approval-id> approved|denied             # a person's decision; approved applies the changeset on FluxVM
+merionctl changeset-policy list|show|set|rm <user> [<agent>] [--paths /work] [--kinds added] [--max-files N] [--max-bytes N] [--deny GLOB]   # operator-set auto-approval, off by default
 ```
 
 Batches and triggers ([TRIGGERS.md](../TRIGGERS.md)):
