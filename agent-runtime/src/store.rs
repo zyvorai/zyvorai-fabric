@@ -51,6 +51,8 @@ pub struct Store {
     token_floors: RwLock<HashMap<String, chrono::DateTime<chrono::Utc>>>,
     /// Enrolled phones, keyed `user/device`.
     devices: RwLock<HashMap<String, DeviceRecord>>,
+    /// Operator-set auto-approval policies, keyed `user/agent`.
+    changeset_policies: RwLock<HashMap<String, crate::changeset_policy::StoredPolicy>>,
     /// Tamper-evident record of planned, approved, denied and performed actions.
     pub audit: AuditLog,
     /// Immutable, content-addressed skill bundles agents can mount.
@@ -106,6 +108,7 @@ impl Store {
             model_grants: RwLock::new(HashMap::new()),
             token_floors: RwLock::new(HashMap::new()),
             devices: RwLock::new(HashMap::new()),
+            changeset_policies: RwLock::new(HashMap::new()),
         };
         store.load().await?;
         Ok(store)
@@ -178,6 +181,16 @@ impl Store {
         *self.devices.write().await = devices
             .into_iter()
             .map(|d| (format!("{}/{}", d.user_id, d.device_id), d))
+            .collect();
+        let policies = match fs::read(self.root.join("changeset_policies.json")).await {
+            Ok(raw) => serde_json::from_slice::<Vec<crate::changeset_policy::StoredPolicy>>(&raw)
+                .context("decoding changeset_policies.json")?,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+            Err(e) => return Err(e.into()),
+        };
+        *self.changeset_policies.write().await = policies
+            .into_iter()
+            .map(|p| (format!("{}/{}", p.user_id, p.agent), p))
             .collect();
         let grants = match fs::read(self.root.join("model_grants.json")).await {
             Ok(raw) => serde_json::from_slice::<Vec<ModelGrant>>(&raw)
@@ -935,6 +948,69 @@ impl Store {
         if existed {
             self.persist_vec("devices.json", &map.values().cloned().collect::<Vec<_>>())
                 .await?;
+        }
+        Ok(existed)
+    }
+
+    pub async fn list_changeset_policies(&self, user: &str) -> Vec<crate::changeset_policy::StoredPolicy> {
+        let mut out: Vec<_> = self
+            .changeset_policies
+            .read()
+            .await
+            .values()
+            .filter(|p| p.user_id == user)
+            .cloned()
+            .collect();
+        out.sort_by(|a, b| a.agent.cmp(&b.agent));
+        out
+    }
+
+    pub async fn get_changeset_policy(
+        &self,
+        user: &str,
+        agent: &str,
+    ) -> Option<crate::changeset_policy::StoredPolicy> {
+        self.changeset_policies
+            .read()
+            .await
+            .get(&format!("{user}/{agent}"))
+            .cloned()
+    }
+
+    /// Set or replace a policy; the stored version is the previous one plus one.
+    pub async fn save_changeset_policy(
+        &self,
+        user: &str,
+        agent: &str,
+        mut policy: crate::changeset_policy::ChangesetPolicy,
+    ) -> Result<crate::changeset_policy::StoredPolicy> {
+        let mut map = self.changeset_policies.write().await;
+        let key = format!("{user}/{agent}");
+        policy.version = map.get(&key).map_or(1, |p| p.policy.version.saturating_add(1));
+        let record = crate::changeset_policy::StoredPolicy {
+            user_id: user.to_string(),
+            agent: agent.to_string(),
+            policy,
+            updated_at: Utc::now(),
+        };
+        map.insert(key, record.clone());
+        self.persist_vec(
+            "changeset_policies.json",
+            &map.values().cloned().collect::<Vec<_>>(),
+        )
+        .await?;
+        Ok(record)
+    }
+
+    pub async fn delete_changeset_policy(&self, user: &str, agent: &str) -> Result<bool> {
+        let mut map = self.changeset_policies.write().await;
+        let existed = map.remove(&format!("{user}/{agent}")).is_some();
+        if existed {
+            self.persist_vec(
+                "changeset_policies.json",
+                &map.values().cloned().collect::<Vec<_>>(),
+            )
+            .await?;
         }
         Ok(existed)
     }

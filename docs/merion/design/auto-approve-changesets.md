@@ -1,7 +1,26 @@
 # Design: auto-approve low-risk changesets
 
-Status: **stage one built (dry run only). Nothing is auto-approved.** Stage two, which actually decides, is not
-built and still removes a human from the step that is the whole point of speculation today.
+Status: **stage two built.** An operator can set a policy for one user's agent, and a changeset inside it is
+approved without a click. Off by default: with no policy, nothing changes. Stage one (the dry-run journal) still exists
+and is independent.
+
+**Stage two as built**
+- `PUT/GET/DELETE /v1/users/{id}/changeset-policies/{agent}` and `GET .../changeset-policies`. Writes are **operator
+  only**, like device enrolment, so a stolen user, session or worker token cannot widen what skips a click. A user can
+  read their own list. The body is the stage-one policy; the store assigns `version` (previous + 1) and journals each
+  change (`merion.changeset_policy.set`, `.removed`).
+- Scope is **per user and per agent** (not per session). A session with no user is never auto-approved.
+- Hook: in `speculate_session`, after the approval is saved. The same `transition_approval` and `settle_changeset` a
+  person's approve uses; the approval's `comment` reads `auto-approved by policy <id> v<n>` and the audit row has
+  `auto: true`. A refusal writes a `changeset.policy` row with the reason.
+- **A required phone signature wins**: when `ZYVOR_AGENT_REQUIRE_DEVICE_SIGNATURE=1` or the approval's credential
+  requires one, nothing is auto-approved.
+- Cap: 30 auto-approvals per session per hour, then a person decides.
+- Not built: a tenant-wide ceiling, `merionctl policy changeset`, a console section, and a distinct `decided_by` field
+  (the comment prefix is the marker for now).
+- Tested with `scripts/merion-e2e.sh` against the FluxVM stub (18 checks: no policy waits; a user token cannot set one;
+  bad policy 400; inside the policy runs approve then apply on FluxVM; a tightened policy leaves it pending; delete).
+  Not run on a real FluxVM host.
 
 Stage one (`agent-runtime/src/changeset_policy.rs`): a pure evaluator plus a journal entry. If
 `ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE` names a JSON policy file, every speculate writes an audit entry

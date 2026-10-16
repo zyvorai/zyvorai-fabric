@@ -304,6 +304,11 @@ pub fn user_route(method: &Method, path: &str) -> UserRoute {
         ["v1", "users", uid, "devices"] if read => {
             UserRoute::OwnUser((*uid).to_string(), Scope::Read)
         }
+        // Auto-approval policies are set by the operator (the gateway), like device enrolment, so a stolen user token
+        // cannot widen what skips a person's click. A user may read their own.
+        ["v1", "users", uid, "changeset-policies"] if read => {
+            UserRoute::OwnUser((*uid).to_string(), Scope::Read)
+        }
         ["v1", "audit"] | ["v1", "usage"] | ["v1", "inbox"] | ["v1", "demos"] if read => {
             UserRoute::Open(Scope::Read)
         }
@@ -798,6 +803,8 @@ mod tests {
                 "/v1/users/ana/devices",
                 "/v1/users/ana/devices/phone",
                 "/v1/users/ana/revoke-tokens",
+                "/v1/users/ana/changeset-policies",
+                "/v1/users/ana/changeset-policies/agent",
             ] {
                 assert_eq!(user_route(&m, p), UserRoute::Denied, "{m} {p}");
             }

@@ -30,13 +30,13 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 
 ## Proven, not promised
 
-<p align="center"><img src="../assets/merion/proven.png" alt="533 runtime tests, 64 of 64 end-to-end checks, 14 of 14 live signing checks, 0 outbound connections from the sealed cell" width="860"></p>
+<p align="center"><img src="../assets/merion/proven.png" alt="533 runtime tests, 82 of 82 end-to-end checks, 14 of 14 live signing checks, 0 outbound connections from the sealed cell" width="860"></p>
 
 Checked on a real host after the Keep → Merion rename, and every line has a command behind it ([the full table](VERIFICATION.md#after-the-keep--merion-rename-2026-10-16)):
 
 | | |
 |---|---|
-| **533** runtime tests, **64/64** end-to-end checks | `cargo test` · `./scripts/merion-e2e.sh` |
+| **533** runtime tests, **82/82** end-to-end checks | `cargo test` · `./scripts/merion-e2e.sh` |
 | **0 outbound connections** from a sealed cell on the redeployed host | the CSV cleanup smoke test in `deploy-merion.sh` |
 | **Unsigned, flipped or forged approvals: refused.** Valid ones: accepted once | 14 of 14 live signing checks, both signature formats |
 | **The agent can't approve its own work** | speculate holds a diff until a person decides; a deny is never applied |
@@ -48,7 +48,7 @@ branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.m
 
 
 <p align="center">
-  <img src="../assets/merion/demo-static.svg" alt="Real output of ./scripts/merion-e2e.sh: 64 checks passed, 0 failed" width="760">
+  <img src="../assets/merion/demo-static.svg" alt="Real output of ./scripts/merion-e2e.sh: 82 checks passed, 0 failed" width="760">
 </p>
 
 <p align="center"><sub>Real output of <code>./scripts/merion-e2e.sh</code>, condensed. Record your own GIF with <code>./scripts/merion-record-demo.sh</code>.</sub></p>
@@ -225,7 +225,7 @@ git clone https://github.com/zyvorai/fabric && cd fabric
 cargo test --manifest-path agent-runtime/Cargo.toml --lib
 
 # 2. End to end: live runtime + FluxVM sandbox stub + merionctl
-./scripts/merion-e2e.sh          # ends with: passed=64 failed=0
+./scripts/merion-e2e.sh          # ends with: passed=82 failed=0
 
 # 3. On a FluxVM host with a node22-agent template (./scripts/merion-bake-node22-agent.sh builds it)
 ./scripts/merion-live-lab.sh

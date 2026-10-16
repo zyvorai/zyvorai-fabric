@@ -6,7 +6,7 @@
 //! This is stage one: a pure evaluator plus a dry-run audit entry. Nothing here approves anything. The
 //! policy matches on what FluxVM measured, never on the command text, and every doubt means "a person decides".
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 const KINDS: [&str; 3] = ["added", "modified", "deleted"];
@@ -14,7 +14,7 @@ const KINDS: [&str; 3] = ["added", "modified", "deleted"];
 /// Never auto-approvable, whatever a policy says. A policy can add to this list, not remove from it.
 const DENY_FLOOR: [&str; 6] = ["*/.ssh/*", "*.pem", "*.key", "*/.env*", "*/.aws/*", "*/.gnupg/*"];
 
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ChangesetPolicy {
     pub id: String,
@@ -35,6 +35,19 @@ pub struct ChangesetPolicy {
     #[serde(default)]
     pub require_exit_code: i32,
 }
+
+/// A policy an operator set for one user's agent (stage two). Stored in `changeset_policies.json`;
+/// `policy.version` is assigned by the store (previous + 1), never taken from the request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoredPolicy {
+    pub user_id: String,
+    pub agent: String,
+    pub policy: ChangesetPolicy,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+/// At most this many auto-approvals per session per hour; past it a person decides.
+pub const MAX_AUTO_PER_HOUR: usize = 30;
 
 fn default_kinds() -> Vec<String> {
     vec!["added".to_string()]
