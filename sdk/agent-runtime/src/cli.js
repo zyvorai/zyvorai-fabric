@@ -12,7 +12,7 @@ function usage(exitCode = 0) {
   console.log(`fabric-agent deploy <agent.ts> --name <name> --template <fluxvm-template> [options]
 fabric-agent build <agent.ts> [--out <file>]
 fabric-agent pack deploy <dir> [--run] [--test] [--dry-run]   deploy a pack.json use case or agent
-fabric-agent pack bundle <dir> [--out <file>]                 write a signed <name>.keeppack.json for the console
+fabric-agent pack bundle <dir> [--out <file>]                 write a signed <name>.merionpack.json for the console
 fabric-agent pack keys                                        print the signer public key for MERION_POLICY_SEED
 
 Options (deploy):

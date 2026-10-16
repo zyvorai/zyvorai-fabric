@@ -46,7 +46,7 @@ const GROUPS: Group[] = [
       {
         label: 'Control surface',
         muse: UNDOC,
-        keep: c('merionctl, /app/keep console, vsock admin'),
+        keep: c('merionctl, /app/merion console, vsock admin'),
         fabric: c('780+ REST endpoints, CLI, web console, K8s operator, Terraform'),
         flux: c('REST API + CLI with the same verbs'),
       },
@@ -59,7 +59,7 @@ const GROUPS: Group[] = [
       {
         label: 'Policy',
         muse: c('Closed Sentinel', 'part'),
-        keep: c('Signed keep.policy.yaml — fails closed, diffable in git'),
+        keep: c('Signed merion.policy.yaml — fails closed, diffable in git'),
         fabric: c('3-tier RBAC, audit log, LDAP/OIDC SSO'),
         flux: c('Per-VM security_profile; multi-tenant controls are opt-in', 'part'),
       },
@@ -203,11 +203,11 @@ const USE_CASES: UseCase[] = [
     headline: 'PDF in. brief.md out. Zero connects.',
     blurb:
       'The one-click stage demo: drop a document on the cockpit and get a brief back, with no browser and nothing leaving the cell.',
-    flow: ['Drop a PDF on /app/keep', 'Agent reads it with pdftotext in the cell', 'brief.md lands as an artifact'],
+    flow: ['Drop a PDF on /app/merion', 'Agent reads it with pdftotext in the cell', 'brief.md lands as an artifact'],
     guards: ['No browser', 'deny_udp + gateway-only ports', 'Expects egress_connects: 0'],
     out: 'brief.md',
     cmd: './scripts/merion-demo-pdf.sh examples/merion-agents/pdf-brief/sample.pdf',
-    href: '/docs/tutorials/keep-pdf-brief',
+    href: '/docs/tutorials/merion-pdf-brief',
     cta: 'Tutorial 17',
   },
   {
@@ -343,7 +343,7 @@ const USE_CASES: UseCase[] = [
     blurb:
       'Export the policy, the agent pin and the vault names, then unpack onto another FluxVM. No lock-in, and no raw secrets in the box.',
     flow: ['Mint a scoped export token', 'merionctl pack → policy, agent pin, vault names', 'merionctl unpack onto another FluxVM'],
-    guards: ['Export needs X-Keep-Export-Token', 'Vault names only — no raw secrets', 'Training default off'],
+    guards: ['Export needs X-Merion-Export-Token', 'Vault names only — no raw secrets', 'Training default off'],
     out: 'A portable pack directory',
     cmd: 'merionctl pack /tmp/keep-pack my-agent',
     href: '/docs/merion/merionctl/',
@@ -358,7 +358,7 @@ const USE_CASES: UseCase[] = [
     blurb:
       'Build your own agent into a bundle and deploy it under the same signed policy, in the same microVM cell, with the same approvals as the shipped packs.',
     flow: ['Write agent.ts against the Fabric client', 'npx fabric-agent build → one bundle', 'merionctl create -f deploy.json'],
-    guards: ['Signed keep.policy.yaml applies', 'BYO model socket', 'Cell is a FluxVM microVM'],
+    guards: ['Signed merion.policy.yaml applies', 'BYO model socket', 'Cell is a FluxVM microVM'],
     out: 'A deployed agent + its goals and artifacts',
     cmd: 'npx fabric-agent build agent.ts --out bundle.mjs',
     href: `${GH}/_fabric`,
@@ -754,7 +754,7 @@ function Proof(): ReactNode {
             read from Keep’s journal and FluxVM’s <code>drop_reasons</code>.
           </p>
           <div className={shell.btnrow}>
-            <Link className="button button--primary button--lg" to="/docs/tutorials/keep-pdf-brief">
+            <Link className="button button--primary button--lg" to="/docs/tutorials/merion-pdf-brief">
               Run Tutorial 17
             </Link>
             <Link
@@ -953,7 +953,7 @@ export default function ComparePage(): ReactNode {
             <Link className="button button--primary button--lg" to="/docs/getting-started/Quick-Start">
               Quick start
             </Link>
-            <Link className="button button--outline button--lg button--secondary" to="/keep">
+            <Link className="button button--outline button--lg button--secondary" to="/merion">
               Meet Keep
             </Link>
           </CtaBand>

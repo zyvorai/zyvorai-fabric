@@ -260,11 +260,11 @@ export interface KeepStatus {
 
 /** Keep readiness: Keep mode, trusted signers, FluxVM, demo counts. */
 export function keepStatus(): Promise<KeepStatus> {
-  return apiGet<KeepStatus>('/api/keep/status')
+  return apiGet<KeepStatus>('/api/merion/status')
 }
 
 /**
- * Deploy a signed `.keeppack.json` (admin). The file text is sent untouched:
+ * Deploy a signed `.merionpack.json` (admin). The file text is sent untouched:
  * its `deploy_json` is the exact string that was signed.
  */
 export async function deployPackFile(

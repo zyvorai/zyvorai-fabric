@@ -500,7 +500,7 @@ mod tests {
                 .header("authorization", format!("Bearer {token}"))
                 .header("content-type", "application/x-yaml");
             if ack {
-                b = b.header("x-keep-policy-ack-risk", "1");
+                b = b.header("x-merion-policy-ack-risk", "1");
             }
             let app = app.clone();
             let req = b.body(Body::from(yaml)).unwrap();
@@ -534,7 +534,7 @@ mod tests {
         let (st, body) = put(wide, false).await;
         assert_eq!(st, 409, "{body}");
         assert!(body.contains("methods_widened"), "{body}");
-        assert!(body.contains("X-Keep-Policy-Ack-Risk"), "{body}");
+        assert!(body.contains("X-Merion-Policy-Ack-Risk"), "{body}");
 
         // The same change with the acknowledgement is applied and reports its risks.
         let (st, body) = put(wide, true).await;

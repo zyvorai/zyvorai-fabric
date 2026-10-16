@@ -32,7 +32,7 @@ Deploy JavaScript/TypeScript agents like serverless functions while giving every
 - an MCP endpoint for listing agents, listing executions, and chatting
 - GitHub session CI that runs those paths with no FluxVM and no model key
 - **Keep** product surface (0.1 live proof): Keep mode fail-closed signed
-  `keep.policy.yaml`, BYO `model_socket`, credential `authorize_resolve`, session
+  `merion.policy.yaml`, BYO `model_socket`, credential `authorize_resolve`, session
   cockpit + browser live view, measured/`software-test` labeling, `scripts/merionctl`,
   scoped export tokens, `./scripts/merion-live-lab.sh` —
   [docs/merion/MERION.md](../docs/merion/MERION.md) · [PRODUCTION.md](../docs/merion/PRODUCTION.md) ·
@@ -346,7 +346,7 @@ Configuration:
 | `ZYVOR_AGENT_FLUXVM_TOKEN` | unset | FluxVM bearer token |
 | `ZYVOR_AGENT_API_TOKEN` | unset | public Agent Runtime bearer token |
 | `ZYVOR_AGENT_MERION_MODE` | unset | `1` = Keep 0.1 fail-closed: trusted signers required; unsigned policy refused |
-| `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS` | unset | comma-separated hex Ed25519 public keys for `keep.policy.yaml` |
+| `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS` | unset | comma-separated hex Ed25519 public keys for `merion.policy.yaml` |
 | `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE` | auto | ignored when Keep mode is on; otherwise `1`/`0` |
 | `ZYVOR_AGENT_SECURITY_PROFILE` | unset / `measured` in Keep mode | passed to FluxVM on sandbox create |
 | `ZYVOR_AGENT_CONFINE` | unset | `1` forces `confinement: strict` for every agent |

@@ -184,7 +184,7 @@ mod tests {
                 .uri(uri)
                 .header("authorization", format!("Bearer {token}"));
             if with_export {
-                b = b.header("x-keep-export-token", export.clone());
+                b = b.header("x-merion-export-token", export.clone());
             }
             let app = app.clone();
             let req = b.body(Body::empty()).unwrap();
@@ -208,7 +208,7 @@ mod tests {
             .to_str()
             .unwrap()
             .starts_with("application/x-ndjson"));
-        assert_eq!(headers["x-keep-audit-chain"], "ok");
+        assert_eq!(headers["x-merion-audit-chain"], "ok");
         let first: Value = serde_json::from_str(body.lines().next().unwrap()).unwrap();
         assert_eq!(first["class_uid"], 6003);
         assert!(body

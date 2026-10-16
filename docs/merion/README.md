@@ -52,7 +52,7 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 | | |
 |---|---|
 | **You run it** | A laptop, a mini-PC or your own FluxVM host. Same API everywhere. |
-| **You read it** | Policy is a signed `keep.policy.yaml` you can diff in git. |
+| **You read it** | Policy is a signed `merion.policy.yaml` you can diff in git. |
 | **You take it with you** | `merionctl pack` writes your policy, agent manifest and migration notes to a folder. `merionctl unpack` restores them on another FluxVM node. Secrets are not included. |
 
 Keep starts from one assumption: **the model is compromised the moment it reads a webpage.**
@@ -128,7 +128,7 @@ taint:
 - **Ask levels** per rule: `always`, `first` or `never`.
 - **Taint.** After the agent reads an untrusted page, egress is blocked until you approve, and the cockpit paints the process red.
 - **Signed.** In Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) the runtime refuses to start without `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`, and every policy update must carry an Ed25519 signature over the exact YAML bytes. Unsigned policy does not load.
-- **Changes are checked.** A policy update is compared with the one the agent runs now. One that widens access (default egress `allow`, a metadata or private host, a `*` host, a write method added, weaker approval, a removed taint guard, wider body or program rules) is refused with `409` until you resend it with `X-Keep-Policy-Ack-Risk: 1`. It is a syntactic check on what the change adds, not a proof of what a cell can reach.
+- **Changes are checked.** A policy update is compared with the one the agent runs now. One that widens access (default egress `allow`, a metadata or private host, a `*` host, a write method added, weaker approval, a removed taint guard, wider body or program rules) is refused with `409` until you resend it with `X-Merion-Policy-Ack-Risk: 1`. It is a syntactic check on what the change adds, not a proof of what a cell can reach.
 - **Body and program rules.** For MCP, JSON-RPC and GraphQL endpoints, where every call is a `POST` to one URL, an entry can limit the JSON-RPC methods, the MCP tools and the GraphQL operation types the body may use, and `binaries` limits which program in the cell may call. Both fail closed. `binaries` covers the JSON broker only and does not work for confidential cells.
 - **Drafts from denials.** `merionctl policy suggest` turns an agent's denied requests into a draft policy to read, sign and load. Nothing is applied automatically.
 
@@ -220,7 +220,7 @@ export MERION_TOKEN=…                      # ZYVOR_AGENT_API_TOKEN
 
 merionctl create -f deploy.json            # deploy an agent
 merionctl policy show my-agent
-merionctl policy set my-agent keep.policy.yaml keep.policy.yaml.sig
+merionctl policy set my-agent merion.policy.yaml merion.policy.yaml.sig
 merionctl cockpit <session-uuid>
 merionctl pack   ./keep-pack my-agent      # leave: policy, manifest, notes (no secrets)
 merionctl unpack ./keep-pack my-agent      # arrive on another FluxVM node
@@ -306,7 +306,7 @@ Muse got the threat model right. Keep is the version you run, read and take with
 | The cell | Its own dedicated cloud VM; a separate Sentinel runs on the same machine, kept apart from the agent at the system level. Meta's announcement does not describe how the agent is separated inside that VM. | A Firecracker/KVM microVM per cell on FluxVM, with its own kernel; the network policy is applied by the host, outside the guest. |
 | Model | Muse Spark, Meta's proprietary model. | Bring your own model socket. |
 | Training data | Users can opt out of interaction data being used for training. | Off by default. Export needs a scoped token. |
-| Policy | Set by Meta. | A signed `keep.policy.yaml` you can diff in git. |
+| Policy | Set by Meta. | A signed `merion.policy.yaml` you can diff in git. |
 | Secrets | Credentials injected at the network boundary. | The same idea: the vault injects on the host, and the agent never sees a real secret. |
 | Browser | An accessibility-tree browser agent. | The same idea: the agent sees structure, you see pixels. |
 | Operator access | Governed by Meta's operational policies, not cryptography. | The same limit today, stated up front (see above). |

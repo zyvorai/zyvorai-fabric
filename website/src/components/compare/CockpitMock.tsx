@@ -106,7 +106,7 @@ export default function CockpitMock(): ReactNode {
         aria-label="Illustrative Keep cockpit: a goal advances, pauses for approval, then finishes with zero egress connects.">
       <div className={styles.chrome} aria-hidden>
         <i /><i /><i />
-        <span>/app/keep · session</span>
+        <span>/app/merion · session</span>
         <em>Illustrative</em>
       </div>
 
@@ -169,7 +169,7 @@ export default function CockpitMock(): ReactNode {
       </div>
 
       <div className={styles.foot}>
-        <span>Scripted for illustration — real cockpit: <code>/app/keep</code></span>
+        <span>Scripted for illustration — real cockpit: <code>/app/merion</code></span>
         {frame >= LAST && (
           <button type="button" onClick={play}>
             Replay

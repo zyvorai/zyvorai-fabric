@@ -82,7 +82,7 @@ test("CLI creates a private file and refuses to overwrite it", async () => {
 test("CLI talks to the runtime HTTP contract with separate bearer and export headers", async () => {
   const observed = [];
   const server = createServer((req, res) => {
-    observed.push({ path: req.url, bearer: req.headers.authorization, export: req.headers["x-keep-export-token"] });
+    observed.push({ path: req.url, bearer: req.headers.authorization, export: req.headers["x-merion-export-token"] });
     res.setHeader("content-type", "application/json");
     if (req.headers.authorization !== "Bearer operator") {
       res.statusCode = 401;
@@ -91,7 +91,7 @@ test("CLI talks to the runtime HTTP contract with separate bearer and export hea
     }
     if (req.url === `/v1/sessions/${ID}/cockpit`) res.end(JSON.stringify({ session_id: ID, status: "completed" }));
     else if (req.url?.startsWith("/v1/export/audit?")) {
-      if (req.headers["x-keep-export-token"] !== "audit-only") {
+      if (req.headers["x-merion-export-token"] !== "audit-only") {
         res.statusCode = 403;
         res.end(JSON.stringify({ error: "missing export capability" }));
       } else res.end(JSON.stringify({ export: true, chain: { chain_ok: true, entries: 1 },

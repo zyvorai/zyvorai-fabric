@@ -178,7 +178,7 @@ jobs:
           Production knobs:
             ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS=<hex32 pubkeys>
             ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE=1
-            X-Keep-Export-Token for GET /v1/export/audit and GET /v1/agents/{name}/pack
+            X-Merion-Export-Token for GET /v1/export/audit and GET /v1/agents/{name}/pack
 
           Tutorial: docs/tutorials/16-merion-workstation.md
           Honesty: measured = software-test; TEE host-memory = Keep 0.2 + hardware only.

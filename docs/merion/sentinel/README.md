@@ -4,12 +4,12 @@ Policy is a **signed file** you can diff in git.
 
 **Keep mode** (`ZYVOR_AGENT_MERION_MODE=1`): runtime refuses to start without
 `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`, and every `PUT …/policy` must carry
-`X-Keep-Policy-Signature`. Unsigned policy must not load.
+`X-Merion-Policy-Signature`. Unsigned policy must not load.
 
 Without Keep mode, signatures are required only when trusted signers are configured
 (unless `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE=0`).
 
-## Example (`keep.policy.yaml`)
+## Example (`merion.policy.yaml`)
 
 ```yaml
 version: 1
@@ -48,7 +48,7 @@ syntactic: it reports what the change *adds*, and it is not a proof of what a ce
 | Info | `new_host` |
 
 A change with a High finding is refused with `409` and the reasons. Review it, then resend with
-`X-Keep-Policy-Ack-Risk: 1` (`MERION_POLICY_ACK_RISK=1 merionctl policy set …`). The response lists every finding under
+`X-Merion-Policy-Ack-Risk: 1` (`MERION_POLICY_ACK_RISK=1 merionctl policy set …`). The response lists every finding under
 `risks`, and the audit row `merion.policy.set` records the codes and whether they were acknowledged. Per-host checks
 run for newly added hosts only, so an unchanged entry does not block later edits.
 
@@ -138,12 +138,12 @@ inner container's own PID namespace.
 
 ## Signature
 
-Ed25519 over the exact YAML bytes the API receives (`X-Keep-Policy-Signature: <hex>`).
+Ed25519 over the exact YAML bytes the API receives (`X-Merion-Policy-Signature: <hex>`).
 
 ```bash
-./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" keep.policy.yaml \
-  > keep.policy.yaml.sig
-./scripts/merionctl policy set <agent> keep.policy.yaml keep.policy.yaml.sig
+./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" merion.policy.yaml \
+  > merion.policy.yaml.sig
+./scripts/merionctl policy set <agent> merion.policy.yaml merion.policy.yaml.sig
 ```
 
 See [PRODUCTION.md](../PRODUCTION.md) and [Tutorial 16](../../tutorials/16-merion-workstation.md).

@@ -6,7 +6,7 @@ import { inspectPack } from './keepPack'
 
 const pack = (over: Record<string, unknown> = {}) =>
   JSON.stringify({
-    format: 'keeppack/1',
+    format: 'merionpack/1',
     name: 'my-agent',
     deploy_json: JSON.stringify({ name: 'my-agent', bundle_base64: 'AA==' }),
     signature: 'ab',
@@ -34,8 +34,8 @@ describe('inspectPack', () => {
 
   it('explains what is wrong', () => {
     expect(inspectPack('{').error).toMatch(/Not valid JSON/)
-    expect(inspectPack('[]').error).toMatch(/keeppack/)
-    expect(inspectPack('{"format":"x"}').error).toMatch(/not a keeppack\/1/)
+    expect(inspectPack('[]').error).toMatch(/merionpack/)
+    expect(inspectPack('{"format":"x"}').error).toMatch(/not a merionpack\/1/)
     expect(inspectPack(pack({ deploy_json: undefined })).error).toMatch(/missing/)
     expect(inspectPack(pack({ deploy_json: '{' })).error).toMatch(/deploy_json/)
     expect(inspectPack(pack({ name: 'other' })).error).toMatch(/does not match/)

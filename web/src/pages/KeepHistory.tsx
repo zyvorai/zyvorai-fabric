@@ -140,7 +140,7 @@ export default function KeepHistory() {
         refreshing={busy}
         actions={
           <>
-            <Link to="/app/keep" className="zf-btn zf-btn-ghost">
+            <Link to="/app/merion" className="zf-btn zf-btn-ghost">
               {t('keep.title')}
             </Link>
             <button type="button" className="zf-btn zf-btn-ghost" onClick={toggle}>
@@ -213,7 +213,7 @@ export default function KeepHistory() {
                     <span className="text-[var(--zf-muted)]">{a.metadata?.demo ?? a.kind}</span>
                     <span className="ml-auto text-xs text-[var(--zf-muted)]">{when(a.created_at)}</span>
                     {a.session_id && (
-                      <Link to={`/app/keep/${a.session_id}`} className="text-xs underline">
+                      <Link to={`/app/merion/${a.session_id}`} className="text-xs underline">
                         {t('hist.cockpit')}
                       </Link>
                     )}
@@ -379,7 +379,7 @@ export default function KeepHistory() {
                       <td className="pr-3 font-mono">{r.action}</td>
                       <td>
                         {r.session_id ? (
-                          <Link to={`/app/keep/${r.session_id}`} className="underline font-mono">
+                          <Link to={`/app/merion/${r.session_id}`} className="underline font-mono">
                             {r.session_id.slice(0, 8)}
                           </Link>
                         ) : (
@@ -418,7 +418,7 @@ export default function KeepHistory() {
                   <span className="text-[var(--zf-muted)]">{a.kind}</span>
                   <span className="text-[var(--zf-ink)]">{a.subject ?? a.prompt}</span>
                   <span className="ml-auto text-xs text-[var(--zf-muted)]">{when(a.created_at)}</span>
-                  <Link to={`/app/keep/${a.session_id}`} className="text-xs underline">
+                  <Link to={`/app/merion/${a.session_id}`} className="text-xs underline">
                     {t('hist.cockpit')}
                   </Link>
                 </li>

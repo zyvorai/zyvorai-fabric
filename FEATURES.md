@@ -391,7 +391,7 @@ Same daemon port as Fabric (default **9095**). Catalog uses `daemon.public_url` 
 - **PDF brief one-click demo:** `/app/keep` → Brief this PDF; `POST /api/demos/pdf-brief`; expect 0 CONNECT
 - MCP tools `browser_open|snapshot|act|tabs|close` (no HTML/DOM/evaluate to the model)
 - Host `POST …/browser/fill-secret` after vault `authorize_resolve` (password never in transcript)
-- Policy `browser:` block in `keep.policy.yaml` (allow_hosts, file:// deny, downloads deny, confinement:strict gate)
+- Policy `browser:` block in `merion.policy.yaml` (allow_hosts, file:// deny, downloads deny, confinement:strict gate)
 - Operator: `merionctl browser|session|browse`, KeepSession capability + honesty badge
 - Pack: `examples/merion-agents/browser-research/`
 - Docs: [DRIVER.md](docs/merion/browser/DRIVER.md), [BROWSER-0.3.md](docs/merion/browser/BROWSER-0.3.md)

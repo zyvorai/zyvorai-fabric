@@ -23,7 +23,7 @@ Lab live FluxVM gate: [`./scripts/merion-live-lab.sh`](../../scripts/merion-live
 1. How Keep maps onto Fabric agent-runtime + FluxVM (no third repo).
 2. How to run the CI suite and the Keep 0.1 live lab gate.
 3. How to run **Keep mode** (fail-closed signed policy).
-4. How to export/import `keep.policy.yaml` with `merionctl`.
+4. How to export/import `merion.policy.yaml` with `merionctl`.
 5. How to open cockpit + browser live view.
 6. How training stays off unless you mint an export token.
 
@@ -121,11 +121,11 @@ Console UX: marketing `/keep` → **Open Agents** when signed in.
 ## Step 3 — Readable Sentinel policy (must be signed)
 
 ```bash
-./scripts/merionctl policy show keep-demo > /tmp/keep.policy.yaml
+./scripts/merionctl policy show keep-demo > /tmp/merion.policy.yaml
 # edit allow/deny/ask/taint, then sign and set:
-./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" /tmp/keep.policy.yaml \
-  > /tmp/keep.policy.yaml.sig
-./scripts/merionctl policy set keep-demo /tmp/keep.policy.yaml /tmp/keep.policy.yaml.sig
+./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" /tmp/merion.policy.yaml \
+  > /tmp/merion.policy.yaml.sig
+./scripts/merionctl policy set keep-demo /tmp/merion.policy.yaml /tmp/merion.policy.yaml.sig
 ```
 
 Unsigned `PUT` returns **403** in Keep mode. Example schema:

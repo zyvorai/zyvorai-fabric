@@ -88,7 +88,7 @@ runtime is in Keep mode and has your public key registered.
 ### From the console instead
 
 ```bash
-../scripts/merionctl bundle .        # writes my-agent.keeppack.json (signed with your seed)
+../scripts/merionctl bundle .        # writes my-agent.merionpack.json (signed with your seed)
 ```
 
 In `/app/keep`, **Deploy an agent pack**, choose the file, **Deploy pack**. The console uploads the

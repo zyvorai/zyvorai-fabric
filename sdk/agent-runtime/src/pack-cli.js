@@ -52,7 +52,7 @@ export async function runPackCommand(argv) {
     }
     if (sub === "bundle") {
       const envelope = await bundlePack(dir, { seed });
-      const out = resolve(f.out || `${envelope.name}.keeppack.json`);
+      const out = resolve(f.out || `${envelope.name}.merionpack.json`);
       await writeFile(out, JSON.stringify(envelope, null, 2));
       console.log(`Wrote ${out}${envelope.signature ? " (signed)" : " (unsigned)"}`);
       console.log('Upload it in the console: Keep → "Deploy a pack".');

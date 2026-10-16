@@ -1013,7 +1013,7 @@ cat > "$PACK/pack.json" <<'JSON'
   "manifest": { "template": "ci", "egress_mode": "deny", "confinement": "strict" },
   "goal": { "title": "Say hello", "text": "Say hello." } }
 JSON
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$PACK/keep.policy.yaml"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$PACK/merion.policy.yaml"
 
 st=$(curl -sf -H "Authorization: Bearer $MERION_TOKEN_VALUE" "$MERION_BASE/v1/merion/status")
 [[ "$(echo "$st" | json keep_mode)" == "True" && "$(echo "$st" | json trusted_signers)" == "1" ]] || fail "keep status unexpected: $st"
@@ -1031,15 +1031,15 @@ grep -q "deploy agent my-agent (signed)" "$WORK/signed.out" && grep -q "/app/kee
 ok "signed deploy + policy + session started (Node signature accepted by the Rust runtime)"
 
 # What fabricd does for a console upload: forward the exact signed bytes with the header.
-MERION_POLICY_SEED="$SEED" node "$CLI" pack bundle "$PACK" --out "$WORK/my-agent.keeppack.json" >/dev/null
-python3 - "$WORK/my-agent.keeppack.json" "$WORK" <<'PY'
+MERION_POLICY_SEED="$SEED" node "$CLI" pack bundle "$PACK" --out "$WORK/my-agent.merionpack.json" >/dev/null
+python3 - "$WORK/my-agent.merionpack.json" "$WORK" <<'PY'
 import json, sys
 e = json.load(open(sys.argv[1]))
 open(sys.argv[2] + "/deploy.bytes", "w", newline="").write(e["deploy_json"])
 open(sys.argv[2] + "/deploy.sig", "w").write(e["signature"])
 open(sys.argv[2] + "/deploy.tampered", "w", newline="").write(e["deploy_json"] + " ")
 PY
-post() { curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" -H 'content-type: application/json' -H "x-keep-manifest-signature: $(cat "$WORK/deploy.sig")" --data-binary "@$1" "$MERION_BASE/v1/agents"; }
+post() { curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" -H 'content-type: application/json' -H "x-merion-manifest-signature: $(cat "$WORK/deploy.sig")" --data-binary "@$1" "$MERION_BASE/v1/agents"; }
 [[ "$(post "$WORK/deploy.bytes")" == "201" ]] || fail "exact signed bytes should deploy (201)"
 [[ "$(post "$WORK/deploy.tampered")" =~ ^40[13]$ ]] || fail "tampered bytes must be refused"
 ok "bundle bytes verify; a one-byte change is refused"
@@ -1054,7 +1054,7 @@ PIDS+=($!)
 start_runtime mem-runtime "$MEM_PORT" "$MEM_EGRESS" ZYVOR_AGENT_PUSH_RELAYS="{\"fcm\":\"http://127.0.0.1:$NOTICE_RELAY_PORT/push\"}" ZYVOR_AGENT_PUSH_RELAY_SECRET=notice-relay-secret ZYVOR_AGENT_GOAL_TICK_MS=300 ZYVOR_AGENT_MERION_MODE=1 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" ZYVOR_AGENT_API_TOKEN="$MERION_TOKEN_VALUE"
 wait_http "$MEM_BASE/healthz" || fail "the memory-test runtime did not start: $(tail -5 "$WORK/mem-runtime.log")"
 MEMPACK="$WORK/memory-agent"; cp -R "$ROOT/examples/merion-agents/memory-agent" "$MEMPACK"
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$MEMPACK/keep.policy.yaml"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$MEMPACK/merion.policy.yaml"
 MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MEM_BASE" node "$CLI" pack deploy "$MEMPACK" >"$WORK/memory-agent.out" 2>&1 || fail "memory-agent deploy failed: $(cat "$WORK/memory-agent.out")"
 cmint() { curl -s -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" -H 'content-type: application/json' -d "{\"user_id\":\"$1\",\"ttl_seconds\":600}" "$MEM_BASE/v1/user-tokens" | json token; }
 CAM=$(cmint cam); DAN=$(cmint dan)
@@ -1175,7 +1175,7 @@ p = json.load(open(sys.argv[1]))
 p["manifest"].update({"egress_allow_hosts": ["127.0.0.1"], "allow_private_networks": True})
 json.dump(p, open(sys.argv[1], "w"), indent=2)
 PY
-  printf 'version: 1\ndefault_egress: deny\nallow:\n  - host: "127.0.0.1"\n    methods: [GET, POST]\n    action: google\n    ask: never\n' > "$G/$a/keep.policy.yaml"
+  printf 'version: 1\ndefault_egress: deny\nallow:\n  - host: "127.0.0.1"\n    methods: [GET, POST]\n    action: google\n    ask: never\n' > "$G/$a/merion.policy.yaml"
   MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$GBASE" node "$CLI" pack deploy "$G/$a" >"$G/$a.out" 2>&1 || fail "$a deploy failed: $(cat "$G/$a.out")"
 done
 gop() { curl -s -H "Authorization: Bearer $MERION_TOKEN_VALUE" "$@"; }
@@ -1316,7 +1316,7 @@ cat > "$PROBE/pack.json" <<JSON
   "manifest": { "template": "ci", "egress_mode": "deny", "egress_allow_hosts": ["127.0.0.1"], "allow_private_networks": true, "egress_approval_timeout_seconds": 60, "credentials": ["gmail-draft"], "confinement": "strict" },
   "goal": { "title": "Draft from chat", "text": "Save a fixed draft." } }
 JSON
-cp "$G/mail-compose/keep.policy.yaml" "$PROBE/keep.policy.yaml"
+cp "$G/mail-compose/merion.policy.yaml" "$PROBE/merion.policy.yaml"
 MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$GBASE" node "$CLI" pack deploy "$PROBE" >"$G/probe.out" 2>&1 || fail "chat-probe deploy failed: $(cat "$G/probe.out")"
 PB=$(python3 -c 'import json; print(json.dumps({"threadId":"probe-1","runId":"r-probe-1","messages":[{"id":"m","role":"user","content":"draft it"}],"forwardedProps":{"agent":"chat-probe"}}))')
 curl -sN --max-time 120 -X POST -H "Authorization: Bearer $GINA" -H 'content-type: application/json' -d "$PB" "$GBASE/v1/agui" > "$G/probe.sse" &
@@ -1450,7 +1450,7 @@ ok "an Outlook event with guests is refused until you say they may be emailed, t
 
 echo "demos-ci: suggestions (an agent that asked, a person who turned them on, a goal only when accepted)"
 SUGPACK="$WORK/suggestion-example"; cp -R "$ROOT/examples/merion-agents/suggestion-example" "$SUGPACK"
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$SUGPACK/keep.policy.yaml"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$SUGPACK/merion.policy.yaml"
 MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MEM_BASE" node "$CLI" pack deploy "$SUGPACK" >"$WORK/suggestion-example.out" 2>&1 || fail "suggestion-example deploy failed: $(cat "$WORK/suggestion-example.out")"
 sug_run() {   # $1 token: runs the agent and waits; prints its session id
   local sid; sid=$(mem_api "$1" POST /v1/sessions -d '{"agent":"suggestion-example","input":{"suggestions":[{"title":"Review last month\u0027s expenses","reason":"the month just ended","agent":"memory-agent"}]}}' | json id) || return 1
@@ -1581,7 +1581,7 @@ cat > "$WPACK/pack.json" <<'JSON'
   "manifest": { "template": "ci", "egress_mode": "deny", "confinement": "strict" },
   "goal": { "title": "Wait", "text": "Wait for two decisions." } }
 JSON
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$WPACK/keep.policy.yaml"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$WPACK/merion.policy.yaml"
 MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MERION_BASE" node "$CLI" pack deploy "$WPACK" >"$WORK/waiter.out" 2>&1 || fail "waiter agent deploy failed: $(cat "$WORK/waiter.out")"
 SC=$(as "$CAROL" -X POST -H 'content-type: application/json' -d '{"agent":"waiter","input":{}}' "$MERION_BASE/v1/sessions" | json id) || fail "start carol's waiter session"
 for _ in $(seq 1 100); do

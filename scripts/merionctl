@@ -8,11 +8,11 @@
 #   merionctl init <name> [--dir <dir>]   # start a new use-case pack from the template (valid, with a sample); then edit, deploy --dry-run, deploy --test
 #   merionctl deploy <pack-dir> [--run] [--test] [--dry-run]
 #                                   # one command: build, sign (MERION_POLICY_SEED), deploy a pack.json
-#   merionctl bundle <pack-dir>        # write <name>.keeppack.json for the console's Deploy a pack
+#   merionctl bundle <pack-dir>        # write <name>.merionpack.json for the console's Deploy a pack
 #   merionctl doctor [--smoke]         # runtime, Keep mode, signers, FluxVM, demos (+ a live CSV cleanup)
 #   merionctl create -f agent.json --signature agent.json.sig
 #                                   # deploy with signed full manifest in Keep mode
-#   merionctl policy show|set|sign|suggest …   # signed keep.policy.yaml / agent.json; suggest drafts allow rules from denials
+#   merionctl policy show|set|sign|suggest …   # signed merion.policy.yaml / agent.json; suggest drafts allow rules from denials
 #   merionctl unwrap-token|unwrap|vault-status  # software vault ceremony (host-env)
 #   merionctl user-held-challenge|user-held-complete  # Keep 0.2 scaffold (refused without SNP/TDX)
 #   merionctl browser tabs|shot|script|doctor|profile|checkout <session-id> …
@@ -95,11 +95,11 @@ case "$cmd" in
     SIG_ARGS=()
     if [[ -n "$sig_file" ]]; then
       [[ -f "$sig_file" ]] || { echo "missing signature file: $sig_file" >&2; exit 1; }
-      SIG_ARGS=(-H "X-Keep-Manifest-Signature: $(tr -d ' \n' <"$sig_file")")
+      SIG_ARGS=(-H "X-Merion-Manifest-Signature: $(tr -d ' \n' <"$sig_file")")
     elif [[ -n "$file" && -f "${file}.sig" ]]; then
-      SIG_ARGS=(-H "X-Keep-Manifest-Signature: $(tr -d ' \n' <"${file}.sig")")
+      SIG_ARGS=(-H "X-Merion-Manifest-Signature: $(tr -d ' \n' <"${file}.sig")")
     elif [[ -n "${MERION_MANIFEST_SIGNATURE:-}" ]]; then
-      SIG_ARGS=(-H "X-Keep-Manifest-Signature: $MERION_MANIFEST_SIGNATURE")
+      SIG_ARGS=(-H "X-Merion-Manifest-Signature: $MERION_MANIFEST_SIGNATURE")
     fi
     if [[ -n "$file" ]]; then
       api POST /v1/agents -H 'Content-Type: application/json' "${SIG_ARGS[@]}" --data-binary @"$file"
@@ -164,17 +164,17 @@ sys.exit(1 if bad else 0)' || rc=$?
     [[ -n "${MERION_EXPORT_TOKEN:-}" ]] || { echo "set MERION_EXPORT_TOKEN (merionctl export-token pack)" >&2; exit 1; }
     mkdir -p "$out"
     if [[ -n "$AUTH_TOKEN" ]]; then
-      curl -fsS -H "Authorization: Bearer ${AUTH_TOKEN}" -H "X-Keep-Export-Token: $MERION_EXPORT_TOKEN" \
+      curl -fsS -H "Authorization: Bearer ${AUTH_TOKEN}" -H "X-Merion-Export-Token: $MERION_EXPORT_TOKEN" \
         "$BASE/v1/agents/${name}/pack" >"$out/pack.json"
     else
-      curl -fsS -H "X-Keep-Export-Token: $MERION_EXPORT_TOKEN" \
+      curl -fsS -H "X-Merion-Export-Token: $MERION_EXPORT_TOKEN" \
         "$BASE/v1/agents/${name}/pack" >"$out/pack.json"
     fi
     KEEPCTL_PACK_OUT="$out" python3 - <<'PY'
 import json, pathlib, os
 p = pathlib.Path(os.environ["KEEPCTL_PACK_OUT"])
 data = json.loads(p.joinpath("pack.json").read_text())
-p.joinpath("keep.policy.yaml").write_text(data["policy_yaml"])
+p.joinpath("merion.policy.yaml").write_text(data["policy_yaml"])
 p.joinpath("agent.json").write_text(json.dumps(data["agent"], indent=2))
 p.joinpath("pack-manifest.json").write_text(json.dumps(data["pack"], indent=2))
 notes = data["pack"].get("fluxvm_notes", {})
@@ -183,7 +183,7 @@ p.joinpath("FLUXVM_MIGRATE.md").write_text(
 )
 creds = data["pack"].get("credential_names") or []
 p.joinpath("vault-names.json").write_text(json.dumps({"credentials": creds}, indent=2))
-print("wrote keep.policy.yaml agent.json pack-manifest.json vault-names.json FLUXVM_MIGRATE.md")
+print("wrote merion.policy.yaml agent.json pack-manifest.json vault-names.json FLUXVM_MIGRATE.md")
 PY
     echo "packed $name → $out (secrets NOT included — rebind credentials file on destination)"
     ;;
@@ -192,20 +192,20 @@ PY
     dir="${1:-}"
     name="${2:-}"
     [[ -n "$dir" && -n "$name" ]] || { echo "usage: merionctl unpack <dir> <agent> [policy.sig]" >&2; exit 1; }
-    [[ -f "$dir/keep.policy.yaml" ]] || { echo "missing $dir/keep.policy.yaml" >&2; exit 1; }
+    [[ -f "$dir/merion.policy.yaml" ]] || { echo "missing $dir/merion.policy.yaml" >&2; exit 1; }
     SIG_ARGS=()
     if [[ -n "${3:-}" ]]; then
-      SIG_ARGS=(-H "X-Keep-Policy-Signature: $(tr -d ' \n' <"$3")")
-    elif [[ -f "$dir/keep.policy.yaml.sig" ]]; then
-      SIG_ARGS=(-H "X-Keep-Policy-Signature: $(tr -d ' \n' <"$dir/keep.policy.yaml.sig")")
+      SIG_ARGS=(-H "X-Merion-Policy-Signature: $(tr -d ' \n' <"$3")")
+    elif [[ -f "$dir/merion.policy.yaml.sig" ]]; then
+      SIG_ARGS=(-H "X-Merion-Policy-Signature: $(tr -d ' \n' <"$dir/merion.policy.yaml.sig")")
     elif [[ -n "${MERION_POLICY_SIGNATURE:-}" ]]; then
-      SIG_ARGS=(-H "X-Keep-Policy-Signature: $MERION_POLICY_SIGNATURE")
+      SIG_ARGS=(-H "X-Merion-Policy-Signature: $MERION_POLICY_SIGNATURE")
     fi
     if [[ "${MERION_POLICY_ACK_RISK:-}" == "1" ]]; then
-      SIG_ARGS+=(-H "X-Keep-Policy-Ack-Risk: 1")
+      SIG_ARGS+=(-H "X-Merion-Policy-Ack-Risk: 1")
     fi
     api PUT "/v1/agents/${name}/policy" -H 'Content-Type: application/x-yaml' \
-      "${SIG_ARGS[@]}" --data-binary @"$dir/keep.policy.yaml"
+      "${SIG_ARGS[@]}" --data-binary @"$dir/merion.policy.yaml"
     echo
     echo "unpacked policy onto $name. Restore qcow2 per FLUXVM_MIGRATE.md; rebind vault secrets on host."
     ;;
@@ -276,14 +276,14 @@ else:
             [[ -n "$file" ]] || { echo "usage: merionctl policy set <agent> <policy.yaml> [sig-file]" >&2; exit 1; }
             SIG_ARGS=()
             if [[ -n "${1:-}" ]]; then
-              SIG_ARGS=(-H "X-Keep-Policy-Signature: $(tr -d ' \n' <"$1")")
+              SIG_ARGS=(-H "X-Merion-Policy-Signature: $(tr -d ' \n' <"$1")")
             elif [[ -f "${file}.sig" ]]; then
-              SIG_ARGS=(-H "X-Keep-Policy-Signature: $(tr -d ' \n' <"${file}.sig")")
+              SIG_ARGS=(-H "X-Merion-Policy-Signature: $(tr -d ' \n' <"${file}.sig")")
             elif [[ -n "${MERION_POLICY_SIGNATURE:-}" ]]; then
-              SIG_ARGS=(-H "X-Keep-Policy-Signature: $MERION_POLICY_SIGNATURE")
+              SIG_ARGS=(-H "X-Merion-Policy-Signature: $MERION_POLICY_SIGNATURE")
             fi
             if [[ "${MERION_POLICY_ACK_RISK:-}" == "1" ]]; then
-              SIG_ARGS+=(-H "X-Keep-Policy-Ack-Risk: 1")
+              SIG_ARGS+=(-H "X-Merion-Policy-Ack-Risk: 1")
             fi
             api PUT "/v1/agents/${name}/policy" -H 'Content-Type: application/x-yaml' \
               "${SIG_ARGS[@]}" --data-binary @"$file"

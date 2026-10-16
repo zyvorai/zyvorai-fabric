@@ -1,12 +1,12 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-//! Keep Sentinel policy: export/import `keep.policy.yaml` from an agent manifest.
+//! Keep Sentinel policy: export/import `merion.policy.yaml` from an agent manifest.
 //!
 //! **Keep mode** (`ZYVOR_AGENT_KEEP_MODE=1`): trusted signers are required at
 //! startup, and every PUT policy must carry a valid Ed25519 signature
-//! (`X-Keep-Policy-Signature: <hex>`). Agent deploy (`POST /v1/agents`) uses the
-//! same scheme over the exact JSON body (`X-Keep-Manifest-Signature`).
+//! (`X-Merion-Policy-Signature: <hex>`). Agent deploy (`POST /v1/agents`) uses the
+//! same scheme over the exact JSON body (`X-Merion-Manifest-Signature`).
 //! `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE=0`
 //! is ignored in Keep mode (fail-closed).
 //!
@@ -208,7 +208,7 @@ impl PolicyTrust {
             return Ok(());
         }
         self.verify_yaml(body, signature_hex)
-            .context("Keep mode requires X-Keep-Manifest-Signature over the exact deployment JSON")
+            .context("Keep mode requires X-Merion-Manifest-Signature over the exact deployment JSON")
     }
 
     pub fn verify_yaml(&self, yaml: &[u8], signature_hex: Option<&str>) -> Result<()> {
@@ -217,7 +217,7 @@ impl PolicyTrust {
                 bail!("policy signature required but no trusted signers configured");
             }
             let Some(sig_hex) = signature_hex.filter(|s| !s.trim().is_empty()) else {
-                bail!("policy signature required (X-Keep-Policy-Signature)");
+                bail!("policy signature required (X-Merion-Policy-Signature)");
             };
             return self.verify_signature(yaml, sig_hex);
         }
@@ -308,7 +308,7 @@ impl KeepPolicy {
     pub fn from_yaml(raw: &str) -> Result<Self> {
         let policy: Self = serde_yaml::from_str(raw)?;
         if policy.version != 1 {
-            bail!("unsupported keep.policy.yaml version {}", policy.version);
+            bail!("unsupported merion.policy.yaml version {}", policy.version);
         }
         if policy.default_egress != "deny" && policy.default_egress != "allow" {
             bail!("default_egress must be deny or allow");

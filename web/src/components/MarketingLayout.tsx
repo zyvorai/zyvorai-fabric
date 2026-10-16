@@ -10,7 +10,7 @@ import ThemeToggle from './ThemeToggle'
 const LINKS = [
   { label: 'Product', to: '/product' },
   { label: 'Platform', to: '/platform' },
-  { label: 'Keep', to: '/keep' },
+  { label: 'Keep', to: '/merion' },
   { label: 'Security', to: '/security' },
 ]
 
@@ -53,7 +53,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
           <div className="flex gap-5">
             <Link to="/product">Product</Link>
             <Link to="/platform">Platform</Link>
-            <Link to="/keep">Keep</Link>
+            <Link to="/merion">Keep</Link>
             <Link to="/security">Security</Link>
             <a href="https://zyvor.dev" target="_blank" rel="noreferrer">
               zyvor.dev

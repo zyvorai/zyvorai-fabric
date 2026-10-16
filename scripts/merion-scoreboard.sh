@@ -20,7 +20,7 @@ OUT="${MERION_SCOREBOARD_OUT:-artifacts/keep-scoreboard.json}"
 mkdir -p "$(dirname "$OUT")"
 
 POLICY=$(cat <<'YAML'
-schema: keep.policy/v1
+schema: merion.policy/v1
 training: off
 egress:
   default: deny
@@ -35,13 +35,13 @@ YAML
 
 tmpdir=$(mktemp -d)
 trap 'rm -rf "$tmpdir"' EXIT
-printf '%s\n' "$POLICY" > "$tmpdir/keep.policy.yaml"
+printf '%s\n' "$POLICY" > "$tmpdir/merion.policy.yaml"
 printf '%s\n' '{"name":"pdf-brief","connect":0}' > "$tmpdir/agent.json"
 printf '%s\n' 'move policy and manifest; leave vault behind' > "$tmpdir/MIGRATION.md"
 
 # pack
 mkdir -p "$tmpdir/pack"
-cp "$tmpdir/keep.policy.yaml" "$tmpdir/agent.json" "$tmpdir/MIGRATION.md" "$tmpdir/pack/"
+cp "$tmpdir/merion.policy.yaml" "$tmpdir/agent.json" "$tmpdir/MIGRATION.md" "$tmpdir/pack/"
 if find "$tmpdir/pack" -iname '*vault*' -o -iname '*secret*' -o -iname '*credential*' | grep -q .; then
   echo "scoreboard: secret leaked into pack" >&2
   exit 1
@@ -49,13 +49,13 @@ fi
 # unpack onto a second "node"
 mkdir -p "$tmpdir/node-b"
 cp -a "$tmpdir/pack/." "$tmpdir/node-b/"
-cmp "$tmpdir/keep.policy.yaml" "$tmpdir/node-b/keep.policy.yaml"
+cmp "$tmpdir/merion.policy.yaml" "$tmpdir/node-b/merion.policy.yaml"
 
-sha=$(sha256sum "$tmpdir/keep.policy.yaml" | awk '{print $1}')
+sha=$(sha256sum "$tmpdir/merion.policy.yaml" | awk '{print $1}')
 
 cat > "$OUT" <<EOF
 {
-  "schema": "keep.scoreboard/v1",
+  "schema": "merion.scoreboard/v1",
   "policy_sha256": "${sha}",
   "evidence_class": "software-test",
   "egress_connects": 0,
@@ -75,7 +75,7 @@ EOF
 python3 - "$OUT" <<'PY'
 import json, sys
 r = json.load(open(sys.argv[1]))
-assert r["schema"] == "keep.scoreboard/v1"
+assert r["schema"] == "merion.scoreboard/v1"
 assert len(r["policy_sha256"]) == 64
 assert r["egress_connects"] == 0
 assert r["training_default"] == "off"

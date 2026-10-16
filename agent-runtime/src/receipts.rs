@@ -274,8 +274,8 @@ pub fn replay_response(r: &Receipt) -> Value {
     });
     json!({
         "status": r.status,
-        "headers": { "x-keep-replayed": "true", "x-keep-receipt": r.id.to_string(), "content-type": "application/json" },
-        "header_list": [["x-keep-replayed", "true"], ["x-keep-receipt", r.id.to_string()], ["content-type", "application/json"]],
+        "headers": { "x-merion-replayed": "true", "x-merion-receipt": r.id.to_string(), "content-type": "application/json" },
+        "header_list": [["x-merion-replayed", "true"], ["x-merion-receipt", r.id.to_string()], ["content-type", "application/json"]],
         "body_base64": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, note.to_string()),
         "replayed": true,
     })
@@ -447,7 +447,7 @@ mod tests {
         let r = receipt(Some("ana"), Some("k"), "fp", 201);
         let v = replay_response(&r);
         assert_eq!(v["status"], 201);
-        assert_eq!(v["headers"]["x-keep-replayed"], "true");
+        assert_eq!(v["headers"]["x-merion-replayed"], "true");
         let body = String::from_utf8(
             base64::Engine::decode(
                 &base64::engine::general_purpose::STANDARD,

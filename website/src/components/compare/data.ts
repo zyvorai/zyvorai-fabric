@@ -8,7 +8,7 @@ export type Cell = {t: string; l: Level};
 
 export const cell = (t: string, l: Level = 'yes'): Cell => ({t, l});
 
-const GH_DOCS = 'https://github.com/zyvorai/fabric/tree/main/docs/keep';
+const GH_DOCS = 'https://github.com/zyvorai/fabric/tree/main/docs/merion';
 
 /* ------------------------------------------------------------ 1. profiles */
 /* Source: docs/merion/MERION.md "Security profiles", docs/merion/MERION-0.2.md. */
@@ -350,7 +350,7 @@ export MERION_TOKEN=…   # agent-runtime token
       'Template node22-agent with pdftotext (poppler)',
       'Strict confinement: deny_udp + gateway-only ports',
     ],
-    href: '/docs/tutorials/keep-pdf-brief',
+    href: '/docs/tutorials/merion-pdf-brief',
     cta: 'Tutorial 17',
   },
   {
@@ -367,7 +367,7 @@ export FABRIC_API_TOKEN=…  # fabricd JWT (infra-ops)
       'fabricd reachable over HTTPS',
       'Or pick migration-op / deploy-op',
     ],
-    href: '/docs/tutorials/keep-workstation',
+    href: '/docs/tutorials/merion-workstation',
     cta: 'Tutorial 16',
   },
   {

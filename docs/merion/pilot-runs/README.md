@@ -1,6 +1,6 @@
 # Keep 0.1 pilot
 
-Labeled when [`./scripts/merion-pilot-gate.sh`](../../scripts/merion-pilot-gate.sh) passes **twice** on a FluxVM host (happy + deny), with archived logs under `docs/merion/pilot-runs/`.
+Labeled when [`./scripts/merion-pilot-gate.sh`](../../../scripts/merion-pilot-gate.sh) passes **twice** on a FluxVM host (happy + deny), with archived logs under `docs/merion/pilot-runs/`.
 
 ## What the gate proves
 

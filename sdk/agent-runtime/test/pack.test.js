@@ -13,7 +13,7 @@ import { publicKeyHex, seedFromHex, signBytes } from "../src/sign.js";
 const SEED = "07".repeat(32);
 
 async function packDir(files) {
-  const dir = await mkdtemp(join(tmpdir(), "keeppack-"));
+  const dir = await mkdtemp(join(tmpdir(), "merionpack-"));
   for (const [name, content] of Object.entries(files)) {
     await mkdir(join(dir, name, ".."), { recursive: true });
     await writeFile(join(dir, name), content);
@@ -40,7 +40,7 @@ const AGENT_PACK = {
     goal: { title: "Do it", text: "Do the thing." },
   }),
   "agent.ts": "export default { name: 'my-agent' };\n",
-  "keep.policy.yaml": "version: 1\ndefault_egress: deny\n",
+  "merion.policy.yaml": "version: 1\ndefault_egress: deny\n",
 };
 
 test("the Node signer matches the Rust one (same fixture as policy.rs)", () => {
@@ -125,11 +125,11 @@ test("an agent pack is signed over the exact bytes it sends", async () => {
     type: "spki",
   });
   assert.equal(
-    verify(null, Buffer.from(deploy.body), pub, Buffer.from(deploy.headers["x-keep-manifest-signature"], "hex")),
+    verify(null, Buffer.from(deploy.body), pub, Buffer.from(deploy.headers["x-merion-manifest-signature"], "hex")),
     true,
   );
   assert.equal(JSON.parse(deploy.body).manifest.template, "agent-node");
-  assert.equal(policy.headers["x-keep-policy-signature"], signBytes(Buffer.from(AGENT_PACK["keep.policy.yaml"]), SEED));
+  assert.equal(policy.headers["x-merion-policy-signature"], signBytes(Buffer.from(AGENT_PACK["merion.policy.yaml"]), SEED));
   assert.equal(JSON.parse(session.body).agent, "my-agent");
   assert.equal(JSON.parse(goal.body).session_id, "sess-1");
   assert.equal(r.cockpit, "/app/keep/sess-1");
@@ -141,7 +141,7 @@ test("without a seed the deploy is unsigned, and --dry-run makes no calls", asyn
   const f = fakeFetch({ "POST /v1/agents": { status: 201, json: {} }, "PUT /v1/agents/my-agent/policy": { status: 200 } });
   const r = await deployPack(dir, { fetchImpl: f.impl });
   assert.equal(r.signed, false);
-  assert.equal(f.calls[0].headers["x-keep-manifest-signature"], undefined);
+  assert.equal(f.calls[0].headers["x-merion-manifest-signature"], undefined);
 
   const d = fakeFetch({});
   const dry = await deployPack(dir, { seed: SEED, dryRun: true, fetchImpl: d.impl });
@@ -160,7 +160,7 @@ test("a manifest without a template is refused before anything is sent", async (
 test("bundlePack carries the exact signed bytes for the console upload", async () => {
   const dir = await packDir(AGENT_PACK);
   const env = await bundlePack(dir, { seed: SEED });
-  assert.equal(env.format, "keeppack/1");
+  assert.equal(env.format, "merionpack/1");
   assert.equal(env.signature, signBytes(Buffer.from(env.deploy_json), SEED));
   assert.equal(env.policy_signature, signBytes(Buffer.from(env.policy), SEED));
   assert.equal(JSON.parse(env.deploy_json).name, "my-agent");

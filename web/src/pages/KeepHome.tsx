@@ -182,7 +182,7 @@ export default function KeepHome() {
         description="Personal workstation for an untrusted agent — FluxVM cell, Sentinel egress, audit you can read."
         actions={
           <>
-            <Link to="/app/keep/history" className="zf-btn zf-btn-ghost">
+            <Link to="/app/merion/history" className="zf-btn zf-btn-ghost">
               {t('keep.history')}
             </Link>
             <Link to="/app/agents" className="zf-btn zf-btn-ghost">
@@ -210,7 +210,7 @@ export default function KeepHome() {
                   <code className="font-mono text-xs">{demo.model.host}</code> (model{' '}
                   <code className="font-mono text-xs">{demo.model.model}</code>). The cell itself stays
                   offline. The first run waits for your approval. It is listed under{' '}
-                  <Link to="/app/keep/history" className="underline">
+                  <Link to="/app/merion/history" className="underline">
                     History → Approvals
                   </Link>
                   , and you decide it from that run&apos;s cockpit.
@@ -313,7 +313,7 @@ export default function KeepHome() {
                       <button
                         type="button"
                         className="zf-btn zf-btn-ghost zf-btn-sm"
-                        onClick={() => navigate(`/app/keep/${r.result?.session_id}`)}
+                        onClick={() => navigate(`/app/merion/${r.result?.session_id}`)}
                       >
                         {t('home.openCockpit')}
                       </button>
@@ -349,7 +349,7 @@ export default function KeepHome() {
                 <button
                   type="button"
                   className="zf-btn zf-btn-primary zf-btn-sm"
-                  onClick={() => navigate(`/app/keep/${result.session_id}`)}
+                  onClick={() => navigate(`/app/merion/${result.session_id}`)}
                 >
                   {t('home.openCockpit')}
                 </button>

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * A `.keeppack.json` made by `fabric-agent pack bundle` / `merionctl bundle`.
+ * A `.merionpack.json` made by `fabric-agent pack bundle` / `merionctl bundle`.
  * `deploy_json` is the exact string that was signed; the console uploads the
  * file untouched so the signature still verifies. The signer seed never
  * reaches the browser.
@@ -23,11 +23,11 @@ export function inspectPack(text: string): { summary?: KeepPackSummary; error?: 
     return { error: `Not valid JSON: ${e instanceof Error ? e.message : String(e)}` }
   }
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
-    return { error: 'Expected a .keeppack.json file.' }
+    return { error: 'Expected a .merionpack.json file.' }
   }
   const o = raw as Record<string, unknown>
-  if (o.format !== 'keeppack/1') {
-    return { error: 'This is not a keeppack/1 file. Make one with: fabric-agent pack bundle <dir>' }
+  if (o.format !== 'merionpack/1') {
+    return { error: 'This is not a merionpack/1 file. Make one with: fabric-agent pack bundle <dir>' }
   }
   if (typeof o.name !== 'string' || typeof o.deploy_json !== 'string') {
     return { error: 'The pack is missing "name" or "deploy_json".' }

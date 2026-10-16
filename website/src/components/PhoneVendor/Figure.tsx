@@ -17,7 +17,7 @@ export default function Figure({
   caption?: ReactNode;
   minWidth?: number;
 }): ReactNode {
-  const src = useBaseUrl(`/keep/${file}`);
+  const src = useBaseUrl(`/merion/${file}`);
   return (
     <figure className={styles.figure}>
       <div className={styles.scroller} tabIndex={0} role="group" aria-label={alt}>

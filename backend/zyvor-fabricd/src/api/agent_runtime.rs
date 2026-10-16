@@ -524,8 +524,8 @@ struct KeepPack {
 
 fn parse_keep_pack(bytes: &[u8]) -> Result<KeepPack, String> {
     let v: Value = serde_json::from_slice(bytes).map_err(|e| format!("not valid JSON: {e}"))?;
-    if v.get("format").and_then(Value::as_str) != Some("keeppack/1") {
-        return Err("not a keeppack/1 file".into());
+    if v.get("format").and_then(Value::as_str) != Some("merionpack/1") {
+        return Err("not a merionpack/1 file".into());
     }
     let text = |k: &str| v.get(k).and_then(Value::as_str).map(str::to_string);
     let name = text("name").ok_or("missing name")?;
@@ -589,7 +589,7 @@ pub async fn pack_deploy(
         req = req.header(header::AUTHORIZATION, format!("Bearer {tok}"));
     }
     if let Some(sig) = &pack.signature {
-        req = req.header("x-keep-manifest-signature", sig);
+        req = req.header("x-merion-manifest-signature", sig);
     }
     let resp = match req.send().await {
         Ok(r) => r,
@@ -621,7 +621,7 @@ pub async fn pack_deploy(
             req = req.header(header::AUTHORIZATION, format!("Bearer {tok}"));
         }
         if let Some(sig) = &pack.policy_signature {
-            req = req.header("x-keep-policy-signature", sig);
+            req = req.header("x-merion-policy-signature", sig);
         }
         match req.send().await {
             Ok(r) if r.status().is_success() => policy_state = json!("applied"),
@@ -1430,7 +1430,7 @@ mod keep_pack_tests {
 
     fn pack(extra: &str) -> Vec<u8> {
         format!(
-            r#"{{"format":"keeppack/1","name":"my-agent","deploy_json":"{{\"name\":\"my-agent\",\"bundle_base64\":\"AA==\"}}"{extra}}}"#
+            r#"{{"format":"merionpack/1","name":"my-agent","deploy_json":"{{\"name\":\"my-agent\",\"bundle_base64\":\"AA==\"}}"{extra}}}"#
         )
         .into_bytes()
     }
@@ -1459,12 +1459,12 @@ mod keep_pack_tests {
         assert!(parse_keep_pack(b"nope").is_err());
         assert!(parse_keep_pack(br#"{"format":"other"}"#).is_err());
         // Name in the envelope must match the signed deploy body.
-        let mismatched = br#"{"format":"keeppack/1","name":"a","deploy_json":"{\"name\":\"b\"}"}"#;
+        let mismatched = br#"{"format":"merionpack/1","name":"a","deploy_json":"{\"name\":\"b\"}"}"#;
         assert!(parse_keep_pack(mismatched)
             .unwrap_err()
             .contains("does not match"));
         // Path-shaped names never reach the upstream URL.
-        let evil = br#"{"format":"keeppack/1","name":"../x","deploy_json":"{\"name\":\"../x\"}"}"#;
+        let evil = br#"{"format":"merionpack/1","name":"../x","deploy_json":"{\"name\":\"../x\"}"}"#;
         assert!(parse_keep_pack(evil).is_err());
     }
 }

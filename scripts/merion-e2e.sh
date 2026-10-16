@@ -238,25 +238,25 @@ check "unsigned deploy refused" 403 "$CODE"
 check "agent listed" keep-desk "$(curl -sf -H "Authorization: Bearer $TOKEN" "$API/v1/agents" | tr -d '\n')"
 
 echo "==> signed policy (reject unsigned, accept signed)"
-cp "$ROOT/docs/merion/sentinel/merion.policy.yaml" "$W/keep.policy.yaml"
+cp "$ROOT/docs/merion/sentinel/merion.policy.yaml" "$W/merion.policy.yaml"
 # Ensure file ends with newline stable for signing
 CODE=$(http_code -X PUT -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/x-yaml' \
-  --data-binary @"$W/keep.policy.yaml" \
+  --data-binary @"$W/merion.policy.yaml" \
   "$API/v1/agents/keep-desk/policy")
 check "unsigned policy refused" 403 "$CODE"
 check "  …names signature" "signature" "$(body)"
 
-"$SIGN_BIN" sign "$SEED" "$W/keep.policy.yaml" >"$W/keep.policy.yaml.sig"
+"$SIGN_BIN" sign "$SEED" "$W/merion.policy.yaml" >"$W/merion.policy.yaml.sig"
 # This policy weakens api.github.com from ask=always to ask=first, so the risk check refuses it
 # until the change is acknowledged.
 CODE=$(http_code -X PUT -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/x-yaml' \
-  -H "X-Keep-Policy-Signature: $(tr -d ' \n' <"$W/keep.policy.yaml.sig")" \
-  --data-binary @"$W/keep.policy.yaml" "$API/v1/agents/keep-desk/policy")
+  -H "X-Merion-Policy-Signature: $(tr -d ' \n' <"$W/merion.policy.yaml.sig")" \
+  --data-binary @"$W/merion.policy.yaml" "$API/v1/agents/keep-desk/policy")
 check "risky policy refused without acknowledgement" 409 "$CODE"
 check "  …names the finding" "approval_weakened" "$(body)"
-check "  …says how to acknowledge" "X-Keep-Policy-Ack-Risk" "$(body)"
-MERION_POLICY_ACK_RISK=1 "$KEEPCTL" policy set keep-desk "$W/keep.policy.yaml" "$W/keep.policy.yaml.sig" >/dev/null
+check "  …says how to acknowledge" "X-Merion-Policy-Ack-Risk" "$(body)"
+MERION_POLICY_ACK_RISK=1 "$KEEPCTL" policy set keep-desk "$W/merion.policy.yaml" "$W/merion.policy.yaml.sig" >/dev/null
 SHOW="$("$KEEPCTL" policy show keep-desk)"
 check "policy show has stripe allow" "api.stripe.com" "$SHOW"
 check "policy show has github" "api.github.com" "$SHOW"
@@ -408,19 +408,19 @@ CODE=$(http_code -H "Authorization: Bearer $TOKEN" "$API/v1/audit?limit=10")
 check "GET /v1/audit (non-export) allowed" 200 "$CODE"
 
 AUDIT_TOK=$(printf '%s' "$("$KEEPCTL" export-token audit:read:1h 600)" | json_get token)
-CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Keep-Export-Token: $AUDIT_TOK" \
+CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Merion-Export-Token: $AUDIT_TOK" \
   "$API/v1/export/audit?limit=20")
 check "export/audit with audit token → 200" 200 "$CODE"
 check "  …export:true" '"export":true' "$(body | tr -d ' \n')"
 
 echo "==> OCSF audit export"
-CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Keep-Export-Token: $AUDIT_TOK" \
+CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Merion-Export-Token: $AUDIT_TOK" \
   "$API/v1/export/audit?format=ocsf&limit=20")
 check "export/audit?format=ocsf → 200" 200 "$CODE"
 check "  …API Activity class" '"class_uid":6003' "$(body | head -1 | tr -d ' ')"
 CODE=$(http_code -H "Authorization: Bearer $TOKEN" "$API/v1/export/audit?format=ocsf")
 check "export/audit?format=ocsf without token → 403" 403 "$CODE"
-CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Keep-Export-Token: $AUDIT_TOK" \
+CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Merion-Export-Token: $AUDIT_TOK" \
   "$API/v1/export/audit?format=xml")
 check "export/audit with an unknown format → 400" 400 "$CODE"
 
@@ -439,14 +439,14 @@ CODE=$(http_code -H "Authorization: Bearer $TOKEN" "$API/v1/agents/keep-desk/pac
 check "pack without token → 403" 403 "$CODE"
 
 WRONG=$(printf '%s' "$("$KEEPCTL" export-token trajectory:read:1d 600)" | json_get token)
-CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Keep-Export-Token: $WRONG" \
+CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Merion-Export-Token: $WRONG" \
   "$API/v1/agents/keep-desk/pack")
 check "pack with trajectory scope alone → 403" 403 "$CODE"
 
 export MERION_EXPORT_TOKEN
 MERION_EXPORT_TOKEN=$(printf '%s' "$("$KEEPCTL" export-token pack 600)" | json_get token)
 "$KEEPCTL" pack "$W/pack" keep-desk >/dev/null
-check "pack wrote policy yaml" version "$(head -1 "$W/pack/keep.policy.yaml")"
+check "pack wrote policy yaml" version "$(head -1 "$W/pack/merion.policy.yaml")"
 check "pack wrote vault names only" stripe "$(cat "$W/pack/vault-names.json")"
 if grep -qiE 'sk_live|password|secret_key|AKIA' "$W/pack"/* 2>/dev/null; then
   echo "FAIL  pack must not contain secret-looking material"
@@ -461,7 +461,7 @@ check "FLUXVM_MIGRATE notes present" "qcow2" "$(cat "$W/pack/FLUXVM_MIGRATE.md")
 sed 's/keep-desk/keep-desk-b/' "$W/deploy.json" >"$W/deploy-b.json"
 "$SIGN_BIN" sign "$SEED" "$W/deploy-b.json" >"$W/deploy-b.json.sig"
 "$KEEPCTL" create -f "$W/deploy-b.json" --signature "$W/deploy-b.json.sig" >/dev/null
-"$SIGN_BIN" sign "$SEED" "$W/pack/keep.policy.yaml" >"$W/pack/keep.policy.yaml.sig"
+"$SIGN_BIN" sign "$SEED" "$W/pack/merion.policy.yaml" >"$W/pack/merion.policy.yaml.sig"
 "$KEEPCTL" unpack "$W/pack" keep-desk-b >/dev/null
 check "unpacked policy on keep-desk-b" "api.stripe.com" "$("$KEEPCTL" policy show keep-desk-b)"
 
@@ -608,7 +608,7 @@ PY
     "$SIGN_BIN" sign "$SEED" "$W/deploy-live.json" >"$W/deploy-live.json.sig"
     DEPLOY_SIG=$(tr -d '[:space:]' <"$W/deploy-live.json.sig")
     DEPLOY=$(curl -sf -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-      -H "X-Keep-Manifest-Signature: $DEPLOY_SIG" \
+      -H "X-Merion-Manifest-Signature: $DEPLOY_SIG" \
       --data-binary @"$W/deploy-live.json" \
       "$LIVE_API/v1/agents" || true)
     check "live deploy" keep-live "$DEPLOY"
@@ -641,7 +641,7 @@ YAML
       SIG=$(tr -d '[:space:]' <"$W/keep-live.policy.yaml.sig")
       CODE_S=$(http_code -X PUT -H "Authorization: Bearer $TOKEN" \
         -H 'Content-Type: application/x-yaml' \
-        -H "X-Keep-Policy-Signature: $SIG" \
+        -H "X-Merion-Policy-Signature: $SIG" \
         --data-binary @"$W/keep-live.policy.yaml" \
         "$LIVE_API/v1/agents/keep-live/policy" || echo 000)
       check "live signed policy accepted" 200 "$CODE_S"

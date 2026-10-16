@@ -10,7 +10,7 @@ One-click Keep demo: **PDF in → `brief.md` out.** No browser. Expect **0 CONNE
 | Script | `./scripts/merion-demo.sh pdf-brief [file.pdf]` (`merion-demo-pdf.sh` still works) |
 | Runtime API | `POST /v1/demos/pdf-brief` (multipart field `file`, or `pdf`; optional) |
 | fabricd proxy | `POST /api/demos/pdf-brief` (JWT) |
-| Pack | [`examples/merion-agents/pdf-brief/`](../../examples/merion-agents/pdf-brief/) |
+| Pack | [`examples/merion-agents/pdf-brief/`](../../../examples/merion-agents/pdf-brief/) |
 
 ## Pass bar
 

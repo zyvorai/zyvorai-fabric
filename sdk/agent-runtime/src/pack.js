@@ -191,10 +191,10 @@ export async function deployPack(dir, opts = {}) {
   const bundle = await agentBundle(info);
   const body = await composeAgentDeploy(info, bundle);
   const signature = seed ? signBytes(Buffer.from(body), seed) : null;
-  const policy = await readIfExists(join(info.root, "keep.policy.yaml"));
+  const policy = await readIfExists(join(info.root, "merion.policy.yaml"));
   const policySignature = seed && policy ? signBytes(Buffer.from(policy), seed) : null;
   steps.push(`deploy agent ${info.name}${signature ? " (signed)" : " (unsigned)"}`);
-  if (policy) steps.push(`apply keep.policy.yaml${policySignature ? " (signed)" : ""}`);
+  if (policy) steps.push(`apply merion.policy.yaml${policySignature ? " (signed)" : ""}`);
   if (run) steps.push("start a session and goal");
   if (dryRun) {
     return { kind: "agent", name: info.name, steps, signed: Boolean(signature), dryRun: true, bytes: body.length };
@@ -202,7 +202,7 @@ export async function deployPack(dir, opts = {}) {
 
   const deployed = await call(fetchImpl, "POST", `${base}/v1/agents`, {
     token,
-    headers: { "content-type": "application/json", ...sigHeader("x-keep-manifest-signature", signature) },
+    headers: { "content-type": "application/json", ...sigHeader("x-merion-manifest-signature", signature) },
     body,
   });
   if (!deployed.ok) fail("deploying the agent", deployed);
@@ -211,10 +211,10 @@ export async function deployPack(dir, opts = {}) {
   if (policy) {
     const put = await call(fetchImpl, "PUT", `${base}/v1/agents/${encodeURIComponent(info.name)}/policy`, {
       token,
-      headers: { "content-type": "application/yaml", ...sigHeader("x-keep-policy-signature", policySignature) },
+      headers: { "content-type": "application/yaml", ...sigHeader("x-merion-policy-signature", policySignature) },
       body: policy,
     });
-    if (!put.ok) fail("applying keep.policy.yaml", put);
+    if (!put.ok) fail("applying merion.policy.yaml", put);
     summary.policy = "applied";
   }
 
@@ -254,9 +254,9 @@ export async function bundlePack(dir, opts = {}) {
   }
   const bundle = await agentBundle(info);
   const deploy = await composeAgentDeploy(info, bundle);
-  const policy = await readIfExists(join(info.root, "keep.policy.yaml"));
+  const policy = await readIfExists(join(info.root, "merion.policy.yaml"));
   return {
-    format: "keeppack/1",
+    format: "merionpack/1",
     name: info.name,
     deploy_json: deploy,
     signature: seed ? signBytes(Buffer.from(deploy), seed) : null,

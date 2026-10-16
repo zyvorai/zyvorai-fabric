@@ -368,7 +368,7 @@ export default function PhoneVendorPage(): ReactNode {
             <Link className="button button--primary button--lg" to="/docs/merion/VENDORS">
               Read the guide
             </Link>
-            <Link className="button button--outline button--lg button--secondary" to="/keep">
+            <Link className="button button--outline button--lg button--secondary" to="/merion">
               About Keep
             </Link>
           </CtaBand>
