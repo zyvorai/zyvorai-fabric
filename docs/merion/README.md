@@ -18,7 +18,7 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 [How it works](#how-keep-works) ·
 [Keep vs Muse](#keep-vs-meta-muse) ·
 [Docs](MERION.md) ·
-[Website](https://zyvorai.github.io/fabric/keep)
+[Website](https://zyvorai.github.io/fabric/merion)
 
 </div>
 
@@ -230,7 +230,7 @@ Then stage the demo: [Tutorial 17 — drop in a PDF, get a brief, with zero outb
 
 ## One-click use cases and ready-made agents
 
-Seven use cases ship built in. Each takes a file and returns an artifact, needs no browser, and expects `egress_connects: 0`. Run one from the console (`/app/keep`) or with `merion-demo.sh <id>`. See [demos/README.md](demos/README.md).
+Seven use cases ship built in. Each takes a file and returns an artifact, needs no browser, and expects `egress_connects: 0`. Run one from the console (`/app/merion`) or with `merion-demo.sh <id>`. See [demos/README.md](demos/README.md).
 
 | Use case | You drop in | You get |
 |---|---|---|
@@ -327,7 +327,7 @@ Sources for the Muse column: [Meta, "Introducing Muse", 2026-09](https://about.f
 | [`scripts/merion-e2e.sh`](../../scripts/merion-e2e.sh) · [`merion-live-lab.sh`](../../scripts/merion-live-lab.sh) · [`merion-pilot-gate.sh`](../../scripts/merion-pilot-gate.sh) | End-to-end checks: stub, live lab and pilot gate |
 | [`examples/merion-agents/`](../../examples/merion-agents/) | The packaged use cases and agents |
 | `docs/merion/` | This documentation tree (spec, sentinel, vault, approvals, cell, browser, cockpit, demos, packs) |
-| `web/src/pages/MerionHome.tsx` · `MerionSession.tsx` | The console: `/app/keep` and `/app/keep/:sessionId` |
+| `web/src/pages/MerionHome.tsx` · `MerionSession.tsx` | The console: `/app/merion` and `/app/merion/:sessionId` |
 | [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml) | CI: unit tests, the seven demos end to end, a custom use case, a signed pack deploy, and the stub e2e |
 | [`pilot-runs/`](pilot-runs/) | Archived live-gate runs on a FluxVM host |
 
@@ -359,7 +359,7 @@ Start with [VENDORS.md](VENDORS.md); it lists what is built, what is reference c
 - [Tutorial 16 — Keep workstation](../tutorials/16-merion-workstation.md) · [17 — PDF brief](../tutorials/17-merion-pdf-brief.md) · [18 — use cases](../tutorials/18-merion-use-cases.md) · [19 — your own use case](../tutorials/19-build-your-own-use-case.md)
 - [MACOS-APP.md](MACOS-APP.md) — Solvor, the native Mac client for Keep
 - [RECIPES.md](RECIPES.md) — calling Keep from Siri Shortcuts, macOS, Windows and other agents
-- [VENDORS.md](VENDORS.md) — offering Keep to many users, as a phone vendor might · [picture version](https://zyvorai.github.io/fabric/keep/phones)
+- [VENDORS.md](VENDORS.md) — offering Keep to many users, as a phone vendor might · [picture version](https://zyvorai.github.io/fabric/merion/phones)
 - [PRODUCTION.md](PRODUCTION.md) — production checklist · [STATUS.md](STATUS.md) — what ships today
 - [Fabric](../../README.md) — the control plane Keep runs on
 

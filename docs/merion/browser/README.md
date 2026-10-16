@@ -6,7 +6,7 @@
   [DRIVER.md](DRIVER.md).
 - Operator **live view**: `GET /v1/sessions/{id}/browser/view` and
   `/keep/browser?session=<uuid>` show open tab titles/URLs. Console Keep session
-  (`/app/keep/:sessionId`) polls listing + capability strip. WebSocket debugger
+  (`/app/merion/:sessionId`) polls listing + capability strip. WebSocket debugger
   URLs are stripped from listing responses.
 - **Screenshot:** `GET /v1/sessions/{id}/browser/screenshot` — JPEG via host CDP
   (rate-limited ≥2s).

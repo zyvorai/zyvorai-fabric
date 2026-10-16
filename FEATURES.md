@@ -388,7 +388,7 @@ Same daemon port as Fabric (default **9095**). Catalog uses `daemon.public_url` 
 - **Brokered browser:** Chromium CDP `:9222` + a11y driver `:9230` (`browser-agent` template)
 - **Keep Browser 0.3:** split-sight pause, trajectory-as-code, origin IFC, SNI-identity, goal tabs, honesty badge
 - **Keep host eBPF (FluxVM):** `deny_udp`, gateway-only L4, cockpit `egress_connects` / `drop_reasons`, `ebpf_deny` freeze — no PacketWolf dependency
-- **PDF brief one-click demo:** `/app/keep` → Brief this PDF; `POST /api/demos/pdf-brief`; expect 0 CONNECT
+- **PDF brief one-click demo:** `/app/merion` → Brief this PDF; `POST /api/demos/pdf-brief`; expect 0 CONNECT
 - MCP tools `browser_open|snapshot|act|tabs|close` (no HTML/DOM/evaluate to the model)
 - Host `POST …/browser/fill-secret` after vault `authorize_resolve` (password never in transcript)
 - Policy `browser:` block in `merion.policy.yaml` (allow_hosts, file:// deny, downloads deny, confinement:strict gate)

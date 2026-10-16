@@ -4,7 +4,7 @@ Vendor questionnaire PDF in → `answers.md` out: every question paired with the
 
 ```bash
 ./scripts/merion-demo.sh security-questionnaire examples/merion-agents/security-questionnaire/sample.pdf
-# or console: /app/keep → Security questionnaire
+# or console: /app/merion → Security questionnaire
 # or API: POST /v1/demos/security-questionnaire (multipart field `file`)
 ```
 

@@ -7,7 +7,7 @@ writes most. A declarative use case, so there is no code, only an extractor and 
 # dry run first, then deploy and test it on the sample
 ./scripts/merionctl deploy examples/merion-agents/inbox-digest --dry-run
 ./scripts/merionctl deploy examples/merion-agents/inbox-digest --test
-# or in the console: /app/keep → Deploy your own use case → paste pack.json (JSON tab)
+# or in the console: /app/merion → Deploy your own use case → paste pack.json (JSON tab)
 ```
 
 ## What it is, and is not

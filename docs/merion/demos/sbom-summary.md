@@ -6,7 +6,7 @@ CycloneDX, SPDX or SARIF JSON in → `summary.md` out: component or package coun
 
 | Surface | Path |
 |---|---|
-| Console | `/app/keep` → **SBOM summary** |
+| Console | `/app/merion` → **SBOM summary** |
 | Script | `./scripts/merion-demo.sh sbom-summary [file.json]` |
 | Runtime API | `POST /v1/demos/sbom-summary` (multipart field `file`, optional) |
 | fabricd proxy | `POST /api/demos/sbom-summary` (JWT) |

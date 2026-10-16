@@ -119,7 +119,7 @@ Security profiles (FluxVM Phase 6):
 4. **Phone-only high-risk approvals** — buy / send / delete via webhook / `/v1/approvals`, never in chat.
 5. **Pack / unpack** — `merionctl pack` → USB or S3 → `merionctl unpack` on another FluxVM node.
 6. **Cockpit + browser live view** — visible taint, last decisions, tab listing (`/keep/browser`), screenshot + read-only screencast; input takeover not implemented.
-7. **One-click use cases** — `/app/keep` + `merion-demo.sh <id>`: PDF brief, contract clauses, security questionnaire, meeting actions, log triage, SBOM summary, CSV cleanup; each expects `egress_connects: 0` ([demos/README.md](demos/README.md)).
+7. **One-click use cases** — `/app/merion` + `merion-demo.sh <id>`: PDF brief, contract clauses, security questionnaire, meeting actions, log triage, SBOM summary, CSV cleanup; each expects `egress_connects: 0` ([demos/README.md](demos/README.md)).
 8. **Host eBPF pin (FluxVM)** — `deny_udp` + gateway-only ports; no PacketWolf required ([confine.md](confine.md)).
 
 Lab gate: `./scripts/merion-live-lab.sh`. Guest boot needs a FluxVM template (Tutorial 11).

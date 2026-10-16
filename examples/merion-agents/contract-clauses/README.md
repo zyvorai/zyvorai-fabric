@@ -4,7 +4,7 @@ Contract PDF in → `clauses.md` out: the term, renewal, termination, payment, l
 
 ```bash
 ./scripts/merion-demo.sh contract-clauses examples/merion-agents/contract-clauses/sample.pdf
-# or console: /app/keep → Contract clauses
+# or console: /app/merion → Contract clauses
 # or API: POST /v1/demos/contract-clauses (multipart field `file`)
 ```
 

@@ -6,7 +6,7 @@ Transcript (`.txt` or `.vtt`) in → `actions.md` out: candidate action items wi
 
 | Surface | Path |
 |---|---|
-| Console | `/app/keep` → **Meeting actions** |
+| Console | `/app/merion` → **Meeting actions** |
 | Script | `./scripts/merion-demo.sh meeting-actions [file.vtt]` |
 | Runtime API | `POST /v1/demos/meeting-actions` (multipart field `file`, optional) |
 | fabricd proxy | `POST /api/demos/meeting-actions` (JWT) |

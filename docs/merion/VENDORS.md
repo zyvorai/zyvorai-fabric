@@ -16,7 +16,7 @@ This page is a blueprint and a list of what exists. It is honest about what does
 Read in this order: this page (the blueprint and the limits), then [TENANCY.md](TENANCY.md) (many users on one
 shard), then [mobile/README.md](mobile/README.md) (the phone side), then the
 [reference gateway](https://github.com/zyvorai/fabric/tree/main/reference/vendor-gateway) and [MODELS.md](MODELS.md). A picture version of this
-page is on the [Keep for phone makers](https://zyvorai.github.io/fabric/keep/phones) site page.
+page is on the [Keep for phone makers](https://zyvorai.github.io/fabric/merion/phones) site page.
 
 ## The shape
 

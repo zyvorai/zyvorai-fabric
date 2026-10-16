@@ -56,7 +56,7 @@ echo "$OUT" | python3 -m json.tool
 SID=$(echo "$OUT" | python3 -c "import json,sys; print(json.load(sys.stdin)['session_id'])")
 CONN=$(echo "$OUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('egress_connects', -1))")
 ARTS=$(echo "$OUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(', '.join(a['title'] for a in d.get('artifacts', [])) or d.get('artifact_title', ''))")
-echo "COCKPIT $MERION_API (console /app/keep/$SID)"
+echo "COCKPIT $MERION_API (console /app/merion/$SID)"
 if [[ "$CONN" != "0" ]]; then
   echo "FAIL: egress_connects=$CONN" >&2
   exit 2

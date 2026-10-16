@@ -221,7 +221,7 @@ if [[ "$PACK" != "deploy-op" ]]; then
     ADV=$(api POST "/v1/goals/${GOAL_ID}/advance" -H 'Content-Type: application/json' \
       -d '{"step_id":"s2","status":"done","approval_prompt":"Approve infra-ops proposed fix?"}' || true)
     echo "$ADV" | python3 -c 'import json,sys; g=json.load(sys.stdin); print("goal", g["status"], "approval", g["plan"][1].get("approval_id"))' 2>/dev/null || echo "$ADV"
-    echo "    Keep view: /app/keep/$SESSION_ID"
+    echo "    Keep view: /app/merion/$SESSION_ID"
   else
     echo "==> note: approval step needs a session_id on the goal"
     echo "    PATCH /v1/goals/$GOAL_ID {\"session_id\":\"…\"} then"

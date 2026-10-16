@@ -6,7 +6,7 @@ Vendor questionnaire PDF in → `answers.md` out: every question paired with the
 
 | Surface | Path |
 |---|---|
-| Console | `/app/keep` → **Security questionnaire** |
+| Console | `/app/merion` → **Security questionnaire** |
 | Script | `./scripts/merion-demo.sh security-questionnaire [file.pdf]` |
 | Runtime API | `POST /v1/demos/security-questionnaire` (multipart field `file`, optional) |
 | fabricd proxy | `POST /api/demos/security-questionnaire` (JWT) |

@@ -16,7 +16,7 @@ You run it, you read it, you take it with you. 60+ ready use cases (statements, 
 | **See what it gives me, in two minutes, on this laptop** | `./scripts/merion-demo-local.sh` (macOS or Linux; no KVM, Docker or root). A **simulator, not sealed**: every result says so |
 | **Use it on my Mac** | [Solvor](https://github.com/zyvorai/solvor), a native app (macOS 26): drop a file, get the answer, see the proof |
 | **Run a real sealed host** | `sudo ./scripts/merion-up.sh` on Linux with KVM (checks, runtime, cell template, a token for Solvor); needs FluxVM. Tested with fake facts and a dry run on a real host; a clean-machine run is still open |
-| **Browse what it can read** | [use-case gallery](https://zyvorai.github.io/fabric/keep/packs) · [`examples/merion-agents`](../../examples/merion-agents) · add your own with `./scripts/merionctl init my-pack` |
+| **Browse what it can read** | [use-case gallery](https://zyvorai.github.io/fabric/merion/packs) · [`examples/merion-agents`](../../examples/merion-agents) · add your own with `./scripts/merionctl init my-pack` |
 | **Chat with an agent** | `./scripts/merion-chat.py --agent echo-agent` (a web chat over [AG-UI](AGUI.md); the token stays server-side) |
 | **Know what was actually tested** | [VERIFICATION.md](VERIFICATION.md) · [threat model](THREAT-MODEL.md) · [what still needs a person or a resource](TODO.md) |
 
@@ -29,12 +29,12 @@ You run it, you read it, you take it with you. 60+ ready use cases (statements, 
 | Start here | |
 |---|---|
 | **Keep README** — pitch, 60-second start, Muse vs Keep | [docs/merion/README.md](README.md) |
-| **Phone makers** — an agent computer per user, keys on the phone | [docs/merion/VENDORS.md](VENDORS.md) · [Pages](https://zyvorai.github.io/fabric/keep/phones) |
+| **Phone makers** — an agent computer per user, keys on the phone | [docs/merion/VENDORS.md](VENDORS.md) · [Pages](https://zyvorai.github.io/fabric/merion/phones) |
 | Pitch + architecture | [docs/merion/MERION.md](MERION.md) |
 | Tutorial 16 — workstation | [docs/tutorials/16-merion-workstation.md](../tutorials/16-merion-workstation.md) |
 | Tutorial 17 — PDF brief (CONNECT 0) | [docs/tutorials/17-merion-pdf-brief.md](../tutorials/17-merion-pdf-brief.md) |
 | Tutorial 18 — seven one-click use cases | [docs/tutorials/18-merion-use-cases.md](../tutorials/18-merion-use-cases.md) |
 | Tutorial 19 — build your own use case | [docs/tutorials/19-build-your-own-use-case.md](../tutorials/19-build-your-own-use-case.md) · [pack reference](PACKS.md) |
 | Install Keep on a FluxVM host | `./scripts/deploy keep user@host` · [docs/merion/PRODUCTION.md](PRODUCTION.md) |
-| Marketing page | console `/keep` · [GitHub Pages](https://zyvorai.github.io/fabric/keep) |
+| Marketing page | console `/keep` · [GitHub Pages](https://zyvorai.github.io/fabric/merion) |
 | Lab / CLI | `./scripts/merion-live-lab.sh` · `./scripts/merionctl` (`deploy`, `bundle`, `doctor`) · `./scripts/merion-demo.sh` |

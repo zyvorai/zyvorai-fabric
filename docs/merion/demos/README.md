@@ -25,7 +25,7 @@ and the API returns `409`.
 
 | Surface | Path |
 |---|---|
-| Console | `/app/keep` (pick a use case) |
+| Console | `/app/merion` (pick a use case) |
 | Runtime API | `GET /v1/demos`, `POST /v1/demos/{id}` (multipart field `file`) |
 | fabricd proxy | `GET /api/demos`, `POST /api/demos/{id}` (JWT) |
 | Registry | `agent-runtime/src/demos.rs` (`DEMOS`) |
@@ -50,7 +50,7 @@ need a model socket, which these demos deliberately do not use.
 ## Adding a use case
 
 Most use cases need **no Rust**. Describe one as a `pack.json` (an extractor plus a few summary
-rules), or fill in the form at `/app/keep` → **Deploy your own use case**, then:
+rules), or fill in the form at `/app/merion` → **Deploy your own use case**, then:
 
 ```bash
 ./scripts/merionctl deploy ./my-usecase --test

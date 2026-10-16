@@ -1027,7 +1027,7 @@ ok "unsigned deploy refused in Keep mode"
 
 MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MERION_BASE" node "$CLI" pack deploy "$PACK" --run | tee "$WORK/signed.out" >/dev/null \
   || fail "signed deploy failed: $(cat "$WORK/signed.out")"
-grep -q "deploy agent my-agent (signed)" "$WORK/signed.out" && grep -q "/app/keep/" "$WORK/signed.out" || fail "signed deploy output unexpected: $(cat "$WORK/signed.out")"
+grep -q "deploy agent my-agent (signed)" "$WORK/signed.out" && grep -q "/app/merion/" "$WORK/signed.out" || fail "signed deploy output unexpected: $(cat "$WORK/signed.out")"
 ok "signed deploy + policy + session started (Node signature accepted by the Rust runtime)"
 
 # What fabricd does for a console upload: forward the exact signed bytes with the header.

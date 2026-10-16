@@ -6,7 +6,7 @@ CSV in → `clean.csv` and `report.md` out: blank rows and exact duplicates remo
 
 | Surface | Path |
 |---|---|
-| Console | `/app/keep` → **CSV cleanup** |
+| Console | `/app/merion` → **CSV cleanup** |
 | Script | `./scripts/merion-demo.sh csv-clean [file.csv]` |
 | Runtime API | `POST /v1/demos/csv-clean` (multipart field `file`, optional) |
 | fabricd proxy | `POST /api/demos/csv-clean` (JWT) |

@@ -1173,7 +1173,7 @@ async fn run_demo_inner(
                 "kind": a.kind,
             })).collect::<Vec<_>>(),
             "egress_connects": connects,
-            "cockpit_url": format!("/app/keep/{id}"),
+            "cockpit_url": format!("/app/merion/{id}"),
             "badge": run_badge(simulated, model_outcome.as_ref().map(|m| m.host.as_str())),
             "model_calls": u32::from(model_outcome.is_some()),
             "model": model_outcome.as_ref().map(|m| json!({

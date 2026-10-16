@@ -132,7 +132,7 @@ test("an agent pack is signed over the exact bytes it sends", async () => {
   assert.equal(policy.headers["x-merion-policy-signature"], signBytes(Buffer.from(AGENT_PACK["merion.policy.yaml"]), SEED));
   assert.equal(JSON.parse(session.body).agent, "my-agent");
   assert.equal(JSON.parse(goal.body).session_id, "sess-1");
-  assert.equal(r.cockpit, "/app/keep/sess-1");
+  assert.equal(r.cockpit, "/app/merion/sess-1");
   assert.equal(r.signed, true);
 });
 

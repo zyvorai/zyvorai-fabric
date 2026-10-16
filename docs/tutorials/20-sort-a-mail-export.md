@@ -65,7 +65,7 @@ Export a month at a time, as plain text, from your mail client: `.txt`, `.eml` o
 ./scripts/merionctl deploy examples/merion-agents/inbox-digest --test       # deploy, run on the sample, require 0 CONNECT
 ```
 
-You should see `test passed: inbox-digest.md, 0 CONNECT`. Or use the console: **Keep** (`/app/keep`) →
+You should see `test passed: inbox-digest.md, 0 CONNECT`. Or use the console: **Keep** (`/app/merion`) →
 **Deploy your own use case** → paste `pack.json` (JSON tab).
 
 ## Step 3: run it on your export

@@ -23,7 +23,7 @@
  },
  "batch_id": "985467b8-d0ea-4c12-9741-b5f01ec03c3c",
  "bytes": 15,
- "cockpit_url": "/app/keep/f59dc830-0d05-41da-8828-2409adfca10a",
+ "cockpit_url": "/app/merion/f59dc830-0d05-41da-8828-2409adfca10a",
  "demo": "csv-clean",
  "egress_connects": 0,
  "extract_chars": 14,

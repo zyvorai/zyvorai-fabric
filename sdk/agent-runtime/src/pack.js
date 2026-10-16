@@ -236,7 +236,7 @@ export async function deployPack(dir, opts = {}) {
       if (!g.ok) fail("creating the goal", g);
       summary.goal_id = g.json?.id;
     }
-    summary.cockpit = summary.session_id ? `/app/keep/${summary.session_id}` : undefined;
+    summary.cockpit = summary.session_id ? `/app/merion/${summary.session_id}` : undefined;
   }
   return summary;
 }

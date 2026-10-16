@@ -8,7 +8,7 @@ This is the shape to copy when you want your own.
 node sdk/agent-runtime/src/cli.js pack deploy examples/merion-agents/invoice-check --dry-run
 node sdk/agent-runtime/src/cli.js pack deploy examples/merion-agents/invoice-check --test
 # or: ./scripts/merionctl deploy examples/merion-agents/invoice-check --test
-# or in the console: /app/keep → Deploy your own use case → paste pack.json (JSON tab)
+# or in the console: /app/merion → Deploy your own use case → paste pack.json (JSON tab)
 ```
 
 The runtime validates the spec (bounded rules, an extractor from a fixed list, no commands),

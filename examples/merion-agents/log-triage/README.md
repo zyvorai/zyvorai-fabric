@@ -4,7 +4,7 @@ Log file in → `triage.md` out: lines by level, the most repeated errors (numbe
 
 ```bash
 ./scripts/merion-demo.sh log-triage examples/merion-agents/log-triage/sample.txt
-# or console: /app/keep → Log triage
+# or console: /app/merion → Log triage
 # or API: POST /v1/demos/log-triage (multipart field `file`)
 ```
 

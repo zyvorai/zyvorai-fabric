@@ -172,7 +172,7 @@ Already built in (no pack needed): `pdf-brief`, `contract-clauses`, `security-qu
 
 | You want | Use |
 |---|---|
-| One file now | the console at `/app/keep`, or `merionctl run <pack> <file>` |
+| One file now | the console at `/app/merion`, or `merionctl run <pack> <file>` |
 | A month of files | `merionctl run <pack> a.xlsx b.xlsx c.xlsx` (one cell per file), or one **zip** of them |
 | Files that arrive in a directory | a **folder trigger**: `merionctl trigger add-folder <pack> inbox 30` |
 | A system that can POST | a **webhook trigger**: `merionctl trigger add-webhook <pack>` |
