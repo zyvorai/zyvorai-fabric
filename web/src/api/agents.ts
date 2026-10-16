@@ -1,7 +1,8 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-import { apiDelete, apiFetch, apiGet, apiPost } from './client'
+import { apiDelete, apiFetch, apiGet, apiPost, apiPut } from './client'
+import type { StoredPolicy } from '../lib/changesetPolicy'
 import type { UseCaseSpec } from '../lib/useCaseSpec'
 import { formatHttpErrorBody } from '../utils/apiError'
 import { parseJsonResponse } from '../utils/parseJsonResponse'
@@ -364,6 +365,33 @@ export async function speculateSession(
   body: { command: string; paths: string[]; ttl_seconds?: number },
 ): Promise<SpeculateResult> {
   return apiPost(`/api/sessions/${encodeURIComponent(id)}/speculate`, body)
+}
+
+/** Admin only. `null` when the user has no policy for that agent. */
+export async function getChangesetPolicy(user: string, agent: string): Promise<StoredPolicy | null> {
+  try {
+    return await apiGet<StoredPolicy>(
+      `/api/users/${encodeURIComponent(user)}/changeset-policies/${encodeURIComponent(agent)}`,
+    )
+  } catch (e) {
+    if (e instanceof Error && /404|no policy/i.test(e.message)) return null
+    throw e
+  }
+}
+
+export async function setChangesetPolicy(
+  user: string,
+  agent: string,
+  body: Record<string, unknown>,
+): Promise<StoredPolicy> {
+  return apiPut(
+    `/api/users/${encodeURIComponent(user)}/changeset-policies/${encodeURIComponent(agent)}`,
+    body,
+  )
+}
+
+export async function removeChangesetPolicy(user: string, agent: string): Promise<void> {
+  return apiDelete(`/api/users/${encodeURIComponent(user)}/changeset-policies/${encodeURIComponent(agent)}`)
 }
 
 export async function createSession(body: {

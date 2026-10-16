@@ -975,6 +975,42 @@ pub async fn session_speculate(
     .await
 }
 
+/// The Merion auto-approve policy for one user's agent (admin only; the runtime also refuses non-operator writes).
+/// `GET` reads it, `PUT` sets it (the body is the policy), `DELETE` removes it.
+pub async fn changeset_policy(
+    RequireAdmin(_claims): RequireAdmin,
+    State(state): State<Arc<AppState>>,
+    method: Method,
+    Path((user, agent)): Path<(String, String)>,
+    body: Option<Json<Value>>,
+) -> Response {
+    let ok = |s: &str| {
+        !s.is_empty()
+            && s.len() <= 128
+            && s.bytes()
+                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.'))
+    };
+    if !ok(&user) || !ok(&agent) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "invalid user or agent name" })),
+        )
+            .into_response();
+    }
+    if !matches!(method, Method::GET | Method::PUT | Method::DELETE) {
+        return StatusCode::METHOD_NOT_ALLOWED.into_response();
+    }
+    proxy(
+        &state,
+        method,
+        &format!("/v1/users/{user}/changeset-policies/{agent}"),
+        None,
+        body.map(|Json(v)| v),
+        None,
+    )
+    .await
+}
+
 /// Keep vault status (credential names + user-held flags; never secret values).
 pub async fn vault_status(
     RequireRead(_claims): RequireRead,
@@ -1459,12 +1495,14 @@ mod keep_pack_tests {
         assert!(parse_merion_pack(b"nope").is_err());
         assert!(parse_merion_pack(br#"{"format":"other"}"#).is_err());
         // Name in the envelope must match the signed deploy body.
-        let mismatched = br#"{"format":"merionpack/1","name":"a","deploy_json":"{\"name\":\"b\"}"}"#;
+        let mismatched =
+            br#"{"format":"merionpack/1","name":"a","deploy_json":"{\"name\":\"b\"}"}"#;
         assert!(parse_merion_pack(mismatched)
             .unwrap_err()
             .contains("does not match"));
         // Path-shaped names never reach the upstream URL.
-        let evil = br#"{"format":"merionpack/1","name":"../x","deploy_json":"{\"name\":\"../x\"}"}"#;
+        let evil =
+            br#"{"format":"merionpack/1","name":"../x","deploy_json":"{\"name\":\"../x\"}"}"#;
         assert!(parse_merion_pack(evil).is_err());
     }
 }
