@@ -14,7 +14,6 @@ trust, and easy to talk about ([ROADMAP.md](ROADMAP.md) has the product side).
 
 | Item | Needs | Unblocks | Done when |
 |---|---|---|---|
-| **Deploy the FluxVM egress-report fix, then re-run the live policy test** | zyvor-fluxvm #456 built and deployed on the lab host (FluxVM was classifying a cell as open because it ignored the network policy Merion sets) | Auto-approve policies on a real cell: before the fix every changeset was refused | A policy-matching speculate on the lab host ends `approved` and the file lands in the guest |
 
 ## Needs a resource
 
