@@ -23,7 +23,7 @@ import { usePageLoader } from '../hooks/usePageLoader'
 import { useToastContext } from '../contexts/ToastContext'
 import { toastFailure } from '../utils/toastError'
 import { useKeepText } from '../i18n/useKeepText'
-import { changeCount, summarizeChangeset } from '../lib/changeset'
+import { changeCount, formatRemaining, secondsUntilExpiry, summarizeChangeset } from '../lib/changeset'
 
 const ALLOWED_BROWSER_SHOT_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
@@ -39,6 +39,7 @@ function browserShotDataUrl(mime: string | undefined, imageBase64: string): stri
 function ChangesetReview({ planned }: { planned: unknown }) {
   const cs = summarizeChangeset(planned)
   if (!cs) return null
+  const left = secondsUntilExpiry(cs, Date.now())
   const row = (sign: string, color: string, paths: string[]) =>
     paths.map((p) => (
       <li key={sign + p} className={color}>
@@ -69,6 +70,11 @@ function ChangesetReview({ planned }: { planned: unknown }) {
       <p className="text-[var(--zf-muted)]">
         Nothing reaches the sandbox until you approve.{cs.egress ? ` Network: ${cs.egress}.` : ''}
       </p>
+      {left !== null && (
+        <p className={left <= 0 ? 'text-red-600' : 'text-[var(--zf-muted)]'} data-testid="changeset-expiry">
+          {left <= 0 ? 'Expired: approving will not apply it. Speculate again.' : `Expires: ${formatRemaining(left)}`}
+        </p>
+      )}
     </div>
   )
 }
