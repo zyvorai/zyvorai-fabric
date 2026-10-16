@@ -17,7 +17,9 @@ and is independent.
   requires one, nothing is auto-approved.
 - Cap: 30 auto-approvals per session per hour, then a person decides.
 - CLI: `merionctl changeset-policy list|show|set|rm`.
-- Not built: a tenant-wide ceiling, a console section, and a distinct `decided_by` field
+- Console: an "Auto-approve" panel on the session page for admins (read, turn on, replace, turn off), through admin-only
+  fabricd routes `GET/PUT/DELETE /api/users/{user}/changeset-policies/{agent}`. Not shown to non-admins.
+- Not built: a tenant-wide ceiling and a distinct `decided_by` field
   (the comment prefix is the marker for now).
 - **Live finding (2026-10-16, lab host) and the fix:** on a real FluxVM cell, speculation reported
   `side_effects.egress: "unrestricted"` even for an agent with `egress_mode: deny`, so the evaluator refused every

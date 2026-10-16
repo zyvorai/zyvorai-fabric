@@ -15,6 +15,9 @@ import {
   getSessionCockpit,
   SessionView,
   speculateSession,
+  getChangesetPolicy,
+  setChangesetPolicy,
+  removeChangesetPolicy,
 } from '../api/agents'
 import { getToken } from '../api/client'
 import { PageHeader, Card, EmptyState } from '../components/ui'
@@ -23,6 +26,7 @@ import { usePageLoader } from '../hooks/usePageLoader'
 import { useToastContext } from '../contexts/ToastContext'
 import { toastFailure } from '../utils/toastError'
 import { useMerionText } from '../i18n/useMerionText'
+import { describePolicy, emptyForm, policyBody, POLICY_KINDS, type PolicyForm, type StoredPolicy } from '../lib/changesetPolicy'
 import { changeCount, formatRemaining, secondsUntilExpiry, summarizeChangeset } from '../lib/changeset'
 
 const ALLOWED_BROWSER_SHOT_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -142,6 +146,46 @@ export default function MerionSession() {
       void load()
     } catch (e) {
       toastFailure(toast, 'Approval decision failed', e)
+    }
+  }
+
+  const [policy, setPolicy] = useState<StoredPolicy | null>(null)
+  const [policyForm, setPolicyForm] = useState<PolicyForm>(emptyForm)
+  const [policyVisible, setPolicyVisible] = useState(false)
+  const policyUser = session?.user_id ?? null
+  const policyAgent = session?.agent ?? null
+  useEffect(() => {
+    if (!policyUser || !policyAgent) return
+    // Only an admin can read policies; anyone else gets a refusal and the panel stays hidden.
+    getChangesetPolicy(policyUser, policyAgent)
+      .then((p) => {
+        setPolicy(p)
+        setPolicyVisible(true)
+      })
+      .catch(() => setPolicyVisible(false))
+  }, [policyUser, policyAgent])
+  const savePolicy = async () => {
+    if (!policyUser || !policyAgent) return
+    const r = policyBody(policyAgent, policyForm)
+    if (!r.ok) {
+      toast.error(r.error)
+      return
+    }
+    try {
+      setPolicy(await setChangesetPolicy(policyUser, policyAgent, r.body))
+      toast.success('Auto-approve policy saved')
+    } catch (e) {
+      toastFailure(toast, 'Saving the policy failed', e)
+    }
+  }
+  const clearPolicy = async () => {
+    if (!policyUser || !policyAgent) return
+    try {
+      await removeChangesetPolicy(policyUser, policyAgent)
+      setPolicy(null)
+      toast.success('Auto-approve policy removed')
+    } catch (e) {
+      toastFailure(toast, 'Removing the policy failed', e)
     }
   }
 
@@ -488,6 +532,80 @@ export default function MerionSession() {
             >
               {speculating ? 'Speculating…' : 'Speculate'}
             </button>
+          </Card>
+        )}
+
+        {policyVisible && policyUser && (
+          <Card className="p-4 space-y-3 text-sm" data-testid="changeset-policy">
+            <h2 className="text-base font-semibold text-[var(--zf-ink)]">Auto-approve</h2>
+            <p className="text-xs text-[var(--zf-muted)]">
+              Off unless set here, for {policyUser}&apos;s {policyAgent}. A changeset inside the policy is approved
+              without a click; anything else, a required phone signature, a tainted session or open egress still
+              waits for a person. Never files such as keys, .env or dotfiles.
+            </p>
+            {policy ? (
+              <p data-testid="policy-current">
+                <b>On</b> (v{policy.policy.version}): {describePolicy(policy)}
+              </p>
+            ) : (
+              <p className="text-[var(--zf-muted)]">No policy: every changeset waits for a person.</p>
+            )}
+            <input
+              className="zf-input w-full font-mono text-xs"
+              aria-label="Allowed guest directories"
+              value={policyForm.paths}
+              onChange={(e) => setPolicyForm({ ...policyForm, paths: e.target.value })}
+            />
+            <div className="flex gap-3 text-xs">
+              {POLICY_KINDS.map((k) => (
+                <label key={k} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={policyForm.kinds.includes(k)}
+                    onChange={(e) =>
+                      setPolicyForm({
+                        ...policyForm,
+                        kinds: e.target.checked ? [...policyForm.kinds, k] : policyForm.kinds.filter((x) => x !== k),
+                      })
+                    }
+                  />
+                  {k}
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                className="zf-input w-1/2 text-xs"
+                placeholder="max files (20)"
+                aria-label="Maximum files"
+                value={policyForm.maxFiles}
+                onChange={(e) => setPolicyForm({ ...policyForm, maxFiles: e.target.value })}
+              />
+              <input
+                className="zf-input w-1/2 text-xs"
+                placeholder="max bytes (any)"
+                aria-label="Maximum bytes"
+                value={policyForm.maxBytes}
+                onChange={(e) => setPolicyForm({ ...policyForm, maxBytes: e.target.value })}
+              />
+            </div>
+            <input
+              className="zf-input w-full font-mono text-xs"
+              placeholder="extra never-approve patterns, e.g. *.log"
+              aria-label="Extra never-approve patterns"
+              value={policyForm.deny}
+              onChange={(e) => setPolicyForm({ ...policyForm, deny: e.target.value })}
+            />
+            <div className="flex gap-2">
+              <button type="button" className="zf-btn zf-btn-primary zf-btn-sm" onClick={() => void savePolicy()}>
+                {policy ? 'Replace policy' : 'Turn on'}
+              </button>
+              {policy && (
+                <button type="button" className="zf-btn zf-btn-sm" onClick={() => void clearPolicy()}>
+                  Turn off
+                </button>
+              )}
+            </div>
           </Card>
         )}
 

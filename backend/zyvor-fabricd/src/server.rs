@@ -1249,6 +1249,12 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             post(api::agent_runtime::session_speculate),
         )
         .route(
+            "/users/{user}/changeset-policies/{agent}",
+            get(api::agent_runtime::changeset_policy)
+                .put(api::agent_runtime::changeset_policy)
+                .delete(api::agent_runtime::changeset_policy),
+        )
+        .route(
             "/sessions/{id}/browser/view",
             get(api::agent_runtime::session_browser_view),
         )
