@@ -42,7 +42,7 @@ export default function ProfileLadder(): ReactNode {
         </dl>
         <figure className={clsx(styles.receipt, p.status === 'gated' && styles.locked)}>
           <figcaption>
-            attestation <span>illustrative · field names from KEEP-0.2</span>
+            attestation <span>illustrative · field names from MERION-0.2</span>
           </figcaption>
           <pre>
             <code>
