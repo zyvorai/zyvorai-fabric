@@ -292,7 +292,7 @@ curl http://localhost:9095/api/vms
 6. **Monitor audit logs** -- set up alerts for failed authentication and denied actions
 7. **Enable rate limiting** -- prevent brute-force and denial-of-service attacks
 8. **Use a firewall** -- restrict API access to management networks
-9. **Keep Zyvor Fabric updated** -- apply security patches promptly
+9. **Merion Zyvor Fabric updated** -- apply security patches promptly
 10. **Delete `.admin_password`** after reading it -- avoid leaving credentials on disk
 
 ---

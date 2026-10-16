@@ -1,4 +1,4 @@
-# Tutorial 18: Keep use cases — drop a file, get an artifact
+# Tutorial 18: Merion use cases — drop a file, get an artifact
 
 Tutorial 17 briefs one PDF. This one runs the whole family of one-click demos the same
 way: contract clauses, a security questionnaire, meeting actions, log triage, an SBOM
@@ -58,7 +58,7 @@ Every demo ships a small sample under `examples/merion-agents/<id>/`:
 Each run prints the JSON result and ends with `OK — <artifacts> ready, 0 CONNECT`. The
 script exits `2` if `egress_connects` is not `0`.
 
-Console path: sign in → **Keep** → `/app/merion`, pick a use case, choose a file (or leave
+Console path: sign in → **Merion** → `/app/merion`, pick a use case, choose a file (or leave
 it empty for the sample), and click **Run**.
 
 ---

@@ -1,7 +1,7 @@
-# Tutorial 17: Keep PDF brief — zero CONNECT
+# Tutorial 17: Merion PDF brief — zero CONNECT
 
-Stage the one-click Keep demo: drop a PDF, get `brief.md`, prove **0 CONNECT**
-from Keep’s own audit (and FluxVM host eBPF when the dataplane is attached).
+Stage the one-click Merion demo: drop a PDF, get `brief.md`, prove **0 CONNECT**
+from Merion’s own audit (and FluxVM host eBPF when the dataplane is attached).
 No browser. No PacketWolf required.
 
 **Level:** Beginner  
@@ -37,7 +37,7 @@ curl -fsS ${MERION_TOKEN:+-H "Authorization: Bearer $MERION_TOKEN"} "$MERION_API
 # with poppler-utils so guest `pdftotext` works.
 ```
 
-Console path (fabricd proxies demos): sign in → **Keep** → `/app/merion`.
+Console path (fabricd proxies demos): sign in → **Merion** → `/app/merion`.
 
 ---
 
@@ -87,13 +87,13 @@ curl -fsS ${MERION_TOKEN:+-H "Authorization: Bearer $MERION_TOKEN"} \
 
 | Signal | Meaning |
 |---|---|
-| `egress_connects: 0` | No `egress.connect` / `ebpf.*` rows in Keep audit for this session |
+| `egress_connects: 0` | No `egress.connect` / `ebpf.*` rows in Merion audit for this session |
 | `drop_reasons` | FluxVM TC histogram when dataplane attached (e.g. `udp-deny`) |
 | Policy | `egress_mode: deny`, empty allowlist, FluxVM `deny_udp` + gateway-only ports |
 
 Stage line without PacketWolf:
 
-> Zero CONNECT is from Keep’s journal and FluxVM’s deny-by-default pin —
+> Zero CONNECT is from Merion’s journal and FluxVM’s deny-by-default pin —
 > the guest never got a path that could light an external observer.
 
 ---
@@ -123,6 +123,6 @@ Pack: [`examples/merion-agents/pdf-brief/`](../../examples/merion-agents/pdf-bri
 
 ## Next
 
-- Full Keep mode + signed policy: [Tutorial 16](16-merion-workstation.md)  
+- Full Merion mode + signed policy: [Tutorial 16](16-merion-workstation.md)  
 - Brokered browser: [DRIVER.md](../merion/browser/DRIVER.md)  
 - Host eBPF details: [confine.md](../merion/confine.md)

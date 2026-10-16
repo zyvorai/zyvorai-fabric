@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Shared Fabric API client for Keep packaged agents.
+ * Shared Fabric API client for Merion packaged agents.
  *
  * Calls go through the host egress broker with `credential: "fabric-api"`.
  * The host injects `Authorization: Bearer <FABRIC_API_TOKEN>` — the guest never
- * sees the token (same honesty model as Keep 0.1 vault: host-readable).
+ * sees the token (same honesty model as Merion 0.1 vault: host-readable).
  *
  * Set `input.fabricBase` (or env via deploy notes) to the fabricd origin, e.g.
  * `https://fabric.example:9095`. Credential injection requires HTTPS.

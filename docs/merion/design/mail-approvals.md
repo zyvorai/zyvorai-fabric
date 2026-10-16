@@ -40,7 +40,7 @@ a sealed renderer (below), presented with the differences that matter called out
 the host; a type allowlist (documents, images, archives without executables) with everything else refused; a text preview only for
 text and PDF, produced in the renderer. An attachment whose detected type differs from its name is flagged and refused by default.
 
-**D. The renderer is a sealed cell, not host code.** The host sends the message bytes to a short-lived cell (the same isolation Keep
+**D. The renderer is a sealed cell, not host code.** The host sends the message bytes to a short-lived cell (the same isolation Merion
 uses for extractors), gets back the reduction as data, and the cell has no network. A parser bug then lands in a cell that is thrown
 away, not in the runtime. The host still verifies the reduction is well-formed and bounded before showing it.
 

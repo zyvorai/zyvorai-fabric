@@ -2,11 +2,11 @@
 sidebar_position: 11
 ---
 
-# Keep for a phone vendor
+# Merion for a phone vendor
 
 How an Android maker, or any company with a phone and an account system, offers its users a personal agent that
 runs on a **cloud computer of its own** while the **phone holds the keys**. This is the shape Meta's Muse
-describes; Keep is the version the vendor runs, reads and can take apart.
+describes; Merion is the version the vendor runs, reads and can take apart.
 
 This page is a blueprint and a list of what exists. It is honest about what does not. Read
 [the limits](#what-you-can-and-cannot-claim) before you promise anything to a user.
@@ -16,17 +16,17 @@ This page is a blueprint and a list of what exists. It is honest about what does
 Read in this order: this page (the blueprint and the limits), then [TENANCY.md](TENANCY.md) (many users on one
 shard), then [mobile/README.md](mobile/README.md) (the phone side), then the
 [reference gateway](https://github.com/zyvorai/fabric/tree/main/reference/vendor-gateway) and [MODELS.md](MODELS.md). A picture version of this
-page is on the [Keep for phone makers](https://zyvorai.github.io/fabric/merion/phones) site page.
+page is on the [Merion for phone makers](https://zyvorai.github.io/fabric/merion/phones) site page.
 
 ## The shape
 
-![Architecture: the phone, the vendor gateway, the push relay and the model are the vendor's; shards running the Keep runtime and FluxVM cells are Keep's.](../assets/merion/vendor-architecture.svg)
+![Architecture: the phone, the vendor gateway, the push relay and the model are the vendor's; shards running the Merion runtime and FluxVM cells are Merion's.](../assets/merion/vendor-architecture.svg)
 
-A **shard** is one Keep host. Keep stays a single-host building block; the vendor runs many and puts a router in
-front, so nothing here needs a distributed scheduler. Purple is the vendor's, blue is Keep's, dashed boxes are
-interfaces Keep defines and the vendor implements.
+A **shard** is one Merion host. Merion stays a single-host building block; the vendor runs many and puts a router in
+front, so nothing here needs a distributed scheduler. Purple is the vendor's, blue is Merion's, dashed boxes are
+interfaces Merion defines and the vendor implements.
 
-| The vendor owns | Keep provides |
+| The vendor owns | Merion provides |
 |---|---|
 | User accounts and login, and step-up (biometric, second factor) | A sealed cell per job, on hardware you control |
 | Which shard a user lives on, and in which region | Signed policy, deny-by-default egress, taint rules |
@@ -69,11 +69,11 @@ Wire format and the signed text are in [mobile/README.md](mobile/README.md).
 | Benchmark for cold-start and concurrency | Script | `scripts/merion-bench.sh` |
 | An Android app | **Not built.** A sketch of the signing code is in the mobile guide | [mobile/README.md](mobile/README.md) |
 | Vendor push adapters (FCM, Mi Push, HMS, OPPO, vivo) | **Placeholders**: each needs the vendor's own credentials | gateway README |
-| Console strings in Simplified Chinese | **Partial**: navigation, headings, buttons and status of the three Keep pages, with a language switch. The long explanations and the honesty notes stay in English, on purpose. Not viewed in a browser here | `web/src/i18n/keep.ts` |
+| Console strings in Simplified Chinese | **Partial**: navigation, headings, buttons and status of the three Merion pages, with a language switch. The long explanations and the honesty notes stay in English, on purpose. Not viewed in a browser here | `web/src/i18n/keep.ts` |
 
 ## What users can do with it
 
-Keep ships ready-made use cases for the files people keep on a phone: exported chats, bank and card alerts, statements,
+Merion ships ready-made use cases for the files people keep on a phone: exported chats, bank and card alerts, statements,
 calendars, contacts, booking and billing mail, receipts. Your app shares the file to the gateway, which posts it to
 `POST /v1/demos/{use_case}` with the user's token; the summary comes back as an artifact. The list, with what each one
 reads and returns, is under [Phone-user packs](SCENARIOS.md#phone-user-packs). They are declarative, so a vendor can
@@ -135,7 +135,7 @@ Things that limit density today, none of them hidden:
 ## Regions and data location
 
 The gateway pins each user to a shard in the region their account names, and never moves them. That keeps a user's
-cell, artifacts and audit rows on hardware in that region. What Keep does **not** do: prove where data is, move a user
+cell, artifacts and audit rows on hardware in that region. What Merion does **not** do: prove where data is, move a user
 between regions, or replicate across regions. Data location is a property of where **you** put the shard and which
 model endpoint you allow: a prompt sent to an endpoint in another country leaves the region, so allow only endpoints
 you have decided about ([MODEL.md](MODEL.md)).
@@ -155,32 +155,32 @@ Do **not** say:
 
 - **"Not even we can read your data."** The evidence class is `software-test`. The vendor's operators can still read a
   cell's memory and the secrets in the host environment. Confidential hardware (AMD SEV-SNP, Intel TDX) with a key only
-  the user holds is the goal of Keep 0.2 and is **not** available ([KEEP-0.2.md](MERION-0.2.md)).
+  the user holds is the goal of Merion 0.2 and is **not** available ([KEEP-0.2.md](MERION-0.2.md)).
 - **"Your phone's secure chip holds your vault."** The phone key signs *approvals*. It does not unlock the vault.
-- **"Compliant with"** any national or industry rule. Keep makes no compliance claim.
+- **"Compliant with"** any national or industry rule. Merion makes no compliance claim.
 - **"Your data never leaves the country"** unless the shard, the model endpoint and the push path all stay there.
-- Anything about connectors Keep does not have: payments. (Gmail/Calendar and Outlook/Graph connectors are now built and live-tested —
+- Anything about connectors Merion does not have: payments. (Gmail/Calendar and Outlook/Graph connectors are now built and live-tested —
   see [connectors/README.md](connectors/README.md) — but only for a person who has connected their own account; do not imply it works
   for someone who hasn't.)
 
 ## Questions to take to your own counsel and security team
 
-Keep does not answer these; a vendor entering a regulated market has to. They are questions, not conclusions:
+Merion does not answer these; a vendor entering a regulated market has to. They are questions, not conclusions:
 
 - Where must user data and prompts stay, and does your model endpoint keep them there? What happens to prompts sent
   to a model service the vendor does not operate?
 - Which of the vendor's own obligations apply to a service that generates content for users (record-keeping, content
   moderation, filing or registration of the service), and does adding a third-party model change them?
 - What personal information do the audit journal, artifacts and push messages hold, for how long, and how does a user
-  delete it? (Keep has no per-user erase; artifacts expire only if you set a TTL.)
+  delete it? (Merion has no per-user erase; artifacts expire only if you set a TTL.)
 - Which model licences allow your use, and who is responsible for the model's output?
 - What review does your security team need before a cell runs code or a browser on a user's behalf?
 
 ## Compared with Muse
 
 The comparison in [the overview](README.md#keep-vs-meta-muse) rests on press reports, not an audit of Muse. In short:
-Muse is Meta's cloud with Meta's model; Keep is software the vendor runs, on its hardware, with its choice of model
-and its own account system, and it states its limits up front. Where Muse is a finished consumer product, Keep is
+Muse is Meta's cloud with Meta's model; Merion is software the vendor runs, on its hardware, with its choice of model
+and its own account system, and it states its limits up front. Where Muse is a finished consumer product, Merion is
 the machinery under one: the vendor still builds the app, the gateway, the operations and the trust programme.
 
 ## What is next

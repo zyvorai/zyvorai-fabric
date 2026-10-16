@@ -8,7 +8,7 @@ A JSON document in, the fields you named out. Paths look like `order.id`, `order
 ```
 
 **Scenario.** Point a system's webhook at a **webhook trigger** (the body is the JSON file) and read the facts
-in **Keep history**, without running your own receiver:
+in **Merion history**, without running your own receiver:
 
 ```bash
 ./scripts/merionctl trigger add-webhook api-facts        # prints a secret once

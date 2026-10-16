@@ -477,4 +477,4 @@ curl -s "http://localhost:3000/api/logs?priority=3&grep=kernel" \
 - **Periodic polling:** Set up a cron job to poll VM logs for errors every few minutes and feed them into your centralized logging system.
 - **Priority thresholds:** Focus on priority 3 (error) and below for alerting. Use priority 6 (info) for routine auditing.
 - **Pattern matching:** Use the `grep` parameter for targeted searches rather than retrieving all logs and filtering client-side.
-- **Line limits:** Keep `lines` at a reasonable value (100-1000). The maximum is 10,000 lines per request.
+- **Line limits:** Merion `lines` at a reasonable value (100-1000). The maximum is 10,000 lines per request.

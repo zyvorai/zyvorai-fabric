@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-/** Full-bleed Keep cell viewport — split-sight metaphor (a11y vs pixels). No Muse chrome. */
+/** Full-bleed Merion cell viewport — split-sight metaphor (a11y vs pixels). No Muse chrome. */
 export default function MerionSplitSight() {
   return (
     <div className="keep-mkt-sight" aria-hidden>

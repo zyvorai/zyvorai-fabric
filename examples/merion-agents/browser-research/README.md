@@ -1,6 +1,6 @@
 # browser-research pack
 
-Read-only Keep browser research agent: open allowlisted hosts, snapshot a11y
+Read-only Merion browser research agent: open allowlisted hosts, snapshot a11y
 refs, write a markdown artifact. Never asks for passwords in chat.
 
 ## Manifest sketch

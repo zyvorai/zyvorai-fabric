@@ -13,7 +13,7 @@ with `std::env::var` on each use. That is simple, and it has four costs:
   is readable in `/proc/<pid>/environ` by anyone who can read the process.
 - **Rotation.** Changing a key means editing the env and restarting the runtime, which ends running sessions.
 - **No central audit or revocation.** A company that keeps its secrets in Vault, or in Kubernetes Secrets mounted by a CSI driver, cannot see or
-  cut off Keep's use of them from the place that owns them.
+  cut off Merion's use of them from the place that owns them.
 - **The Helm chart** (`charts/zyvor-merion`) has no good answer: secrets go through `runtime.extraEnv`, which puts them in the pod spec.
 
 This note is about **where the secret comes from**. It does not change who may use it: host, method, path, port, user and approval checks stay
@@ -36,7 +36,7 @@ Checked against the code (`agent-runtime/src/credentials.rs` unless stated):
   (`egress.rs`, `model_call.rs`) and is independent of where the value comes from.
 - `docs/merion/vault/README.md` is honest about the limit, and this note keeps that honesty: the secret is in host process memory, so **the host
   operator can read it**. A credential source changes where the secret is kept and who can rotate or revoke it, not whether the operator can read it
-  while Keep is using it.
+  while Merion is using it.
 - `oauth-refresh` already shows the pattern for a secret that expires: a `tokens` map behind `Arc<RwLock<..>>`, a `valid_until`, and a failed
   refresh **fails closed**.
 - There is no `vault` binary and no Docker on the machines I test on, so a real Vault cannot be run here.
@@ -142,7 +142,7 @@ Three PRs, each reviewable on its own:
 4. **TTL defaults.** Recommendation: 60 s for `file`, 300 s for `vault`, both capped at one hour, and no stale serving. A shorter TTL revokes faster
    and calls the store more.
 5. **Startup checks.** Should a sourced credential be fetched once at startup so a wrong path or a denied policy fails at boot, not on the first
-   request? Recommendation: **yes, log a warning but do not refuse to start**, since the store may come up after Keep.
+   request? Recommendation: **yes, log a warning but do not refuse to start**, since the store may come up after Merion.
 6. **Namespaces and other stores.** Do you need Vault Enterprise namespaces (`X-Vault-Namespace`), or AWS or GCP secret managers directly?
    Recommendation: a `namespace` field is cheap and I would include it; cloud managers are better reached through Vault or a mounted file than
    through their SDKs.

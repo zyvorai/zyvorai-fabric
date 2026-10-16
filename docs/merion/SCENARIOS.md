@@ -29,7 +29,7 @@ code, and the extractive ones call no model, so the cell reports `0` outbound co
 
 ### Phone-user packs
 
-For what a person exports from their phone, and what a phone vendor's app can hand to Keep. All are extractive: no model
+For what a person exports from their phone, and what a phone vendor's app can hand to Merion. All are extractive: no model
 reads the file, and the cell reports `0` outbound connections.
 
 | Pack | You drop in | You get | Reads with | Sample |
@@ -65,7 +65,7 @@ These packs read personal data. The cell is sealed and reports `0` outbound conn
 
 ### Mac and Windows packs
 
-For files a person exports from a Mac or a Windows PC, run by the person or by an IT team. Keep does **not** connect to
+For files a person exports from a Mac or a Windows PC, run by the person or by an IT team. Merion does **not** connect to
 the machine or drive its desktop: the cell is a sealed Linux microVM, and the pack reads a file you export. All are
 extractive (no model), and the cell reports `0` outbound connections.
 
@@ -87,7 +87,7 @@ real Windows machine.** Try a pack on your own export before relying on it, and 
 Windows language or version words a label differently.
 
 Not covered: a live desktop (an agent clicking through a Mac or Windows session), `.evtx` and `.reg` files (binary or
-UTF-16), and Keep running on a Mac or Windows host: FluxVM needs Linux/KVM, and macOS guests are only permitted on Apple
+UTF-16), and Merion running on a Mac or Windows host: FluxVM needs Linux/KVM, and macOS guests are only permitted on Apple
 hardware. The output describes a real machine and can name hosts, accounts and software, and the evidence class is
 `software-test`, so treat it as sensitive ([VENDORS.md](VENDORS.md)).
 
@@ -111,7 +111,7 @@ still read a cell's memory ([VENDORS.md](VENDORS.md)).
 
 ### Developer-tool packs
 
-For what developers and teams already export: GitHub CLI output, Xcode logs, VS Code settings. Keep does **not** call GitHub or drive
+For what developers and teams already export: GitHub CLI output, Xcode logs, VS Code settings. Merion does **not** call GitHub or drive
 the tools: you run the command, save the output and drop it in. They list and count; they are not scanners, linters or reviewers.
 
 | Pack | You run, then drop in | You get | Sample |
@@ -142,7 +142,7 @@ the tools: you run the command, save the output and drop it in. They list and co
 `receivables-ageing`, `subscription-finder`, `reimbursement-claims` and `travel-itinerary`; Apple and Outlook calendars (`.ics`) with
 `calendar-week`; WhatsApp exports (Android and iPhone layouts) with `chat-export-digest`; Excel with `expense-sheet` and the sheets above.
 
-**Not covered, and why:** Siri (it has no export; see [RECIPES.md](RECIPES.md) for calling Keep from a Shortcut), PowerPoint (`.pptx` needs a new
+**Not covered, and why:** Siri (it has no export; see [RECIPES.md](RECIPES.md) for calling Merion from a Shortcut), PowerPoint (`.pptx` needs a new
 reader, not a pack), legacy `.ppt`, Outlook `.msg` / `.pst`, `.evtx` and browser history databases (binary), passwords and keychain exports (never
 read), and live GitHub or Xcode access. "Real layout" samples follow output captured from a real run with names replaced; "documented layout" samples
 were written from the tool's documented output and **have not been checked against a real export**, so try a pack on your own file first.
@@ -176,7 +176,7 @@ Already built in (no pack needed): `pdf-brief`, `contract-clauses`, `security-qu
 | A month of files | `merionctl run <pack> a.xlsx b.xlsx c.xlsx` (one cell per file), or one **zip** of them |
 | Files that arrive in a directory | a **folder trigger**: `merionctl trigger add-folder <pack> inbox 30` |
 | A system that can POST | a **webhook trigger**: `merionctl trigger add-webhook <pack>` |
-| To see what changed since last time | **Keep history → Runs → Compare selected** |
+| To see what changed since last time | **Merion history → Runs → Compare selected** |
 | A ping when it finishes | set `ZYVOR_AGENT_APPROVAL_WEBHOOK`; runs send `run.finished` / `run.failed` |
 
 All of it is described in [TRIGGERS.md](TRIGGERS.md).
@@ -188,14 +188,14 @@ All of it is described in [TRIGGERS.md](TRIGGERS.md).
 
 **Vendor contracts in bulk.** `merionctl run contract-clauses a.pdf b.pdf c.pdf` for PDFs, or deploy
 [`nda-review`](../../examples/merion-agents/nda-review/README.md) for Word files. Compare two versions of one contract
-in **Keep history**.
+in **Merion history**.
 
 **What am I paying for?** A user shares a month of billing mail (an `.mbox`) and runs `subscription-finder`: renewals,
-trials about to end, and every amount that will be charged. Run it again next month and compare the two runs in **Keep
+trials about to end, and every amount that will be charged. Run it again next month and compare the two runs in **Merion
 history**.
 
 **Daily status check.** A cron job fetches the vendor status page and posts it to a webhook trigger for
-`status-page-watch`. Keep does not fetch pages itself; you give it the file.
+`status-page-watch`. Merion does not fetch pages itself; you give it the file.
 
 **A drop folder for expenses.** Set `ZYVOR_AGENT_WATCH_ROOT`, add a folder trigger for `expense-sheet`, and save
 each month's `.xlsx` into that folder. Each file runs once.

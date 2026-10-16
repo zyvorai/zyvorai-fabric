@@ -79,7 +79,7 @@ function ChangesetReview({ planned }: { planned: unknown }) {
   )
 }
 
-/** One Keep view: goal → current task → evidence → approval → outcome. */
+/** One Merion view: goal → current task → evidence → approval → outcome. */
 export default function MerionSession() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const toast = useToastContext()
@@ -90,7 +90,7 @@ export default function MerionSession() {
   const [shot, setShot] = useState<BrowserScreenshot | null>(null)
   const [casting, setCasting] = useState(false)
   const castWs = useRef<WebSocket | null>(null)
-  const { loading, loadError, run } = usePageLoader('Failed to load Keep session')
+  const { loading, loadError, run } = usePageLoader('Failed to load Merion session')
 
   const load = useCallback(() => {
     if (!sessionId) return Promise.resolve()
@@ -335,7 +335,7 @@ export default function MerionSession() {
             {cockpit?.agent_paused_reason ? ` · paused=${cockpit.agent_paused_reason}` : ''}
           </div>
           <p className="text-[12px] text-[var(--zf-muted)]">
-            Count from Keep audit (`egress.connect` / `ebpf.*`). FluxVM `drop_reasons` when dataplane
+            Count from Merion audit (`egress.connect` / `ebpf.*`). FluxVM `drop_reasons` when dataplane
             is attached — no PacketWolf required.
           </p>
         </Card>

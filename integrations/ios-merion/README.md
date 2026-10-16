@@ -1,6 +1,6 @@
-# Keep for iPhone
+# Merion for iPhone
 
-A SwiftUI app for a person's own Keep host: chat with an agent, and approve or deny what it wants to do, signed on the phone.
+A SwiftUI app for a person's own Merion host: chat with an agent, and approve or deny what it wants to do, signed on the phone.
 
 - **Chats**: the conversations the host holds for you (`/v1/threads`), and a chat that streams the agent's answer over AG-UI (`/v1/agui`). When the agent is waiting for a person (say, to send mail), the chat shows a read-only card with **what the host read out of the request** (recipients, subject, text; see [connectors](../../docs/merion/connectors/README.md#what-the-person-sees-before-they-approve)). A chat can never approve or deny anything.
 - **Approvals**: what is waiting for you, with the same preview and the exact text this device signs (`keep-approval-v1`, [the phone side](../../docs/merion/mobile/README.md)). Approve or deny asks for Face ID or Touch ID: the key is a P-256 key in the Secure Enclave and never leaves it. The signature covers the digest of the preview, so the host cannot show one thing and have you sign another.

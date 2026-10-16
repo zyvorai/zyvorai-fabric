@@ -38,7 +38,7 @@ export default function DeployPack({ status, onDeployed, onError }: Props) {
     }
     if (status?.signature_required && !s.signed) {
       setProblem(
-        'This runtime is in Keep mode and needs a signed pack. Run: MERION_POLICY_SEED=<seed> fabric-agent pack bundle <dir>',
+        'This runtime is in Merion mode and needs a signed pack. Run: MERION_POLICY_SEED=<seed> fabric-agent pack bundle <dir>',
       )
     }
     setText(body)

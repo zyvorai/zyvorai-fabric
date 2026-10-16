@@ -1,4 +1,4 @@
-# Keep one-click demos
+# Merion one-click demos
 
 Drop an untrusted file into a sealed cell, get an artifact back. Every demo runs with
 **no browser** and expects **0 CONNECT**. If the audit journal ever shows an outbound
@@ -65,5 +65,5 @@ a unit test, a `DemoSpec` to `DEMOS` in `demos.rs`, then `examples/merion-agents
 `"kind": "builtin"`) and `docs/merion/demos/<id>.md`. The console picker, the fabricd proxy and
 `merion-demo.sh` pick it up without further changes.
 
-Honesty: evidence class stays `software-test`; zero CONNECT is a Keep audit claim, not
+Honesty: evidence class stays `software-test`; zero CONNECT is a Merion audit claim, not
 "the operator cannot read the cell".

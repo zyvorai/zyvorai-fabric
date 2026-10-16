@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-/** What a person reviews before approving a Keep `changeset` approval. */
+/** What a person reviews before approving a Merion `changeset` approval. */
 export interface ChangesetSummary {
   command: string
   exitCode: number | null

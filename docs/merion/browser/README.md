@@ -5,7 +5,7 @@
 - **a11y driver:** guest `driver.mjs` on `:9230`; MCP `browser_*` tools; see
   [DRIVER.md](DRIVER.md).
 - Operator **live view**: `GET /v1/sessions/{id}/browser/view` and
-  `/keep/browser?session=<uuid>` show open tab titles/URLs. Console Keep session
+  `/keep/browser?session=<uuid>` show open tab titles/URLs. Console Merion session
   (`/app/merion/:sessionId`) polls listing + capability strip. WebSocket debugger
   URLs are stripped from listing responses.
 - **Screenshot:** `GET /v1/sessions/{id}/browser/screenshot` — JPEG via host CDP

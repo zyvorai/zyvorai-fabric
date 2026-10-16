@@ -1,6 +1,6 @@
 # Vault / authd
 
-## Keep 0.1 — credential authority (host-side)
+## Merion 0.1 — credential authority (host-side)
 
 - Agent never sees raw passwords in tool results: the egress broker injects
   secrets after allowlist checks.
@@ -115,7 +115,7 @@ Cockpit includes `vault.{secret_backend,unwrap_required,unlocked,honesty}`.
 Set `ZYVOR_AGENT_VAULT_USER_HELD=1` to label `secret_backend: user-held-pending`
 (still host-env material).
 
-## Keep 0.2 scaffolding (software-test)
+## Merion 0.2 scaffolding (software-test)
 
 ```bash
 merionctl user-held-challenge         # → {id, nonce} for phone/YubiKey ceremony design

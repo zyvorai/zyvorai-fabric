@@ -13,4 +13,4 @@ characters. Check both against your own report before relying on them, and add y
 keyword lists. Amounts are matched with `Rs`, `INR` or `₹` and the Indian digit grouping (`2,50,000.00`). It counts; it
 does not add up or reconcile. The sample is synthetic (`EXMP`, `DEMO`, `SAMP` and `TEST` are not real bank codes).
 
-These are bank files. The cell has no network (the run reports `0` outbound connections) and no model reads the file, but the evidence class is `software-test`: whoever operates the host could still read a cell's memory. Keep makes no compliance claim; do not promise more than that ([VENDORS.md](../../../docs/merion/VENDORS.md), [BANK-OPERATIONS.md](../../../docs/merion/BANK-OPERATIONS.md)).
+These are bank files. The cell has no network (the run reports `0` outbound connections) and no model reads the file, but the evidence class is `software-test`: whoever operates the host could still read a cell's memory. Merion makes no compliance claim; do not promise more than that ([VENDORS.md](../../../docs/merion/VENDORS.md), [BANK-OPERATIONS.md](../../../docs/merion/BANK-OPERATIONS.md)).

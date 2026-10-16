@@ -8,7 +8,7 @@ This change adds a dedicated `host-lifecycle` crate that owns that orchestration
 
 - Prevent new placement on a host before evacuation starts.
 - Preflight every workload before touching production state.
-- Keep capacity headroom on evacuation targets.
+- Merion capacity headroom on evacuation targets.
 - Respect cluster boundaries by default.
 - Respect workload label requirements and hard host pins.
 - Select live or cold migration from an explicit policy.

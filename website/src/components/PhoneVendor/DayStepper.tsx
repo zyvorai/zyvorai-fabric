@@ -114,7 +114,7 @@ export default function DayStepper(): ReactNode {
           <Screen kind={step.screen} />
         </div>
       </div>
-      <p className={styles.mockNote}>Mock-up of what a vendor’s app would show. Keep does not ship a phone app.</p>
+      <p className={styles.mockNote}>Mock-up of what a vendor’s app would show. Merion does not ship a phone app.</p>
     </div>
   );
 }

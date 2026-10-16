@@ -31,7 +31,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    // Keep marketing copy is shared from ../docs/merion/marketing.json.
+    // Merion marketing copy is shared from ../docs/merion/marketing.json.
     fs: { allow: ['..'] },
     proxy: {
       '/api': {

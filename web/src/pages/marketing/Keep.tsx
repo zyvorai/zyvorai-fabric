@@ -22,7 +22,7 @@ export default function Keep() {
     <MarketingLayout>
       <div className="keep-mkt">
         <section className="keep-mkt-hero">
-          <p className="mkt-reveal keep-mkt-brand">Keep</p>
+          <p className="mkt-reveal keep-mkt-brand">Merion</p>
           <h1 className="mkt-reveal-delay">
             {marketing.tagline}
           </h1>
@@ -56,7 +56,7 @@ export default function Keep() {
         </section>
 
         <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">Why Keep</p>
+          <p className="keep-mkt-eyebrow">Why Merion</p>
           <h2>Yours to run, read and take.</h2>
           <div className="keep-mkt-values">
             {marketing.values.map((v) => (
@@ -80,7 +80,7 @@ export default function Keep() {
           <p className="keep-mkt-eyebrow">See it work</p>
           <h2>Drop in a PDF. Get a brief.</h2>
           <p>
-            Give Keep a vendor PDF and it hands back a one-page brief. The agent works inside its
+            Give Merion a vendor PDF and it hands back a one-page brief. The agent works inside its
             cell with no browser, and the cockpit shows zero outbound connections.
           </p>
           <MerionDemoStoryboard />
@@ -124,25 +124,25 @@ export default function Keep() {
           <p className="keep-mkt-eyebrow">The browser</p>
           <h2>The agent sees structure. You see the page.</h2>
           <p>
-            When the agent needs a browser, the model proposes and Keep’s host-side browser acts.
+            When the agent needs a browser, the model proposes and Merion’s host-side browser acts.
             The agent reads an accessibility outline of the page. You watch the real pixels, and you
             can pause a session to step in yourself.
           </p>
         </section>
 
         <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">Meta Muse vs Keep</p>
+          <p className="keep-mkt-eyebrow">Meta Muse vs Merion</p>
           <h2>Same threat model. Different owner.</h2>
           <MerionMuseCompare />
           <p className="keep-mkt-honesty">Honest about the limits: {marketing.honesty}</p>
         </section>
 
         <section className="mkt-band">
-          <h2>Try Keep on Fabric</h2>
+          <h2>Try Merion on Fabric</h2>
           <p>Brief a PDF and watch the cockpit stay at zero outbound connections.</p>
           <div className="flex flex-wrap gap-3 mt-6 justify-center">
             <Link to={primaryTo} className="zf-btn mkt-band-cta">
-              {isAuthenticated ? 'Open Keep' : 'Sign in'}
+              {isAuthenticated ? 'Open Merion' : 'Sign in'}
             </Link>
             <a
               href={`${DOCS}/tutorials/17-merion-pdf-brief.md`}
@@ -159,7 +159,7 @@ export default function Keep() {
               rel="noreferrer"
               style={{ color: 'inherit', borderColor: 'rgba(255,255,255,0.25)' }}
             >
-              Keep docs
+              Merion docs
             </a>
           </div>
         </section>

@@ -49,7 +49,7 @@ recorded.
 | **The reply is untrusted.** | Control characters and markup are removed and length is capped (16 000 characters, 600 per line) before it reaches an artifact. |
 
 If anything fails (vault refusal, denied or expired approval, endpoint error), the **run fails**;
-Keep does not quietly fall back to an extractive-only result.
+Merion does not quietly fall back to an extractive-only result.
 
 ## Configure the endpoint
 
@@ -80,4 +80,4 @@ For a local model on `http://127.0.0.1:8080/v1`, set `"host": "127.0.0.1"` and
   [the overview](README.md)). The vault protects it from the agent and the pack, not from the operator.
 - A model can be steered by text in the document. It has no tools here: its reply becomes text in an
   artifact and nothing else, and that text is sanitised. Treat the summary as a draft.
-- The endpoint sees the text. Keep does not vouch for the provider; pick one you trust with that file.
+- The endpoint sees the text. Merion does not vouch for the provider; pick one you trust with that file.

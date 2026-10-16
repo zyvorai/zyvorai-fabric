@@ -1,4 +1,4 @@
-# Keep 0.1 pilot run 20260924T141927Z
+# Merion 0.1 pilot run 20260924T141927Z
 
 - Host FluxVM: `http://127.0.0.1:7788`
 - Template: `node22-agent`

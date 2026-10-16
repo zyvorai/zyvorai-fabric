@@ -1,11 +1,11 @@
-# Tutorial 19: Build your own Keep use case
+# Tutorial 19: Build your own Merion use case
 
 Tutorials 17 and 18 run use cases we ship. This one builds your own and deploys it in one step,
 first without code, then as a TypeScript agent.
 
 **Level:** Beginner  
 **Time:** 25 minutes  
-**Needs:** A Fabric + Keep runtime with FluxVM (`./scripts/deploy keep user@host` sets one up),
+**Needs:** A Fabric + Merion runtime with FluxVM (`./scripts/deploy keep user@host` sets one up),
 Node 20+ for the CLI, `cd sdk/agent-runtime && npm ci` once.
 
 > **Honesty.** Summaries from a declarative use case are **extractive**: no model is called and
@@ -20,7 +20,7 @@ Take an invoice as plain text and pull out the totals, the due date and any repe
 
 ### Option A: the console
 
-1. Sign in, open **Keep** (`/app/merion`), and choose **Deploy your own use case → New use case**.
+1. Sign in, open **Merion** (`/app/merion`), and choose **Deploy your own use case → New use case**.
 2. Name it `Invoice check`, choose **Text files**, extensions `txt`.
 3. Add rules: *Lines that mention…* `total, amount due`; *Most repeated lines*; *Counts*.
 4. Paste a few lines of a sample invoice into **Sample text** and click **Deploy use case**.
@@ -82,8 +82,8 @@ export MERION_POLICY_SEED=$(cat ~/.config/zyvor/keep-signer.seed)   # made by ./
 # Open /app/merion/<session> in the console
 ```
 
-In Keep mode the deploy is signed over the exact bytes it sends. `merionctl doctor` tells you if the
-runtime is in Keep mode and has your public key registered.
+In Merion mode the deploy is signed over the exact bytes it sends. `merionctl doctor` tells you if the
+runtime is in Merion mode and has your public key registered.
 
 ### From the console instead
 
@@ -99,7 +99,7 @@ signed bytes untouched; your seed never leaves your machine.
 ## Check it worked
 
 ```bash
-./scripts/merionctl doctor           # runtime, Keep mode, signers, FluxVM, use-case counts
+./scripts/merionctl doctor           # runtime, Merion mode, signers, FluxVM, use-case counts
 ./scripts/merionctl doctor --smoke   # also runs the CSV cleanup once in a real cell
 ```
 

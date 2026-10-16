@@ -15,6 +15,6 @@ Select those columns as shown so the layout matches. The upload limit is 200 KB,
 error and warning sections list the first matching rows, message included, which can name files, accounts and hosts.
 It does not read `.evtx` (a binary format).
 
-**Not this:** Keep does not connect to your PC. It reads a file you export, in a sealed Linux cell. **The sample is written from the command's documented layout; it has not been checked against an export from a real Windows machine**, so try the pack on your own export before relying on it.
+**Not this:** Merion does not connect to your PC. It reads a file you export, in a sealed Linux cell. **The sample is written from the command's documented layout; it has not been checked against an export from a real Windows machine**, so try the pack on your own export before relying on it.
 
 These files describe a real machine and can contain hostnames, user names and installed software, so treat the summary as sensitive as the export. The cell has no network (the run reports `0` outbound connections) and no model reads the file, but the evidence class is `software-test`: whoever operates the host could still read a cell's memory ([VENDORS.md](../../../docs/merion/VENDORS.md)).

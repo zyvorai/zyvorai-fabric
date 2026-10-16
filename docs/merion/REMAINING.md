@@ -116,7 +116,7 @@ copying another product's claims into our docs unsourced; claiming a Mac or Wind
 silent training on trajectories. (See also [ROADMAP.md](ROADMAP.md#what-we-will-not-add).)
 
 **Landlock inside the cell (decided against, 2026-09-30).** FluxVM's `fluxvm-procbox` can apply Landlock file rules and a TCP connect allowlist, and
-a Keep cell could run its worker under it. It was left out on purpose. A cell's worker already runs in bubblewrap with a read-only root, a private
+a Merion cell could run its worker under it. It was left out on purpose. A cell's worker already runs in bubblewrap with a read-only root, a private
 `/tmp`, no capabilities, no new privileges and a seccomp filter, and the host's eBPF confinement already limits what the cell can reach on the
 network, so Landlock would add little. It needs the `procbox` binary baked into the cell image, which cannot be tested without a FluxVM bake, and a
 file allowlist has to name everything Chromium and Node touch, so a mistake breaks agents. The TCP connect rule needs a 6.7 or newer guest kernel.
@@ -131,13 +131,13 @@ step would be an opt-in flag that applies only the TCP connect allowlist to a No
 - **A near miss to close:** a real Google refresh token was once staged by `git add -A` in a local checkout and blocked by GitHub push protection; it was never pushed and the commit was rewritten. An unreferenced local object still holds it until git cleans up. Revoke the access at <https://myaccount.google.com/permissions> and delete the token file and the downloaded client JSON when the demo is finished.
 - **Disk:** Rust `target` directories are several GB each on the Mac and are safe to delete; a full disk stopped work twice (the second time
   `agent-runtime/target/debug/incremental`, 3 GB, was enough to remove).
-- **The lab host `80.79.5.173`** (KVM, FluxVM, the Keep runtime) accepted SSH from the owner's Mac on 2026-09-30, and `deploy-remote.sh` and
+- **The lab host `80.79.5.173`** (KVM, FluxVM, the Merion runtime) accepted SSH from the owner's Mac on 2026-09-30, and `deploy-remote.sh` and
   `deploy-merion.sh --skip-fabric` ran there. Its runtime was last redeployed from `main` at `81df3aac` (through the GPU and binary-identity work); the credential sources (#318 to #320) have not been deployed there. Its API token was not read.
 - **Known and unresolved:** the intermittent FluxVM eBPF refusal and the stale `qemu-nbd` on the lab host ([TODO.md](TODO.md)).
 
 ## 8. Documentation that was out of date and is fixed
 
-**2026-09-30.** `STATUS.md`, `ROADMAP.md`, the Keep README's Sentinel and vault sections, the cell page and the design index now describe the controls added
+**2026-09-30.** `STATUS.md`, `ROADMAP.md`, the Merion README's Sentinel and vault sections, the cell page and the design index now describe the controls added
 that day. The README had said secret material lives only in the host process environment, which stopped being true when credential sources landed; it now
 says where a secret can come from and that it is in host memory either way.
 

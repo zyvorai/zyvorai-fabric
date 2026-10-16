@@ -1,13 +1,13 @@
 # Confidential agent VMs (design spec, not implemented)
 
-Status: partly implemented. Keep product framing: see [../merion/MERION.md](../merion/MERION.md).
+Status: partly implemented. Merion product framing: see [../merion/MERION.md](../merion/MERION.md).
 The manifest's `confidential: auto|required`, FluxVM's
 host detection (`GET /v1/host/confidential`), fail-closed `required`, and status
 reporting exist; the QEMU launch for SEV-SNP/TDX, block-device volumes, and the
 attested key release below do not, and none of it has run on confidential hardware.
 
-**Keep 0.1** uses FluxVM Phase 6 `security_profile: measured` (software-test
-evidence, honestly labeled). **Keep 0.2** is this document's user-held key path
+**Merion 0.1** uses FluxVM Phase 6 `security_profile: measured` (software-test
+evidence, honestly labeled). **Merion 0.2** is this document's user-held key path
 after a hardware run — see [../merion/MERION-0.2.md](../merion/MERION-0.2.md).
 
 Modelled on the "Confidential VM with a user-held key"

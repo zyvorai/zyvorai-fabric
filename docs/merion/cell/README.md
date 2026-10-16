@@ -13,5 +13,5 @@ nspawn/bubblewrap on the host kernel.
   [REMAINING.md](../REMAINING.md)). Details: `agent-runtime/README.md`, "inner containment".
 - Optional GPUs: `"gpus": N` in the agent manifest passes N free GPUs through to a QEMU cell (FluxVM picks them;
   needs `cell_backend: qemu`; not with `confidential`, a warm pool or hibernation). Tested against fakes only, not on a real GPU.
-  Keep 0.1 target: Firecracker as the cell so escape still hits a hypervisor
+  Merion 0.1 target: Firecracker as the cell so escape still hits a hypervisor
   before the vault.

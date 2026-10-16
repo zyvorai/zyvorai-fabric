@@ -1,6 +1,6 @@
-# Agent skills for Keep
+# Agent skills for Merion
 
-Skills teach a coding agent (Claude Code, Codex, Cursor) to drive Keep without a source checkout. Each skill is a
+Skills teach a coding agent (Claude Code, Codex, Cursor) to drive Merion without a source checkout. Each skill is a
 folder with a `SKILL.md`. Copy a folder into your agent's skills directory (for Claude Code, `.claude/skills/`).
 
 | Skill | Use it to |

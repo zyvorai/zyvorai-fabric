@@ -59,7 +59,7 @@ export default function ProfileLadder(): ReactNode {
       </div>
 
       <p className={styles.note}>
-        Muse’s Secure VM is described as having the same limit today (public detail is thin). Keep
+        Muse’s Secure VM is described as having the same limit today (public detail is thin). Merion
         states its limit here, in the product. <Link to="/docs/merion/SECURITY-PROFILES">Security profiles ›</Link>
       </p>
     </div>

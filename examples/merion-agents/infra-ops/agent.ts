@@ -57,7 +57,7 @@ export default defineAgent({
       reads_ok: alerts.ok && vms.ok,
       restartVm: input.restartVm || null,
       remediation: input.remediation || null,
-      note: "Mutating Fabric calls require host approval (fabric-api requires_approval + Keep ask).",
+      note: "Mutating Fabric calls require host approval (fabric-api requires_approval + Merion ask).",
     };
 
     ctx.emit("infra-ops.artifact", {

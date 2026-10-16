@@ -9,7 +9,7 @@ same extractive rules as its PDF sibling run on the text. No model reads the ima
 ```
 
 - Takes `.png`, `.jpg` / `.jpeg` and `.tif` / `.tiff`. **iPhone photos are often HEIC**: share them as JPEG (Photos, Share, Options, Most
-  Compatible) or take a screenshot. Keep does not read HEIC.
+  Compatible) or take a screenshot. Merion does not read HEIC.
 - OCR is only as good as the picture: a straight-on, sharp, well-lit photo works; a curved, blurry or tiny one may give nothing or wrong
   characters. **Check the amounts against the original** before you rely on them. A run that reads no text is refused, not guessed.
 - English text only for now.

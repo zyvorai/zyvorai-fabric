@@ -1,4 +1,4 @@
-# Keep Browser 0.3
+# Merion Browser 0.3
 
 Measured appliance — not Muse consumer chrome. Model proposes `open` / `snapshot` /
 `act`; Chromium, CDP, cookies, and the proxy stay host objects.
@@ -25,7 +25,7 @@ webhook. Training default off.
 
 ## Next (0.4 / 0.5)
 
-- PacketWolf *optional* observe of CONNECT 5-tuple (not required for Keep proof)
+- PacketWolf *optional* observe of CONNECT 5-tuple (not required for Merion proof)
 - Signed site adapters (`adapters/vcenter.yaml`)
 - Confidential cells: CDP only via attested vsock
 

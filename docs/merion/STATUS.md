@@ -1,19 +1,19 @@
-# Keep — phases complete (local)
+# Merion — phases complete (local)
 
 Scoreboard (ahead-of-Muse gate, software-test only): [`AHEAD.md`](AHEAD.md) · `./scripts/merion-scoreboard.sh` · `agent-runtime/src/scoreboard.rs`.
 
 | Phase | Status | Where |
 |---|---|---|
 | FluxVM Phase 6 | Merged (`security_profile` / measured) | [zyvorai/fluxvm](https://github.com/zyvorai/fluxvm) |
-| **Keep 0.1 pilot** | Live gate twice (happy + deny) on FluxVM host | [`pilot-runs/`](pilot-runs/) · `./scripts/merion-pilot-gate.sh` |
-| Keep 0.1 live proof | Keep mode + live e2e path + browser view + credential authority | this tree |
-| Keep docs | In Fabric | `docs/merion/` |
+| **Merion 0.1 pilot** | Live gate twice (happy + deny) on FluxVM host | [`pilot-runs/`](pilot-runs/) · `./scripts/merion-pilot-gate.sh` |
+| Merion 0.1 live proof | Merion mode + live e2e path + browser view + credential authority | this tree |
+| Merion docs | In Fabric | `docs/merion/` |
 | merionctl | Script | `scripts/merionctl` |
 | Agent runtime | Policy YAML, goals/artifacts, cockpit, export-token | `agent-runtime/` |
 | Packaged agents | `infra-ops`, `migration-op`, `deploy-op`, `browser-research`, `pdf-brief` + `_fabric` | [`examples/merion-agents/`](../../examples/merion-agents/) |
-| Keep console view | Goal → task → evidence → approval → outcome + PDF demo home | `/app/merion` · `/app/merion/:sessionId` |
-| Keep 0.2 | **Soft scaffolding complete** + brokered browser; **hardware still gated** | [`KEEP-0.2.md`](MERION-0.2.md) · [`browser/DRIVER.md`](browser/DRIVER.md) |
-| Keep Browser 0.3 | Split-sight, trajectory-as-code, origin IFC, SNI-identity badge, goal tabs | [`browser/BROWSER-0.3.md`](browser/BROWSER-0.3.md) |
+| Merion console view | Goal → task → evidence → approval → outcome + PDF demo home | `/app/merion` · `/app/merion/:sessionId` |
+| Merion 0.2 | **Soft scaffolding complete** + brokered browser; **hardware still gated** | [`KEEP-0.2.md`](MERION-0.2.md) · [`browser/DRIVER.md`](browser/DRIVER.md) |
+| Merion Browser 0.3 | Split-sight, trajectory-as-code, origin IFC, SNI-identity badge, goal tabs | [`browser/BROWSER-0.3.md`](browser/BROWSER-0.3.md) |
 | Host eBPF (FluxVM only) | `deny_udp` + gateway pin; audit `egress_connects`; freeze on deny | FluxVM TC + agent-runtime confine |
 | One-click use cases | Table-driven demos (7): drop a file, get an artifact; expect 0 CONNECT | [`demos/`](demos/README.md) · `examples/merion-agents/<id>/` · `merion-demo.sh` |
 | Your own use cases | Declarative `pack.json` (no code) deployed from the console or `merionctl deploy`; TypeScript agent packs signed with Node and deployed in one command | [`PACKS.md`](PACKS.md) · [Tutorial 19](../tutorials/19-build-your-own-use-case.md) · [Tutorial 20: mail export digest](../tutorials/20-sort-a-mail-export.md) |
@@ -26,8 +26,8 @@ Scoreboard (ahead-of-Muse gate, software-test only): [`AHEAD.md`](AHEAD.md) · `
 | Phone-signed approvals | Device enrolment, push relays, signed decisions, `keep-phone`, test vectors | [`mobile/README.md`](mobile/README.md) |
 | Model choice | `model_socket` wired for agents (`ctx.model.chat()`, CLI harness), any OpenAI-compatible endpoint | [`MODELS.md`](MODELS.md) |
 | Phone vendors | Blueprint, reference gateway, benchmark, partial zh-CN console | [`VENDORS.md`](VENDORS.md) |
-| Install Keep | `./scripts/deploy keep user@host` (needs FluxVM on the host); `merionctl doctor` | [`PRODUCTION.md`](PRODUCTION.md) · `scripts/deploy-merion.sh` |
-| Install on Kubernetes | `charts/zyvor-merion`: a `hostNetwork` DaemonSet beside FluxVM, Keep mode on by default, credential descriptors, secret volumes, a service account. Rendered and schema-checked; **never installed in a cluster** | [`PRODUCTION.md`](PRODUCTION.md#install-keep-on-kubernetes) |
+| Install Merion | `./scripts/deploy keep user@host` (needs FluxVM on the host); `merionctl doctor` | [`PRODUCTION.md`](PRODUCTION.md) · `scripts/deploy-merion.sh` |
+| Install on Kubernetes | `charts/zyvor-merion`: a `hostNetwork` DaemonSet beside FluxVM, Merion mode on by default, credential descriptors, secret volumes, a service account. Rendered and schema-checked; **never installed in a cluster** | [`PRODUCTION.md`](PRODUCTION.md#install-keep-on-kubernetes) |
 | Policy changes | A risk check (409 until acknowledged) on every policy update; `merionctl policy suggest` drafts allow rules from an agent's denied requests | [`sentinel/README.md`](sentinel/README.md) |
 | Egress rules by body and program | MCP, JSON-RPC and GraphQL body rules; `binaries` (which program in the cell may call, from the guest's `/proc`). The attribution script was run on real Linux, including across a `bwrap` PID namespace; **not** in a real cell | [`sentinel/README.md`](sentinel/README.md) |
 | Operator egress guard | `ZYVOR_AGENT_GUARD_URL`: an HTTP service that may refuse any brokered request; fails closed | `agent-runtime/README.md` |
@@ -35,7 +35,7 @@ Scoreboard (ahead-of-Muse gate, software-test only): [`AHEAD.md`](AHEAD.md) · `
 | GPU cells | `gpus` in the agent manifest; FluxVM picks free VFIO-bound GPUs under a lock. Picking logic tested; **no real GPU** | `agent-runtime/README.md` · FluxVM `docs/sandbox-gpus.md` |
 | Audit export | `GET /v1/export/audit?format=ocsf`: OCSF-shaped NDJSON, chain hashes carried; not run through the OCSF schema validator | [`merionctl/README.md`](merionctl/README.md) |
 | Credential sources | A credential's secret from a file, or from HashiCorp Vault (token, AppRole, Kubernetes login); `GET /v1/vault/status` lists each source. Tested against a mock; **no real Vault** | [`vault/README.md`](vault/README.md#credentials-from-a-file-source) |
-| CI | Keep workflow: unit tests, **demos e2e** (7 built-ins, a custom use case, signed pack deploy in Keep mode, against the real runtime and the FluxVM stand-in), stub e2e | [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml) |
+| CI | Merion workflow: unit tests, **demos e2e** (7 built-ins, a custom use case, signed pack deploy in Merion mode, against the real runtime and the FluxVM stand-in), stub e2e | [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml) |
 | Tutorial | Hands-on + pack appendix + demos + your own | [Tutorial 16](../tutorials/16-merion-workstation.md) · [Tutorial 17](../tutorials/17-merion-pdf-brief.md) · [Tutorial 18](../tutorials/18-merion-use-cases.md) · [Tutorial 19](../tutorials/19-build-your-own-use-case.md) |
 
 ## Packaged agents
@@ -72,7 +72,7 @@ MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-live-lab.sh
 
 ## Honesty
 
-Measured = `software-test`. Host can still see the VM until Keep 0.2 + hardware.
+Measured = `software-test`. Host can still see the VM until Merion 0.2 + hardware.
 Guest vsock is healthy on QEMU `node22-agent` (musl-static guest-agent) and on
 Firecracker `node22-fc` (flat ext4 rootfs — see `scripts/merion-bake-fc-rootfs.sh`).
 The pilot gate prefers `node22-fc` when that template is registered.
@@ -89,7 +89,7 @@ Kubernetes login; the Helm chart in a cluster. Several need the runtime's API to
 `agent-runtime/tests/demos-ci.sh` runs the real runtime binary against `tests/sandbox_stub.py`
 (guest commands run on the CI machine, real `pdftotext`, no VM). It checks the seven built-in demos and
 their artifacts, refusal of wrong file types, oversize uploads and unknown ids, spreadsheet-formula
-neutralisation, deploying and deleting a user-defined use case, `merionctl doctor`, and, in Keep mode,
+neutralisation, deploying and deleting a user-defined use case, `merionctl doctor`, and, in Merion mode,
 that an unsigned deploy is refused while a Node-signed one is accepted and a one-byte change to the
 signed bytes is refused. It does **not** prove cell isolation or that the host eBPF pin stops a
 connection: that needs a FluxVM host (`merion-live-lab.sh`). The freeze-on-connect rule is unit-tested

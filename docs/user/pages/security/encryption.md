@@ -28,7 +28,7 @@ Summary tiles (Key Providers, Policies, Encrypted VMs, Connected Providers), the
 2. **Policies** — provider, algorithm, vMotion encryption, auto-rotate interval. **Create Policy**: name, description, provider dropdown, algorithm (**AES-256-XTS**, **AES-256-CBC**, or **ChaCha20-Poly1305**), Encrypt vMotion toggle, Auto-rotate toggle (+ days).
 3. **Encrypted VMs** — encrypted yes/no, policy, algorithm, last rotation. **Rotate Key** on encrypted VMs (confirmation).
 
-Typical flow: Add Provider → Create Policy → confirm VMs appear under Encrypted VMs → Rotate Key only when required. Keep endpoints as `https://<host>/…` (or your KMS URL) — not lab-specific IPs in shared docs.
+Typical flow: Add Provider → Create Policy → confirm VMs appear under Encrypted VMs → Rotate Key only when required. Merion endpoints as `https://<host>/…` (or your KMS URL) — not lab-specific IPs in shared docs.
 
 **Empty / fail:** Error banner, empty table, or failed toast — confirm you are signed in, `zyvor-fabricd` is healthy (`/readyz` on `http://127.0.0.1:<port>` or `https://<host>`), and any backend this page needs (FluxVM, storage, network) is reachable. See [Admin basics](../../admin-basics.md).
 

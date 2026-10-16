@@ -60,4 +60,4 @@ merionctl trigger add-folder log-triage inbox 30   # scan <root>/inbox every 30 
 Triggered runs send `run.finished` / `run.failed` like any run, if the approval webhook is set.
 
 `merionctl trigger list` shows each trigger's run count and last error. The console has the same list
-under **Keep history → Triggers**.
+under **Merion history → Triggers**.

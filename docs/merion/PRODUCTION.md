@@ -1,11 +1,11 @@
 # Production readiness (what landed vs what still needs hardware)
 
-## Install Keep on a host (one command)
+## Install Merion on a host (one command)
 
 On a host that already runs FluxVM:
 
 ```bash
-./scripts/deploy keep user@host            # Keep mode: signed deploys only
+./scripts/deploy keep user@host            # Merion mode: signed deploys only
 ./scripts/deploy keep user@host --dev      # dev: unsigned packs allowed
 ./scripts/deploy keep user@host --dry-run  # print the plan, change nothing
 ```
@@ -18,9 +18,9 @@ the demo template does not boot, it stops and says what to do. Re-running is saf
 
 Check a running install any time with `./scripts/merionctl doctor [--smoke]`.
 
-## Install Keep on Kubernetes
+## Install Merion on Kubernetes
 
-`charts/zyvor-merion` runs the Keep runtime as a `hostNetwork` DaemonSet next to FluxVM on each node. It does not install
+`charts/zyvor-merion` runs the Merion runtime as a `hostNetwork` DaemonSet next to FluxVM on each node. It does not install
 FluxVM: install the `zyvor-fabric` chart (or run FluxVM yourself) on the same nodes, which need `/dev/kvm`.
 
 ```bash
@@ -31,7 +31,7 @@ helm install keep charts/zyvor-merion -n keep --create-namespace \
   --set 'merion.trustedSigners={<64-hex Ed25519 public key>}'
 ```
 
-- Keep mode is on by default and the chart refuses to render without a well-formed trusted signer. The signing seed
+- Merion mode is on by default and the chart refuses to render without a well-formed trusted signer. The signing seed
   never goes in values; only the public key does.
 - The API token is generated once and kept across upgrades, or supplied with `security.existingSecret` (key
   `api-token`). The pod reads it from the Secret; it is not in the manifest.
@@ -43,7 +43,7 @@ helm install keep charts/zyvor-merion -n keep --create-namespace \
 - The chart and the image have been rendered and schema-checked (`helm lint`, `kubeconform`); they have not been run
   in a cluster, and the image has not been built.
 
-## Keep 0.1 pilot — release gate
+## Merion 0.1 pilot — release gate
 
 Run on a customer-like FluxVM host with a registered agent template (`node22-agent` / `agent-node`; bake it with `./scripts/merion-bake-node22-agent.sh`):
 
@@ -56,10 +56,10 @@ MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-pilot-gate.sh
 |---|---|
 | Template required | Missing template → **FAIL** (no soft PASS) |
 | Happy + deny | Gate runs twice; deny path shows no unapproved mutate |
-| Signed Keep mutations | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; startup rejects empty signers. PUT policy needs `X-Merion-Policy-Signature`; POST agent needs `X-Merion-Manifest-Signature` over the exact JSON body. |
+| Signed Merion mutations | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; startup rejects empty signers. PUT policy needs `X-Merion-Policy-Signature`; POST agent needs `X-Merion-Manifest-Signature` over the exact JSON body. |
 | Session / cockpit / restart | Cockpit `software-test`; session recovers after runtime restart |
 | OOB approvals | Webhook + approve/deny outside agent chat |
-| Console Keep view | `/app/merion/:sessionId` — goal, task, evidence, approval, outcome |
+| Console Merion view | `/app/merion/:sessionId` — goal, task, evidence, approval, outcome |
 | infra-ops pack | `./scripts/merion-pack-demo.sh infra-ops` |
 
 Latest archived run: [pilot-runs/20260924T182930Z](pilot-runs/20260924T182930Z/)
@@ -69,16 +69,16 @@ Latest archived run: [pilot-runs/20260924T182930Z](pilot-runs/20260924T182930Z/)
 [`scripts/merion-bake-fc-rootfs.sh`](../../scripts/merion-bake-fc-rootfs.sh);
 pilot gate prefers `node22-fc` when registered.
 
-## Keep 0.1 — live proof (lab release gate)
+## Merion 0.1 — live proof (lab release gate)
 
 | Item | How to verify |
 |---|---|
-| Stub Keep e2e (CI) | `./scripts/merion-e2e.sh` · `.github/workflows/merion.yml` |
-| **Live FluxVM Keep proof** | `MERION_E2E_FLUXVM=1 ./scripts/merion-e2e.sh` or `./scripts/merion-live-lab.sh` (needs `MERION_E2E_TEMPLATE`) |
-| Keep-mode signed policy | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; unsigned PUT → 403; unsigned deploy → 403; start refuses empty signers |
+| Stub Merion e2e (CI) | `./scripts/merion-e2e.sh` · `.github/workflows/merion.yml` |
+| **Live FluxVM Merion proof** | `MERION_E2E_FLUXVM=1 ./scripts/merion-e2e.sh` or `./scripts/merion-live-lab.sh` (needs `MERION_E2E_TEMPLATE`) |
+| Merion-mode signed policy | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; unsigned PUT → 403; unsigned deploy → 403; start refuses empty signers |
 | Credential authority | `authorize_resolve` allowlists host/method/path/user; secrets still host-env (not 0.2 unwrap) |
 | Confine | `ZYVOR_AGENT_CONFINE=1` / `confinement: strict` on live path |
-| Measured profile | `ZYVOR_AGENT_SECURITY_PROFILE=measured` (Keep mode default); cockpit `evidence_class: software-test` |
+| Measured profile | `ZYVOR_AGENT_SECURITY_PROFILE=measured` (Merion mode default); cockpit `evidence_class: software-test` |
 | Browser live view | `GET /v1/sessions/{id}/browser/view` + `/browser/screenshot` (JPEG via CDP bridge); no input takeover |
 | Cockpit / approvals | `GET /merion/cockpit?session=` · out-of-band webhook |
 
@@ -90,7 +90,7 @@ pilot gate prefers `node22-fc` when registered.
 MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-live-lab.sh
 ```
 
-To deploy in enforced Keep mode, sign the exact JSON file you send:
+To deploy in enforced Merion mode, sign the exact JSON file you send:
 
 ```bash
 merionctl policy sign agent.json   # uses MERION_POLICY_SEED; writes agent.json.sig
@@ -107,7 +107,7 @@ being treated as policy-verified; signing does not retroactively attest them.
 
 | Item | How to verify |
 |---|---|
-| Signed Keep mutations | Keep mode or `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`; PUT policy + POST deploy require matching Ed25519 signatures (`X-Merion-Policy-Signature` / `X-Merion-Manifest-Signature`) |
+| Signed Merion mutations | Merion mode or `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`; PUT policy + POST deploy require matching Ed25519 signatures (`X-Merion-Policy-Signature` / `X-Merion-Manifest-Signature`) |
 | Export-token gate | `POST /v1/export-tokens`; pack/export need `X-Merion-Export-Token` |
 | Firecracker cell | FluxVM Firecracker templates; `cell_backend: firecracker` |
 | Full pack metadata | `merionctl pack` → policy, agent pin, vault **names** (no raw secrets) |
@@ -115,7 +115,7 @@ being treated as policy-verified; signing does not retroactively attest them.
 | Runtime control-plane e2e | `agent-runtime/scripts/e2e-no-fluxvm.sh` |
 | Goals / artifacts / packs | `/v1/goals`, `/v1/artifacts`; [`examples/merion-agents/`](../../examples/merion-agents/); [`docs/merion/goals/README.md`](goals/README.md) |
 
-## Still not a TEE claim (Keep 0.2 + hardware)
+## Still not a TEE claim (Merion 0.2 + hardware)
 
 - Flipping `security.snp_launch_verified` / `tdx_launch_verified` on FluxVM
 - User-held unwrap (phone/YubiKey) before vault open

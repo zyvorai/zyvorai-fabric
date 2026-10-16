@@ -4,7 +4,7 @@
 
 ## How it works
 
-A Keep agent never holds a Google token. The host holds the OAuth client id and secret and a long-lived **refresh token** in its own environment, mints short-lived **access tokens** from them, and adds `Authorization: Bearer ...` to the agent's request at the egress broker, after the usual checks (host, method, path, port, user, approval). The cell sees only a surrogate at most.
+A Merion agent never holds a Google token. The host holds the OAuth client id and secret and a long-lived **refresh token** in its own environment, mints short-lived **access tokens** from them, and adds `Authorization: Bearer ...` to the agent's request at the egress broker, after the usual checks (host, method, path, port, user, approval). The cell sees only a surrogate at most.
 
 - Descriptor kind `oauth-refresh` in the credentials file (`ZYVOR_AGENT_CREDENTIALS_FILE`), with an `oauth` block: `token_url` (https; plain http only for loopback), `client_id_env`, `client_secret_env`, `refresh_token_env`, optional `refresh_margin_secs` (default 300).
 - At start the runtime gets a first token for each such credential and then refreshes it in the background a few minutes before it expires (retrying with backoff, 15 s up to 5 min). If a refresh fails, the credential **fails closed** (requests using it are refused) until one works; the log names the credential and Google's error code (for example `invalid_grant`), never a secret.
@@ -23,7 +23,7 @@ A Keep agent never holds a Google token. The host holds the OAuth client id and 
    ```
 
    It opens your browser for consent (authorization code with PKCE on a loopback port) and writes `GOOGLE_REFRESH_TOKEN=...` to `google-refresh-token.env` with mode 0600. The token is not printed.
-3. Put `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_REFRESH_TOKEN` in the Keep host's environment and merge [google.credentials.json](google.credentials.json) into the credentials file.
+3. Put `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_REFRESH_TOKEN` in the Merion host's environment and merge [google.credentials.json](google.credentials.json) into the credentials file.
 4. In an agent's manifest, list the credentials it may use, for example `"credentials": ["gmail-read", "calendar-read"]`, and call `https://gmail.googleapis.com/gmail/v1/users/me/messages` or `https://www.googleapis.com/calendar/v3/calendars/primary/events` through the egress broker.
 
 ## Per-person connections (one Google account for each person on the host)
@@ -40,7 +40,7 @@ The setup above gives the whole host one Google identity. On a host with several
    ```
 
    `GET /v1/connections` lists the connections this host offers and whether *you* have set each (never the token). `DELETE /v1/connections/google` disconnects: the stored token and every cached access token of that person are dropped at once.
-3. When an agent of that person's session calls Gmail, Keep mints an access token from **that person's** refresh token and injects it. Another person's session never gets it, a session with no user cannot use a per-person credential at all, and a person who has not connected gets a refusal that says to connect first.
+3. When an agent of that person's session calls Gmail, Merion mints an access token from **that person's** refresh token and injects it. Another person's session never gets it, a session with no user cannot use a per-person credential at all, and a person who has not connected gets a refusal that says to connect first.
 
 What this does and does not do: the refresh token is write-only over the API (never returned, listed, logged or journaled; the journal records only that a connection was set, removed or accessed by the operator) and is held in a host file (mode 0600), one per person. As with the vault, **the operator of the host can read those files**; per-person connections separate people from each other, not from the operator. A name can be set only if some credential on the host asks for it.
 
@@ -56,7 +56,7 @@ What this does and does not do: the refresh token is write-only over the API (ne
 
 An entry in `path_prefixes` that ends in `$` matches that exact path only. (An earlier version of `gmail-draft` listed the plain prefix `/gmail/v1/users/me/drafts`, which also matched `/drafts/send`, contrary to what this page said; it is now exact, and a request that is not a renderable message is refused anyway, see the next section.)
 
-The scopes match: the auth script asks for `gmail.readonly` and `calendar.readonly` by default and adds `gmail.compose` with `--with-drafts`, `gmail.send` with `--with-send` and `calendar.events` with `--with-events`. Scopes are Google's limit; the descriptor's method and path lists are Keep's, and both apply. Ask only for what you use: `gmail.compose` also lets Google send mail, so with it the only thing between an agent and a send is Keep's path list and the approval.
+The scopes match: the auth script asks for `gmail.readonly` and `calendar.readonly` by default and adds `gmail.compose` with `--with-drafts`, `gmail.send` with `--with-send` and `calendar.events` with `--with-events`. Scopes are Google's limit; the descriptor's method and path lists are Merion's, and both apply. Ask only for what you use: `gmail.compose` also lets Google send mail, so with it the only thing between an agent and a send is Merion's path list and the approval.
 
 ## What the person sees before they approve
 
@@ -98,7 +98,7 @@ The rendering is on the approval (`preview`, in `GET /v1/inbox` and `GET /v1/app
 Same shape as Google: a credential the host injects, per person, with writes decided on the phone against a preview the host rendered. What differs is Microsoft's OAuth, and the descriptors say so.
 
 - **A public client, no secret.** You register an app (Microsoft Entra admin center, "App registrations") as a *public client* with the redirect URI `http://localhost` and the delegated Graph permissions you will use. Its Application (client) ID goes in the host's `MICROSOFT_CLIENT_ID`. `client_secret_env` is empty in the descriptors, and no `client_secret` is sent (Microsoft refuses an empty one).
-- **Refresh tokens rotate.** Every refresh returns a new refresh token. Keep stores it (per person, only if the connection still holds the token that was used, so a disconnect or a re-connect meanwhile is never undone). That is why there is **only a per-person descriptor file** for Microsoft, [microsoft.per-person.credentials.json](microsoft.per-person.credentials.json): a host-wide token lives in the environment and cannot be replaced, and Keep logs a warning if a host-wide credential is ever rotated.
+- **Refresh tokens rotate.** Every refresh returns a new refresh token. Merion stores it (per person, only if the connection still holds the token that was used, so a disconnect or a re-connect meanwhile is never undone). That is why there is **only a per-person descriptor file** for Microsoft, [microsoft.per-person.credentials.json](microsoft.per-person.credentials.json): a host-wide token lives in the environment and cannot be replaced, and Merion logs a warning if a host-wide credential is ever rotated.
 - **Narrow tokens.** The new `oauth.scope` field is sent in the refresh request, so each credential's access token carries only what it needs even though you consented to more: `outlook-read` gets `Mail.Read`, `outlook-send` gets `Mail.Send`, and so on (plus `offline_access`).
 - **Sign in:** `MICROSOFT_CLIENT_ID=... scripts/merion-microsoft-auth.py` (`--with-drafts`, `--with-send`, `--with-events`, `--tenant`), then `PUT /v1/connections/microsoft` with the token, exactly like Google's ([per-person connections](#per-person-connections-one-google-account-for-each-person-on-the-host)).
 

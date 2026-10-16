@@ -19,18 +19,18 @@ export default function PhoneVendorPage(): ReactNode {
 
   return (
     <Layout
-      title="Keep for phone makers — an agent computer per user, the keys on the phone"
-      description="How an Android maker or any company with a phone and an account system can offer users a personal agent: a sealed Keep cell in the vendor's cloud, approvals signed by the phone's own key.">
+      title="Merion for phone makers — an agent computer per user, the keys on the phone"
+      description="How an Android maker or any company with a phone and an account system can offer users a personal agent: a sealed Merion cell in the vendor's cloud, approvals signed by the phone's own key.">
       <Head>
         <meta property="og:image" content={card} />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <Page>
         <HeroShell
-          eyebrow="Zyvor Keep · for phone makers"
+          eyebrow="Zyvor Merion · for phone makers"
           title="Every user gets an agent computer."
           accent="The phone holds the keys."
-          sub="A blueprint for an Android maker, or anyone with a phone and an account system: a sealed Keep cell per job in your cloud, approvals that only the user’s enrolled phone key can sign, and the model you choose."
+          sub="A blueprint for an Android maker, or anyone with a phone and an account system: a sealed Merion cell per job in your cloud, approvals that only the user’s enrolled phone key can sign, and the model you choose."
           buttons={
             <>
               <a className="button button--primary button--lg" href="#shape">
@@ -53,14 +53,14 @@ export default function PhoneVendorPage(): ReactNode {
           <Section
             id="shape"
             eyebrow="The shape"
-            title="You run the accounts and the phones. Keep runs the cells."
-            lede="Keep stays a single-host building block. You run many hosts, put a gateway in front, and route each user to one."
+            title="You run the accounts and the phones. Merion runs the cells."
+            lede="Merion stays a single-host building block. You run many hosts, put a gateway in front, and route each user to one."
             wide>
             <Reveal>
               <Figure
                 file="vendor-architecture.svg"
-                alt="Architecture: phone, vendor gateway, push relay and model on the vendor side; shards running Keep and FluxVM cells on the Keep side."
-                caption="Purple is yours, blue is Keep. Dashed boxes are interfaces Keep defines and you implement."
+                alt="Architecture: phone, vendor gateway, push relay and model on the vendor side; shards running Merion and FluxVM cells on the Merion side."
+                caption="Purple is yours, blue is Merion. Dashed boxes are interfaces Merion defines and you implement."
                 minWidth={900}
               />
             </Reveal>
@@ -79,7 +79,7 @@ export default function PhoneVendorPage(): ReactNode {
               </li>
               <li>
                 <i style={{background: 'var(--c-accent)'}} />
-                Keep provides
+                Merion provides
               </li>
             </ul>
             <ul className={styles.split}>
@@ -124,7 +124,7 @@ export default function PhoneVendorPage(): ReactNode {
               <Figure
                 file="approval-handshake.svg"
                 alt="Sequence: the agent asks, the shard opens an approval and pushes through the relay, the phone signs and the shard verifies before the action runs."
-                caption="Keep never embeds a vendor push SDK: it posts a signed message to a relay you run. This proves the enrolled key made this decision. It does not make the vault user-held."
+                caption="Merion never embeds a vendor push SDK: it posts a signed message to a relay you run. This proves the enrolled key made this decision. It does not make the vault user-held."
                 minWidth={900}
               />
             </Reveal>
@@ -142,7 +142,7 @@ export default function PhoneVendorPage(): ReactNode {
                 alt="Two users on one shard, each with their own sessions, cells, approvals, artifacts and audit rows; cross-user requests answer 404."
                 caption={
                   <>
-                    Details in <Link to="/docs/merion/TENANCY">Many users on one Keep</Link>.
+                    Details in <Link to="/docs/merion/TENANCY">Many users on one Merion</Link>.
                   </>
                 }
                 minWidth={860}
@@ -192,7 +192,7 @@ export default function PhoneVendorPage(): ReactNode {
               ))}
             </ul>
             <p style={{marginTop: '1rem'}}>
-              These are extractive: no model reads the file, and none reads photos or screenshots (Keep does no OCR). They
+              These are extractive: no model reads the file, and none reads photos or screenshots (Merion does no OCR). They
               handle sensitive files, and the evidence class is software-test, so the host’s operator could still read a
               cell’s memory. Details and how to copy one for your language:{' '}
               <Link to="/docs/merion/SCENARIOS#phone-user-packs">Phone-user packs</Link>.
@@ -319,13 +319,13 @@ export default function PhoneVendorPage(): ReactNode {
             <ul className={styles.links}>
               <li>
                 <Link to="/docs/merion/VENDORS">
-                  <b>1. Keep for a phone vendor</b>
+                  <b>1. Merion for a phone vendor</b>
                   <span>The blueprint, sizing, regions, claims, and questions for your counsel.</span>
                 </Link>
               </li>
               <li>
                 <Link to="/docs/merion/TENANCY">
-                  <b>2. Many users on one Keep</b>
+                  <b>2. Many users on one Merion</b>
                   <span>User tokens, isolation, quotas, usage and revocation.</span>
                 </Link>
               </li>
@@ -349,7 +349,7 @@ export default function PhoneVendorPage(): ReactNode {
               </li>
               <li>
                 <Link to="/docs/merion/">
-                  <b>6. Keep itself</b>
+                  <b>6. Merion itself</b>
                   <span>The cell, policy, vault and audit that everything above stands on.</span>
                 </Link>
               </li>
@@ -358,8 +358,8 @@ export default function PhoneVendorPage(): ReactNode {
 
           <HonestyBand
             items={[
-              'Evidence class is software-test: the vendor’s operators can still read a cell’s memory and the secrets in the host environment. Confidential hardware with user-held keys is the goal of Keep 0.2 and is not available.',
-              'Keep makes no compliance claim for any country or industry. Questions about data location, model licensing and content rules belong with your own counsel and security team.',
+              'Evidence class is software-test: the vendor’s operators can still read a cell’s memory and the secrets in the host environment. Confidential hardware with user-held keys is the goal of Merion 0.2 and is not available.',
+              'Merion makes no compliance claim for any country or industry. Questions about data location, model licensing and content rules belong with your own counsel and security team.',
               'Meta’s Muse is described only as publicly reported. Corrections welcome.',
             ]}
           />
@@ -369,7 +369,7 @@ export default function PhoneVendorPage(): ReactNode {
               Read the guide
             </Link>
             <Link className="button button--outline button--lg button--secondary" to="/merion">
-              About Keep
+              About Merion
             </Link>
           </CtaBand>
         </main>

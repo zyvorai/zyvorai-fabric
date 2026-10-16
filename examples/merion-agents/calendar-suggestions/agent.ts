@@ -1,6 +1,6 @@
 import { defineAgent } from "@zyvor/fabric-agent";
 
-// A proactive suggestion finder — the "keeps working after you close the app" piece of a personal agent, built the way Keep does
+// A proactive suggestion finder — the "keeps working after you close the app" piece of a personal agent, built the way Merion does
 // everything else: heuristic, bounded, and only ever a *suggestion* (docs/merion/suggestions/README.md). No model, no learned behaviour,
 // no network beyond the one read. Meant to run on a schedule (`POST /v1/schedules`, e.g. once a day), the same as any other
 // `suggestions: true` agent; a person still decides whether to accept each one, and accepting only makes an ordinary goal.

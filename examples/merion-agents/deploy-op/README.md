@@ -1,4 +1,4 @@
-# deploy-op — Keep packaged agent
+# deploy-op — Merion packaged agent
 
 Customer deployment readiness. Probes fabricd `/readyz` and `/health`, emits a
 readiness artifact mapped to [FABRIC_DOCTOR](../../../docs/FABRIC_DOCTOR.md).

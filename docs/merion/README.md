@@ -2,21 +2,21 @@
 
 <img src="../assets/merion/cockpit.svg" alt="The Merion cockpit: a sealed cell, zero outbound connections, an approval waiting for you, and split-sight between the agent and you." width="900">
 
-# Keep
+# Merion
 
 **Your agent gets a real computer. You keep the keys.**
 
-Keep gives an untrusted AI agent its own sealed computer on hardware you control,
+Merion gives an untrusted AI agent its own sealed computer on hardware you control,
 while you hold the policy, the credentials and the approvals. Open source, Apache-2.0.
 
-[![Keep CI](https://github.com/zyvorai/fabric/actions/workflows/merion.yml/badge.svg)](../../.github/workflows/merion.yml)
+[![Merion CI](https://github.com/zyvorai/fabric/actions/workflows/merion.yml/badge.svg)](../../.github/workflows/merion.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](../../LICENSE)
 ![Rust](https://img.shields.io/badge/runtime-Rust-orange)
 ![Evidence](https://img.shields.io/badge/evidence-software--test-lightgrey)
 
 [**Try it in 60 seconds**](#try-it-in-60-seconds) ·
 [How it works](#how-keep-works) ·
-[Keep vs Muse](#keep-vs-meta-muse) ·
+[Merion vs Muse](#keep-vs-meta-muse) ·
 [Docs](MERION.md) ·
 [Website](https://zyvorai.github.io/fabric/merion)
 
@@ -55,18 +55,18 @@ branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.m
 
 ## Contents
 
-- [Why Keep](#why-keep)
-- [How Keep works](#how-keep-works)
+- [Why Merion](#why-keep)
+- [How Merion works](#how-keep-works)
 - [Try it in 60 seconds](#try-it-in-60-seconds)
 - [One-click use cases and ready-made agents](#one-click-use-cases-and-ready-made-agents)
 - [Build your own use case](#build-your-own-use-case)
 - [Install it on a host](#install-it-on-a-host)
 - [Security profiles and what we do not claim](#security-profiles-and-what-we-do-not-claim)
-- [Keep vs Meta Muse](#keep-vs-meta-muse)
+- [Merion vs Meta Muse](#keep-vs-meta-muse)
 - [Where everything lives](#where-everything-lives)
 - [FAQ](#faq)
 
-## Why Keep
+## Why Merion
 
 | | |
 |---|---|
@@ -74,12 +74,12 @@ branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.m
 | **You read it** | Policy is a signed `merion.policy.yaml` you can diff in git. |
 | **You take it with you** | `merionctl pack` writes your policy, agent manifest and migration notes to a folder. `merionctl unpack` restores them on another FluxVM node. Secrets are not included. |
 
-Keep starts from one assumption: **the model is compromised the moment it reads a webpage.**
+Merion starts from one assumption: **the model is compromised the moment it reads a webpage.**
 So the agent never holds real passwords, never approves its own actions, and never decides its own network rules.
 
-## How Keep works
+## How Merion works
 
-Keep has three domains, and the line between them is the whole design. The **agent cell** is the only untrusted party. Everything with authority (policy, secrets, network rules, durable state) sits on the host side of the line.
+Merion has three domains, and the line between them is the whole design. The **agent cell** is the only untrusted party. Everything with authority (policy, secrets, network rules, durable state) sits on the host side of the line.
 
 ```text
 You (phone or laptop)
@@ -105,12 +105,12 @@ You (phone or laptop)
 +---------------------------------------------------------------+
 ```
 
-Keep is a product layer of [Fabric](../../README.md) on the [agent runtime](../../agent-runtime/) and [FluxVM](https://github.com/zyvorai/fluxvm). It is not a second hypervisor and not a separate repository.
+Merion is a product layer of [Fabric](../../README.md) on the [agent runtime](../../agent-runtime/) and [FluxVM](https://github.com/zyvorai/fluxvm). It is not a second hypervisor and not a separate repository.
 
-The [agent SDK](../../sdk/agent-runtime/README.md#keep-approvals-and-evidence) also exposes Keep's operator
+The [agent SDK](../../sdk/agent-runtime/README.md#keep-approvals-and-evidence) also exposes Merion's operator
 APIs (`keep.approvals.list()` / `decide()` and evidence queries) to your own code. It needs a runtime API token; a
 user token sees only its own sessions and needs the `approve` scope to decide, and an agent's sandbox token cannot
-call these routes. Keep never approves an action on the agent's behalf.
+call these routes. Merion never approves an action on the agent's behalf.
 
 For incident handoff, the [agent SDK evidence CLI](../../sdk/agent-runtime/README.md#session-evidence-bundles)
 collects a bounded session cockpit, audit export and action receipts into a private JSON snapshot.
@@ -146,7 +146,7 @@ taint:
 - **Deny by default.** Anything not listed is refused.
 - **Ask levels** per rule: `always`, `first` or `never`.
 - **Taint.** After the agent reads an untrusted page, egress is blocked until you approve, and the cockpit paints the process red.
-- **Signed.** In Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) the runtime refuses to start without `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`, and every policy update must carry an Ed25519 signature over the exact YAML bytes. Unsigned policy does not load.
+- **Signed.** In Merion mode (`ZYVOR_AGENT_MERION_MODE=1`) the runtime refuses to start without `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`, and every policy update must carry an Ed25519 signature over the exact YAML bytes. Unsigned policy does not load.
 - **Changes are checked.** A policy update is compared with the one the agent runs now. One that widens access (default egress `allow`, a metadata or private host, a `*` host, a write method added, weaker approval, a removed taint guard, wider body or program rules) is refused with `409` until you resend it with `X-Merion-Policy-Ack-Risk: 1`. It is a syntactic check on what the change adds, not a proof of what a cell can reach.
 - **Body and program rules.** For MCP, JSON-RPC and GraphQL endpoints, where every call is a `POST` to one URL, an entry can limit the JSON-RPC methods, the MCP tools and the GraphQL operation types the body may use, and `binaries` limits which program in the cell may call. Both fail closed. `binaries` covers the JSON broker only and does not work for confidential cells.
 - **Drafts from denials.** `merionctl policy suggest` turns an agent's denied requests into a draft policy to read, sign and load. Nothing is applied automatically.
@@ -163,9 +163,9 @@ More: [vault/README.md](vault/README.md) (including [credentials from a file or 
 
 ### Host confinement: rules the agent cannot argue with
 
-The agent does not police its own network. Keep posts a strict policy to FluxVM, and the **host** enforces it on the sandbox's network interface with TC/eBPF, never inside the guest.
+The agent does not police its own network. Merion posts a strict policy to FluxVM, and the **host** enforces it on the sandbox's network interface with TC/eBPF, never inside the guest.
 
-| Field | What Keep sets |
+| Field | What Merion sets |
 |---|---|
 | `default_allow` | `false`: deny by default |
 | `allow_cidrs` | The gateway only |
@@ -195,12 +195,12 @@ The console shows a session as a chain: goal, current task, egress proof, honest
 
 ### A PDF brief, step by step
 
-1. **Drop in a PDF.** Keep starts a fresh cell for the job.
+1. **Drop in a PDF.** Merion starts a fresh cell for the job.
 2. **The agent works inside.** It extracts text in its cell. No browser, nothing sent out.
 3. **The host guards the door.** Only the gateway is reachable; UDP, cloud metadata and public DNS are blocked.
 4. **You get the brief.** One page in your workspace; anything risky waits for your approval.
 
-The cockpit reports `egress_connects` from Keep's own audit journal, and the demos expect it to read `0`. The built-in demos are **extractive**: they pull text out and summarise it by rule, and they do not call a model, which is why zero is an honest number. Walkthrough: [Tutorial 17](../tutorials/17-merion-pdf-brief.md).
+The cockpit reports `egress_connects` from Merion's own audit journal, and the demos expect it to read `0`. The built-in demos are **extractive**: they pull text out and summarise it by rule, and they do not call a model, which is why zero is an honest number. Walkthrough: [Tutorial 17](../tutorials/17-merion-pdf-brief.md).
 
 ## Try it in 60 seconds
 
@@ -297,11 +297,11 @@ a run on a clean machine from nothing, and `--install-fluxvm`, which follows Flu
 merionctl doctor                       # checks the install
 ```
 
-Keep mode is **fail-closed**: it requires trusted policy signers at startup, refuses unsigned policy updates, and requires a signature over each agent deployment. The production checklist is in [PRODUCTION.md](PRODUCTION.md).
+Merion mode is **fail-closed**: it requires trusted policy signers at startup, refuses unsigned policy updates, and requires a signature over each agent deployment. The production checklist is in [PRODUCTION.md](PRODUCTION.md).
 
 ## Security profiles and what we do not claim
 
-Keep runs on FluxVM's security profiles:
+Merion runs on FluxVM's security profiles:
 
 | Profile | Evidence class | Hardware attestation |
 |---|---|---|
@@ -310,16 +310,16 @@ Keep runs on FluxVM's security profiles:
 | `confidential-snp` / `confidential-tdx` | `sev-snp` / `tdx`, only after a verified hardware run | gated |
 
 > [!IMPORTANT]
-> **The quiet part.** Keep runs on measured VMs today, and its evidence class is `software-test`.
-> Until it runs on verified confidential hardware with a key only you hold (Keep 0.2),
+> **The quiet part.** Merion runs on measured VMs today, and its evidence class is `software-test`.
+> Until it runs on verified confidential hardware with a key only you hold (Merion 0.2),
 > **the host can still see inside the VM.** We will not claim otherwise. The cockpit shows an
 > honesty badge, and the UI must never say "the operator cannot read this" while the class is `software-test`.
 
-## Keep vs Meta Muse
+## Merion vs Meta Muse
 
-Muse got the threat model right. Keep is the version you run, read and take with you. The Muse-side details below come from Meta's own announcement (first source under the table) and public reporting, and may change.
+Muse got the threat model right. Merion is the version you run, read and take with you. The Muse-side details below come from Meta's own announcement (first source under the table) and public reporting, and may change.
 
-| | Meta Muse | Keep |
+| | Meta Muse | Merion |
 |---|---|---|
 | Where it runs | Meta's cloud only; not self-hostable. | Your hardware, under Apache-2.0. |
 | The cell | Its own dedicated cloud VM; a separate Sentinel runs on the same machine, kept apart from the agent at the system level. Meta's announcement does not describe how the agent is separated inside that VM. | A Firecracker/KVM microVM per cell on FluxVM, with its own kernel; the network policy is applied by the host, outside the guest. |
@@ -330,10 +330,10 @@ Muse got the threat model right. Keep is the version you run, read and take with
 | Browser | An accessibility-tree browser agent. | The same idea: the agent sees structure, you see pixels. |
 | Operator access | Governed by Meta's operational policies, not cryptography. | The same limit today, stated up front (see above). |
 
-Full matrix: [homepage matrix](https://zyvorai.github.io/fabric/?t=stack#matrix). Longer read: [Keep vs Meta Muse](https://zyvor.dev/blog/keep-vs-meta-muse).
+Full matrix: [homepage matrix](https://zyvorai.github.io/fabric/?t=stack#matrix). Longer read: [Merion vs Meta Muse](https://zyvor.dev/blog/keep-vs-meta-muse).
 
-**Keep and personal-agent apps.** Apps offer chat clients, connectors and durable tasks; Keep is the sealed runtime under such an app: a microVM, a host-enforced deny-all
-network policy and device-signed approvals. They fit together more than they compete; see [Keep and personal-agent apps](MERION-AND-AGENT-APPS.md), including where Keep is behind today.
+**Merion and personal-agent apps.** Apps offer chat clients, connectors and durable tasks; Merion is the sealed runtime under such an app: a microVM, a host-enforced deny-all
+network policy and device-signed approvals. They fit together more than they compete; see [Merion and personal-agent apps](MERION-AND-AGENT-APPS.md), including where Merion is behind today.
 
 Sources for the Muse column: [Meta, "Introducing Muse", 2026-09](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/) (the VM, Sentinel, launch platforms iOS, Android and web plus WhatsApp, and the announced Confidential VM) · [MarkTechPost, 2026-09-08](https://www.marktechpost.com/2026/09/08/meta-introduces-muse-a-personal-ai-agent-that-runs-on-its-own-dedicated-secure-cloud-computer/) · [Vellum, "Official Muse Breakdown"](https://www.vellum.ai/blog/official-muse-breakdown) · [DEV Community, "Meta Muse and the Secure VM Bet"](https://dev.to/ifynx_studio/meta-muse-and-the-secure-vm-bet-personal-agents-that-act-without-owning-your-secrets-1ik4). Zyvor is not affiliated with Meta; if a Muse row is out of date, please open an issue.
 
@@ -352,34 +352,34 @@ Sources for the Muse column: [Meta, "Introducing Muse", 2026-09](https://about.f
 
 ## FAQ
 
-**Does Keep need a model?** No. The built-in demos call no model at all. A use case you write can opt in to one host-side model step (a hosted API, a local model or your own service) that needs the vault to allow the endpoint and your approval on first use: see [MODEL.md](MODEL.md).
+**Does Merion need a model?** No. The built-in demos call no model at all. A use case you write can opt in to one host-side model step (a hosted API, a local model or your own service) that needs the vault to allow the endpoint and your approval on first use: see [MODEL.md](MODEL.md).
 
 **Can I try it without KVM?** Yes. Steps 1 and 2 of [Try it](#try-it-in-60-seconds) run against a FluxVM stand-in. A real cell needs a FluxVM host.
 
-**Is Keep a hypervisor?** No. FluxVM is the VM engine; Keep is Fabric's agent runtime plus a FluxVM cell.
+**Is Merion a hypervisor?** No. FluxVM is the VM engine; Merion is Fabric's agent runtime plus a FluxVM cell.
 
-**What does `software-test` mean?** Keep runs on measured VMs with software-level evidence. It is not confidential computing, and it does not stop the host's operator from seeing inside the VM. See [the limits above](#security-profiles-and-what-we-do-not-claim).
+**What does `software-test` mean?** Merion runs on measured VMs with software-level evidence. It is not confidential computing, and it does not stop the host's operator from seeing inside the VM. See [the limits above](#security-profiles-and-what-we-do-not-claim).
 
 **Can I leave?** Yes. `merionctl pack` and `merionctl unpack` move your policy and agent to another FluxVM node. Secrets stay in the vault and are not exported.
 
 ## For phone makers
 
-An Android maker (or anyone with a phone and an account system) can offer users a personal agent: a sealed Keep cell
+An Android maker (or anyone with a phone and an account system) can offer users a personal agent: a sealed Merion cell
 per job in the vendor's cloud, approvals that only the user's enrolled phone key can sign, and the vendor's choice of
-model. Keep is the building block; the vendor runs the accounts, the gateway, the push relay and the shards.
+model. Merion is the building block; the vendor runs the accounts, the gateway, the push relay and the shards.
 
-![Architecture for a phone vendor: phone, vendor gateway, push relay and model on the vendor side; shards running Keep and FluxVM cells.](../assets/merion/vendor-architecture.svg)
+![Architecture for a phone vendor: phone, vendor gateway, push relay and model on the vendor side; shards running Merion and FluxVM cells.](../assets/merion/vendor-architecture.svg)
 
 Start with [VENDORS.md](VENDORS.md); it lists what is built, what is reference code and what is not built.
 
 ## Where to go next
 
 - [KEEP.md](MERION.md) — the full spec, architecture and security profiles
-- [Tutorial 16 — Keep workstation](../tutorials/16-merion-workstation.md) · [17 — PDF brief](../tutorials/17-merion-pdf-brief.md) · [18 — use cases](../tutorials/18-merion-use-cases.md) · [19 — your own use case](../tutorials/19-build-your-own-use-case.md)
-- [MACOS-APP.md](MACOS-APP.md) — Solvor, the native Mac client for Keep
-- [RECIPES.md](RECIPES.md) — calling Keep from Siri Shortcuts, macOS, Windows and other agents
-- [VENDORS.md](VENDORS.md) — offering Keep to many users, as a phone vendor might · [picture version](https://zyvorai.github.io/fabric/merion/phones)
+- [Tutorial 16 — Merion workstation](../tutorials/16-merion-workstation.md) · [17 — PDF brief](../tutorials/17-merion-pdf-brief.md) · [18 — use cases](../tutorials/18-merion-use-cases.md) · [19 — your own use case](../tutorials/19-build-your-own-use-case.md)
+- [MACOS-APP.md](MACOS-APP.md) — Solvor, the native Mac client for Merion
+- [RECIPES.md](RECIPES.md) — calling Merion from Siri Shortcuts, macOS, Windows and other agents
+- [VENDORS.md](VENDORS.md) — offering Merion to many users, as a phone vendor might · [picture version](https://zyvorai.github.io/fabric/merion/phones)
 - [PRODUCTION.md](PRODUCTION.md) — production checklist · [STATUS.md](STATUS.md) — what ships today
-- [Fabric](../../README.md) — the control plane Keep runs on
+- [Fabric](../../README.md) — the control plane Merion runs on
 
 License: Apache-2.0.

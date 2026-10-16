@@ -13,6 +13,6 @@ It expects the default columns (`HotFixID`, `Description`, `InstalledBy`, `Insta
 (without it the first line is a `#TYPE` comment and the header is not found). It counts and lists; it does not know
 which KBs your machine should have. The summary shows the account names in `InstalledBy`.
 
-**Not this:** Keep does not connect to your PC. It reads a file you export, in a sealed Linux cell. **The sample is written from the command's documented layout; it has not been checked against an export from a real Windows machine**, so try the pack on your own export before relying on it.
+**Not this:** Merion does not connect to your PC. It reads a file you export, in a sealed Linux cell. **The sample is written from the command's documented layout; it has not been checked against an export from a real Windows machine**, so try the pack on your own export before relying on it.
 
 These files describe a real machine and can contain hostnames, user names and installed software, so treat the summary as sensitive as the export. The cell has no network (the run reports `0` outbound connections) and no model reads the file, but the evidence class is `software-test`: whoever operates the host could still read a cell's memory ([VENDORS.md](../../../docs/merion/VENDORS.md)).

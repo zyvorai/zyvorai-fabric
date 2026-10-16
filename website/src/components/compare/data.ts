@@ -118,7 +118,7 @@ export const ROADMAP: RoadItem[] = [
   {
     id: 'pilot',
     state: 'shipped',
-    title: 'Keep 0.1 pilot',
+    title: 'Merion 0.1 pilot',
     points: ['Live gate passed twice on a FluxVM host', 'Happy path and deny path'],
     href: '/docs/merion/pilot-runs/',
     cta: 'Pilot runs',
@@ -126,14 +126,14 @@ export const ROADMAP: RoadItem[] = [
   {
     id: 'keep01',
     state: 'shipped',
-    title: 'Keep 0.1',
+    title: 'Merion 0.1',
     points: [
       'BYO model socket, signed Sentinel policy',
       'Phone approvals, pack / unpack',
       'Cockpit, PDF brief, host eBPF pin',
     ],
     href: '/docs/merion/',
-    cta: 'Keep docs',
+    cta: 'Merion docs',
   },
   {
     id: 'browser03',
@@ -150,13 +150,13 @@ export const ROADMAP: RoadItem[] = [
   {
     id: 'keep02',
     state: 'gated',
-    title: 'Keep 0.2',
+    title: 'Merion 0.2',
     points: [
       'Soft scaffolding complete: attestation receipt, no host recover on confidential',
       'Pending hardware: user-held unwrap, verified SNP/TDX flags',
     ],
     href: '/docs/merion/MERION-0.2',
-    cta: 'Keep 0.2',
+    cta: 'Merion 0.2',
   },
   {
     id: 'next',
@@ -218,7 +218,7 @@ export const RUNS: Run[] = [
 
 export const GATE_CHECKS: [check: string, result: string][] = [
   ['Template required', 'Missing template → FAIL'],
-  ['Keep mode policy', 'Unsigned PUT refused; empty signers refuse start'],
+  ['Merion mode policy', 'Unsigned PUT refused; empty signers refuse start'],
   ['Session + cockpit', 'evidence_class: software-test; restart recovers session'],
   ['Out-of-band approval', 'Approve and deny paths; no unapproved mutate'],
   ['Packaged agents', 'examples/merion-agents/ + goals and artifacts'],

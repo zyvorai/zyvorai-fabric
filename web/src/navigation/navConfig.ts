@@ -107,7 +107,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: 'Backups', path: '/app/backups', icon: Save },
       { label: 'Container Groups', path: '/app/container-groups', icon: Boxes },
       { label: 'AI Workloads', path: '/app/ai', icon: Bot },
-      { label: 'Keep', path: '/app/merion', icon: Shield },
+      { label: 'Merion', path: '/app/merion', icon: Shield },
       { label: 'Agents', path: '/app/agents', icon: Bot },
       { label: 'Sessions', path: '/app/sessions', icon: Activity },
       { label: 'Quotas', path: '/app/quotas', icon: Shield },

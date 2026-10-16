@@ -6,12 +6,12 @@ same no-code pack as before, so it takes a few minutes.
 
 **Level:** Beginner  
 **Time:** 10 minutes  
-**Needs:** A Fabric + Keep runtime with FluxVM (`./scripts/deploy keep user@host` sets one up),
+**Needs:** A Fabric + Merion runtime with FluxVM (`./scripts/deploy keep user@host` sets one up),
 Node 20+ for the CLI, `cd sdk/agent-runtime && npm ci` once.
 
 > **Honesty.** The digest is **extractive** and rule-based: it picks out lines that mention your keywords
 > and counts what repeats. **No model reads your mail**, and nothing in the file runs. There is **no mailbox
-> connection**: you export, Keep reads the file inside the sealed cell. Evidence class stays `software-test`,
+> connection**: you export, Merion reads the file inside the sealed cell. Evidence class stays `software-test`,
 > and zero CONNECT means the cell made no outbound connection, not "the operator cannot read the VM".
 
 ---
@@ -65,7 +65,7 @@ Export a month at a time, as plain text, from your mail client: `.txt`, `.eml` o
 ./scripts/merionctl deploy examples/merion-agents/inbox-digest --test       # deploy, run on the sample, require 0 CONNECT
 ```
 
-You should see `test passed: inbox-digest.md, 0 CONNECT`. Or use the console: **Keep** (`/app/merion`) →
+You should see `test passed: inbox-digest.md, 0 CONNECT`. Or use the console: **Merion** (`/app/merion`) →
 **Deploy your own use case** → paste `pack.json` (JSON tab).
 
 ## Step 3: run it on your export
@@ -93,15 +93,15 @@ case, no regular expressions and no commands. See [PACKS.md](../merion/PACKS.md)
 
 ## What this does not do
 
-- **No live inbox.** Keep does not connect to a mailbox; there is no IMAP, SMTP or mail-provider sign-in
-  in Keep today. You export, it reads.
+- **No live inbox.** Merion does not connect to a mailbox; there is no IMAP, SMTP or mail-provider sign-in
+  in Merion today. You export, it reads.
 - **No sorting into folders**, no grouping by thread, no ranking by importance. It groups lines by keyword.
 - **No model.** The digest cannot summarise in its own words, and it cannot reply, send or delete anything.
 - **Only the first 300 000 bytes**, and only text the extractor can read as plain text.
 
 If you want a live mailbox, that is a custom agent pack (Tutorial 19, part 2) that you write against a
 mail provider's HTTPS API, with the credential in the vault and every send or delete behind an approval.
-It is a pattern the runtime supports, not something Keep ships.
+It is a pattern the runtime supports, not something Merion ships.
 
 ## Next
 

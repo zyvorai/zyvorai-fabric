@@ -19,7 +19,7 @@ process. The starting point is [`pack-template/`](pack-template/) (a valid pack 
 ```bash
 cargo test --manifest-path agent-runtime/Cargo.toml --lib every_shipped     # validates every shipped pack with the runtime's own checks
 ./scripts/merionctl deploy examples/merion-agents/<your-pack> --dry-run
-./scripts/merionctl deploy examples/merion-agents/<your-pack> --test           # runs the sample in a real cell (needs a Keep host)
+./scripts/merionctl deploy examples/merion-agents/<your-pack> --test           # runs the sample in a real cell (needs a Merion host)
 ```
 
 ## What a good pack looks like

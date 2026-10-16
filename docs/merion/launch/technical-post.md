@@ -3,7 +3,7 @@
 *Draft. Edit freely; check every number against a run before you publish.*
 
 Most "summarise this" tools work by sending your file somewhere. That is a hard sell for a bank statement, a contract or a phone export.
-Keep does the reading in a **sealed cell**: a throw-away microVM with no network, on a host you run. The file goes in, a summary comes
+Merion does the reading in a **sealed cell**: a throw-away microVM with no network, on a host you run. The file goes in, a summary comes
 out, the cell is deleted, and every result says how many outbound connections the cell made. The answer is zero, and you can check it.
 
 ## What is actually in the cell
@@ -26,12 +26,12 @@ Both print the outbound-connection count for every run. The count comes from the
 ## What we do not claim
 
 The evidence class is `software-test`. The cell has no network, but whoever operates the host could still read a cell's memory. Hardware
-attestation (AMD SEV-SNP or Intel TDX) is designed but gated on a verified hardware run, and until that exists Keep does not say "confidential".
+attestation (AMD SEV-SNP or Intel TDX) is designed but gated on a verified hardware run, and until that exists Merion does not say "confidential".
 That is why you run the host yourself.
 
 ## Try it
 
 Solvor is a Mac app for it: drop a file, get the answer, see the proof. Install steps and the honest list of what is and is not verified
-are in the Solvor README. The Keep host is one command on a Linux machine with KVM (`scripts/merion-up.sh`; see the TODO for what is tested).
+are in the Solvor README. The Merion host is one command on a Linux machine with KVM (`scripts/merion-up.sh`; see the TODO for what is tested).
 
 [TODO before posting: a screen recording, the release link, and a run of the two commands above on the machine you are quoting from.]

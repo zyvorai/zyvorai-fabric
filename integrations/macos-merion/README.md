@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Drop a file. Get answers. Nothing leaves the cell.</b><br>
-  A native Mac app for <a href="https://github.com/zyvorai/fabric">Keep</a>: every file is read inside a sealed cell that has no network,<br>
+  A native Mac app for <a href="https://github.com/zyvorai/fabric">Merion</a>: every file is read inside a sealed cell that has no network,<br>
   and every result shows the proof, the number of outbound connections the cell made.
 </p>
 
@@ -24,7 +24,7 @@
 ## Why
 
 Statements, chat exports, contracts, logs, decks, receipts: the files people most want summarised are the ones they least
-want to upload to a service that keeps them. Solvor sends the file to a **Keep host you run**. The host boots a throw-away
+want to upload to a service that keeps them. Solvor sends the file to a **Merion host you run**. The host boots a throw-away
 microVM with no network, reads the file there with a fixed extractor (no model is involved unless a use case says so and your
 host allows it), returns the summary, and throws the cell away. Solvor shows the result and what the cell did.
 
@@ -59,7 +59,7 @@ host allows it), returns the summary, and throws the cell away. Solvor shows the
 
 ```mermaid
 flowchart LR
-  A[Your Mac<br/>Solvor] -- file + user token --> B[Your Keep host]
+  A[Your Mac<br/>Solvor] -- file + user token --> B[Your Merion host]
   B -- boots --> C[[Sealed cell<br/>no network]]
   C -- summary + 0 outbound connections --> B
   B -- result + proof --> A
@@ -76,7 +76,7 @@ flowchart LR
 
 ## Quick start
 
-You need a Keep host ([zyvorai/fabric](https://github.com/zyvorai/fabric), on a Linux machine with FluxVM) and a scoped **user token**
+You need a Merion host ([zyvorai/fabric](https://github.com/zyvorai/fabric), on a Linux machine with FluxVM) and a scoped **user token**
 (`POST /v1/user-tokens`, scopes `read run approve`), not the operator token. Solvor needs **macOS 26** (Tahoe) and Xcode 26 to build: it is built on the Liquid Glass styles.
 
 ```bash
@@ -108,7 +108,7 @@ Liquid Glass throughout (cards, buttons, sidebar) in the system accent colour. T
 
 ## Honest status
 
-Verified against a real Keep host with real cells: connecting and listing, running files, batches, the watched-folder flow end to end, the
+Verified against a real Merion host with real cells: connecting and listing, running files, batches, the watched-folder flow end to end, the
 email pipeline (page text to `.eml` to a use case), and approval signing against the runtime's own test vectors.
 
 Built but **not verified** here, because each needs your permission or your hardware (a step-by-step checklist is in [docs/VERIFY.md](docs/VERIFY.md)): reading a real logged-in webmail page (needs
@@ -122,7 +122,7 @@ polled every 20 s while the app runs), a Share-sheet extension, and Firefox emai
 ## Where this lives
 
 This repository is a **snapshot** of [`integrations/macos-merion`](https://github.com/zyvorai/fabric/tree/main/integrations/macos-merion) in
-[zyvorai/fabric](https://github.com/zyvorai/fabric), which is the source of truth for Solvor, the Keep runtime, the API and the packs.
+[zyvorai/fabric](https://github.com/zyvorai/fabric), which is the source of truth for Solvor, the Merion runtime, the API and the packs.
 Design notes and the API mapping: [docs/merion/MACOS-APP.md](https://github.com/zyvorai/fabric/blob/main/docs/merion/MACOS-APP.md).
 Please open issues and pull requests there.
 

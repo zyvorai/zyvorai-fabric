@@ -21,7 +21,7 @@ build, and the decisions only you can make, with my recommendation for each. Not
 How to read a note: **Decisions for you** at the end of each is the part to answer. Answer in a line ("1: yes, 2: A, 3: not now") and I will
 turn the answers into a build plan. Anything you leave open stays open.
 
-Rules that every note assumes (they are already how Keep works, and none of the proposals bends them):
+Rules that every note assumes (they are already how Merion works, and none of the proposals bends them):
 
 - An approval is decided on the person's own device with a signed decision, **never in the agent chat** and never by the agent.
 - The host, not the agent, renders what is being approved, from the real request.

@@ -35,7 +35,7 @@ const FALLBACK_DEMOS: DemoInfo[] = [
   },
 ]
 
-/** Keep console home: drop an untrusted file into a sealed cell, get an artifact back. */
+/** Merion console home: drop an untrusted file into a sealed cell, get an artifact back. */
 export default function MerionHome() {
   const toast = useToastContext()
   const { t, toggle } = useMerionText()
@@ -393,7 +393,7 @@ export default function MerionHome() {
                 For a TypeScript agent that needs its own code. Bundle it on your machine with{' '}
                 <code className="font-mono text-[12px]">fabric-agent pack bundle &lt;dir&gt;</code>,
                 then upload the file. It is signed with your key, which never reaches the browser.
-                {status?.merion_mode ? ' This runtime is in Keep mode: only signed packs deploy.' : ''}
+                {status?.merion_mode ? ' This runtime is in Merion mode: only signed packs deploy.' : ''}
               </p>
             </div>
             <button
@@ -422,7 +422,7 @@ export default function MerionHome() {
           <p>
             Built-in summaries are extractive: no model is called and nothing found in the file is run.
             A use case that has a model step says so above. Proof
-            without PacketWolf: Keep audit journal + FluxVM host{' '}
+            without PacketWolf: Merion audit journal + FluxVM host{' '}
             <code className="font-mono text-[12px]">deny_udp</code> / gateway-only L4. Evidence class
             stays <code className="font-mono text-[12px]">software-test</code>.
           </p>

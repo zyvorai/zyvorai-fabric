@@ -2,7 +2,7 @@
 
 These paths are built and unit-tested, but they need a permission, a device or a voice that only you can give, so they are still marked
 **not verified** in the [README](../README.md). Each item says what to do, what a pass looks like and what to send back. Mark an item
-verified in the README only after it passes on your Mac. Use a **user token** for a Keep host you run, never the operator token.
+verified in the README only after it passes on your Mac. Use a **user token** for a Merion host you run, never the operator token.
 
 Setup once: `make run KEEP_HOST=http://127.0.0.1:9096 KEEP_TOKEN=kut1.…` (a debug build; no Keychain prompt) or connect in Settings.
 
@@ -19,7 +19,7 @@ Setup once: `make run KEEP_HOST=http://127.0.0.1:9096 KEEP_TOKEN=kut1.…` (a de
 "Tracking links (1)" are ticked, the code `482913` and account number are hidden in the text that will be sent, and *Receivables from mail*
 is pre-selected. **Send to a sealed cell** returns a result with "0 outbound connections".
 
-**Step B, one real webmail message.** Open a message you are happy to send to your own Keep host, select just the message text (the app then
+**Step B, one real webmail message.** Open a message you are happy to send to your own Merion host, select just the message text (the app then
 reads only the selection), and repeat. Try each browser you use.
 
 **Send back:** pass or fail per browser, and for a fail the message the sheet shows. If it says the scripting switch is off, redo step 2.
@@ -44,7 +44,7 @@ reads only the selection), and repeat. Try each browser you use.
 
 ## 4. Services, menu bar, keep:// link
 
-- **Services:** in Finder, right-click a small text file, Services, **Send to Keep**. Pass: Solvor opens and runs it (first run may need Finder
+- **Services:** in Finder, right-click a small text file, Services, **Send to Merion**. Pass: Solvor opens and runs it (first run may need Finder
   Services enabled in System Settings, Keyboard, Keyboard Shortcuts, Services).
 - **Menu bar:** the Solvor glyph appears; type a question in the ask box and press Return, it should open the main window on Agent Home with that
   message already sent; drop a file on the dashed target, it routes the same way a window drop does; recent runs and waiting approvals are listed.

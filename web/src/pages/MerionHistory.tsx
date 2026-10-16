@@ -36,7 +36,7 @@ const TABS: Tab[] = ['runs', 'triggers', 'audit', 'approvals']
 const errText = (e: unknown) => (e instanceof Error ? e.message : String(e))
 const when = (iso: string) => new Date(iso).toLocaleString()
 
-/** Keep history: past runs with diff, the hash-chained audit journal, and the approval inbox. */
+/** Merion history: past runs with diff, the hash-chained audit journal, and the approval inbox. */
 export default function MerionHistory() {
   const { t, toggle } = useMerionText()
   const [tab, setTab] = useState<Tab>('runs')

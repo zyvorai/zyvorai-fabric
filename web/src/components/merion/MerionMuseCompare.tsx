@@ -4,8 +4,8 @@
 import marketing from '../../../../docs/merion/marketing.json'
 
 /**
- * Meta Muse vs Keep (+ Fabric / FluxVM) — marketing only. Rows live in
- * docs/merion/marketing.json, shared with the Keep README and the docs site; every
+ * Meta Muse vs Merion (+ Fabric / FluxVM) — marketing only. Rows live in
+ * docs/merion/marketing.json, shared with the Merion README and the docs site; every
  * row is stated in docs/merion/MERION.md.
  */
 const ROWS: { label: string; muse: string; keep: string }[] = marketing.compare
@@ -15,7 +15,7 @@ export default function MerionMuseCompare() {
     <div className="keep-mkt-versus">
       <p className="keep-mkt-stack-lede">
         Muse got the threat model right: treat the model as compromised the moment it reads a
-        webpage. Keep is the version you run, read and take with you.
+        webpage. Merion is the version you run, read and take with you.
       </p>
 
       <ol className="keep-mkt-stack" aria-label="Who does what">
@@ -26,7 +26,7 @@ export default function MerionMuseCompare() {
           </span>
         </li>
         <li>
-          <span className="keep-mkt-stack-name">Keep</span>
+          <span className="keep-mkt-stack-name">Merion</span>
           <span className="keep-mkt-stack-role">
             The open product layer: policy, vault, approvals, browser and demos.
           </span>
@@ -34,7 +34,7 @@ export default function MerionMuseCompare() {
         <li>
           <span className="keep-mkt-stack-name">Fabric</span>
           <span className="keep-mkt-stack-role">
-            The control plane: console, sign-in, agents and sessions, and the front door to Keep’s
+            The control plane: console, sign-in, agents and sessions, and the front door to Merion’s
             APIs.
           </span>
         </li>
@@ -46,13 +46,13 @@ export default function MerionMuseCompare() {
         </li>
       </ol>
       <p className="keep-mkt-stage-line">
-        Keep is not a third hypervisor. Keep is Fabric’s agent runtime plus a FluxVM cell.
+        Merion is not a third hypervisor. Merion is Fabric’s agent runtime plus a FluxVM cell.
       </p>
 
       <div className="keep-mkt-versus-head" aria-hidden>
         <span />
         <span>Meta Muse</span>
-        <span>Keep</span>
+        <span>Merion</span>
       </div>
       <ul className="keep-mkt-versus-rows">
         {ROWS.map((r) => (

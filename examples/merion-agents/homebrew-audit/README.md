@@ -13,6 +13,6 @@ The "Outdated" section fills in only for `brew outdated --verbose` output, and "
 `brew list --versions`; the other shows "(no matches)". The bundled sample is written from Homebrew's documented output
 layout (one package per line, name then versions).
 
-**Not this:** Keep does not connect to your Mac. It reads a file you export, in a sealed Linux cell.
+**Not this:** Merion does not connect to your Mac. It reads a file you export, in a sealed Linux cell.
 
 These files describe a real machine and can contain hostnames, user names and installed software, so treat the summary as sensitive as the export. The cell has no network (the run reports `0` outbound connections) and no model reads the file, but the evidence class is `software-test`: whoever operates the host could still read a cell's memory ([VENDORS.md](../../../docs/merion/VENDORS.md)).

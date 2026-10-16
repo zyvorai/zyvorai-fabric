@@ -34,6 +34,6 @@ from that text. RFC 4180 parsing (quotes, embedded newlines). Signed numbers suc
 ## Honesty
 
 The result is **extractive**: no model is called, and nothing found in the file is run,
-opened or sent. Zero CONNECT is a **Keep audit** claim (plus FluxVM `drop_reasons` when
+opened or sent. Zero CONNECT is a **Merion audit** claim (plus FluxVM `drop_reasons` when
 the dataplane is attached). PacketWolf is optional. Evidence class stays `software-test`;
 this does not mean the operator cannot read the cell.

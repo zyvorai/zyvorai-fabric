@@ -1,12 +1,12 @@
-# Keep
+# Merion
 
-> New here? Start with the [Keep README](https://github.com/zyvorai/fabric/blob/main/docs/merion/README.md). This page is the full spec.
+> New here? Start with the [Merion README](https://github.com/zyvorai/fabric/blob/main/docs/merion/README.md). This page is the full spec.
 
 **Pitch:** *the agent gets a real computer; you keep the keys, the policy, and the right to leave.*
 
-Keep is a personal workstation for an untrusted agent. Muse got the threat model right; Keep ships the open version Meta cannot: **you run it, you read it, you take it with you.**
+Merion is a personal workstation for an untrusted agent. Muse got the threat model right; Merion ships the open version Meta cannot: **you run it, you read it, you take it with you.**
 
-Apache-2.0, same as FluxVM. Keep is a **product layer in Fabric** on FluxVM —
+Apache-2.0, same as FluxVM. Merion is a **product layer in Fabric** on FluxVM —
 not a third repo and not a second VMM.
 
 **Docs home:** `fabric/docs/merion/` (this tree).  
@@ -21,10 +21,10 @@ not a third repo and not a second VMM.
 cargo test --manifest-path agent-runtime/Cargo.toml --lib
 cargo test --manifest-path agent-runtime/Cargo.toml policy -- --nocapture
 
-# Full Keep end-to-end (live runtime + FluxVM stub + merionctl)
+# Full Merion end-to-end (live runtime + FluxVM stub + merionctl)
 ./scripts/merion-e2e.sh
 
-# Lab live FluxVM proof (Keep 0.1 release gate)
+# Lab live FluxVM proof (Merion 0.1 release gate)
 ./scripts/merion-live-lab.sh
 
 # Runtime control-plane e2e (proxy / Sentinel / DLP / phone approvals)
@@ -41,7 +41,7 @@ FluxVM measured profiles (sibling repo): `./scripts/test-security-profiles.sh`
 
 ## Quiet part (read this first)
 
-Until Keep 0.2 on real SNP/TDX hardware with a user-held wrapping key:
+Until Merion 0.2 on real SNP/TDX hardware with a user-held wrapping key:
 
 > **The host can still see a measured VM.**
 
@@ -57,9 +57,9 @@ Treat the model as compromised the moment it reads a webpage.
 - Approvals are capabilities bound to a connector, not a sentence in the chat.
 - Browser driver sees an accessibility tree, not raw DOM + JS.
 
-## Why Keep beats Muse on purpose
+## Why Merion beats Muse on purpose
 
-| | Muse | Keep |
+| | Muse | Merion |
 |---|---|---|
 | Where it runs | Meta cloud only | Laptop, mini-PC, FluxVM host, rented SNP/TDX — same API |
 | Policy | Closed Sentinel | Signed `merion.policy.yaml` you can diff in git |
@@ -67,14 +67,14 @@ Treat the model as compromised the moment it reads a webpage.
 | Model | Married to Muse Spark | BYO model socket |
 | Training | Trajectories may train after sanitization | Training default **off**; export needs a scoped token |
 | Host eBPF | Not a tenant-owned pin you can show | FluxVM TC: `deny_udp` + gateway-only ports; cockpit CONNECT 0 |
-| Proof on stage | Trust Meta’s story | Keep audit journal + FluxVM `drop_reasons` (PacketWolf optional) |
+| Proof on stage | Trust Meta’s story | Merion audit journal + FluxVM `drop_reasons` (PacketWolf optional) |
 | Operator / confidential | Operator may open the VM | Confidential = no host recover; measured says so honestly |
 | Leave | Hard | `merionctl pack` / `unpack` onto another FluxVM |
 | Client surface | Fat client helper surface | vsock admin; no SSH to the agent |
 
-**Stack:** Muse (closed cloud agent) → **Keep** (product) → **Fabric** (control plane) → **FluxVM** (cell + host eBPF).
+**Stack:** Muse (closed cloud agent) → **Merion** (product) → **Fabric** (control plane) → **FluxVM** (cell + host eBPF).
 
-Muse: agent computer in Meta’s cloud. Keep: same idea on *your* FluxVM — signed policy, and CONNECT 0 from Keep’s journal + FluxVM’s pin.
+Muse: agent computer in Meta’s cloud. Merion: same idea on *your* FluxVM — signed policy, and CONNECT 0 from Merion’s journal + FluxVM’s pin.
 
 ## Architecture
 
@@ -85,13 +85,13 @@ You (phone / laptop / YubiKey)
 +------------------------------------------------------------------+
 | HOST (Linux + KVM) — FluxVM node you control                     |
 |                                                                  |
-|  [Keep Sentinel]  signed policy + egress ask/sentinel + host TC/eBPF (`deny_udp`) |
+|  [Merion Sentinel]  signed policy + egress ask/sentinel + host TC/eBPF (`deny_udp`) |
 |       ^ sole egress + connector authority                        |
 |       |                                                          |
 |  [Vault / authd]  secrets sealed to your key or vTPM             |
 |       | surrogate in, real secret only at approved egress        |
 |       v                                                          |
-|  [Keep Supervisor]  measured/confidential FluxVM guest           |
+|  [Merion Supervisor]  measured/confidential FluxVM guest           |
 |     +----------------------------------------------------------+ |
 |     | FIRECRACKER / QEMU MICROVM  (untrusted agent cell)       | |
 |     |   agent runtime + tools + workspace                      | |
@@ -111,10 +111,10 @@ Security profiles (FluxVM Phase 6):
 | `measured` | `software-test` | **never** |
 | `confidential-snp` / `confidential-tdx` | `sev-snp` / `tdx` only after verified hardware run | gated |
 
-## Keep 0.1 — shipped
+## Merion 0.1 — shipped
 
 1. **BYO model** — a manifest's `model_socket` names an OpenAI-compatible endpoint (Qwen, DeepSeek, GLM, a local server) that an agent calls with `ctx.model.chat()` through the egress broker, and that CLI agents are pointed at; it also travels with pack / unpack. One-click use cases can opt in to a host-side model step, gated by the vault and an approval. See [MODELS.md](MODELS.md) and [MODEL.md](MODEL.md).
-2. **Signed YAML Sentinel** — Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) fail-closed; `sentinel/merion.policy.yaml`.
+2. **Signed YAML Sentinel** — Merion mode (`ZYVOR_AGENT_MERION_MODE=1`) fail-closed; `sentinel/merion.policy.yaml`.
 3. **Firecracker / measured cell** — agent kernel ≠ host kernel intent; `security_profile: measured` → evidence `software-test`.
 4. **Phone-only high-risk approvals** — buy / send / delete via webhook / `/v1/approvals`, never in chat.
 5. **Pack / unpack** — `merionctl pack` → USB or S3 → `merionctl unpack` on another FluxVM node.
@@ -124,7 +124,7 @@ Security profiles (FluxVM Phase 6):
 
 Lab gate: `./scripts/merion-live-lab.sh`. Guest boot needs a FluxVM template (Tutorial 11).
 
-## Keep 0.2 — Muse’s “later,” without the wait-as-product
+## Merion 0.2 — Muse’s “later,” without the wait-as-product
 
 - User-held unwrap (phone / YubiKey) onto an attested guest.
 - Attestation receipt on the phone: image hash, profile achieved, evidence class.
@@ -161,4 +161,4 @@ fabric/agent-runtime/   # policy, model_socket, cockpit API, export-token, demos
 - Fabric: agent-runtime + **`fabricctl keep` / `merionctl`** + `docs/merion/` (this product surface)
 - Design precursor: `fabric/docs/design/confidential-agent-vms.md`
 
-There is no separate Keep git repository.
+There is no separate Merion git repository.
