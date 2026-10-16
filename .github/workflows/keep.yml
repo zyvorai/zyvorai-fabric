@@ -10,38 +10,38 @@ on:
     branches: [main, "feat/**"]
     paths:
       - "agent-runtime/**"
-      - "docs/keep/**"
-      - "scripts/keepctl"
-      - "scripts/keep-demo.sh"
-      - "scripts/keep-demo-pdf.sh"
+      - "docs/merion/**"
+      - "scripts/merionctl"
+      - "scripts/merion-demo.sh"
+      - "scripts/merion-demo-pdf.sh"
       - "sdk/agent-runtime/**"
       - "reference/vendor-gateway/**"
-      - "scripts/keep-bench.sh"
-      - "scripts/keep-live-scenarios.sh"
-      - "scripts/keep-bake-node22-agent.sh"
-      - "examples/keep-agents/**"
-      - "scripts/keep-e2e.sh"
-      - "scripts/keep-bake-browser-agent.sh"
-      - "scripts/keep-bake-browser-smoke.sh"
-      - "docs/tutorials/16-keep-workstation.md"
+      - "scripts/merion-bench.sh"
+      - "scripts/merion-live-scenarios.sh"
+      - "scripts/merion-bake-node22-agent.sh"
+      - "examples/merion-agents/**"
+      - "scripts/merion-e2e.sh"
+      - "scripts/merion-bake-browser-agent.sh"
+      - "scripts/merion-bake-browser-smoke.sh"
+      - "docs/tutorials/16-merion-workstation.md"
       - ".github/workflows/keep.yml"
   pull_request:
     paths:
       - "agent-runtime/**"
-      - "docs/keep/**"
-      - "scripts/keepctl"
-      - "scripts/keep-demo.sh"
-      - "scripts/keep-demo-pdf.sh"
+      - "docs/merion/**"
+      - "scripts/merionctl"
+      - "scripts/merion-demo.sh"
+      - "scripts/merion-demo-pdf.sh"
       - "sdk/agent-runtime/**"
       - "reference/vendor-gateway/**"
-      - "scripts/keep-bench.sh"
-      - "scripts/keep-live-scenarios.sh"
-      - "scripts/keep-bake-node22-agent.sh"
-      - "examples/keep-agents/**"
-      - "scripts/keep-e2e.sh"
-      - "scripts/keep-bake-browser-agent.sh"
-      - "scripts/keep-bake-browser-smoke.sh"
-      - "docs/tutorials/16-keep-workstation.md"
+      - "scripts/merion-bench.sh"
+      - "scripts/merion-live-scenarios.sh"
+      - "scripts/merion-bake-node22-agent.sh"
+      - "examples/merion-agents/**"
+      - "scripts/merion-e2e.sh"
+      - "scripts/merion-bake-browser-agent.sh"
+      - "scripts/merion-bake-browser-smoke.sh"
+      - "docs/tutorials/16-merion-workstation.md"
       - ".github/workflows/keep.yml"
 
 jobs:
@@ -62,11 +62,11 @@ jobs:
       - name: Template bake script (--force builds a new image beside a locked one)
         run: bash agent-runtime/tests/bake-fresh-image.sh
       - name: keep-chat proxy (token stays server-side, one route, foreign hosts refused)
-        run: python3 agent-runtime/tests/keep-chat-test.py
+        run: python3 agent-runtime/tests/merion-chat-test.py
       - name: Google consent script (PKCE, scopes, token file mode) against a fake Google
-        run: python3 agent-runtime/tests/keep-google-auth-test.py
+        run: python3 agent-runtime/tests/merion-google-auth-test.py
       - name: keep-up starter (preflight, dry run, token)
-        run: bash agent-runtime/tests/keep-up.sh
+        run: bash agent-runtime/tests/merion-up.sh
       - name: Keep / policy / credentials / export tests
         run: |
           cargo test --manifest-path agent-runtime/Cargo.toml policy -- --nocapture
@@ -117,8 +117,8 @@ jobs:
           node-version: "20"
       - name: browser-agent template smoke (no KVM)
         run: |
-          chmod +x scripts/keep-bake-browser-smoke.sh
-          ./scripts/keep-bake-browser-smoke.sh
+          chmod +x scripts/merion-bake-browser-smoke.sh
+          ./scripts/merion-bake-browser-smoke.sh
 
   keep-e2e:
     runs-on: ubuntu-latest
@@ -136,50 +136,50 @@ jobs:
         run: |
           cargo build --manifest-path agent-runtime/Cargo.toml
           cargo build --manifest-path agent-runtime/Cargo.toml --example keep_sign_policy
-      - name: Keep end-to-end (runtime + FluxVM stub + keepctl)
+      - name: Keep end-to-end (runtime + FluxVM stub + merionctl)
         run: |
-          chmod +x scripts/keepctl scripts/keep-e2e.sh
-          ./scripts/keep-e2e.sh
+          chmod +x scripts/merionctl scripts/merion-e2e.sh
+          ./scripts/merion-e2e.sh
       - name: Runtime control-plane e2e (proxy / Sentinel / DLP / approvals)
         run: |
           cargo build --manifest-path agent-runtime/Cargo.toml --release
           BIN=agent-runtime/target/release/zyvor-fabric-agent-runtime \
             bash agent-runtime/scripts/e2e-no-fluxvm.sh
-      - name: keepctl CLI surface
+      - name: merionctl CLI surface
         run: |
-          scripts/keepctl --help | grep -q policy
-          scripts/keepctl --help | grep -q pack
-          scripts/keepctl --help | grep -q export-token
+          scripts/merionctl --help | grep -q policy
+          scripts/merionctl --help | grep -q pack
+          scripts/merionctl --help | grep -q export-token
       - name: Docs present
         run: |
-          test -f docs/keep/KEEP.md
-          test -f docs/keep/KEEP-0.2.md
-          test -f docs/keep/PRODUCTION.md
-          test -f docs/keep/sentinel/keep.policy.yaml
-          test -f docs/tutorials/16-keep-workstation.md
-          test -f scripts/keep-e2e.sh
+          test -f docs/merion/MERION.md
+          test -f docs/merion/MERION-0.2.md
+          test -f docs/merion/PRODUCTION.md
+          test -f docs/merion/sentinel/merion.policy.yaml
+          test -f docs/tutorials/16-merion-workstation.md
+          test -f scripts/merion-e2e.sh
           test -f agent-runtime/examples/keep_sign_policy.rs
-          test -f docs/keep/VENDORS.md
-          test -f docs/keep/TENANCY.md
-          test -f docs/keep/mobile/test-vectors.json
+          test -f docs/merion/VENDORS.md
+          test -f docs/merion/TENANCY.md
+          test -f docs/merion/mobile/test-vectors.json
           test -f agent-runtime/templates/node22-agent/build.json
       - name: How to re-run locally
         if: always()
         run: |
           cat <<'EOF'
           Locally (full Keep e2e, no KVM):
-            ./scripts/keep-e2e.sh
+            ./scripts/merion-e2e.sh
             BIN=agent-runtime/target/release/zyvor-fabric-agent-runtime \
               ./agent-runtime/scripts/e2e-no-fluxvm.sh
 
           Against a live FluxVM lab:
-            KEEP_E2E_FLUXVM=1 ZYVOR_AGENT_FLUXVM_URL=http://127.0.0.1:7788 ./scripts/keep-e2e.sh
+            KEEP_E2E_FLUXVM=1 ZYVOR_AGENT_FLUXVM_URL=http://127.0.0.1:7788 ./scripts/merion-e2e.sh
 
           Production knobs:
             ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS=<hex32 pubkeys>
             ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE=1
             X-Keep-Export-Token for GET /v1/export/audit and GET /v1/agents/{name}/pack
 
-          Tutorial: docs/tutorials/16-keep-workstation.md
+          Tutorial: docs/tutorials/16-merion-workstation.md
           Honesty: measured = software-test; TEE host-memory = Keep 0.2 + hardware only.
           EOF

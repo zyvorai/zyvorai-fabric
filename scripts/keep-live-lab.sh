@@ -1,33 +1,4 @@
 #!/usr/bin/env bash
-# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
-#
-# Lab release gate for Keep 0.1 live proof.
-# Run on the FluxVM host (or with SSH tunnel to :7788).
-#
-#   ./scripts/keep-live-lab.sh
-#   ./scripts/keep-pilot-gate.sh   # happy + deny, archived logs
-#
-set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
-
-export KEEP_E2E_FLUXVM=1
-export ZYVOR_AGENT_FLUXVM_URL_LIVE="${ZYVOR_AGENT_FLUXVM_URL_LIVE:-http://127.0.0.1:7788}"
-export KEEP_E2E_TEMPLATE="${KEEP_E2E_TEMPLATE:-}"
-export KEEP_PILOT_MODE="${KEEP_PILOT_MODE:-happy}"
-
-echo "==> Keep 0.1 live lab gate"
-echo "    FluxVM: $ZYVOR_AGENT_FLUXVM_URL_LIVE"
-echo "    Template override: ${KEEP_E2E_TEMPLATE:-auto}"
-echo "    Pilot mode: $KEEP_PILOT_MODE"
-
-# Prefer release binary when present
-if [[ -x agent-runtime/target/release/zyvor-fabric-agent-runtime ]]; then
-  export KEEP_E2E_BIN="${KEEP_E2E_BIN:-$ROOT/agent-runtime/target/release/zyvor-fabric-agent-runtime}"
-fi
-if [[ -x agent-runtime/target/release/examples/keep_sign_policy ]]; then
-  export KEEP_SIGN_BIN="${KEEP_SIGN_BIN:-$ROOT/agent-runtime/target/release/examples/keep_sign_policy}"
-fi
-
-exec ./scripts/keep-e2e.sh
+# Deprecated name: this script is now scripts/merion-live-lab.sh. Kept so existing callers keep working.
+echo "note: scripts/keep-live-lab.sh is now scripts/merion-live-lab.sh" >&2
+exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/merion-live-lab.sh" "$@"

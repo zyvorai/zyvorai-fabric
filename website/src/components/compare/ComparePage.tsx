@@ -28,8 +28,8 @@ const UNDOC = c('Not documented publicly', 'na');
 /*
  * Muse cells are "as publicly described" — public detail is thin, see the
  * sourcing note on the page. Like the /keep page, only rows stated in
- * docs/keep/KEEP.md keep a Muse claim; the rest read "Not documented publicly". Keep/Fabric/FluxVM cells trace to
- * docs/keep/KEEP.md, docs/PRODUCT_OVERVIEW.md and fluxvm/README.md.
+ * docs/merion/MERION.md keep a Muse claim; the rest read "Not documented publicly". Keep/Fabric/FluxVM cells trace to
+ * docs/merion/MERION.md, docs/PRODUCT_OVERVIEW.md and fluxvm/README.md.
  */
 const GROUPS: Group[] = [
   {
@@ -46,7 +46,7 @@ const GROUPS: Group[] = [
       {
         label: 'Control surface',
         muse: UNDOC,
-        keep: c('keepctl, /app/keep console, vsock admin'),
+        keep: c('merionctl, /app/keep console, vsock admin'),
         fabric: c('780+ REST endpoints, CLI, web console, K8s operator, Terraform'),
         flux: c('REST API + CLI with the same verbs'),
       },
@@ -153,7 +153,7 @@ const GROUPS: Group[] = [
       {
         label: 'Leaving',
         muse: UNDOC,
-        keep: c('keepctl pack / unpack onto another FluxVM'),
+        keep: c('merionctl pack / unpack onto another FluxVM'),
         fabric: c('Live migration (disk-copy GA, native preview), VMDK/VDI import'),
         flux: c('qcow2 CoW clones, memory snapshots'),
       },
@@ -190,10 +190,10 @@ type UseCase = {
   cta: string;
 };
 
-const GH = 'https://github.com/zyvorai/fabric/tree/main/examples/keep-agents';
+const GH = 'https://github.com/zyvorai/fabric/tree/main/examples/merion-agents';
 
-/* Every entry traces to examples/keep-agents/*, docs/keep/browser/BROWSER-0.3.md,
- * docs/keep/approve, docs/keep/PRODUCTION.md or docs/keep/keepctl. */
+/* Every entry traces to examples/merion-agents/*, docs/merion/browser/BROWSER-0.3.md,
+ * docs/merion/approve, docs/merion/PRODUCTION.md or docs/merion/merionctl. */
 const USE_CASES: UseCase[] = [
   {
     id: 'pdf-brief',
@@ -206,7 +206,7 @@ const USE_CASES: UseCase[] = [
     flow: ['Drop a PDF on /app/keep', 'Agent reads it with pdftotext in the cell', 'brief.md lands as an artifact'],
     guards: ['No browser', 'deny_udp + gateway-only ports', 'Expects egress_connects: 0'],
     out: 'brief.md',
-    cmd: './scripts/keep-demo-pdf.sh examples/keep-agents/pdf-brief/sample.pdf',
+    cmd: './scripts/merion-demo-pdf.sh examples/merion-agents/pdf-brief/sample.pdf',
     href: '/docs/tutorials/keep-pdf-brief',
     cta: 'Tutorial 17',
   },
@@ -225,7 +225,7 @@ const USE_CASES: UseCase[] = [
     ],
     guards: ['Fix step is requires_approval', 'Fabric API via a vault credential', 'Mutations go through Keep ask'],
     out: 'Incident timeline (markdown) + proposed_fix JSON',
-    cmd: './scripts/keep-pack-demo.sh infra-ops',
+    cmd: './scripts/merion-pack-demo.sh infra-ops',
     href: `${GH}/infra-ops`,
     cta: 'infra-ops on GitHub',
   },
@@ -240,7 +240,7 @@ const USE_CASES: UseCase[] = [
     flow: ['Inspect the guest with GuestKit', 'Draft the wave plan and preflight report', 'Cutover checklist for you to run'],
     guards: ['Create, cancel and rescue always hit approval', 'Only talks to fabricd', 'Transiva / hypersdk stay out of scope'],
     out: 'Wave plan, preflight report, cutover checklist',
-    cmd: './scripts/keep-pack-demo.sh migration-op',
+    cmd: './scripts/merion-pack-demo.sh migration-op',
     href: `${GH}/migration-op`,
     cta: 'migration-op on GitHub',
   },
@@ -255,7 +255,7 @@ const USE_CASES: UseCase[] = [
     flow: ['Probe /readyz and /health', 'Map results to Fabric Doctor', 'Propose commands — you run them'],
     guards: ['No host writes by default', 'Privileged steps are proposals only'],
     out: 'Prerequisites checklist + readiness report',
-    cmd: './scripts/keep-pack-demo.sh deploy-op',
+    cmd: './scripts/merion-pack-demo.sh deploy-op',
     href: `${GH}/deploy-op`,
     cta: 'deploy-op on GitHub',
   },
@@ -270,7 +270,7 @@ const USE_CASES: UseCase[] = [
     flow: ['browser_open an allowlisted host', 'browser_snapshot — titles and refs, no HTML', 'Write research.md, then stop'],
     guards: ['allow_hosts allowlist', 'snapshot_only · downloads denied', 'file:// blocked · max 4 tabs'],
     out: 'research.md',
-    cmd: 'keepctl create -f examples/keep-agents/browser-research/deploy.json',
+    cmd: 'merionctl create -f examples/merion-agents/browser-research/deploy.json',
     href: `${GH}/browser-research`,
     cta: 'browser-research on GitHub',
   },
@@ -286,7 +286,7 @@ const USE_CASES: UseCase[] = [
     guards: ['Audit says vault:name, no value', 'Pause is first-class session state', 'Separate agent / operator cookie jars'],
     out: 'Audit entry with source: vault:name',
     cmd: 'POST /v1/sessions/{id}/browser/fill-secret',
-    href: '/docs/keep/browser/BROWSER-0.3',
+    href: '/docs/merion/browser/BROWSER-0.3',
     cta: 'Browser 0.3',
   },
   {
@@ -297,11 +297,11 @@ const USE_CASES: UseCase[] = [
     headline: 'A browsing session you can run again.',
     blurb:
       'Every act is saved as a browse-script artifact, so a trajectory that worked becomes something you can replay instead of re-prompting.',
-    flow: ['Agent browses; each act is logged', 'Saved as artifact kind=browse-script', 'Replay it with keepctl browse replay'],
+    flow: ['Agent browses; each act is logged', 'Saved as artifact kind=browse-script', 'Replay it with merionctl browse replay'],
     guards: ['Chromium and CDP stay host objects', 'Agent sees a11y refs, not raw DOM', 'Paste across disjoint origins denied'],
     out: 'browse-script artifact',
-    cmd: 'keepctl browse replay',
-    href: '/docs/keep/browser/BROWSER-0.3',
+    cmd: 'merionctl browse replay',
+    href: '/docs/merion/browser/BROWSER-0.3',
     cta: 'Browser 0.3',
   },
   {
@@ -316,7 +316,7 @@ const USE_CASES: UseCase[] = [
     guards: ['Per-goal host allowlist', 'Live view: pixels for you, a11y tree for the agent'],
     out: 'Goal-bound tab + artifacts on the goal',
     cmd: 'POST /v1/goals/{id}/browse',
-    href: '/docs/keep/browser/BROWSER-0.3',
+    href: '/docs/merion/browser/BROWSER-0.3',
     cta: 'Browser 0.3',
   },
   {
@@ -331,23 +331,23 @@ const USE_CASES: UseCase[] = [
     guards: ['Token bound to a connector + action', 'Guest cannot see the channel', 'Pilot gate proves approve and deny paths'],
     out: 'Capability token, not a sentence in chat',
     cmd: 'POST /v1/approvals/{id}',
-    href: '/docs/keep/approve/',
+    href: '/docs/merion/approve/',
     cta: 'Approvals',
   },
   {
     id: 'pack',
     group: 'Workstation',
     name: 'Pack up and leave',
-    kind: 'keepctl pack / unpack',
+    kind: 'merionctl pack / unpack',
     headline: 'Your workstation is portable.',
     blurb:
       'Export the policy, the agent pin and the vault names, then unpack onto another FluxVM. No lock-in, and no raw secrets in the box.',
-    flow: ['Mint a scoped export token', 'keepctl pack → policy, agent pin, vault names', 'keepctl unpack onto another FluxVM'],
+    flow: ['Mint a scoped export token', 'merionctl pack → policy, agent pin, vault names', 'merionctl unpack onto another FluxVM'],
     guards: ['Export needs X-Keep-Export-Token', 'Vault names only — no raw secrets', 'Training default off'],
     out: 'A portable pack directory',
-    cmd: 'keepctl pack /tmp/keep-pack my-agent',
-    href: '/docs/keep/keepctl/',
-    cta: 'keepctl',
+    cmd: 'merionctl pack /tmp/keep-pack my-agent',
+    href: '/docs/merion/merionctl/',
+    cta: 'merionctl',
   },
   {
     id: 'byo',
@@ -357,7 +357,7 @@ const USE_CASES: UseCase[] = [
     headline: 'Write it in TypeScript. Keep the guardrails.',
     blurb:
       'Build your own agent into a bundle and deploy it under the same signed policy, in the same microVM cell, with the same approvals as the shipped packs.',
-    flow: ['Write agent.ts against the Fabric client', 'npx fabric-agent build → one bundle', 'keepctl create -f deploy.json'],
+    flow: ['Write agent.ts against the Fabric client', 'npx fabric-agent build → one bundle', 'merionctl create -f deploy.json'],
     guards: ['Signed keep.policy.yaml applies', 'BYO model socket', 'Cell is a FluxVM microVM'],
     out: 'A deployed agent + its goals and artifacts',
     cmd: 'npx fabric-agent build agent.ts --out bundle.mjs',
@@ -759,7 +759,7 @@ function Proof(): ReactNode {
             </Link>
             <Link
               className="button button--outline button--lg button--secondary"
-              to="/docs/keep/demos/pdf-brief">
+              to="/docs/merion/demos/pdf-brief">
               Demo docs
             </Link>
           </div>
@@ -785,7 +785,7 @@ const CARDS = [
     name: 'Keep',
     role: 'The agent workstation',
     points: ['Signed policy that fails closed', 'Vault, approvals, brokered browser', 'pack / unpack to leave'],
-    to: '/docs/keep/',
+    to: '/docs/merion/',
     cta: 'Keep docs',
   },
   {
@@ -888,7 +888,7 @@ export default function ComparePage(): ReactNode {
             id="receipts"
             eyebrow="Receipts"
             title="Run, archived, in the repo."
-            lede="The pilot gate has passed on a real FluxVM host — happy path and deny path — with logs archived under docs/keep/pilot-runs/."
+            lede="The pilot gate has passed on a real FluxVM host — happy path and deny path — with logs archived under docs/merion/pilot-runs/."
             wide>
             <Receipts />
           </Section>

@@ -4,9 +4,9 @@ Pick the row that sounds like your problem. Each links to the page that gets you
 
 | You want to… | Use | Start here |
 |---|---|---|
-| Give an AI agent a computer without giving it your network | **Keep**: a sealed FluxVM microVM per run, egress rules the host sets, approvals only a person can give | [Keep](keep/README.md) |
-| Let an agent try a change and have a person approve it | **Keep speculate**: the command runs in an isolated copy of the cell; its file changes wait behind an approval | [Keep](keep/README.md), `keepctl speculate` |
-| Keep an API key out of the agent's reach | **Keep credentials**: secrets from a file or Vault, injected by the host; optionally handed to FluxVM's broker as a grant | [Keep credentials](keep/README.md) |
+| Give an AI agent a computer without giving it your network | **Keep**: a sealed FluxVM microVM per run, egress rules the host sets, approvals only a person can give | [Keep](merion/README.md) |
+| Let an agent try a change and have a person approve it | **Keep speculate**: the command runs in an isolated copy of the cell; its file changes wait behind an approval | [Keep](merion/README.md), `merionctl speculate` |
+| Keep an API key out of the agent's reach | **Keep credentials**: secrets from a file or Vault, injected by the host; optionally handed to FluxVM's broker as a grant | [Keep credentials](merion/README.md) |
 | Run a private cloud on Linux servers you own | **Fabric**: VMs, networking, storage and security from one daemon | [Quickstart](../README.md#quickstart) |
 | Manage VMs from Kubernetes | The Fabric operator and its `VirtualMachine` CRDs | [Kubernetes](KUBERNETES.md) |
 | Drive the same cloud from Terraform or the CLI | The same REST API behind `fabricctl`, the console, the operator and Terraform | [API](api.md) |

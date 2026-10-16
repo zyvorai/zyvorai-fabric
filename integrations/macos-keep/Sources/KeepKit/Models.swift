@@ -33,7 +33,7 @@ struct DemosResponse: Codable { var demos: [Demo] }
 
 public struct Badge: Codable, Equatable, Sendable {
     public var evidence: String?
-    /// `false` for a run in the local simulator (`scripts/keep-demo-local.sh`): no VM, no network policy. Absent on older hosts, which are real cells.
+    /// `false` for a run in the local simulator (`scripts/merion-demo-local.sh`): no VM, no network policy. Absent on older hosts, which are real cells.
     public var sealed: Bool?
     public var operatorCanRead: Bool?
     public var proxy: String?
@@ -134,7 +134,7 @@ public struct SignInfo: Codable, Equatable, Hashable, Sendable {
     public var algorithms: [String]?
 }
 
-/// What the host read out of the request an approval is about (recipients, subject, text; docs/keep/connectors/README.md). Rendered by the host,
+/// What the host read out of the request an approval is about (recipients, subject, text; docs/merion/connectors/README.md). Rendered by the host,
 /// not by the agent, and covered by the signature through `planned_action.preview_sha256`. Present only while the approval is pending.
 public struct PreviewField: Codable, Equatable, Hashable, Sendable {
     public var label: String

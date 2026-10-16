@@ -20,7 +20,7 @@
 <img src="docs/social/fabric-hero-dark.jpg" alt="Zyvor Fabric - One daemon. Four front doors." width="100%">
 
 <p align="center">
-  <img src="docs/assets/demos/keep-live-speculate.gif" alt="Keep with a real FluxVM microVM: an agent proposes a file change, a person approves it, and only then is it applied in the guest. A second proposal is denied and the file stays." width="820">
+  <img src="docs/assets/demos/merion-live-speculate.gif" alt="Keep with a real FluxVM microVM: an agent proposes a file change, a person approves it, and only then is it applied in the guest. A second proposal is denied and the file stays." width="820">
 </p>
 <p align="center"><sub><b>An agent proposes. A person decides.</b> A real run: the Keep runtime and a real FluxVM microVM on KVM, on a shared lab host. The waits are trimmed; the printed times (75 s to speculate, 118 s to apply) are what that loaded host took, not a benchmark. <a href="docs/assets/demos/README.md">How these are made</a></sub></p>
 
@@ -30,7 +30,7 @@
 
 **780+ REST endpoints** · **53 Rust crates** · **4 front doors, one API** · **92-page web console** · **Built on FluxVM + GuestKit**
 
-[**Quickstart**](#quickstart) · [**Keep**](docs/keep/README.md) · [**AI Workloads**](docs/ai-workloads.md) · [**Deploy**](#deploy) · [**Docs**](docs/index.md) · [**Talk to Zyvor**](https://zyvor.dev)
+[**Quickstart**](#quickstart) · [**Keep**](docs/merion/README.md) · [**AI Workloads**](docs/ai-workloads.md) · [**Deploy**](#deploy) · [**Docs**](docs/index.md) · [**Talk to Zyvor**](https://zyvor.dev)
 
 </div>
 
@@ -46,7 +46,7 @@
 | **Keep** | Credential secrets from a file or from HashiCorp Vault (`source vault`), with Vault AppRole and Kubernetes login and chart values |
 | **Keep** | The runtime rejects policy fields it does not enforce |
 | **0.3.0** | `POST /v1/agui`: an AG-UI endpoint over Keep sessions, validated against the official `@ag-ui/core` 1.0.0 schemas; it cannot approve anything |
-| **0.3.0** | **Solvor**, a native SwiftUI Mac client for Keep (`integrations/macos-keep`), plus `keepctl init` to scaffold a new use-case pack |
+| **0.3.0** | **Solvor**, a native SwiftUI Mac client for Keep (`integrations/macos-keep`), plus `merionctl init` to scaffold a new use-case pack |
 | **0.3.0** | OCR for photos and screenshots inside the cell, six bank operations packs, and more everyday use cases |
 | **0.3.0** | `zyvorctl` is now `fabricctl`, and it finds a TLS daemon on `localhost:9095` without `--server` |
 | **0.3.0** | Fixed: use-case cells now get a host-applied deny-all policy and fail closed; finished runs delete their cell at once |
@@ -57,7 +57,7 @@ Full history: [CHANGELOG.md](CHANGELOG.md).
 
 | If you are… | Use it for | Start here |
 |---|---|---|
-| Building with AI agents | A sealed microVM per agent run, network rules the host sets, approvals you hold | [Keep](docs/keep/README.md) |
+| Building with AI agents | A sealed microVM per agent run, network rules the host sets, approvals you hold | [Keep](docs/merion/README.md) |
 | Running a private cloud | VMs, networking, storage and security from one daemon on any Linux server with KVM | [Quickstart](#quickstart) |
 | Running Kubernetes | VMs as `VirtualMachine` resources next to your pods | [Kubernetes](docs/KUBERNETES.md) |
 | Managing a Mac fleet | Solvor, the native Mac client for Keep | [Solvor](integrations/macos-keep) |
@@ -108,7 +108,7 @@ OpenAI-compatible inference on the same daemon: models, Maglev-weighted backends
 <td valign="top" width="33%">
 <b>Keep</b><br>
 An open agent workstation: drop a file, get answers, in a sealed microVM whose network policy the host sets. The docs say exactly what its evidence class does not prove.<br>
-<a href="docs/keep/README.md">Keep</a>
+<a href="docs/merion/README.md">Keep</a>
 </td>
 <td valign="top" width="33%">
 <b>Kubernetes, Operator, Terraform</b><br>
@@ -154,11 +154,11 @@ A 92-page web console and <code>fabricctl</code>, both first-class against the s
 
 *The console dashboard — fleet health, capability status and live VM metrics at a glance.*
 
-[![Keep: your agent, your hardware, your keys](docs/assets/keep-hero.jpg)](docs/keep/README.md)
+[![Keep: your agent, your hardware, your keys](docs/assets/merion-hero.jpg)](docs/merion/README.md)
 
-**Keep it yours.** *[Keep](docs/keep/README.md) is the sealed agent runtime you run, read and take with you. Muse column from its public announcement; evidence class today is `software-test`.*
+**Keep it yours.** *[Keep](docs/merion/README.md) is the sealed agent runtime you run, read and take with you. Muse column from its public announcement; evidence class today is `software-test`.*
 
-<img src="docs/assets/keep/solvor-home.png" alt="Solvor, the Mac client for Keep: use cases" width="49%"> <img src="docs/assets/keep/solvor-result.png" alt="Solvor: a run's result" width="49%">
+<img src="docs/assets/merion/solvor-home.png" alt="Solvor, the Mac client for Keep: use cases" width="49%"> <img src="docs/assets/merion/solvor-result.png" alt="Solvor: a run's result" width="49%">
 
 *Solvor, the native Mac client for Keep: pick a use case, then read the result of a run in a sealed cell.*
 
@@ -225,7 +225,7 @@ Four first-class ways to run Fabric. Pick one; the full guide is [docs/deploy.md
 | Architecture | [docs/architecture.md](docs/architecture.md) · [docs/architecture-fluxvm-guestkit.md](docs/architecture-fluxvm-guestkit.md) |
 | REST API, OIDC/SSO and networking | [docs/api.md](docs/api.md) · [docs/oidc.md](docs/oidc.md) · [docs/networking.md](docs/networking.md) |
 | AI Workloads (Beta) | [docs/ai-workloads.md](docs/ai-workloads.md) · [Tutorial 15](docs/tutorials/15-ai-workloads.md) |
-| Keep (open agent workstation) | [docs/keep/README.md](docs/keep/README.md) · [docs/keep/at-a-glance.md](docs/keep/at-a-glance.md) |
+| Keep (open agent workstation) | [docs/merion/README.md](docs/merion/README.md) · [docs/merion/at-a-glance.md](docs/merion/at-a-glance.md) |
 | Tutorials and user manuals | [docs/tutorials/README.md](docs/tutorials/README.md) · [docs/user/README.md](docs/user/README.md) |
 
 ## Contributing
@@ -249,7 +249,7 @@ make lint && make fmt
 | VM lifecycle, networking, storage, security, CLI, console, operator, Terraform | Shipped; see [FEATURES.md](FEATURES.md) |
 | Live migration | Disk-copy path GA; native FluxVM transport **preview**; full HA cutover **pre-GA** ([comparison matrix](docs/guides/decision-support/comparison-matrix.md)) |
 | AI Workloads | Single-cluster **Beta**; multi-site HA store stays **Preview**; **not GA** ([at a glance](docs/ai-workloads-at-a-glance.md)) |
-| Keep | Evidence class `software-test`; Keep 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/keep/STATUS.md)) |
+| Keep | Evidence class `software-test`; Keep 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/merion/STATUS.md)) |
 
 ---
 

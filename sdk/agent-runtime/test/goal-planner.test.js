@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { buildBundle } from "../src/bundle.js";
 
 const load = async () => {
-  const { bundle } = await buildBundle(fileURLToPath(new URL("../../../examples/keep-agents/goal-planner/agent.ts", import.meta.url)));
+  const { bundle } = await buildBundle(fileURLToPath(new URL("../../../examples/merion-agents/goal-planner/agent.ts", import.meta.url)));
   return await import(`data:text/javascript;base64,${Buffer.from(bundle).toString("base64")}#planner`);
 };
 const ctxOf = (input, replies, configured = true) => {

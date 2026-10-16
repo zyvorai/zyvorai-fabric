@@ -11,7 +11,7 @@ phone ── vendor login (JWT) ──> gateway ──> the user's shard (Keep h
 ```
 
 The gateway is thin **on purpose**. Isolation is the shard's job: a user token can reach only that user's sessions,
-approvals, artifacts and audit rows ([TENANCY.md](../../docs/keep/TENANCY.md)), so a bug in the gateway cannot
+approvals, artifacts and audit rows ([TENANCY.md](../../docs/merion/TENANCY.md)), so a bug in the gateway cannot
 widen what a user can reach beyond what the shard allows that token. Keep the operator token here and nowhere else.
 
 ## What it does

@@ -123,7 +123,7 @@ polled every 20 s while the app runs), a Share-sheet extension, and Firefox emai
 
 This repository is a **snapshot** of [`integrations/macos-keep`](https://github.com/zyvorai/fabric/tree/main/integrations/macos-keep) in
 [zyvorai/fabric](https://github.com/zyvorai/fabric), which is the source of truth for Solvor, the Keep runtime, the API and the packs.
-Design notes and the API mapping: [docs/keep/MACOS-APP.md](https://github.com/zyvorai/fabric/blob/main/docs/keep/MACOS-APP.md).
+Design notes and the API mapping: [docs/merion/MACOS-APP.md](https://github.com/zyvorai/fabric/blob/main/docs/merion/MACOS-APP.md).
 Please open issues and pull requests there.
 
 ## License

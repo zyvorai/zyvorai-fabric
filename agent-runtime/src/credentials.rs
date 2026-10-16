@@ -2391,7 +2391,7 @@ mod tests {
 
     #[test]
     fn the_documented_google_examples_are_valid_descriptors() {
-        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/keep/connectors");
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/merion/connectors");
         for (file, per_person) in [
             ("google.credentials.json", false),
             ("google.per-person.credentials.json", true),
@@ -2412,7 +2412,7 @@ mod tests {
 
     #[test]
     fn the_documented_price_watch_example_is_a_valid_plain_provider_descriptor() {
-        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/keep/connectors");
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/merion/connectors");
         let text = std::fs::read_to_string(dir.join("price-watch.credentials.json")).unwrap();
         let map: HashMap<String, CredentialDescriptor> = serde_json::from_str(&text).unwrap();
         assert_eq!(map.len(), 1);
@@ -2429,7 +2429,7 @@ mod tests {
 
     #[test]
     fn the_documented_microsoft_examples_are_valid_narrow_per_person_descriptors() {
-        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/keep/connectors");
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/merion/connectors");
         let text =
             std::fs::read_to_string(dir.join("microsoft.per-person.credentials.json")).unwrap();
         let map: HashMap<String, CredentialDescriptor> = serde_json::from_str(&text).unwrap();

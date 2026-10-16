@@ -4,13 +4,13 @@ The cell template every Keep use case runs in: Ubuntu 24.04, Node 22, `poppler-u
 FluxVM guest agent. Nothing else. Node runs the fixed extractor scripts for `.docx`, `.xlsx`, `.pptx`, `.html`,
 `.eml` / `.mbox`; poppler reads PDFs; tesseract reads images. A template baked before OCR was added still works for everything else: an image
 run is refused with "The template has no tesseract". All of the one-click use cases and the scenario packs in
-[`examples/keep-agents/`](../../../examples/keep-agents/) run in it.
+[`examples/merion-agents/`](../../../examples/merion-agents/) run in it.
 
 ## Bake it (one command, on the FluxVM host)
 
 ```bash
-./scripts/keep-bake-node22-agent.sh            # download Node, build the image, register the template
-./scripts/keep-bake-node22-agent.sh --dry-run  # show the plan and what is missing; change nothing
+./scripts/merion-bake-node22-agent.sh            # download Node, build the image, register the template
+./scripts/merion-bake-node22-agent.sh --dry-run  # show the plan and what is missing; change nothing
 ```
 
 Needs on the host: `fluxvm` (or `fluxctl`) on the PATH with the control plane running, `sudo`, `curl`, `python3`,
@@ -43,7 +43,7 @@ Re-running skips the build if the image already exists (add `--force` to rebuild
 
 ## Related
 
-- Firecracker cells: `./scripts/keep-bake-fc-rootfs.sh` turns this image into a flat rootfs (`node22-fc`).
+- Firecracker cells: `./scripts/merion-bake-fc-rootfs.sh` turns this image into a flat rootfs (`node22-fc`).
 - Browser cells: [`../browser-agent/`](../browser-agent/README.md).
 
 ## Guest networking

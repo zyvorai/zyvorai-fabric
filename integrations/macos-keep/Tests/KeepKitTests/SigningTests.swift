@@ -2,7 +2,7 @@ import CryptoKit
 import XCTest
 @testable import KeepKit
 
-/// The signed text and the signatures are checked against docs/keep/mobile/test-vectors.json, which the runtime's own
+/// The signed text and the signatures are checked against docs/merion/mobile/test-vectors.json, which the runtime's own
 /// test suite generates and re-verifies, so this app and the runtime cannot drift apart.
 final class SigningTests: XCTestCase {
     struct Vectors: Decodable {

@@ -43,7 +43,7 @@ stop: ## quit the app
 open: ## open the project in Xcode
 	open $(PROJECT)
 
-catalog: ## regenerate Sources/KeepKit/CatalogData.swift from examples/keep-agents
+catalog: ## regenerate Sources/KeepKit/CatalogData.swift from examples/merion-agents
 	python3 tools/gen_catalog.py
 
 icon: ## regenerate the app icon and menu-bar glyph (needs rsvg-convert)

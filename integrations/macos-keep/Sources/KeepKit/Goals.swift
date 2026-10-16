@@ -1,6 +1,6 @@
 import Foundation
 
-// A person's goals, the plans an agent proposes for them, and the suggestions agents make (docs/keep/goals, docs/keep/suggestions).
+// A person's goals, the plans an agent proposes for them, and the suggestions agents make (docs/merion/goals, docs/merion/suggestions).
 // Nothing here runs anything by itself: accepting a plan or a suggestion is a decision the host records, and a step that sends or spends
 // still waits for an approval signed on the device.
 

@@ -7,7 +7,7 @@
 #   ./scripts/deploy remote sus@212.8.252.194
 #   ./scripts/deploy remote sus 212.8.252.194 --quick
 #   ./scripts/deploy remote --quick              # reuse .deploy-last
-#   ./scripts/deploy keep sus@host           # Fabric + Keep runtime (needs FluxVM on the host)
+#   ./scripts/deploy merion sus@host           # Fabric + Keep runtime (needs FluxVM on the host)
 #   ./scripts/deploy check sus@host
 #   ./scripts/deploy status
 # ============================================================================
@@ -93,8 +93,8 @@ case "$cmd" in
     remote)
         exec "$SCRIPT_DIR/deploy-remote.sh" "$@"
         ;;
-    keep)
-        exec "$SCRIPT_DIR/deploy-keep.sh" "$@"
+    keep|merion)
+        exec "$SCRIPT_DIR/deploy-merion.sh" "$@"
         ;;
     k8s|kubernetes)
         exec "$SCRIPT_DIR/deploy-k8s-remote.sh" "$@"

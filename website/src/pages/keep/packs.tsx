@@ -8,7 +8,7 @@ import {GALLERY_PACKS} from '../../data/packGallery.generated';
 import styles from '../../components/PackGallery/styles.module.css';
 
 const GROUPS = ['All', ...Array.from(new Set(GALLERY_PACKS.map((p) => p.group))).sort()];
-const README = 'https://github.com/zyvorai/fabric/tree/main/examples/keep-agents/';
+const README = 'https://github.com/zyvorai/fabric/tree/main/examples/merion-agents/';
 
 export default function PackGalleryPage(): ReactNode {
   useHashScroll();
@@ -38,7 +38,7 @@ export default function PackGalleryPage(): ReactNode {
               <a className="button button--primary button--lg" href="#gallery">
                 Browse the use cases
               </a>
-              <Link className="button button--outline button--lg button--secondary" to="/docs/keep/PACKS">
+              <Link className="button button--outline button--lg button--secondary" to="/docs/merion/PACKS">
                 Write your own
               </Link>
             </>

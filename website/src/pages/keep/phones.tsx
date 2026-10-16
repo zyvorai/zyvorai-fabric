@@ -36,7 +36,7 @@ export default function PhoneVendorPage(): ReactNode {
               <a className="button button--primary button--lg" href="#shape">
                 See the architecture
               </a>
-              <Link className="button button--outline button--lg button--secondary" to="/docs/keep/VENDORS">
+              <Link className="button button--outline button--lg button--secondary" to="/docs/merion/VENDORS">
                 Read the guide
               </Link>
             </>
@@ -142,7 +142,7 @@ export default function PhoneVendorPage(): ReactNode {
                 alt="Two users on one shard, each with their own sessions, cells, approvals, artifacts and audit rows; cross-user requests answer 404."
                 caption={
                   <>
-                    Details in <Link to="/docs/keep/TENANCY">Many users on one Keep</Link>.
+                    Details in <Link to="/docs/merion/TENANCY">Many users on one Keep</Link>.
                   </>
                 }
                 minWidth={860}
@@ -195,7 +195,7 @@ export default function PhoneVendorPage(): ReactNode {
               These are extractive: no model reads the file, and none reads photos or screenshots (Keep does no OCR). They
               handle sensitive files, and the evidence class is software-test, so the host’s operator could still read a
               cell’s memory. Details and how to copy one for your language:{' '}
-              <Link to="/docs/keep/SCENARIOS#phone-user-packs">Phone-user packs</Link>.
+              <Link to="/docs/merion/SCENARIOS#phone-user-packs">Phone-user packs</Link>.
             </p>
           </Section>
 
@@ -228,7 +228,7 @@ export default function PhoneVendorPage(): ReactNode {
               </div>
             </Reveal>
             <p style={{marginTop: '1rem'}}>
-              <Link to="/docs/keep/MODELS">Endpoints and credential descriptors</Link>. Provider URLs there are marked
+              <Link to="/docs/merion/MODELS">Endpoints and credential descriptors</Link>. Provider URLs there are marked
               to verify against the provider’s current docs.
             </p>
           </Section>
@@ -247,7 +247,7 @@ export default function PhoneVendorPage(): ReactNode {
                 caption={
                   <>
                     The method, the caveats and a failed first attempt after a reboot, left unexplained, are in{' '}
-                    <Link to="/docs/keep/VENDORS#sizing-measure-do-not-guess">Sizing</Link>.
+                    <Link to="/docs/merion/VENDORS#sizing-measure-do-not-guess">Sizing</Link>.
                   </>
                 }
                 minWidth={760}
@@ -318,19 +318,19 @@ export default function PhoneVendorPage(): ReactNode {
           <Section id="start" eyebrow="Start here" title="Read in this order." wide>
             <ul className={styles.links}>
               <li>
-                <Link to="/docs/keep/VENDORS">
+                <Link to="/docs/merion/VENDORS">
                   <b>1. Keep for a phone vendor</b>
                   <span>The blueprint, sizing, regions, claims, and questions for your counsel.</span>
                 </Link>
               </li>
               <li>
-                <Link to="/docs/keep/TENANCY">
+                <Link to="/docs/merion/TENANCY">
                   <b>2. Many users on one Keep</b>
                   <span>User tokens, isolation, quotas, usage and revocation.</span>
                 </Link>
               </li>
               <li>
-                <Link to="/docs/keep/mobile/">
+                <Link to="/docs/merion/mobile/">
                   <b>3. The phone side</b>
                   <span>Enrol a key, receive the push, sign, decide. Test vectors included.</span>
                 </Link>
@@ -342,13 +342,13 @@ export default function PhoneVendorPage(): ReactNode {
                 </a>
               </li>
               <li>
-                <Link to="/docs/keep/MODELS">
+                <Link to="/docs/merion/MODELS">
                   <b>5. Choosing a model</b>
                   <span>Qwen, DeepSeek, GLM, a local server or your own.</span>
                 </Link>
               </li>
               <li>
-                <Link to="/docs/keep/">
+                <Link to="/docs/merion/">
                   <b>6. Keep itself</b>
                   <span>The cell, policy, vault and audit that everything above stands on.</span>
                 </Link>
@@ -365,7 +365,7 @@ export default function PhoneVendorPage(): ReactNode {
           />
 
           <CtaBand title="Start with one shard.">
-            <Link className="button button--primary button--lg" to="/docs/keep/VENDORS">
+            <Link className="button button--primary button--lg" to="/docs/merion/VENDORS">
               Read the guide
             </Link>
             <Link className="button button--outline button--lg button--secondary" to="/keep">

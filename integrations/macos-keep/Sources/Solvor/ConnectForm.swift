@@ -51,7 +51,7 @@ struct ConnectForm: View {
 }
 
 struct TryTheDemo: View {
-    private let command = "scripts/keep-demo-local.sh"
+    private let command = "scripts/merion-demo-local.sh"
     @State private var copied = false
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s) {

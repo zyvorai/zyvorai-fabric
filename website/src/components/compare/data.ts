@@ -11,7 +11,7 @@ export const cell = (t: string, l: Level = 'yes'): Cell => ({t, l});
 const GH_DOCS = 'https://github.com/zyvorai/fabric/tree/main/docs/keep';
 
 /* ------------------------------------------------------------ 1. profiles */
-/* Source: docs/keep/KEEP.md "Security profiles", docs/keep/KEEP-0.2.md. */
+/* Source: docs/merion/MERION.md "Security profiles", docs/merion/MERION-0.2.md. */
 
 export type ProfileStatus = 'available' | 'software' | 'gated';
 
@@ -93,7 +93,7 @@ export const PROFILES: Profile[] = [
 ];
 
 /* ------------------------------------------------------------ 2. roadmap */
-/* Source: docs/keep/STATUS.md, KEEP-0.2.md, browser/BROWSER-0.3.md. */
+/* Source: docs/merion/STATUS.md, KEEP-0.2.md, browser/BROWSER-0.3.md. */
 
 export type RoadState = 'shipped' | 'gated' | 'next';
 
@@ -120,7 +120,7 @@ export const ROADMAP: RoadItem[] = [
     state: 'shipped',
     title: 'Keep 0.1 pilot',
     points: ['Live gate passed twice on a FluxVM host', 'Happy path and deny path'],
-    href: '/docs/keep/pilot-runs/',
+    href: '/docs/merion/pilot-runs/',
     cta: 'Pilot runs',
   },
   {
@@ -132,7 +132,7 @@ export const ROADMAP: RoadItem[] = [
       'Phone approvals, pack / unpack',
       'Cockpit, PDF brief, host eBPF pin',
     ],
-    href: '/docs/keep/',
+    href: '/docs/merion/',
     cta: 'Keep docs',
   },
   {
@@ -144,7 +144,7 @@ export const ROADMAP: RoadItem[] = [
       'Trajectory-as-code, goal-bound tabs',
       'Origin taint lattice',
     ],
-    href: '/docs/keep/browser/BROWSER-0.3',
+    href: '/docs/merion/browser/BROWSER-0.3',
     cta: 'Browser 0.3',
   },
   {
@@ -155,7 +155,7 @@ export const ROADMAP: RoadItem[] = [
       'Soft scaffolding complete: attestation receipt, no host recover on confidential',
       'Pending hardware: user-held unwrap, verified SNP/TDX flags',
     ],
-    href: '/docs/keep/KEEP-0.2',
+    href: '/docs/merion/KEEP-0.2',
     cta: 'Keep 0.2',
   },
   {
@@ -167,13 +167,13 @@ export const ROADMAP: RoadItem[] = [
       'Signed site adapters (adapters/vcenter.yaml)',
       'Confidential cells: CDP only via attested vsock',
     ],
-    href: '/docs/keep/ROADMAP',
+    href: '/docs/merion/ROADMAP',
     cta: 'Roadmap',
   },
 ];
 
 /* ------------------------------------------------------------ 3. receipts */
-/* Source: each run's SUMMARY.md and pilot-runs/README.md under docs/keep/pilot-runs. */
+/* Source: each run's SUMMARY.md and pilot-runs/README.md under docs/merion/pilot-runs. */
 
 export type Run = {
   id: string;
@@ -221,7 +221,7 @@ export const GATE_CHECKS: [check: string, result: string][] = [
   ['Keep mode policy', 'Unsigned PUT refused; empty signers refuse start'],
   ['Session + cockpit', 'evidence_class: software-test; restart recovers session'],
   ['Out-of-band approval', 'Approve and deny paths; no unapproved mutate'],
-  ['Packaged agents', 'examples/keep-agents/ + goals and artifacts'],
+  ['Packaged agents', 'examples/merion-agents/ + goals and artifacts'],
 ];
 
 export const runHref = (id: string) => `${GH_DOCS}/pilot-runs/${id}`;
@@ -322,8 +322,8 @@ export const FLUX_GROUPS: TGroup[] = [
 ];
 
 /* ---------------------------------------------------------- 6. quickstart */
-/* Source: scripts/keep-demo-pdf.sh, scripts/keep-pack-demo.sh,
- * docs/keep/keepctl/README.md and the pack READMEs under examples/keep-agents. */
+/* Source: scripts/merion-demo-pdf.sh, scripts/merion-pack-demo.sh,
+ * docs/merion/merionctl/README.md and the pack READMEs under examples/merion-agents. */
 
 export type Quick = {
   id: string;
@@ -343,7 +343,7 @@ export const QUICKSTARTS: Quick[] = [
     blurb: 'One request: PDF in, brief.md out, and the script fails if anything connects out.',
     code: `export KEEP_API=http://127.0.0.1:9096
 export KEEP_TOKEN=…   # agent-runtime token
-./scripts/keep-demo-pdf.sh examples/keep-agents/pdf-brief/sample.pdf`,
+./scripts/merion-demo-pdf.sh examples/merion-agents/pdf-brief/sample.pdf`,
     expect: 'OK — brief.md ready, 0 CONNECT',
     needs: [
       'A FluxVM host and agent-runtime (/healthz)',
@@ -360,7 +360,7 @@ export KEEP_TOKEN=…   # agent-runtime token
     code: `export KEEP_API=http://127.0.0.1:9096
 export KEEP_TOKEN=…        # agent-runtime token
 export FABRIC_API_TOKEN=…  # fabricd JWT (infra-ops)
-./scripts/keep-pack-demo.sh infra-ops`,
+./scripts/merion-pack-demo.sh infra-ops`,
     expect: 'Incident-timeline artifact; the fix stays blocked until POST /v1/approvals/{id}',
     needs: [
       'FluxVM template node22-agent (or agent-node)',
@@ -374,11 +374,11 @@ export FABRIC_API_TOKEN=…  # fabricd JWT (infra-ops)
     id: 'leave',
     label: 'Pack & leave',
     blurb: 'Export the workstation, then unpack it onto another FluxVM node.',
-    code: `keepctl pack   /tmp/keep-pack my-agent
-keepctl unpack /tmp/keep-pack my-agent   # on the other node`,
+    code: `merionctl pack   /tmp/keep-pack my-agent
+merionctl unpack /tmp/keep-pack my-agent   # on the other node`,
     expect: 'Policy, agent pin and vault names — no raw secrets',
     needs: ['A scoped export token (see PRODUCTION.md)', 'A second FluxVM node to unpack onto'],
-    href: '/docs/keep/keepctl/',
-    cta: 'keepctl',
+    href: '/docs/merion/merionctl/',
+    cta: 'merionctl',
   },
 ];

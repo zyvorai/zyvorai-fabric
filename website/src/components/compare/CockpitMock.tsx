@@ -5,7 +5,7 @@ import styles from './CockpitMock.module.css';
 
 type Step = 'pending' | 'running' | 'blocked' | 'done';
 
-/* Plan-step states are the ones in docs/keep/goals/README.md. The session
+/* Plan-step states are the ones in docs/merion/goals/README.md. The session
  * itself is illustrative — no real run is being streamed. */
 const STEPS = ['Read the vendor SOW', 'Summarise the risks', 'Delete the draft notes'];
 

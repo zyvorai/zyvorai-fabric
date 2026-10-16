@@ -1,0 +1,67 @@
+{
+  "_comment": "Single source for Keep marketing copy. Consumed by website/src/pages/keep.tsx and web/src/components/keep/*. Every Muse-side row must be stated in docs/merion/MERION.md; rows with no source are left out.",
+  "tagline": "Your agent gets a real computer. You keep the keys.",
+  "lede": "Keep gives an untrusted AI agent its own sealed computer on hardware you control, while you hold the policy, the credentials and the approvals. Open source.",
+  "values": [
+    {
+      "title": "You run it",
+      "body": "A laptop, a mini-PC or your own FluxVM host. Same API everywhere."
+    },
+    {
+      "title": "You read it",
+      "body": "Policy is a signed keep.policy.yaml you can diff in git. Apache-2.0."
+    },
+    {
+      "title": "You take it with you",
+      "body": "merionctl pack writes your policy, agent manifest and migration notes to a folder. merionctl unpack restores them on another FluxVM node. Secrets are not included."
+    }
+  ],
+  "install": [
+    {
+      "label": "Run the checks",
+      "note": "No KVM needed.",
+      "commands": [
+        "git clone https://github.com/zyvorai/fabric && cd fabric",
+        "cargo test --manifest-path agent-runtime/Cargo.toml --lib",
+        "./scripts/merion-e2e.sh"
+      ]
+    },
+    {
+      "label": "Live lab gate",
+      "note": "Needs a FluxVM host and a node22-agent template.",
+      "commands": [
+        "./scripts/merion-live-lab.sh",
+        "./scripts/merion-pilot-gate.sh"
+      ]
+    },
+    {
+      "label": "Move it",
+      "note": "Needs a running agent-runtime and a KEEP_EXPORT_TOKEN with scope pack. Secrets are not included.",
+      "commands": [
+        "scripts/merionctl pack ./keep-pack my-agent",
+        "scripts/merionctl unpack ./keep-pack my-agent"
+      ]
+    }
+  ],
+  "features": [
+    { "title": "Bring your own model", "body": "A model socket. The cell stays the same." },
+    { "title": "Signed policy", "body": "Fail-closed Sentinel loaded from a signed YAML file." },
+    { "title": "A real cell", "body": "Firecracker/KVM microVM on FluxVM with its own kernel." },
+    { "title": "Approvals on your phone", "body": "Buy, send and delete are approved out of band, never in the chat." },
+    { "title": "Cockpit and browser view", "body": "See taint, recent decisions, tabs, screenshots and a read-only screencast." },
+    { "title": "One-click use cases", "body": "PDF brief, contract clauses, security questionnaire, meeting actions, log triage, SBOM summary, CSV cleanup." },
+    { "title": "Host network pin", "body": "FluxVM TC/eBPF: deny_udp and gateway-only ports, enforced outside the guest." },
+    { "title": "Pack and unpack", "body": "Policy, manifest and migration notes leave as files. Secrets stay in the vault." }
+  ],
+  "compare": [
+    { "label": "Where it runs", "muse": "Meta’s cloud only.", "keep": "Your laptop, mini-PC or FluxVM host." },
+    { "label": "Policy", "muse": "A closed policy engine.", "keep": "A signed keep.policy.yaml you can diff in git." },
+    { "label": "The cell", "muse": "Its own dedicated cloud VM; a separate Sentinel on the same machine, kept apart at the system level.", "keep": "A Firecracker/KVM microVM per cell on FluxVM, with its own kernel; the network policy is applied by the host, outside the guest." },
+    { "label": "Model", "muse": "Tied to Muse Spark.", "keep": "Bring your own model socket." },
+    { "label": "Training", "muse": "Trajectories may train after sanitization.", "keep": "Off by default. Export needs a scoped token." },
+    { "label": "Secrets", "muse": "Surrogates swapped in at egress.", "keep": "The same idea: the vault injects on the host, and the agent never sees a real secret." },
+    { "label": "Browser", "muse": "A measured, accessibility-style appliance.", "keep": "The same idea: the agent sees structure, you see pixels." },
+    { "label": "Honesty", "muse": "A footnote.", "keep": "Up front: measured means software-test until verified hardware." }
+  ],
+  "honesty": "Keep runs on measured VMs today, and its evidence class is software-test. Until it runs on verified confidential hardware with a key only you hold, the host can still see inside the VM, and we will not claim otherwise."
+}

@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        A use case is one small JSON file, so this is the easiest thing to contribute. See docs/keep/CONTRIBUTING-PACKS.md.
+        A use case is one small JSON file, so this is the easiest thing to contribute. See docs/merion/CONTRIBUTING-PACKS.md.
         **Do not paste real personal or financial data.** Describe the layout or attach a synthetic example.
   - type: input
     id: file

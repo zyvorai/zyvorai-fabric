@@ -3220,7 +3220,7 @@ async fn pack_agent(
         fluxvm_notes: [
             (
                 "disk".into(),
-                "Copy the FluxVM qcow2 / workspace for this agent's sandboxes separately; keepctl unpack restores policy only.".into(),
+                "Copy the FluxVM qcow2 / workspace for this agent's sandboxes separately; merionctl unpack restores policy only.".into(),
             ),
             (
                 "vault".into(),

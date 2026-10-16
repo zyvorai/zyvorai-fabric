@@ -241,7 +241,7 @@ impl PolicyTrust {
     }
 }
 
-/// Sign policy YAML with a 32-byte seed (tests / `keepctl policy sign`).
+/// Sign policy YAML with a 32-byte seed (tests / `merionctl policy sign`).
 pub fn sign_policy_yaml(yaml: &[u8], seed32: &[u8; 32]) -> String {
     let key = SigningKey::from_bytes(seed32);
     hex::encode(key.sign(yaml).to_bytes())
@@ -399,7 +399,7 @@ pub fn host_matches_list(host: &str, list: &[String]) -> bool {
     })
 }
 
-/// Pack metadata written by `keepctl pack` (no raw secrets).
+/// Pack metadata written by `merionctl pack` (no raw secrets).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeepPackManifest {
     pub version: u32,

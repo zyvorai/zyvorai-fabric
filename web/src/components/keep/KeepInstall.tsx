@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useState } from 'react'
-import marketing from '../../../../docs/keep/marketing.json'
+import marketing from '../../../../docs/merion/marketing.json'
 
-/** Tabbed, copy-to-clipboard install strip. Steps come from docs/keep/marketing.json. */
+/** Tabbed, copy-to-clipboard install strip. Steps come from docs/merion/marketing.json. */
 export default function KeepInstall() {
   const [tab, setTab] = useState(0)
   const [copied, setCopied] = useState(false)

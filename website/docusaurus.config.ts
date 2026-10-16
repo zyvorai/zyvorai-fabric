@@ -77,8 +77,8 @@ const config: Config = {
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
           editUrl: 'https://github.com/zyvorai/zyvorai-fabric/tree/main/docs/',
-          // docs/keep/README.md is the GitHub landing page for Keep. The site
-          // already has /keep and docs/keep/KEEP.md (the folder index), so
+          // docs/merion/README.md is the GitHub landing page for Keep. The site
+          // already has /keep and docs/merion/MERION.md (the folder index), so
           // keep the README out of the docs build to avoid a duplicate route.
           exclude: [
             '**/_*.{js,jsx,ts,tsx,md,mdx}',
@@ -149,7 +149,7 @@ const config: Config = {
             {label: 'Keep for phone makers', to: '/keep/phones'},
             {label: 'Keep use cases', to: '/keep/packs'},
             {label: 'Fabric vs the field', to: '/#matrix'},
-            {label: 'Keep docs', to: '/docs/keep/'},
+            {label: 'Keep docs', to: '/docs/merion/'},
             {label: 'Tutorial 17 — PDF brief', to: '/docs/tutorials/keep-pdf-brief'},
             {label: 'Product overview', to: '/docs/PRODUCT_OVERVIEW'},
             {label: 'FAQ', to: '/docs/quick-reference/faq'},
