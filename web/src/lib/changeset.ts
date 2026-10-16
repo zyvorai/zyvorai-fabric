@@ -11,6 +11,8 @@ export interface ChangesetSummary {
   unstaged: string[]
   egress: string | null
   nonReplayable: string[]
+  /** Unix seconds after which FluxVM drops the changeset, if reported. */
+  expiresAt: number | null
 }
 
 const strings = (v: unknown): string[] =>
@@ -38,9 +40,23 @@ export function summarizeChangeset(planned: unknown): ChangesetSummary | null {
     unstaged: strings(p.unstaged),
     egress: typeof effects.egress === 'string' ? effects.egress : null,
     nonReplayable: strings(effects.non_replayable),
+    expiresAt: typeof p.expires_at === 'number' && p.expires_at > 0 ? p.expires_at : null,
   }
 }
 
 export function changeCount(s: ChangesetSummary): number {
   return s.added.length + s.modified.length + s.deleted.length
+}
+
+/** Whole seconds left before the changeset expires (0 once expired); null when FluxVM gave no deadline. */
+export function secondsUntilExpiry(s: ChangesetSummary, nowMs: number): number | null {
+  if (s.expiresAt === null) return null
+  return Math.max(0, Math.ceil(s.expiresAt - nowMs / 1000))
+}
+
+export function formatRemaining(seconds: number): string {
+  if (seconds <= 0) return 'expired'
+  const m = Math.floor(seconds / 60)
+  const sec = seconds % 60
+  return m > 0 ? `${m}m ${String(sec).padStart(2, '0')}s left` : `${sec}s left`
 }
