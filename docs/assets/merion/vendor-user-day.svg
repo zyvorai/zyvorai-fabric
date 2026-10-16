@@ -38,7 +38,7 @@
   <text class="t" x="513" y="156">short-lived token. The</text>
   <text class="t" x="513" y="176">agent works in a sealed</text>
   <text class="t" x="513" y="196">cell.</text>
-  <rect x="513" y="252" width="54" height="24" rx="12" fill="#eaf3ff" stroke="#0071e3"/><text class="s" x="525" y="268" style="fill:#0071e3;font-weight:650">Keep</text>
+  <rect x="513" y="252" width="68" height="24" rx="12" fill="#eaf3ff" stroke="#0071e3"/><text class="s" x="525" y="268" style="fill:#0071e3;font-weight:650">Merion</text>
   <line x1="707" y1="165" x2="725" y2="165" stroke="#0071e3" stroke-width="2" marker-end="url(#x)"/>
   <rect x="727" y="40" width="210" height="250" rx="18" fill="#fff" stroke="#d2d2d7" stroke-width="1.5"/>
   <circle cx="757" cy="72" r="15" fill="#0071e3"/><text class="t c" x="757" y="77" style="fill:#fff;font-weight:700">4</text>
@@ -55,6 +55,6 @@
   <text class="t" x="977" y="116">Runs, artifacts and the</text>
   <text class="t" x="977" y="136">audit trail come back the</text>
   <text class="t" x="977" y="156">same way.</text>
-  <rect x="977" y="252" width="54" height="24" rx="12" fill="#eaf3ff" stroke="#0071e3"/><text class="s" x="989" y="268" style="fill:#0071e3;font-weight:650">Keep</text>
-  <text class="s c" x="600" y="316">Tags show who does the step. The vendor builds the app and the gateway; Keep supplies the cell, policy, approvals and audit.</text>
+  <rect x="977" y="252" width="68" height="24" rx="12" fill="#eaf3ff" stroke="#0071e3"/><text class="s" x="989" y="268" style="fill:#0071e3;font-weight:650">Merion</text>
+  <text class="s c" x="600" y="316">Tags show who does the step. The vendor builds the app and the gateway; Merion supplies the cell, policy, approvals and audit.</text>
 </svg>

@@ -5,7 +5,7 @@ The short version of the open agent workstation; the full pitch is [README.md](R
 ## Keep — open agent workstation
 
 <p align="center">
-  <a href="README.md"><img src="../assets/keep/demo-static.svg" alt="Real output of ./scripts/merion-e2e.sh: 39 checks passed, 0 failed" width="640"></a>
+  <a href="README.md"><img src="../assets/merion/demo-static.svg" alt="Real output of ./scripts/merion-e2e.sh: 64 checks passed, 0 failed" width="640"></a>
 </p>
 
 **Drop a file. Get answers. Nothing leaves the cell.** Keep reads your files, and runs your agents, inside a sealed cell: a throw-away microVM whose network policy the host sets, with secrets that never enter the cell and approvals signed on your own device.
@@ -21,7 +21,7 @@ You run it, you read it, you take it with you. 60+ ready use cases (statements, 
 | **Know what was actually tested** | [VERIFICATION.md](VERIFICATION.md) · [threat model](THREAT-MODEL.md) · [what still needs a person or a resource](TODO.md) |
 
 ```bash
-./scripts/merion-e2e.sh   # live runtime + FluxVM stub + merionctl, no KVM. passed=39 failed=0
+./scripts/merion-e2e.sh   # live runtime + FluxVM stub + merionctl, no KVM. passed=64 failed=0
 ```
 
 **Be precise about the guarantee.** The cell has no network, and a result reports the outbound-connection count as a cross-check; the guarantee is the deny-all policy the host applies before the file enters the cell. The evidence class is `software-test`: whoever operates the host can still read a cell's memory, so run the host yourself. Until Keep 0.2 on real SNP/TDX with a user-held key, this is never marketed as "the operator cannot read this."

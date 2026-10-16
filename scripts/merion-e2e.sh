@@ -2,7 +2,7 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 #
-# Keep end-to-end (not smoke): live agent-runtime + FluxVM sandbox stub + merionctl.
+# Merion end-to-end (not smoke): live agent-runtime + FluxVM sandbox stub + merionctl.
 # Exercises signed policy, export-token gates, pack/unpack, cockpit, and a real
 # session through the FluxVM client API (stubbed guest — no /dev/kvm required).
 #
@@ -156,8 +156,8 @@ cat >"$W/creds.json" <<'JSON'
             "allowed_ports": [443], "requires_approval": ["POST"], "approval_kind": "purchase"}}
 JSON
 
-# Keep mode: runtime must refuse start without signers (before main runtime binds)
-echo "==> Keep mode refuses empty signers"
+# Merion mode: runtime must refuse start without signers (before main runtime binds)
+echo "==> Merion mode refuses empty signers"
 mkdir -p "$W/state-bad" "$W/snap-bad"
 if env -u ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS -u ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE \
    ZYVOR_AGENT_API_TOKEN="$TOKEN" \
@@ -169,23 +169,23 @@ if env -u ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS -u ZYVOR_AGENT_POLICY_REQUIRE_SIGNA
    ZYVOR_AGENT_FLUXVM_URL="http://127.0.0.1:${STUB_PORT}" \
    ZYVOR_AGENT_PROXY_LISTEN=off \
    "$BIN" >"$W/bad-runtime.log" 2>&1; then
-  echo "FAIL  Keep mode started without signers"
+  echo "FAIL  Merion mode started without signers"
   FAIL=$((FAIL + 1))
   kill $(lsof -t -iTCP:19098 -sTCP:LISTEN 2>/dev/null) 2>/dev/null || true
 else
-  echo "PASS  Keep mode refuses start without trusted signers"
+  echo "PASS  Merion mode refuses start without trusted signers"
   PASS=$((PASS + 1))
 fi
 if grep -Eqi 'MERION_MODE|trusted signers|POLICY_TRUSTED_SIGNERS' "$W/bad-runtime.log"; then
-  echo "PASS  Keep mode error mentions signers"
+  echo "PASS  Merion mode error mentions signers"
   PASS=$((PASS + 1))
 else
-  echo "FAIL  Keep mode error message"
+  echo "FAIL  Merion mode error message"
   FAIL=$((FAIL + 1))
   head -8 "$W/bad-runtime.log" || true
 fi
 
-# --- agent-runtime with Keep production knobs ---
+# --- agent-runtime with Merion production knobs ---
 ZYVOR_AGENT_API_TOKEN="$TOKEN" \
 ZYVOR_AGENT_LISTEN=127.0.0.1:19097 \
 ZYVOR_AGENT_EGRESS_LISTEN=127.0.0.1:19084 \
@@ -216,7 +216,7 @@ export MERION_TOKEN="$TOKEN"
 export ZYVOR_AGENT_URL="$API"
 export ZYVOR_AGENT_TOKEN="$TOKEN"
 
-echo "==> deploy Keep agent via merionctl"
+echo "==> deploy Merion agent via merionctl"
 BUNDLE=$(printf 'export default async function(){ return { ok: true }; }' | base64)
 cat >"$W/deploy.json" <<JSON
 {"name":"keep-desk","bundle_base64":"$BUNDLE","manifest":{
@@ -491,7 +491,7 @@ fi
 
 if [[ "${MERION_E2E_FLUXVM:-}" == "1" ]]; then
   FLUX="${ZYVOR_AGENT_FLUXVM_URL_LIVE:-${MERION_FLUXVM_URL:-http://127.0.0.1:7788}}"
-  echo "==> live FluxVM Keep proof at $FLUX"
+  echo "==> live FluxVM Merion proof at $FLUX"
   CAPS=$(curl -fsS "$FLUX/v1/security/capabilities" || true)
   check "FluxVM capabilities reachable" qemu "$CAPS"
   curl -fsS "$FLUX/readyz" | grep -q '"ok":true' \
@@ -829,11 +829,11 @@ fi
 
 echo
 echo "passed=$PASS failed=$FAIL  workdir was $W (cleaned on exit)"
-echo "Honesty: measured/TEE host-memory claims still require Keep 0.2 + hardware."
+echo "Honesty: measured/TEE host-memory claims still require Merion 0.2 + hardware."
 if [[ "$FAIL" -ne 0 ]]; then
   echo "----- runtime log (tail) -----"
   tail -80 "$W/runtime.log" || true
   tail -80 "$W/runtime-live.log" 2>/dev/null || true
   exit 1
 fi
-echo "OK — Keep end-to-end passed"
+echo "OK — Merion end-to-end passed"
