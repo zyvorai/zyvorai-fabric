@@ -10,7 +10,17 @@
 
 import { createHmac, createPrivateKey, createPublicKey, generateKeyPairSync, sign, timingSafeEqual, verify } from "node:crypto";
 
-export const PAYLOAD_FORMAT = "keep-approval-v1";
+export const PAYLOAD_FORMAT_LEGACY = "keep-approval-v1";
+export const PAYLOAD_FORMAT = "merion-approval-v1";
+
+/**
+ * The format to sign: `merion-approval-v1` when the host lists it in `sign.formats`, otherwise whatever
+ * `sign.format` announces (older hosts only know the legacy name).
+ */
+export function pickFormat(sign) {
+  if (Array.isArray(sign?.formats) && sign.formats.includes(PAYLOAD_FORMAT)) return PAYLOAD_FORMAT;
+  return sign?.format ?? PAYLOAD_FORMAT_LEGACY;
+}
 
 /** A new device key. `privateKeyPem` stays on the phone; `publicKey` (base64) is what gets enrolled. */
 export function generateDevice(alg = "p256") {
@@ -35,10 +45,10 @@ export function enrolBody(device, deviceId, push) {
  * The exact text to sign. `approval` is an item from `GET /v1/inbox` (`pending_approvals[i]`), which
  * carries `id`, `kind`, `subject` and `sign`.
  */
-export function signingPayload(approval, decision, sign = approval.sign) {
+export function signingPayload(approval, decision, sign = approval.sign, format = pickFormat(sign)) {
   if (decision !== "approved" && decision !== "denied") throw new Error("decision must be approved or denied");
   return (
-    `${PAYLOAD_FORMAT}\n` +
+    `${format}\n` +
     `approval: ${approval.id}\n` +
     `decision: ${decision}\n` +
     `kind: ${approval.kind}\n` +
@@ -50,8 +60,8 @@ export function signingPayload(approval, decision, sign = approval.sign) {
 }
 
 /** Sign a decision; returns base64 (DER for P-256, 64 raw bytes for Ed25519). */
-export function signDecision(device, approval, decision, sign = approval.sign) {
-  const payload = Buffer.from(signingPayload(approval, decision, sign), "utf8");
+export function signDecision(device, approval, decision, sign = approval.sign, format = pickFormat(sign)) {
+  const payload = Buffer.from(signingPayload(approval, decision, sign, format), "utf8");
   const key = createPrivateKey(device.privateKeyPem);
   const sig =
     device.alg === "p256"
