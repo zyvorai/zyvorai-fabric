@@ -341,8 +341,8 @@ export const QUICKSTARTS: Quick[] = [
     id: 'pdf',
     label: 'PDF brief',
     blurb: 'One request: PDF in, brief.md out, and the script fails if anything connects out.',
-    code: `export KEEP_API=http://127.0.0.1:9096
-export KEEP_TOKEN=…   # agent-runtime token
+    code: `export MERION_API=http://127.0.0.1:9096
+export MERION_TOKEN=…   # agent-runtime token
 ./scripts/merion-demo-pdf.sh examples/merion-agents/pdf-brief/sample.pdf`,
     expect: 'OK — brief.md ready, 0 CONNECT',
     needs: [
@@ -357,8 +357,8 @@ export KEEP_TOKEN=…   # agent-runtime token
     id: 'pack',
     label: 'Run a pack',
     blurb: 'Deploy a packaged agent, create a goal, and watch the fix step wait for your approval.',
-    code: `export KEEP_API=http://127.0.0.1:9096
-export KEEP_TOKEN=…        # agent-runtime token
+    code: `export MERION_API=http://127.0.0.1:9096
+export MERION_TOKEN=…        # agent-runtime token
 export FABRIC_API_TOKEN=…  # fabricd JWT (infra-ops)
 ./scripts/merion-pack-demo.sh infra-ops`,
     expect: 'Incident-timeline artifact; the fix stays blocked until POST /v1/approvals/{id}',

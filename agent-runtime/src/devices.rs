@@ -673,7 +673,7 @@ mod tests {
     // `docs/merion/mobile/test-vectors.json` pins the exact payload and signatures, so a phone client
     // in any language can prove it agrees with this verifier. The signatures are deterministic
     // (Ed25519, and P-256 with RFC 6979), so the file is stable. Regenerate it after a deliberate
-    // change with `KEEP_WRITE_VECTORS=1 cargo test --lib test_vectors`.
+    // change with `MERION_WRITE_VECTORS=1 cargo test --lib test_vectors`.
 
     fn vector_approval() -> ApprovalRecord {
         let mut a = approval();
@@ -736,17 +736,17 @@ mod tests {
             "/../docs/merion/mobile/test-vectors.json"
         );
         let want = build_vectors();
-        if std::env::var("KEEP_WRITE_VECTORS").is_ok_and(|v| v == "1") {
+        if (std::env::var("MERION_WRITE_VECTORS").is_ok_and(|v| v == "1") || std::env::var("KEEP_WRITE_VECTORS").is_ok_and(|v| v == "1")) {
             std::fs::create_dir_all(std::path::Path::new(path).parent().unwrap()).unwrap();
             std::fs::write(path, serde_json::to_string_pretty(&want).unwrap() + "\n").unwrap();
         }
         let on_disk: Value = serde_json::from_str(&std::fs::read_to_string(path).expect(
-            "docs/merion/mobile/test-vectors.json is missing: KEEP_WRITE_VECTORS=1 cargo test --lib test_vectors",
+            "docs/merion/mobile/test-vectors.json is missing: MERION_WRITE_VECTORS=1 cargo test --lib test_vectors",
         ))
         .unwrap();
         assert_eq!(
             on_disk, want,
-            "the committed vectors are stale: regenerate with KEEP_WRITE_VECTORS=1"
+            "the committed vectors are stale: regenerate with MERION_WRITE_VECTORS=1"
         );
         // Every committed signature verifies under the server's own code.
         for c in want["cases"].as_array().unwrap() {

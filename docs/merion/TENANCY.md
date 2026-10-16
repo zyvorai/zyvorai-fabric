@@ -16,7 +16,7 @@ person's data. Keep stays a single-host building block; you run many hosts and r
 The operator mints one per user:
 
 ```bash
-curl -X POST $KEEP_API/v1/user-tokens -H "Authorization: Bearer $OPERATOR_TOKEN" \
+curl -X POST $MERION_API/v1/user-tokens -H "Authorization: Bearer $OPERATOR_TOKEN" \
   -H 'content-type: application/json' \
   -d '{"user_id":"ana","scopes":["read","run","approve"],"ttl_seconds":3600}'
 ```
@@ -78,7 +78,7 @@ id, for a client that talks to the runtime directly.
 gateway. It needs the operator token and the `node22-agent` template.
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=<operator token>
+export MERION_API=http://127.0.0.1:9096 MERION_TOKEN=<operator token>
 ./scripts/merion-live-tenancy.sh --gateway
 ```
 

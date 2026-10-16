@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """keep-approve: a stand-in phone in the terminal, for demos and tests. NOT a real phone.
 
-    KEEP_API=http://127.0.0.1:19096 KEEP_TOKEN=<user token> scripts/merion-approve.py --key phone.key --device demo-phone
+    MERION_API=http://127.0.0.1:19096 MERION_TOKEN=<user token> scripts/merion-approve.py --key phone.key --device demo-phone
 
 It shows what is waiting for you (what the host read out of the request: recipients, subject, text) and asks. Approve or deny signs the
 decision with the key file (the same `keep-approval-v1` payload a real phone signs; see docs/merion/mobile/README.md) and sends it. The key sits
@@ -68,15 +68,15 @@ def decide(host, token, key, device, a, decision):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    p.add_argument("--host", default=os.environ.get("KEEP_API", "http://127.0.0.1:9096"))
+    p.add_argument("--host", default=os.environ.get("MERION_API", os.environ.get("KEEP_API", "http://127.0.0.1:9096")))
     p.add_argument("--key", required=True, help="the device key file (keep-phone keygen)")
     p.add_argument("--device", required=True, help="the device id it was enrolled under")
     p.add_argument("--once", action="store_true")
     p.add_argument("--decision", choices=["approved", "denied"])
     a = p.parse_args(argv)
-    token = os.environ.get("KEEP_TOKEN", "")
+    token = os.environ.get("MERION_TOKEN", os.environ.get("KEEP_TOKEN", ""))
     if not token:
-        sys.exit("set KEEP_TOKEN to your user token")
+        sys.exit("set MERION_TOKEN to your user token")
     seen = set()
     while True:
         status, inbox = call(a.host, token, "GET", "/v1/inbox")

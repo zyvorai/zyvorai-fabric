@@ -13,7 +13,7 @@ const HELP = `Usage:
   keep-evidence collect --session UUID --out FILE [--url URL]
   keep-evidence verify FILE
 
-Collect requires KEEP_API_TOKEN and KEEP_EXPORT_TOKEN in the environment.
+Collect requires MERION_API_TOKEN and MERION_EXPORT_TOKEN in the environment.
 The output is sensitive and is created with mode 0600. Existing files are never overwritten.
 Verification checks local checksum and references, not authenticity or completeness.`;
 
@@ -62,11 +62,11 @@ export async function run(args, { env = process.env, write = (s) => process.stdo
   if (command === "collect") {
     const opts = options(rest);
     if (!opts["--session"] || !opts["--out"]) throw new Error("--session and --out are required");
-    if (!env.KEEP_API_TOKEN || !env.KEEP_EXPORT_TOKEN) {
-      throw new Error("KEEP_API_TOKEN and KEEP_EXPORT_TOKEN are required");
+    if (!(env.MERION_API_TOKEN ?? env.KEEP_API_TOKEN) || !(env.MERION_EXPORT_TOKEN ?? env.KEEP_EXPORT_TOKEN)) {
+      throw new Error("MERION_API_TOKEN and MERION_EXPORT_TOKEN are required");
     }
-    const client = clientFactory({ baseUrl: opts["--url"] ?? "http://127.0.0.1:9096", token: env.KEEP_API_TOKEN });
-    const bundle = await collectEvidence(client, { sessionId: opts["--session"], exportToken: env.KEEP_EXPORT_TOKEN });
+    const client = clientFactory({ baseUrl: opts["--url"] ?? "http://127.0.0.1:9096", token: (env.MERION_API_TOKEN ?? env.KEEP_API_TOKEN) });
+    const bundle = await collectEvidence(client, { sessionId: opts["--session"], exportToken: (env.MERION_EXPORT_TOKEN ?? env.KEEP_EXPORT_TOKEN) });
     await savePrivate(opts["--out"], `${JSON.stringify(bundle, null, 2)}\n`);
     write(`Saved ${opts["--out"]}; audit window saturated: ${bundle.payload.source.audit_window_saturated}; ` +
       `receipt window saturated: ${bundle.payload.source.receipt_window_saturated}\n`);

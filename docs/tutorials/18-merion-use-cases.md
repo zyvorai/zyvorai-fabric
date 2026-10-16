@@ -31,8 +31,8 @@ Related: [Tutorial 17](17-merion-pdf-brief.md) · [demos index](../merion/demos/
 
 ```bash
 cd fabric
-export KEEP_API="${KEEP_API:-http://127.0.0.1:9096}"
-export KEEP_TOKEN="${KEEP_TOKEN:-}"   # if runtime auth is on
+export MERION_API="${MERION_API:-http://127.0.0.1:9096}"
+export MERION_TOKEN="${MERION_TOKEN:-}"   # if runtime auth is on
 
 ./scripts/merion-demo.sh list
 ```

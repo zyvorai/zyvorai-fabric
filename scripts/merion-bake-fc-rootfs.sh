@@ -14,16 +14,23 @@
 # Usage (on the FluxVM host, as a user with sudo):
 #   ./scripts/merion-bake-fc-rootfs.sh
 #   # optional overrides:
-#   KEEP_FC_SRC_RAW=/var/lib/fluxvm/images/node22-agent.raw \
-#   KEEP_FC_OUT=/var/lib/fluxvm/images/node22-fc-rootfs.ext4 \
+#   MERION_FC_SRC_RAW=/var/lib/fluxvm/images/node22-agent.raw \
+#   MERION_FC_OUT=/var/lib/fluxvm/images/node22-fc-rootfs.ext4 \
 #   ./scripts/merion-bake-fc-rootfs.sh
 #
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_E2E_TEMPLATE+x}" ] || [ -z "${KEEP_E2E_TEMPLATE:-}" ] || export MERION_E2E_TEMPLATE="$KEEP_E2E_TEMPLATE"
+[ -n "${MERION_FC_KERNEL+x}" ] || [ -z "${KEEP_FC_KERNEL:-}" ] || export MERION_FC_KERNEL="$KEEP_FC_KERNEL"
+[ -n "${MERION_FC_OUT+x}" ] || [ -z "${KEEP_FC_OUT:-}" ] || export MERION_FC_OUT="$KEEP_FC_OUT"
+[ -n "${MERION_FC_SRC_RAW+x}" ] || [ -z "${KEEP_FC_SRC_RAW:-}" ] || export MERION_FC_SRC_RAW="$KEEP_FC_SRC_RAW"
+[ -n "${MERION_FC_TEMPLATE_DIR+x}" ] || [ -z "${KEEP_FC_TEMPLATE_DIR:-}" ] || export MERION_FC_TEMPLATE_DIR="$KEEP_FC_TEMPLATE_DIR"
+
 set -euo pipefail
 
-SRC="${KEEP_FC_SRC_RAW:-/var/lib/fluxvm/images/node22-agent.raw}"
-OUT="${KEEP_FC_OUT:-/var/lib/fluxvm/images/node22-fc-rootfs.ext4}"
-KERNEL="${KEEP_FC_KERNEL:-/var/lib/fluxvm/kernels/vmlinux}"
-TDIR="${KEEP_FC_TEMPLATE_DIR:-/var/lib/fluxvm/templates/node22-fc}"
+SRC="${MERION_FC_SRC_RAW:-/var/lib/fluxvm/images/node22-agent.raw}"
+OUT="${MERION_FC_OUT:-/var/lib/fluxvm/images/node22-fc-rootfs.ext4}"
+KERNEL="${MERION_FC_KERNEL:-/var/lib/fluxvm/kernels/vmlinux}"
+TDIR="${MERION_FC_TEMPLATE_DIR:-/var/lib/fluxvm/templates/node22-fc}"
 
 [[ -f "$SRC" ]] || { echo "missing source image: $SRC" >&2; exit 1; }
 [[ -f "$KERNEL" ]] || { echo "missing Firecracker kernel: $KERNEL" >&2; exit 1; }
@@ -102,4 +109,4 @@ JSON
 
 echo "OK — flat FC rootfs at $OUT"
 echo "    template node22-fc ready; try:"
-echo "    KEEP_E2E_TEMPLATE=node22-fc ./scripts/merion-pilot-gate.sh"
+echo "    MERION_E2E_TEMPLATE=node22-fc ./scripts/merion-pilot-gate.sh"

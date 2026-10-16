@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 # scripts/merion-up.sh: the preflight refuses honestly, --dry-run changes nothing, and --token-only mints a scoped user token without
 # printing the operator token or writing anything. Uses fake facts and a fake curl; needs no root, KVM or FluxVM.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_ENV_FILE+x}" ] || [ -z "${KEEP_ENV_FILE:-}" ] || export MERION_ENV_FILE="$KEEP_ENV_FILE"
+[ -n "${MERION_SUDO+x}" ] || [ -z "${KEEP_SUDO:-}" ] || export MERION_SUDO="$KEEP_SUDO"
+[ -n "${MERION_UP_ARCH+x}" ] || [ -z "${KEEP_UP_ARCH:-}" ] || export MERION_UP_ARCH="$KEEP_UP_ARCH"
+[ -n "${MERION_UP_DISK_KB+x}" ] || [ -z "${KEEP_UP_DISK_KB:-}" ] || export MERION_UP_DISK_KB="$KEEP_UP_DISK_KB"
+[ -n "${MERION_UP_KVM+x}" ] || [ -z "${KEEP_UP_KVM:-}" ] || export MERION_UP_KVM="$KEEP_UP_KVM"
+[ -n "${MERION_UP_MEM_KB+x}" ] || [ -z "${KEEP_UP_MEM_KB:-}" ] || export MERION_UP_MEM_KB="$KEEP_UP_MEM_KB"
+[ -n "${MERION_UP_SYSTEMD+x}" ] || [ -z "${KEEP_UP_SYSTEMD:-}" ] || export MERION_UP_SYSTEMD="$KEEP_UP_SYSTEMD"
+[ -n "${MERION_UP_UNAME+x}" ] || [ -z "${KEEP_UP_UNAME:-}" ] || export MERION_UP_UNAME="$KEEP_UP_UNAME"
+
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
@@ -22,22 +32,22 @@ chmod +x "$W/bin/curl"
 # the tool checks look for a real cargo; a fake one keeps this test independent of the machine it runs on
 printf '#!/bin/sh\nexit 0\n' > "$W/bin/cargo"; cp "$W/bin/cargo" "$W/bin/cc"; chmod +x "$W/bin/cargo" "$W/bin/cc"
 printf 'ZYVOR_AGENT_LISTEN=127.0.0.1:9096\nZYVOR_AGENT_API_TOKEN=OPERATOR-SECRET-123\n' > "$W/agent.env"
-export PATH="$W/bin:$PATH" FAKE_BODY="$W/body.json" KEEP_SUDO="" KEEP_ENV_FILE="$W/agent.env"
-GOOD=(KEEP_UP_UNAME=Linux KEEP_UP_ARCH=x86_64 KEEP_UP_KVM=1 KEEP_UP_SYSTEMD=1 KEEP_UP_MEM_KB=8000000 KEEP_UP_DISK_KB=100000000)
+export PATH="$W/bin:$PATH" FAKE_BODY="$W/body.json" MERION_SUDO="" MERION_ENV_FILE="$W/agent.env"
+GOOD=(MERION_UP_UNAME=Linux MERION_UP_ARCH=x86_64 MERION_UP_KVM=1 MERION_UP_SYSTEMD=1 MERION_UP_MEM_KB=8000000 MERION_UP_DISK_KB=100000000)
 up() { env "${GOOD[@]}" "$ROOT/scripts/merion-up.sh" "$@" 2>&1; }
 
 # 1. a Mac (or any non-Linux) is refused, and says why
-out=$(env KEEP_UP_UNAME=Darwin "$ROOT/scripts/merion-up.sh" --dry-run 2>&1) && fail "a non-Linux host should be refused"
+out=$(env MERION_UP_UNAME=Darwin "$ROOT/scripts/merion-up.sh" --dry-run 2>&1) && fail "a non-Linux host should be refused"
 grep -q "Keep cells are Linux microVMs" <<<"$out" || fail "the refusal does not explain itself: $out"
 ok "a non-Linux machine is refused with a reason"
 
 # 2. no KVM is refused (no pretending the cell is sealed)
-out=$(env "${GOOD[@]}" KEEP_UP_KVM=0 "$ROOT/scripts/merion-up.sh" --dry-run 2>&1) && fail "no /dev/kvm should be refused"
+out=$(env "${GOOD[@]}" MERION_UP_KVM=0 "$ROOT/scripts/merion-up.sh" --dry-run 2>&1) && fail "no /dev/kvm should be refused"
 grep -q "/dev/kvm" <<<"$out" && grep -q "nothing was installed" <<<"$out" || fail "no-KVM message wrong: $out"
 ok "missing KVM is refused and nothing is installed"
 
 # 3. low memory and disk are refused
-out=$(env "${GOOD[@]}" KEEP_UP_MEM_KB=1000000 KEEP_UP_DISK_KB=1000000 "$ROOT/scripts/merion-up.sh" --dry-run 2>&1) && fail "low memory or disk should be refused"
+out=$(env "${GOOD[@]}" MERION_UP_MEM_KB=1000000 MERION_UP_DISK_KB=1000000 "$ROOT/scripts/merion-up.sh" --dry-run 2>&1) && fail "low memory or disk should be refused"
 grep -q "memory" <<<"$out" && grep -q "free disk" <<<"$out" || fail "resource messages missing: $out"
 ok "too little memory or disk is refused"
 

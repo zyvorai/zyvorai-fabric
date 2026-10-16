@@ -23,17 +23,27 @@
 # THIS IS A SIMULATOR for the cell (no VM, no network policy) and a software key for the phone. Everything else (the credential vault, the
 # host-side token minting, the approval preview and signature) is the real code.
 # ============================================================================
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_CHAT_PORT+x}" ] || [ -z "${KEEP_CHAT_PORT:-}" ] || export MERION_CHAT_PORT="$KEEP_CHAT_PORT"
+[ -n "${MERION_GOOGLE_TOKEN_FILE+x}" ] || [ -z "${KEEP_GOOGLE_TOKEN_FILE:-}" ] || export MERION_GOOGLE_TOKEN_FILE="$KEEP_GOOGLE_TOKEN_FILE"
+[ -n "${MERION_LOCAL_EGRESS_PORT+x}" ] || [ -z "${KEEP_LOCAL_EGRESS_PORT:-}" ] || export MERION_LOCAL_EGRESS_PORT="$KEEP_LOCAL_EGRESS_PORT"
+[ -n "${MERION_LOCAL_PORT+x}" ] || [ -z "${KEEP_LOCAL_PORT:-}" ] || export MERION_LOCAL_PORT="$KEEP_LOCAL_PORT"
+[ -n "${MERION_RUNTIME_BIN+x}" ] || [ -z "${KEEP_RUNTIME_BIN:-}" ] || export MERION_RUNTIME_BIN="$KEEP_RUNTIME_BIN"
+[ -n "${MERION_SIM_PORT+x}" ] || [ -z "${KEEP_SIM_PORT:-}" ] || export MERION_SIM_PORT="$KEEP_SIM_PORT"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD=0
-if [[ -n "${KEEP_RUNTIME_BIN:-}" ]]; then BIN="$KEEP_RUNTIME_BIN"; else BIN="$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runtime"; BUILD=1; fi
-SIM_PORT="${KEEP_SIM_PORT:-17788}"
-API_PORT="${KEEP_LOCAL_PORT:-19096}"
-EGRESS_PORT="${KEEP_LOCAL_EGRESS_PORT:-18082}"
-CHAT_PORT="${KEEP_CHAT_PORT:-8787}"
-TOKEN_FILE="${KEEP_GOOGLE_TOKEN_FILE:-google-refresh-token.env}"
+if [[ -n "${MERION_RUNTIME_BIN:-}" ]]; then BIN="$MERION_RUNTIME_BIN"; else BIN="$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runtime"; BUILD=1; fi
+SIM_PORT="${MERION_SIM_PORT:-17788}"
+API_PORT="${MERION_LOCAL_PORT:-19096}"
+EGRESS_PORT="${MERION_LOCAL_EGRESS_PORT:-18082}"
+CHAT_PORT="${MERION_CHAT_PORT:-8787}"
+TOKEN_FILE="${MERION_GOOGLE_TOKEN_FILE:-google-refresh-token.env}"
 DRY=0
 CLIENT_JSON=""
 while (( $# )); do
@@ -63,13 +73,13 @@ fi
 MISSING=0
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1 ($2)" >&2; MISSING=1; }; }
 need python3 "install Python 3"; need curl "install curl"; need node "install Node 20 or newer: https://nodejs.org"
-if (( BUILD )) || [[ ! -x "$BIN" ]]; then need cargo "install Rust from https://rustup.rs, or set KEEP_RUNTIME_BIN to a built runtime"; fi
+if (( BUILD )) || [[ ! -x "$BIN" ]]; then need cargo "install Rust from https://rustup.rs, or set MERION_RUNTIME_BIN to a built runtime"; fi
 [[ -n "${GOOGLE_CLIENT_ID:-}" ]] || { echo "set GOOGLE_CLIENT_ID (see docs/merion/connectors/GOOGLE_DEMO.md)" >&2; MISSING=1; }
 [[ -n "${GOOGLE_CLIENT_SECRET:-}" ]] || { echo "set GOOGLE_CLIENT_SECRET (see docs/merion/connectors/GOOGLE_DEMO.md)" >&2; MISSING=1; }
 (( MISSING == 0 )) || exit 1
 if (( $(node -p 'process.versions.node.split(".")[0]') < 20 )); then echo "node 20 or newer is required" >&2; exit 1; fi
 for p in "$SIM_PORT" "$API_PORT" "$EGRESS_PORT" "$CHAT_PORT" "$((CHAT_PORT+1))" "$((CHAT_PORT+2))"; do
-  if (echo >"/dev/tcp/127.0.0.1/$p") 2>/dev/null; then echo "port $p is already in use (see KEEP_SIM_PORT, KEEP_LOCAL_PORT, KEEP_LOCAL_EGRESS_PORT, KEEP_CHAT_PORT)" >&2; exit 1; fi
+  if (echo >"/dev/tcp/127.0.0.1/$p") 2>/dev/null; then echo "port $p is already in use (see MERION_SIM_PORT, MERION_LOCAL_PORT, MERION_LOCAL_EGRESS_PORT, MERION_CHAT_PORT)" >&2; exit 1; fi
 done
 
 echo "keep-demo-google: SIMULATED cell, software phone key. Real Google account access. Runtime at http://127.0.0.1:$API_PORT"
@@ -137,7 +147,7 @@ node "$ROOT/sdk/agent-runtime/src/phone-cli.js" enrol "$WORK/phone.key" demo-pho
 
 i=0
 for a in gmail-triage mail-compose calendar-agent; do
-  KEEP_API="$API" KEEP_TOKEN="$USER_TOKEN" python3 "$SCRIPT_DIR/merion-chat.py" --agent "$a" --port "$((CHAT_PORT+i))" >"$WORK/chat-$a.log" 2>&1 &
+  MERION_API="$API" MERION_TOKEN="$USER_TOKEN" python3 "$SCRIPT_DIR/merion-chat.py" --agent "$a" --port "$((CHAT_PORT+i))" >"$WORK/chat-$a.log" 2>&1 &
   PIDS+=($!); i=$((i+1))
 done
 sleep 1
@@ -165,4 +175,4 @@ cat <<OUT
   Ctrl-C stops everything and deletes the temporary state.
 
 OUT
-KEEP_API="$API" KEEP_TOKEN="$USER_TOKEN" python3 "$SCRIPT_DIR/merion-approve.py" --key "$WORK/phone.key" --device demo-phone
+MERION_API="$API" MERION_TOKEN="$USER_TOKEN" python3 "$SCRIPT_DIR/merion-approve.py" --key "$WORK/phone.key" --device demo-phone

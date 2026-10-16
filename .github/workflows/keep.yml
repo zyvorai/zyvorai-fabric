@@ -173,7 +173,7 @@ jobs:
               ./agent-runtime/scripts/e2e-no-fluxvm.sh
 
           Against a live FluxVM lab:
-            KEEP_E2E_FLUXVM=1 ZYVOR_AGENT_FLUXVM_URL=http://127.0.0.1:7788 ./scripts/merion-e2e.sh
+            MERION_E2E_FLUXVM=1 ZYVOR_AGENT_FLUXVM_URL=http://127.0.0.1:7788 ./scripts/merion-e2e.sh
 
           Production knobs:
             ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS=<hex32 pubkeys>

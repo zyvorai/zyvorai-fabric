@@ -46,7 +46,7 @@ On a host with FluxVM up:
 ```bash
 ./scripts/merion-live-lab.sh
 # Guest boot needs a registered template (Tutorial 11 node22-agent) or:
-# KEEP_E2E_TEMPLATE=node22-agent ./scripts/merion-live-lab.sh
+# MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-live-lab.sh
 ```
 
 ---
@@ -62,7 +62,7 @@ PUB=$(./agent-runtime/target/release/examples/keep_sign_policy pubkey "$SEED" \
 export ZYVOR_AGENT_LISTEN=127.0.0.1:9096
 export ZYVOR_AGENT_API_TOKEN=dev-token
 export ZYVOR_AGENT_FLUXVM_URL=http://127.0.0.1:7788
-export ZYVOR_AGENT_KEEP_MODE=1
+export ZYVOR_AGENT_MERION_MODE=1
 export ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB"
 export ZYVOR_AGENT_CONFINE=1          # optional but recommended
 export ZYVOR_AGENT_SECURITY_PROFILE=measured  # default under Keep mode
@@ -76,9 +76,9 @@ Keep mode **refuses to start** without trusted signers, and refuses unsigned
 `PUT /v1/agents/{name}/policy`.
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096
-export KEEP_TOKEN=dev-token
-curl -sS -H "Authorization: Bearer $KEEP_TOKEN" "$KEEP_API/healthz"
+export MERION_API=http://127.0.0.1:9096
+export MERION_TOKEN=dev-token
+curl -sS -H "Authorization: Bearer $MERION_TOKEN" "$MERION_API/healthz"
 ```
 
 ---
@@ -147,11 +147,11 @@ After a session exists:
 SID=<session-uuid>
 ./scripts/merionctl cockpit "$SID" | jq '{tainted_by, taint_visible, evidence_class, browser_view, honesty}'
 # HTML (phone-friendly):
-open "$KEEP_API/keep/cockpit?session=$SID"
+open "$MERION_API/merion/cockpit?session=$SID"
 # Tab listing (needs browser_port on the agent):
-curl -sS -H "Authorization: Bearer $KEEP_TOKEN" \
-  "$KEEP_API/v1/sessions/$SID/browser/view" | jq .
-open "$KEEP_API/keep/browser?session=$SID"
+curl -sS -H "Authorization: Bearer $MERION_TOKEN" \
+  "$MERION_API/v1/sessions/$SID/browser/view" | jq .
+open "$MERION_API/merion/browser?session=$SID"
 ```
 
 Untrusted reads paint `tainted_by`; egress flips to ask. Screencast and input
@@ -206,7 +206,7 @@ FluxVM CI for that path: `./scripts/test-security-profiles.sh` in the fluxvm rep
 - Approvals inside the agent chat  
 - Calling `software-test` evidence “hardware attestation”  
 - Treating QEMU `extra_args` as proof of confidential launch  
-- Running production Keep without `ZYVOR_AGENT_KEEP_MODE=1` and trusted signers  
+- Running production Keep without `ZYVOR_AGENT_MERION_MODE=1` and trusted signers  
 - Opening a third Keep git repository — Keep lives in Fabric  
 
 Keep 0.2 **soft** scaffolding (receipt, screencast, user-held challenge, fabricd
@@ -261,7 +261,7 @@ Shared `_fabric` connector + `fabric-api` credential recipe. Goals/artifacts API
 # Runtime must be up; credentials file includes fabric-api; FABRIC_API_TOKEN set
 ./scripts/merion-pack-demo.sh infra-ops
 # Stub bundle without fabric-agent:
-KEEP_PACK_DRY=1 ./scripts/merion-pack-demo.sh deploy-op
+MERION_PACK_DRY=1 ./scripts/merion-pack-demo.sh deploy-op
 # Stage demo (no browser):
 ./scripts/merion-demo-pdf.sh
 ```

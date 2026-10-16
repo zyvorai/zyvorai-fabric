@@ -13,25 +13,34 @@
 #
 # Usage:
 #   ./scripts/merion-bake-browser-agent.sh
-#   KEEP_BROWSER_GUEST_AGENT=/usr/local/bin/fluxvm-guest-agent \
-#   KEEP_BROWSER_NODE_TAR=/tmp/node20.tar.xz \
+#   MERION_BROWSER_GUEST_AGENT=/usr/local/bin/fluxvm-guest-agent \
+#   MERION_BROWSER_NODE_TAR=/tmp/node20.tar.xz \
 #     ./scripts/merion-bake-browser-agent.sh
 #
 # Full image bake can take a long time and needs several GiB free. If the
 # qcow2 already exists, this script only (re)registers the template and
 # refreshes guest unit/driver assets into the template dir for operators.
 #
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_BROWSER_ASSETS+x}" ] || [ -z "${KEEP_BROWSER_ASSETS:-}" ] || export MERION_BROWSER_ASSETS="$KEEP_BROWSER_ASSETS"
+[ -n "${MERION_BROWSER_GUEST_AGENT+x}" ] || [ -z "${KEEP_BROWSER_GUEST_AGENT:-}" ] || export MERION_BROWSER_GUEST_AGENT="$KEEP_BROWSER_GUEST_AGENT"
+[ -n "${MERION_BROWSER_NODE_TAR+x}" ] || [ -z "${KEEP_BROWSER_NODE_TAR:-}" ] || export MERION_BROWSER_NODE_TAR="$KEEP_BROWSER_NODE_TAR"
+[ -n "${MERION_BROWSER_OUT+x}" ] || [ -z "${KEEP_BROWSER_OUT:-}" ] || export MERION_BROWSER_OUT="$KEEP_BROWSER_OUT"
+[ -n "${MERION_BROWSER_PLAYWRIGHT_TGZ+x}" ] || [ -z "${KEEP_BROWSER_PLAYWRIGHT_TGZ:-}" ] || export MERION_BROWSER_PLAYWRIGHT_TGZ="$KEEP_BROWSER_PLAYWRIGHT_TGZ"
+[ -n "${MERION_BROWSER_TEMPLATE_DIR+x}" ] || [ -z "${KEEP_BROWSER_TEMPLATE_DIR:-}" ] || export MERION_BROWSER_TEMPLATE_DIR="$KEEP_BROWSER_TEMPLATE_DIR"
+[ -n "${MERION_BROWSER_UNIT+x}" ] || [ -z "${KEEP_BROWSER_UNIT:-}" ] || export MERION_BROWSER_UNIT="$KEEP_BROWSER_UNIT"
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TPL_SRC="$ROOT/agent-runtime/templates/browser-agent"
-OUT_IMG="${KEEP_BROWSER_OUT:-/var/lib/fluxvm/images/browser-agent.qcow2}"
-TDIR="${KEEP_BROWSER_TEMPLATE_DIR:-/var/lib/fluxvm/templates/browser-agent}"
-NODE_TAR="${KEEP_BROWSER_NODE_TAR:-/tmp/node20.tar.xz}"
-PW_PACK="${KEEP_BROWSER_PLAYWRIGHT_TGZ:-/tmp/playwright-pack.tgz}"
-GUEST_AGENT="${KEEP_BROWSER_GUEST_AGENT:-}"
-UNIT_SRC="${KEEP_BROWSER_UNIT:-}"
-ASSETS_STAGING="${KEEP_BROWSER_ASSETS:-/tmp/browser-agent-assets}"
+OUT_IMG="${MERION_BROWSER_OUT:-/var/lib/fluxvm/images/browser-agent.qcow2}"
+TDIR="${MERION_BROWSER_TEMPLATE_DIR:-/var/lib/fluxvm/templates/browser-agent}"
+NODE_TAR="${MERION_BROWSER_NODE_TAR:-/tmp/node20.tar.xz}"
+PW_PACK="${MERION_BROWSER_PLAYWRIGHT_TGZ:-/tmp/playwright-pack.tgz}"
+GUEST_AGENT="${MERION_BROWSER_GUEST_AGENT:-}"
+UNIT_SRC="${MERION_BROWSER_UNIT:-}"
+ASSETS_STAGING="${MERION_BROWSER_ASSETS:-/tmp/browser-agent-assets}"
 
 if [[ -z "$GUEST_AGENT" ]]; then
   for cand in \

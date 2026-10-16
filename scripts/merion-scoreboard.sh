@@ -10,10 +10,13 @@
 # It proves the receipt shape and the pack-round-trip mechanics agree with agent-runtime/src/
 # scoreboard.rs's validation rules; it does not exercise the real egress broker, a real deployed
 # agent's actual model socket configuration, or a real cell. See docs/merion/AHEAD.md.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_SCOREBOARD_OUT+x}" ] || [ -z "${KEEP_SCOREBOARD_OUT:-}" ] || export MERION_SCOREBOARD_OUT="$KEEP_SCOREBOARD_OUT"
+
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-OUT="${KEEP_SCOREBOARD_OUT:-artifacts/keep-scoreboard.json}"
+OUT="${MERION_SCOREBOARD_OUT:-artifacts/keep-scoreboard.json}"
 mkdir -p "$(dirname "$OUT")"
 
 POLICY=$(cat <<'YAML'

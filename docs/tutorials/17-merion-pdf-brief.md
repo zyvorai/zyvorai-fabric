@@ -29,10 +29,10 @@ Related: [Tutorial 16](16-merion-workstation.md) · [pdf-brief demo](../merion/d
 
 ```bash
 cd fabric
-export KEEP_API="${KEEP_API:-http://127.0.0.1:9096}"
-export KEEP_TOKEN="${KEEP_TOKEN:-}"   # if runtime auth is on
+export MERION_API="${MERION_API:-http://127.0.0.1:9096}"
+export MERION_TOKEN="${MERION_TOKEN:-}"   # if runtime auth is on
 
-curl -fsS ${KEEP_TOKEN:+-H "Authorization: Bearer $KEEP_TOKEN"} "$KEEP_API/healthz"
+curl -fsS ${MERION_TOKEN:+-H "Authorization: Bearer $MERION_TOKEN"} "$MERION_API/healthz"
 # FluxVM must be ready (agent-runtime /readyz path); template node22-agent baked
 # with poppler-utils so guest `pdftotext` works.
 ```
@@ -68,9 +68,9 @@ Expect JSON with `egress_connects: 0`, `artifact_title: brief.md`, and a
 Direct API (multipart optional — omit `pdf` for the lab sample):
 
 ```bash
-curl -fsS ${KEEP_TOKEN:+-H "Authorization: Bearer $KEEP_TOKEN"} \
+curl -fsS ${MERION_TOKEN:+-H "Authorization: Bearer $MERION_TOKEN"} \
   -X POST -F "pdf=@examples/merion-agents/pdf-brief/sample.pdf;type=application/pdf" \
-  "$KEEP_API/v1/demos/pdf-brief" | jq '{session_id, egress_connects, artifact_title}'
+  "$MERION_API/v1/demos/pdf-brief" | jq '{session_id, egress_connects, artifact_title}'
 ```
 
 Via fabricd (JWT): `POST /api/demos/pdf-brief`.
@@ -81,8 +81,8 @@ Via fabricd (JWT): `POST /api/demos/pdf-brief`.
 
 ```bash
 SID=…   # from the demo response
-curl -fsS ${KEEP_TOKEN:+-H "Authorization: Bearer $KEEP_TOKEN"} \
-  "$KEEP_API/v1/sessions/$SID/cockpit" | jq '{egress_connects, drop_reasons, honesty: .attestation.honesty}'
+curl -fsS ${MERION_TOKEN:+-H "Authorization: Bearer $MERION_TOKEN"} \
+  "$MERION_API/v1/sessions/$SID/cockpit" | jq '{egress_connects, drop_reasons, honesty: .attestation.honesty}'
 ```
 
 | Signal | Meaning |

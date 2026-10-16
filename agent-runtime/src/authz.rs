@@ -765,6 +765,7 @@ mod tests {
         for p in [
             "/v1/agents",
             "/v1/keep/status",
+            "/v1/merion/status",
             "/v1/user-tokens",
             "/v1/triggers",
             "/v1/model-grants",

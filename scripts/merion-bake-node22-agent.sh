@@ -11,22 +11,34 @@
 #   ./scripts/merion-bake-node22-agent.sh --force      # rebuild into a NEW image next to the old one and point the template at it
 #
 # Environment overrides are listed in agent-runtime/templates/node22-agent/README.md.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_BAKE_STAGE_DIR+x}" ] || [ -z "${KEEP_BAKE_STAGE_DIR:-}" ] || export MERION_BAKE_STAGE_DIR="$KEEP_BAKE_STAGE_DIR"
+[ -n "${MERION_FLUXVM_CONFIG+x}" ] || [ -z "${KEEP_FLUXVM_CONFIG:-}" ] || export MERION_FLUXVM_CONFIG="$KEEP_FLUXVM_CONFIG"
+[ -n "${MERION_NODE_BASE_IMG+x}" ] || [ -z "${KEEP_NODE_BASE_IMG:-}" ] || export MERION_NODE_BASE_IMG="$KEEP_NODE_BASE_IMG"
+[ -n "${MERION_NODE_GUEST_AGENT+x}" ] || [ -z "${KEEP_NODE_GUEST_AGENT:-}" ] || export MERION_NODE_GUEST_AGENT="$KEEP_NODE_GUEST_AGENT"
+[ -n "${MERION_NODE_IMAGES_DIR+x}" ] || [ -z "${KEEP_NODE_IMAGES_DIR:-}" ] || export MERION_NODE_IMAGES_DIR="$KEEP_NODE_IMAGES_DIR"
+[ -n "${MERION_NODE_OUT+x}" ] || [ -z "${KEEP_NODE_OUT:-}" ] || export MERION_NODE_OUT="$KEEP_NODE_OUT"
+[ -n "${MERION_NODE_TAR+x}" ] || [ -z "${KEEP_NODE_TAR:-}" ] || export MERION_NODE_TAR="$KEEP_NODE_TAR"
+[ -n "${MERION_NODE_TEMPLATE_DIR+x}" ] || [ -z "${KEEP_NODE_TEMPLATE_DIR:-}" ] || export MERION_NODE_TEMPLATE_DIR="$KEEP_NODE_TEMPLATE_DIR"
+[ -n "${MERION_NODE_VERSION+x}" ] || [ -z "${KEEP_NODE_VERSION:-}" ] || export MERION_NODE_VERSION="$KEEP_NODE_VERSION"
+[ -n "${MERION_SUDO+x}" ] || [ -z "${KEEP_SUDO:-}" ] || export MERION_SUDO="$KEEP_SUDO"
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/agent-runtime/templates/node22-agent"
-NODE_VERSION="${KEEP_NODE_VERSION:-22.11.0}"
-NODE_TAR="${KEEP_NODE_TAR:-/tmp/node.tar.xz}"
+NODE_VERSION="${MERION_NODE_VERSION:-22.11.0}"
+NODE_TAR="${MERION_NODE_TAR:-/tmp/node.tar.xz}"
 NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz"
-IMG_DIR="${KEEP_NODE_IMAGES_DIR:-/var/lib/fluxvm/images}"
-OUT_IMG_SET="${KEEP_NODE_OUT:-}"
-OUT_IMG="${KEEP_NODE_OUT:-$IMG_DIR/node22-agent.qcow2}"
-TDIR="${KEEP_NODE_TEMPLATE_DIR:-/var/lib/fluxvm/templates/node22-agent}"
-GUEST_AGENT="${KEEP_NODE_GUEST_AGENT:-/usr/local/bin/fluxvm-guest-agent}"
-BASE_IMG="${KEEP_NODE_BASE_IMG:-}"
-FLUX_CONFIG="${KEEP_FLUXVM_CONFIG:-/etc/fluxvm.toml}"
-# sudo unless already root; KEEP_SUDO="" also disables it (used by the tests)
-SUDO="${KEEP_SUDO-sudo}"
+IMG_DIR="${MERION_NODE_IMAGES_DIR:-/var/lib/fluxvm/images}"
+OUT_IMG_SET="${MERION_NODE_OUT:-}"
+OUT_IMG="${MERION_NODE_OUT:-$IMG_DIR/node22-agent.qcow2}"
+TDIR="${MERION_NODE_TEMPLATE_DIR:-/var/lib/fluxvm/templates/node22-agent}"
+GUEST_AGENT="${MERION_NODE_GUEST_AGENT:-/usr/local/bin/fluxvm-guest-agent}"
+BASE_IMG="${MERION_NODE_BASE_IMG:-}"
+FLUX_CONFIG="${MERION_FLUXVM_CONFIG:-/etc/fluxvm.toml}"
+# sudo unless already root; MERION_SUDO="" also disables it (used by the tests)
+SUDO="${MERION_SUDO-sudo}"
 [[ "$(id -u)" == 0 ]] && SUDO=""
 DRY=0
 FORCE=0
@@ -62,7 +74,7 @@ echo "    base image:  ${BASE_IMG:-$(python3 -c "import json,sys; print(json.loa
 echo "    builder:     ${FLUX:-none}"
 
 [[ -n "$FLUX" ]] || need "fluxvm / fluxctl on the PATH"
-[[ -x "$GUEST_AGENT" ]] || need "guest agent binary at $GUEST_AGENT (set KEEP_NODE_GUEST_AGENT)"
+[[ -x "$GUEST_AGENT" ]] || need "guest agent binary at $GUEST_AGENT (set MERION_NODE_GUEST_AGENT)"
 [[ -z "$BASE_IMG" || -f "$BASE_IMG" ]] || need "base image $BASE_IMG"
 command -v python3 >/dev/null || need "python3"
 if [[ -x "$GUEST_AGENT" ]] && command -v ldd >/dev/null 2>&1; then
@@ -89,7 +101,7 @@ if [[ ! -f "$OUT_IMG" || "$FORCE" == 1 ]]; then
   fi
   # Stage every build input under /var/lib/fluxvm: the AppArmor profile FluxVM's bootstrap installs lets fluxctl read
   # only there (a spec in /tmp or an agent in /usr/local/bin is refused with "Permission denied").
-  STAGE_ROOT="${KEEP_BAKE_STAGE_DIR:-/var/lib/fluxvm/downloads}"
+  STAGE_ROOT="${MERION_BAKE_STAGE_DIR:-/var/lib/fluxvm/downloads}"
   if [[ -d "$STAGE_ROOT" ]]; then STAGE="$($SUDO mktemp -d "$STAGE_ROOT/keep-bake.XXXXXX")"; else STAGE="$(mktemp -d)"; fi
   trap '$SUDO rm -rf "$STAGE"' EXIT
   $SUDO cp "$SRC/fluxvm-guest-agent.service" "$STAGE/"

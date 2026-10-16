@@ -10,8 +10,8 @@ description: Drive a Keep runtime with merionctl. Use when asked to run a Keep u
 ## Setup
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096
-export KEEP_TOKEN=...   # the runtime's ZYVOR_AGENT_API_TOKEN, never print it
+export MERION_API=http://127.0.0.1:9096
+export MERION_TOKEN=...   # the runtime's ZYVOR_AGENT_API_TOKEN, never print it
 ```
 
 ## Common tasks
@@ -31,5 +31,5 @@ export KEEP_TOKEN=...   # the runtime's ZYVOR_AGENT_API_TOKEN, never print it
 ## Rules
 
 - Read `docs/merion/PACKS.md` before writing a `pack.json`. The `extract` field is a fixed list, never a command.
-- Do not print, log or commit `KEEP_TOKEN`.
+- Do not print, log or commit `MERION_TOKEN`.
 - Policy changes go through the `keep-policy` skill, not ad-hoc PUTs.

@@ -21,6 +21,12 @@
 # scripts/merion-bake-node22-agent.sh, which is in the synced tree). If either is missing it stops
 # and says exactly what to do.
 # ============================================================================
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_POLICY_SEED+x}" ] || [ -z "${KEEP_POLICY_SEED:-}" ] || export MERION_POLICY_SEED="$KEEP_POLICY_SEED"
+[ -n "${MERION_SEED_FILE+x}" ] || [ -z "${KEEP_SEED_FILE:-}" ] || export MERION_SEED_FILE="$KEEP_SEED_FILE"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,7 +36,7 @@ TARGET=""
 DEV=0
 DRY=0
 SKIP_FABRIC=0
-SEED_FILE="${KEEP_SEED_FILE:-$HOME/.config/zyvor/keep-signer.seed}"
+SEED_FILE="${MERION_SEED_FILE:-$HOME/.config/zyvor/keep-signer.seed}"
 
 usage() {
   sed -n '5,24p' "$0" | sed 's/^# \{0,1\}//'
@@ -125,9 +131,9 @@ fi
 # Run the install script on the host: over ssh, or straight on this machine for `local`.
 run_on_host() {
   if [[ "$TARGET" == local ]]; then
-    PUBKEY="$PUBKEY" KEEP_DEV="$DEV" DIR="$REMOTE_DIR" bash -s
+    PUBKEY="$PUBKEY" MERION_DEV="$DEV" DIR="$REMOTE_DIR" bash -s
   else
-    ssh -o BatchMode=yes "$TARGET" "PUBKEY='$PUBKEY' KEEP_DEV='$DEV' DIR='$REMOTE_DIR' bash -s"
+    ssh -o BatchMode=yes "$TARGET" "PUBKEY='$PUBKEY' MERION_DEV='$DEV' DIR='$REMOTE_DIR' bash -s"
   fi
 }
 
@@ -170,10 +176,10 @@ set_env() { # idempotent KEY=VALUE in the env file
   $SUDO sed -i "/^$1=/d" "$ENV"
   printf '%s=%s\n' "$1" "$2" | $SUDO tee -a "$ENV" >/dev/null
 }
-if [ "$KEEP_DEV" = "1" ]; then
+if [ "$MERION_DEV" = "1" ]; then
   info "dev mode: Keep mode left off"
 else
-  set_env ZYVOR_AGENT_KEEP_MODE 1
+  set_env ZYVOR_AGENT_MERION_MODE 1
   set_env ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS "$PUBKEY"
   ok "Keep mode on; trusted signer registered (public key only)"
 fi
@@ -203,7 +209,7 @@ for i in $(seq 1 30); do
 done
 ok "agent-runtime is running"
 
-curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:9096/v1/keep/status \
+curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:9096/v1/merion/status \
   | python3 -c '
 import json, sys
 s = json.load(sys.stdin)
@@ -211,14 +217,14 @@ print("  · Keep mode: %s, trusted signers: %d, use cases: %d built-in" % (s["ke
 
 echo
 echo "==> smoke test: CSV cleanup (needs no extra tools in the template)"
-if KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN="$TOKEN" "$DIR/scripts/merion-demo.sh" csv-clean >/tmp/keep-smoke.log 2>&1; then
+if MERION_API=http://127.0.0.1:9096 MERION_TOKEN="$TOKEN" "$DIR/scripts/merion-demo.sh" csv-clean >/tmp/keep-smoke.log 2>&1; then
   ok "csv-clean ran in a sealed cell with 0 CONNECT"
 else
   tail -5 /tmp/keep-smoke.log | sed 's/^/    /'
   die "the smoke test failed. Usually the '${ZYVOR_DEMO_TEMPLATE:-node22-agent}' template is missing or its guest agent is not answering: bake it on the host with ~/zyvor-fabric/scripts/merion-bake-node22-agent.sh (--dry-run shows what is missing), or set ZYVOR_DEMO_TEMPLATE in $ENV to a template that boots, then re-run this command." 3
 fi
 # The PDF demos also need pdftotext (poppler) in the template. Report, do not fail.
-if KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN="$TOKEN" "$DIR/scripts/merion-demo.sh" pdf-brief >/tmp/keep-smoke-pdf.log 2>&1; then
+if MERION_API=http://127.0.0.1:9096 MERION_TOKEN="$TOKEN" "$DIR/scripts/merion-demo.sh" pdf-brief >/tmp/keep-smoke-pdf.log 2>&1; then
   ok "pdf-brief ran too"
 else
   info "the PDF demos need a template with pdftotext (poppler-utils); the other demos work. The template built by scripts/merion-bake-node22-agent.sh has it. See docs/tutorials/17-merion-pdf-brief.md"
@@ -236,6 +242,6 @@ fi
 step "Done"
 HOST="${TARGET#*@}"
 say "  Console:   https://$HOST:9095/app/keep"
-[[ "$DEV" == "1" ]] || say "  Signer:    $SEED_FILE  (export KEEP_POLICY_SEED=\$(cat $SEED_FILE) to sign deploys)"
-say "  Next:      ./scripts/merionctl deploy examples/merion-agents/invoice-check --test   (use ssh -L 9096:127.0.0.1:9096 $TARGET, KEEP_API=http://127.0.0.1:9096)"
+[[ "$DEV" == "1" ]] || say "  Signer:    $SEED_FILE  (export MERION_POLICY_SEED=\$(cat $SEED_FILE) to sign deploys)"
+say "  Next:      ./scripts/merionctl deploy examples/merion-agents/invoice-check --test   (use ssh -L 9096:127.0.0.1:9096 $TARGET, MERION_API=http://127.0.0.1:9096)"
 say "  Docs:      docs/tutorials/19-build-your-own-use-case.md"

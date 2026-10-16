@@ -3,9 +3,12 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Narrated Keep speculate -> review -> approve demo. It runs against the live Keep runtime that
-# scripts/merion-e2e.sh starts (KEEP_E2E_DEMO=scripts/demo/speculate-demo.sh), so every HTTP call
+# scripts/merion-e2e.sh starts (MERION_E2E_DEMO=scripts/demo/speculate-demo.sh), so every HTTP call
 # below is real. FluxVM itself is the CI stub: no VM boots, and the changeset body is a response
 # captured from a real FluxVM. The banner says so, because a recording must not imply more.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_E2E_DEMO+x}" ] || [ -z "${KEEP_E2E_DEMO:-}" ] || export MERION_E2E_DEMO="$KEEP_E2E_DEMO"
+
 set -euo pipefail
 : "${API:?}" "${TOKEN:?}" "${SID:?}" "${STUB_OPS:?}"
 

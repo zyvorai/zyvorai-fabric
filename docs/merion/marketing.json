@@ -36,7 +36,7 @@
     },
     {
       "label": "Move it",
-      "note": "Needs a running agent-runtime and a KEEP_EXPORT_TOKEN with scope pack. Secrets are not included.",
+      "note": "Needs a running agent-runtime and a MERION_EXPORT_TOKEN with scope pack. Secrets are not included.",
       "commands": [
         "scripts/merionctl pack ./keep-pack my-agent",
         "scripts/merionctl unpack ./keep-pack my-agent"

@@ -9,12 +9,16 @@
 #   ./scripts/merion-demo.sh <demo-id> [file]
 #
 # With no file, the demo's sample under examples/merion-agents/<id>/ is used.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-: "${KEEP_API:=${ZYVOR_AGENT_URL:-http://127.0.0.1:9096}}"
+: "${MERION_API:=${ZYVOR_AGENT_URL:-http://127.0.0.1:9096}}"
 AUTH=()
-if [[ -n "${KEEP_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}" ]]; then
-  AUTH=(-H "Authorization: Bearer ${KEEP_TOKEN:-$ZYVOR_AGENT_TOKEN}")
+if [[ -n "${MERION_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}" ]]; then
+  AUTH=(-H "Authorization: Bearer ${MERION_TOKEN:-$ZYVOR_AGENT_TOKEN}")
 fi
 
 usage() {
@@ -24,13 +28,13 @@ usage() {
 [[ $# -ge 1 ]] || usage
 
 echo "==> preflight"
-curl -fsS "${AUTH[@]}" "$KEEP_API/healthz" >/dev/null || {
+curl -fsS "${AUTH[@]}" "$MERION_API/healthz" >/dev/null || {
   echo "runtime /healthz failed" >&2
   exit 1
 }
 
 if [[ "$1" == "list" ]]; then
-  curl -fsS "${AUTH[@]}" "$KEEP_API/v1/demos" | python3 -c '
+  curl -fsS "${AUTH[@]}" "$MERION_API/v1/demos" | python3 -c '
 import json, sys
 for d in json.load(sys.stdin)["demos"]:
     print("%-24s .%s  %s" % (d["id"], "/.".join(d["accepts"]), d["description"]))'
@@ -47,12 +51,12 @@ fi
 test -n "$FILE" && test -f "$FILE" || { echo "missing input file for $ID: ${FILE:-none}" >&2; exit 1; }
 
 echo "==> POST /v1/demos/$ID  ($(basename "$FILE"))"
-OUT=$(curl -fsS "${AUTH[@]}" -X POST -F "file=@${FILE}" "$KEEP_API/v1/demos/$ID")
+OUT=$(curl -fsS "${AUTH[@]}" -X POST -F "file=@${FILE}" "$MERION_API/v1/demos/$ID")
 echo "$OUT" | python3 -m json.tool
 SID=$(echo "$OUT" | python3 -c "import json,sys; print(json.load(sys.stdin)['session_id'])")
 CONN=$(echo "$OUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('egress_connects', -1))")
 ARTS=$(echo "$OUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(', '.join(a['title'] for a in d.get('artifacts', [])) or d.get('artifact_title', ''))")
-echo "COCKPIT $KEEP_API (console /app/keep/$SID)"
+echo "COCKPIT $MERION_API (console /app/keep/$SID)"
 if [[ "$CONN" != "0" ]]; then
   echo "FAIL: egress_connects=$CONN" >&2
   exit 2

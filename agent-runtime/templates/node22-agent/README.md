@@ -21,12 +21,12 @@ Overrides (environment):
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `KEEP_NODE_VERSION` | `22.11.0` | Node release to bake in |
-| `KEEP_NODE_TAR` | `/tmp/node.tar.xz` | Where the Node tarball is cached (downloaded if missing) |
-| `KEEP_NODE_BASE_IMG` | the Ubuntu noble URL in `build.json` | Use a local base image instead of downloading one |
-| `KEEP_NODE_GUEST_AGENT` | `/usr/local/bin/fluxvm-guest-agent` | Guest agent binary to bake in |
-| `KEEP_NODE_OUT` | `/var/lib/fluxvm/images/node22-agent.qcow2` | Image to write |
-| `KEEP_NODE_TEMPLATE_DIR` | `/var/lib/fluxvm/templates/node22-agent` | Where the template is registered |
+| `MERION_NODE_VERSION` | `22.11.0` | Node release to bake in |
+| `MERION_NODE_TAR` | `/tmp/node.tar.xz` | Where the Node tarball is cached (downloaded if missing) |
+| `MERION_NODE_BASE_IMG` | the Ubuntu noble URL in `build.json` | Use a local base image instead of downloading one |
+| `MERION_NODE_GUEST_AGENT` | `/usr/local/bin/fluxvm-guest-agent` | Guest agent binary to bake in |
+| `MERION_NODE_OUT` | `/var/lib/fluxvm/images/node22-agent.qcow2` | Image to write |
+| `MERION_NODE_TEMPLATE_DIR` | `/var/lib/fluxvm/templates/node22-agent` | Where the template is registered |
 
 Re-running skips the build if the image already exists (add `--force` to rebuild) and re-registers the template.
 

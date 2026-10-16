@@ -5,28 +5,32 @@
 # Run the Keep scenarios against a LIVE runtime, in real cells (needs the node22-agent template:
 # ./scripts/merion-bake-node22-agent.sh). Unlike agent-runtime/tests/demos-ci.sh this uses no stand-in.
 #
-#   export KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=...
+#   export MERION_API=http://127.0.0.1:9096 MERION_TOKEN=...
 #   ./scripts/merion-live-scenarios.sh            # everything (a few minutes: each run boots a cell)
 #   ./scripts/merion-live-scenarios.sh --quick    # built-ins + one extractor each, no batch or zip
 #
 # Needs: curl, python3, node (for merionctl deploy). Custom use cases it creates are deleted afterwards.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 KEEPCTL="$ROOT/scripts/merionctl"
-: "${KEEP_API:=${ZYVOR_AGENT_URL:-http://127.0.0.1:9096}}"
-export KEEP_API
+: "${MERION_API:=${ZYVOR_AGENT_URL:-http://127.0.0.1:9096}}"
+export MERION_API
 QUICK=0
 [[ "${1:-}" == "--quick" ]] && QUICK=1
 AUTH=()
-[[ -n "${KEEP_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}" ]] && AUTH=(-H "Authorization: Bearer ${KEEP_TOKEN:-$ZYVOR_AGENT_TOKEN}")
-export KEEP_TOKEN="${KEEP_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}"
+[[ -n "${MERION_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}" ]] && AUTH=(-H "Authorization: Bearer ${MERION_TOKEN:-$ZYVOR_AGENT_TOKEN}")
+export MERION_TOKEN="${MERION_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}"
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/keep-live.XXXXXX")"
 PASSED=0; FAILED=0
 CREATED=()
 cleanup() {
-  for id in ${CREATED[@]+"${CREATED[@]}"}; do curl -s -o /dev/null -X DELETE "${AUTH[@]}" "$KEEP_API/v1/demos/$id"; done
+  for id in ${CREATED[@]+"${CREATED[@]}"}; do curl -s -o /dev/null -X DELETE "${AUTH[@]}" "$MERION_API/v1/demos/$id"; done
   rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -41,10 +45,10 @@ print(d if not isinstance(d,(dict,list)) else json.dumps(d))' "$1"; }
 api()  { curl -s "${AUTH[@]}" "$@"; }
 # check <name> <haystack> <needle>
 has()  { if grep -qF -- "$3" <<<"$2"; then ok "$1"; else bad "$1 (missing: $3)"; echo "       got: $(head -c 300 <<<"$2")"; fi; }
-body_of() { api "$KEEP_API/v1/artifacts/$(json artifacts.0.id <<<"$1")" | json body; }
+body_of() { api "$MERION_API/v1/artifacts/$(json artifacts.0.id <<<"$1")" | json body; }
 
-echo "==> live scenarios against $KEEP_API"
-api -f "$KEEP_API/healthz" >/dev/null || { echo "runtime not reachable at $KEEP_API" >&2; exit 2; }
+echo "==> live scenarios against $MERION_API"
+api -f "$MERION_API/healthz" >/dev/null || { echo "runtime not reachable at $MERION_API" >&2; exit 2; }
 
 # ---- fixtures -----------------------------------------------------------------
 python3 - "$WORK" <<'PY'
@@ -73,14 +77,14 @@ printf 'name,qty\nAnn,1\nBob,=cmd|calc\n' > "$WORK/a.csv"; printf 'name,qty\nCy,
 echo "== built-in use cases (each boots a cell)"
 for id in csv-clean log-triage meeting-actions sbom-summary pdf-brief contract-clauses security-questionnaire; do
   [[ "$QUICK" == 1 && "$id" != csv-clean && "$id" != pdf-brief ]] && continue
-  r=$(api -X POST -F note=none "$KEEP_API/v1/demos/$id")
+  r=$(api -X POST -F note=none "$MERION_API/v1/demos/$id")
   if [[ "$(json egress_connects <<<"$r" 2>/dev/null)" == "0" ]]; then ok "$id runs in a real cell, 0 CONNECT"; else bad "$id: $(head -c 300 <<<"$r")"; fi
 done
 
 # ---- scenario packs -----------------------------------------------------------------
 echo "== scenario packs"
-deploy() { KEEP_API="$KEEP_API" "$KEEPCTL" deploy "$ROOT/examples/merion-agents/$1" "${@:2}" >"$WORK/deploy-$1.out" 2>&1; }
-run() { api -X POST -F "file=@$2" "$KEEP_API/v1/demos/$1"; }
+deploy() { MERION_API="$MERION_API" "$KEEPCTL" deploy "$ROOT/examples/merion-agents/$1" "${@:2}" >"$WORK/deploy-$1.out" 2>&1; }
+run() { api -X POST -F "file=@$2" "$MERION_API/v1/demos/$1"; }
 for p in status-page-watch mailbox-triage api-facts; do CREATED+=("$p"); done
 CREATED+=(expense-sheet nda-review invoice-model-brief meeting-notes-model)
 
@@ -89,11 +93,11 @@ for p in "${EXTRA_PACKS[@]}"; do CREATED+=("$p"); done
 for pair in "payslip-text:Net Pay 71,300.00" "kindle-highlights:3× Highlight" "android-call-log:incoming (3)" "insurance-claim-mail:3× CLM-2026-0042" "takeout-my-activity:3× Search" "neft-rtgs-returns:3× EXMP0001234" "nach-return-report:Insufficient funds (3)" "recon-exceptions:Unmatched debit (3)" "upi-dispute-mail:2× 506712345678" "status-page-watch:Object storage" "mailbox-triage:Invoice 2041 is overdue" "api-facts:KB-01; MS-07" "chat-export-digest:4× Ana" "bank-sms-ledger:was declined" "card-statement:Dining (3)" "calendar-week:2× Team standup" "contacts-audit:2× Ana Example" "travel-itinerary:2× K7QP2M" "subscription-finder:1× EUR 39.00" "mac-system-report:1× Apple M4" "homebrew-audit:1× openjdk" "mac-log-triage:2× analyticsd" "mac-update-history:5× 26.0" "windows-systeminfo:1× KB5034441" "windows-hotfixes:Security Update (3)" "windows-installed-software:Example Software Inc. (2)" "windows-event-log:Error (2)" "receivables-ageing:4× INV-2026-0142" "po-line-items:1× PO-7781/2026" "employee-ledger:E001 (2)" "reimbursement-claims:2× Rs 4,200" "github-prs:3× MERGED" "github-issues:2× CLOSED" "github-actions-log:1× test Lint" "dependabot-alerts:2× high" "git-log-digest:4× Ana Dev" "xcodebuild-log:BUILD FAILED" "xcode-crash-log:EXC_BAD_ACCESS" "vscode-extensions:2× ms-python" "vscode-settings-audit:1× github.copilot.advanced.apiToken" "bookmarks-digest:3× example.com" "browser-history-takeout:3× LINK" "mac-apps-inventory:2× Apple" "mac-launch-items:1× com.example.oldjob" "windows-services:Running (3)" "windows-scheduled-tasks:SYSTEM (3)"; do
   p="${pair%%:*}"; want="${pair#*:}"
   if deploy "$p"; then
-    r=$(api -X POST -F note=none "$KEEP_API/v1/demos/$p")
+    r=$(api -X POST -F note=none "$MERION_API/v1/demos/$p")
     if [[ "$(json egress_connects <<<"$r" 2>/dev/null)" == "0" ]]; then has "$p: sample summarised in a real cell" "$(body_of "$r")" "$want"; else bad "$p: $(head -c 300 <<<"$r")"; fi
   else bad "$p: deploy failed: $(head -c 300 "$WORK/deploy-$p.out")"; fi
   # the runtime allows 50 custom use cases and this script deploys about that many: drop each one once it has been checked
-  curl -s -o /dev/null -X DELETE "${AUTH[@]}" "$KEEP_API/v1/demos/$p"
+  curl -s -o /dev/null -X DELETE "${AUTH[@]}" "$MERION_API/v1/demos/$p"
   [[ "$QUICK" == 1 ]] && break
 done
 
@@ -180,7 +184,7 @@ deploy nda-review && { r=$(run nda-review "$WORK/nda.docx"); has "nda-review: re
 # ---- model packs must be refused until the operator allows an endpoint -------------------
 for p in invoice-model-brief meeting-notes-model; do deploy "$p" || bad "$p deploy"; done
 printf '%%PDF-1.4' > "$WORK/inv.pdf"
-code=$(curl -s -o "$WORK/m.out" -w '%{http_code}' "${AUTH[@]}" -X POST -F "file=@$WORK/inv.pdf" "$KEEP_API/v1/demos/invoice-model-brief")
+code=$(curl -s -o "$WORK/m.out" -w '%{http_code}' "${AUTH[@]}" -X POST -F "file=@$WORK/inv.pdf" "$MERION_API/v1/demos/invoice-model-brief")
 if [[ "$code" == "403" ]] && grep -q "refused by the vault" "$WORK/m.out"; then ok "invoice-model-brief refused by the vault (403), no cell started"; else bad "invoice-model-brief: $code $(head -c 200 "$WORK/m.out")"; fi
 
 # ---- batch, zip, triggers, history --------------------------------------------------------
@@ -191,11 +195,11 @@ if [[ "$QUICK" == 0 ]]; then
   out=$("$KEEPCTL" run log-triage "$WORK/logs.zip" 2>&1)
   if python3 -c 'import json,sys; d=json.loads(sys.argv[1]); assert d["count"]==2 and d["ok"]==2 and d["egress_connects"]==0' "$out" 2>/dev/null; then ok "zip of logs: 2 files, 2 cells, the .md ignored"; else bad "zip: $(head -c 300 <<<"$out")"; fi
 
-  tr=$(api -X POST -H 'content-type: application/json' -d '{"use_case":"csv-clean","kind":"webhook"}' "$KEEP_API/v1/triggers")
+  tr=$(api -X POST -H 'content-type: application/json' -d '{"use_case":"csv-clean","kind":"webhook"}' "$MERION_API/v1/triggers")
   tid=$(json id <<<"$tr"); tsec=$(json secret <<<"$tr")
   r=$("$KEEPCTL" trigger fire "$tid" "$tsec" "$WORK/a.csv" 2>&1)
   if [[ "$(json egress_connects <<<"$r" 2>/dev/null)" == "0" ]]; then ok "webhook trigger: signed call ran csv-clean in a real cell"; else bad "webhook: $(head -c 300 <<<"$r")"; fi
-  api -o /dev/null -X DELETE "$KEEP_API/v1/triggers/$tid"
+  api -o /dev/null -X DELETE "$MERION_API/v1/triggers/$tid"
 
   ids=$("$KEEPCTL" artifacts --use-case csv-clean | grep " clean.csv" | awk '{print $1}' | head -2)
   if [[ "$(wc -l <<<"$ids" | tr -d ' ')" -ge 2 ]]; then

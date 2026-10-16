@@ -10,9 +10,24 @@
 #   ./scripts/merion-e2e.sh
 #
 # Optional:
-#   KEEP_E2E_FLUXVM=1  also probe a live FluxVM at ZYVOR_AGENT_FLUXVM_URL
-#   KEEP_E2E_BIN=…     path to zyvor-fabric-agent-runtime
+#   MERION_E2E_FLUXVM=1  also probe a live FluxVM at ZYVOR_AGENT_FLUXVM_URL
+#   MERION_E2E_BIN=…     path to zyvor-fabric-agent-runtime
 #
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_E2E_BIN+x}" ] || [ -z "${KEEP_E2E_BIN:-}" ] || export MERION_E2E_BIN="$KEEP_E2E_BIN"
+[ -n "${MERION_E2E_DEMO+x}" ] || [ -z "${KEEP_E2E_DEMO:-}" ] || export MERION_E2E_DEMO="$KEEP_E2E_DEMO"
+[ -n "${MERION_E2E_FLUXVM+x}" ] || [ -z "${KEEP_E2E_FLUXVM:-}" ] || export MERION_E2E_FLUXVM="$KEEP_E2E_FLUXVM"
+[ -n "${MERION_E2E_TEMPLATE+x}" ] || [ -z "${KEEP_E2E_TEMPLATE:-}" ] || export MERION_E2E_TEMPLATE="$KEEP_E2E_TEMPLATE"
+[ -n "${MERION_EXPORT_TOKEN+x}" ] || [ -z "${KEEP_EXPORT_TOKEN:-}" ] || export MERION_EXPORT_TOKEN="$KEEP_EXPORT_TOKEN"
+[ -n "${MERION_FLUXVM_URL+x}" ] || [ -z "${KEEP_FLUXVM_URL:-}" ] || export MERION_FLUXVM_URL="$KEEP_FLUXVM_URL"
+[ -n "${MERION_MODE+x}" ] || [ -z "${KEEP_MODE:-}" ] || export MERION_MODE="$KEEP_MODE"
+[ -n "${MERION_PILOT_KEEP_LOGS+x}" ] || [ -z "${KEEP_PILOT_KEEP_LOGS:-}" ] || export MERION_PILOT_KEEP_LOGS="$KEEP_PILOT_KEEP_LOGS"
+[ -n "${MERION_PILOT_MODE+x}" ] || [ -z "${KEEP_PILOT_MODE:-}" ] || export MERION_PILOT_MODE="$KEEP_PILOT_MODE"
+[ -n "${MERION_POLICY_ACK_RISK+x}" ] || [ -z "${KEEP_POLICY_ACK_RISK:-}" ] || export MERION_POLICY_ACK_RISK="$KEEP_POLICY_ACK_RISK"
+[ -n "${MERION_SIGN_BIN+x}" ] || [ -z "${KEEP_SIGN_BIN:-}" ] || export MERION_SIGN_BIN="$KEEP_SIGN_BIN"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -20,8 +35,8 @@ cd "$ROOT"
 
 KEEPCTL="$ROOT/scripts/merionctl"
 SIGN_EX="$ROOT/agent-runtime/examples/keep_sign_policy.rs"
-BIN="${KEEP_E2E_BIN:-$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runtime}"
-SIGN_BIN="${KEEP_SIGN_BIN:-$ROOT/agent-runtime/target/debug/examples/keep_sign_policy}"
+BIN="${MERION_E2E_BIN:-$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runtime}"
+SIGN_BIN="${MERION_SIGN_BIN:-$ROOT/agent-runtime/target/debug/examples/keep_sign_policy}"
 API="http://127.0.0.1:19097"
 STUB_PORT=17797
 TOKEN="keep-e2e-token"
@@ -146,7 +161,7 @@ echo "==> Keep mode refuses empty signers"
 mkdir -p "$W/state-bad" "$W/snap-bad"
 if env -u ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS -u ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE \
    ZYVOR_AGENT_API_TOKEN="$TOKEN" \
-   ZYVOR_AGENT_KEEP_MODE=1 \
+   ZYVOR_AGENT_MERION_MODE=1 \
    ZYVOR_AGENT_LISTEN=127.0.0.1:19098 \
    ZYVOR_AGENT_EGRESS_LISTEN=127.0.0.1:19085 \
    ZYVOR_AGENT_STATE_DIR="$W/state-bad" \
@@ -161,7 +176,7 @@ else
   echo "PASS  Keep mode refuses start without trusted signers"
   PASS=$((PASS + 1))
 fi
-if grep -Eqi 'KEEP_MODE|trusted signers|POLICY_TRUSTED_SIGNERS' "$W/bad-runtime.log"; then
+if grep -Eqi 'MERION_MODE|trusted signers|POLICY_TRUSTED_SIGNERS' "$W/bad-runtime.log"; then
   echo "PASS  Keep mode error mentions signers"
   PASS=$((PASS + 1))
 else
@@ -177,7 +192,7 @@ ZYVOR_AGENT_EGRESS_LISTEN=127.0.0.1:19084 \
 ZYVOR_AGENT_STATE_DIR="$W/state" \
 ZYVOR_AGENT_SNAPSHOT_DIR="$W/snap" \
 ZYVOR_AGENT_FLUXVM_URL="http://127.0.0.1:${STUB_PORT}" \
-ZYVOR_AGENT_KEEP_MODE=1 \
+ZYVOR_AGENT_MERION_MODE=1 \
 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" \
 ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE=1 \
 ZYVOR_AGENT_APPROVAL_WEBHOOK="http://127.0.0.1:19111/hook" \
@@ -196,8 +211,8 @@ curl -sf "$API/healthz" >/dev/null || {
   echo "runtime failed to start"; tail -60 "$W/runtime.log"; exit 1
 }
 
-export KEEP_API="$API"
-export KEEP_TOKEN="$TOKEN"
+export MERION_API="$API"
+export MERION_TOKEN="$TOKEN"
 export ZYVOR_AGENT_URL="$API"
 export ZYVOR_AGENT_TOKEN="$TOKEN"
 
@@ -241,7 +256,7 @@ CODE=$(http_code -X PUT -H "Authorization: Bearer $TOKEN" -H 'Content-Type: appl
 check "risky policy refused without acknowledgement" 409 "$CODE"
 check "  …names the finding" "approval_weakened" "$(body)"
 check "  …says how to acknowledge" "X-Keep-Policy-Ack-Risk" "$(body)"
-KEEP_POLICY_ACK_RISK=1 "$KEEPCTL" policy set keep-desk "$W/keep.policy.yaml" "$W/keep.policy.yaml.sig" >/dev/null
+MERION_POLICY_ACK_RISK=1 "$KEEPCTL" policy set keep-desk "$W/keep.policy.yaml" "$W/keep.policy.yaml.sig" >/dev/null
 SHOW="$("$KEEPCTL" policy show keep-desk)"
 check "policy show has stripe allow" "api.stripe.com" "$SHOW"
 check "policy show has github" "api.github.com" "$SHOW"
@@ -325,14 +340,14 @@ case "$CODE" in
   403|503) echo "PASS  host-recover refuses without dual keys ($CODE)"; PASS=$((PASS+1)) ;;
   *) echo "FAIL  host-recover expected 403/503 got $CODE"; FAIL=$((FAIL+1)) ;;
 esac
-HTML=$(curl -sf "$API/keep/cockpit?session=$SID")
+HTML=$(curl -sf "$API/merion/cockpit?session=$SID")
 check "cockpit HTML serves" "Keep cockpit" "$HTML"
 check "merionctl cockpit" "$SID" "$("$KEEPCTL" cockpit "$SID")"
 
 # Recording hook: run a narrated demo against this live runtime instead of the checks.
-if [[ -n "${KEEP_E2E_DEMO:-}" ]]; then
+if [[ -n "${MERION_E2E_DEMO:-}" ]]; then
   echo "=== DEMO"
-  API="$API" TOKEN="$TOKEN" SID="$SID" STUB_OPS="$W/sandboxes/changeset.jsonl" bash "$KEEP_E2E_DEMO"
+  API="$API" TOKEN="$TOKEN" SID="$SID" STUB_OPS="$W/sandboxes/changeset.jsonl" bash "$MERION_E2E_DEMO"
   exit $?
 fi
 echo "==> speculate, review, approve (FluxVM stub; changeset body is a real captured response)"
@@ -428,8 +443,8 @@ CODE=$(http_code -H "Authorization: Bearer $TOKEN" -H "X-Keep-Export-Token: $WRO
   "$API/v1/agents/keep-desk/pack")
 check "pack with trajectory scope alone → 403" 403 "$CODE"
 
-export KEEP_EXPORT_TOKEN
-KEEP_EXPORT_TOKEN=$(printf '%s' "$("$KEEPCTL" export-token pack 600)" | json_get token)
+export MERION_EXPORT_TOKEN
+MERION_EXPORT_TOKEN=$(printf '%s' "$("$KEEPCTL" export-token pack 600)" | json_get token)
 "$KEEPCTL" pack "$W/pack" keep-desk >/dev/null
 check "pack wrote policy yaml" version "$(head -1 "$W/pack/keep.policy.yaml")"
 check "pack wrote vault names only" stripe "$(cat "$W/pack/vault-names.json")"
@@ -474,8 +489,8 @@ else
   tail -40 "$W/runtime.log" || true
 fi
 
-if [[ "${KEEP_E2E_FLUXVM:-}" == "1" ]]; then
-  FLUX="${ZYVOR_AGENT_FLUXVM_URL_LIVE:-${KEEP_FLUXVM_URL:-http://127.0.0.1:7788}}"
+if [[ "${MERION_E2E_FLUXVM:-}" == "1" ]]; then
+  FLUX="${ZYVOR_AGENT_FLUXVM_URL_LIVE:-${MERION_FLUXVM_URL:-http://127.0.0.1:7788}}"
   echo "==> live FluxVM Keep proof at $FLUX"
   CAPS=$(curl -fsS "$FLUX/v1/security/capabilities" || true)
   check "FluxVM capabilities reachable" qemu "$CAPS"
@@ -483,7 +498,7 @@ if [[ "${KEEP_E2E_FLUXVM:-}" == "1" ]]; then
     && { echo "PASS  FluxVM readyz"; PASS=$((PASS+1)); } \
     || { echo "FAIL  FluxVM readyz"; FAIL=$((FAIL+1)); }
 
-  TEMPLATE="${KEEP_E2E_TEMPLATE:-}"
+  TEMPLATE="${MERION_E2E_TEMPLATE:-}"
   if [[ -z "$TEMPLATE" ]]; then
     # Prefer Firecracker cell when healthy; fall back to QEMU agent templates.
     for cand in node22-fc node22-agent agent-node browser-agent; do
@@ -497,7 +512,7 @@ if [[ "${KEEP_E2E_FLUXVM:-}" == "1" ]]; then
 
   # Pilot / live gate: missing template is a hard failure (not soft PASS).
   if [[ -z "$TEMPLATE" ]]; then
-    echo "FAIL  no FluxVM sandbox template (set KEEP_E2E_TEMPLATE or install node22-agent — Tutorial 11)"
+    echo "FAIL  no FluxVM sandbox template (set MERION_E2E_TEMPLATE or install node22-agent — Tutorial 11)"
     FAIL=$((FAIL + 1))
   else
     echo "PASS  using template $TEMPLATE"
@@ -508,7 +523,7 @@ if [[ "${KEEP_E2E_FLUXVM:-}" == "1" ]]; then
     LIVE_API="http://127.0.0.1:19099"
     LIVE_HOOK=19112
     # Path mode: happy (default) or deny
-    PILOT_MODE="${KEEP_PILOT_MODE:-happy}"
+    PILOT_MODE="${MERION_PILOT_MODE:-happy}"
     echo "    pilot_mode=$PILOT_MODE"
 
     # Out-of-band approval webhook for live path
@@ -530,7 +545,7 @@ http.server.HTTPServer(('127.0.0.1',PORT),H).serve_forever()
     ZYVOR_AGENT_STATE_DIR="$W/state-live" \
     ZYVOR_AGENT_SNAPSHOT_DIR="$W/snap-live" \
     ZYVOR_AGENT_FLUXVM_URL="$FLUX" \
-    ZYVOR_AGENT_KEEP_MODE=1 \
+    ZYVOR_AGENT_MERION_MODE=1 \
     ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" \
     ZYVOR_AGENT_CONFINE=1 \
     ZYVOR_AGENT_SECURITY_PROFILE=measured \
@@ -781,7 +796,7 @@ print(next((a['status'] for a in items if a['id']=='$APPROVAL_ID'),''))" 2>/dev/
       ZYVOR_AGENT_STATE_DIR="$W/state-live" \
       ZYVOR_AGENT_SNAPSHOT_DIR="$W/snap-live" \
       ZYVOR_AGENT_FLUXVM_URL="$FLUX" \
-      ZYVOR_AGENT_KEEP_MODE=1 \
+      ZYVOR_AGENT_MERION_MODE=1 \
       ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" \
       ZYVOR_AGENT_CONFINE=1 \
       ZYVOR_AGENT_SECURITY_PROFILE=measured \
@@ -799,8 +814,8 @@ print(next((a['status'] for a in items if a['id']=='$APPROVAL_ID'),''))" 2>/dev/
   fi
 
   # Archive pilot logs when requested
-  if [[ -n "${KEEP_PILOT_KEEP_LOGS:-}" ]]; then
-    DEST="${KEEP_PILOT_KEEP_LOGS}"
+  if [[ -n "${MERION_PILOT_KEEP_LOGS:-}" ]]; then
+    DEST="${MERION_PILOT_KEEP_LOGS}"
     mkdir -p "$DEST"
     cp -a "$W/runtime-live.log" "$W/runtime-live2.log" "$W/cockpit.json" "$W/cockpit-after-restart.json" \
       "$W/live-hooks.jsonl" "$W/live-session-id" "$W/cell-backend" "$W/guest-status" "$DEST/" 2>/dev/null || true

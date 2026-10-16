@@ -27,7 +27,7 @@ An agent's sandbox token cannot call these operator routes.
 ```ts
 import { Fabric } from "@zyvor/fabric-agent";
 
-const keep = new Fabric({ baseUrl: "https://keep.example", token: process.env.KEEP_API_TOKEN });
+const keep = new Fabric({ baseUrl: "https://keep.example", token: process.env.MERION_API_TOKEN });
 const session = await keep.agent("research").run({ question: "Investigate this issue" },
   { user_id: "alice", request_id: "ticket-1042" });
 
@@ -74,7 +74,7 @@ approved-action receipts into **one private JSON file**. An operator token and a
 separately minted audit export token are required:
 
 ```bash
-export KEEP_API_TOKEN='operator-token' KEEP_EXPORT_TOKEN='audit-scoped-export-token'
+export MERION_API_TOKEN='operator-token' MERION_EXPORT_TOKEN='audit-scoped-export-token'
 keep-evidence collect --url https://keep.example \
   --session d564e4fe-3658-4b13-9336-45cbbe1a89d1 --out ./incident-1042.json
 keep-evidence verify ./incident-1042.json
@@ -138,7 +138,7 @@ Standby VMs are single-use. Fabric never returns a sandbox to the pool after use
 `fabric-agent pack` deploys a directory with a `pack.json` (see [docs/merion/PACKS.md](../../docs/merion/PACKS.md)):
 
 ```bash
-export KEEP_POLICY_SEED=$(openssl rand -hex 32)       # your signing key (Keep mode)
+export MERION_POLICY_SEED=$(openssl rand -hex 32)       # your signing key (Keep mode)
 fabric-agent pack keys                                # public key to register on the runtime
 fabric-agent pack deploy ./my-pack --run              # build, sign, deploy, apply policy, start a session
 fabric-agent pack deploy ./my-usecase --test          # declarative use case: save, run on its sample, need 0 CONNECT

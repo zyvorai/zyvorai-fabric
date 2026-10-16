@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # scripts/merion-bake-node22-agent.sh: --force must build a NEW image beside the old one (an in-place rebuild fails on a locked image),
 # re-point the template, keep the previous spec for rollback, and never touch the old image. Runs with fake fluxctl and no root.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_NODE_GUEST_AGENT+x}" ] || [ -z "${KEEP_NODE_GUEST_AGENT:-}" ] || export MERION_NODE_GUEST_AGENT="$KEEP_NODE_GUEST_AGENT"
+[ -n "${MERION_NODE_IMAGES_DIR+x}" ] || [ -z "${KEEP_NODE_IMAGES_DIR:-}" ] || export MERION_NODE_IMAGES_DIR="$KEEP_NODE_IMAGES_DIR"
+[ -n "${MERION_NODE_TAR+x}" ] || [ -z "${KEEP_NODE_TAR:-}" ] || export MERION_NODE_TAR="$KEEP_NODE_TAR"
+[ -n "${MERION_NODE_TEMPLATE_DIR+x}" ] || [ -z "${KEEP_NODE_TEMPLATE_DIR:-}" ] || export MERION_NODE_TEMPLATE_DIR="$KEEP_NODE_TEMPLATE_DIR"
+[ -n "${MERION_SUDO+x}" ] || [ -z "${KEEP_SUDO:-}" ] || export MERION_SUDO="$KEEP_SUDO"
+
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
@@ -19,8 +26,8 @@ echo "$out" >> "$FAKE_LOG"
 echo "built-$(date +%s%N)" > "$out"
 SH
 chmod +x "$W/bin/fluxctl"
-export PATH="$W/bin:$PATH" FAKE_LOG="$W/calls.log" KEEP_SUDO="" KEEP_NODE_IMAGES_DIR="$W/images" KEEP_NODE_TEMPLATE_DIR="$W/tmpl" \
-  KEEP_NODE_TAR="$W/node.tar.xz" KEEP_NODE_GUEST_AGENT="$W/agent"
+export PATH="$W/bin:$PATH" FAKE_LOG="$W/calls.log" MERION_SUDO="" MERION_NODE_IMAGES_DIR="$W/images" MERION_NODE_TEMPLATE_DIR="$W/tmpl" \
+  MERION_NODE_TAR="$W/node.tar.xz" MERION_NODE_GUEST_AGENT="$W/agent"
 bake() { "$ROOT/scripts/merion-bake-node22-agent.sh" "$@" 2>&1; }
 image_of() { python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['image'])" "$1"; }
 

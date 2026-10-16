@@ -16,12 +16,30 @@
 # token, printed once with the exact Solvor settings. Nothing leaves this machine; the token is not written to disk.
 # The cell is sealed only when KVM is present: the preflight refuses without it rather than pretend.
 # ============================================================================
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_ENV_FILE+x}" ] || [ -z "${KEEP_ENV_FILE:-}" ] || export MERION_ENV_FILE="$KEEP_ENV_FILE"
+[ -n "${MERION_FLUXVM_SRC+x}" ] || [ -z "${KEEP_FLUXVM_SRC:-}" ] || export MERION_FLUXVM_SRC="$KEEP_FLUXVM_SRC"
+[ -n "${MERION_FLUXVM_URL+x}" ] || [ -z "${KEEP_FLUXVM_URL:-}" ] || export MERION_FLUXVM_URL="$KEEP_FLUXVM_URL"
+[ -n "${MERION_HOST+x}" ] || [ -z "${KEEP_HOST:-}" ] || export MERION_HOST="$KEEP_HOST"
+[ -n "${MERION_NODE_GUEST_AGENT+x}" ] || [ -z "${KEEP_NODE_GUEST_AGENT:-}" ] || export MERION_NODE_GUEST_AGENT="$KEEP_NODE_GUEST_AGENT"
+[ -n "${MERION_SUDO+x}" ] || [ -z "${KEEP_SUDO:-}" ] || export MERION_SUDO="$KEEP_SUDO"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+[ -n "${MERION_UP_AA_ENFORCED+x}" ] || [ -z "${KEEP_UP_AA_ENFORCED:-}" ] || export MERION_UP_AA_ENFORCED="$KEEP_UP_AA_ENFORCED"
+[ -n "${MERION_UP_ARCH+x}" ] || [ -z "${KEEP_UP_ARCH:-}" ] || export MERION_UP_ARCH="$KEEP_UP_ARCH"
+[ -n "${MERION_UP_DISK_KB+x}" ] || [ -z "${KEEP_UP_DISK_KB:-}" ] || export MERION_UP_DISK_KB="$KEEP_UP_DISK_KB"
+[ -n "${MERION_UP_DISK_PATH+x}" ] || [ -z "${KEEP_UP_DISK_PATH:-}" ] || export MERION_UP_DISK_PATH="$KEEP_UP_DISK_PATH"
+[ -n "${MERION_UP_KVM+x}" ] || [ -z "${KEEP_UP_KVM:-}" ] || export MERION_UP_KVM="$KEEP_UP_KVM"
+[ -n "${MERION_UP_MEM_KB+x}" ] || [ -z "${KEEP_UP_MEM_KB:-}" ] || export MERION_UP_MEM_KB="$KEEP_UP_MEM_KB"
+[ -n "${MERION_UP_SYSTEMD+x}" ] || [ -z "${KEEP_UP_SYSTEMD:-}" ] || export MERION_UP_SYSTEMD="$KEEP_UP_SYSTEMD"
+[ -n "${MERION_UP_UNAME+x}" ] || [ -z "${KEEP_UP_UNAME:-}" ] || export MERION_UP_UNAME="$KEEP_UP_UNAME"
+[ -n "${MERION_URL+x}" ] || [ -z "${KEEP_URL:-}" ] || export MERION_URL="$KEEP_URL"
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FLUXVM_URL="${KEEP_FLUXVM_URL:-http://127.0.0.1:7788}"
-KEEP_URL="${KEEP_URL:-http://127.0.0.1:9096}"
-ENV_FILE="${KEEP_ENV_FILE:-/etc/zyvor-fabricd/zyvor-fabric-agent.env}"
+FLUXVM_URL="${MERION_FLUXVM_URL:-http://127.0.0.1:7788}"
+MERION_URL="${MERION_URL:-http://127.0.0.1:9096}"
+ENV_FILE="${MERION_ENV_FILE:-/etc/zyvor-fabricd/zyvor-fabric-agent.env}"
 
 DRY=0; INSTALL_FLUXVM=0; TOKEN_ONLY=0; NO_TEMPLATE=0
 # the person, not root: under sudo the login name is in SUDO_USER
@@ -52,14 +70,14 @@ PROBLEMS=0
 bad()  { printf '  FAIL %s\n' "$*" >&2; PROBLEMS=$((PROBLEMS + 1)); }
 
 # Sources of facts, overridable so the checks can be tested without a real host.
-uname_s() { echo "${KEEP_UP_UNAME:-$(uname -s)}"; }
-uname_m() { echo "${KEEP_UP_ARCH:-$(uname -m)}"; }
-mem_kb()  { echo "${KEEP_UP_MEM_KB:-$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)}"; }
-disk_kb() { echo "${KEEP_UP_DISK_KB:-$(df -Pk "${KEEP_UP_DISK_PATH:-/var/lib}" 2>/dev/null | awk 'NR==2 {print $4}' || echo 0)}"; }
-kvm_ok()  { if [[ -n "${KEEP_UP_KVM:-}" ]]; then [[ "$KEEP_UP_KVM" == 1 ]]; else [[ -r /dev/kvm && -w /dev/kvm ]]; fi; }
-systemd_ok() { if [[ -n "${KEEP_UP_SYSTEMD:-}" ]]; then [[ "$KEEP_UP_SYSTEMD" == 1 ]]; else [[ -d /run/systemd/system ]]; fi; }
+uname_s() { echo "${MERION_UP_UNAME:-$(uname -s)}"; }
+uname_m() { echo "${MERION_UP_ARCH:-$(uname -m)}"; }
+mem_kb()  { echo "${MERION_UP_MEM_KB:-$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null || echo 0)}"; }
+disk_kb() { echo "${MERION_UP_DISK_KB:-$(df -Pk "${MERION_UP_DISK_PATH:-/var/lib}" 2>/dev/null | awk 'NR==2 {print $4}' || echo 0)}"; }
+kvm_ok()  { if [[ -n "${MERION_UP_KVM:-}" ]]; then [[ "$MERION_UP_KVM" == 1 ]]; else [[ -r /dev/kvm && -w /dev/kvm ]]; fi; }
+systemd_ok() { if [[ -n "${MERION_UP_SYSTEMD:-}" ]]; then [[ "$MERION_UP_SYSTEMD" == 1 ]]; else [[ -d /run/systemd/system ]]; fi; }
 SUDO=""; [[ "$(id -u)" == 0 ]] || SUDO="sudo"
-SUDO="${KEEP_SUDO-$SUDO}"   # KEEP_SUDO="" disables sudo (used by the tests)
+SUDO="${MERION_SUDO-$SUDO}"   # MERION_SUDO="" disables sudo (used by the tests)
 # A Rust installed with rustup lives in the login user's home; under sudo, HOME and PATH point at root's, so
 # cargo is either not found or "could not choose a version". Use the login user's toolchain (read only here).
 if [[ "$(id -u)" == 0 && -n "${SUDO_USER:-}" && "$SUDO_USER" != root ]]; then
@@ -86,7 +104,7 @@ preflight() {
     local nv; nv=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
     (( nv >= 20 )) || bad "node $nv is too old: 20 or newer (the signer and the SDK use it)"
   fi
-  if [[ -x "${KEEP_NODE_GUEST_AGENT:-/usr/local/bin/fluxvm-guest-agent}" ]]; then ok "FluxVM guest agent binary"
+  if [[ -x "${MERION_NODE_GUEST_AGENT:-/usr/local/bin/fluxvm-guest-agent}" ]]; then ok "FluxVM guest agent binary"
   else info "FluxVM guest agent binary not found yet (installed with FluxVM; the template bake needs it)"; fi
 }
 hint() {
@@ -122,7 +140,7 @@ phase_fluxvm() {
   else
     info "unrecognized package manager: install a C toolchain, pkg-config, libsystemd headers, clang and libbpf headers yourself"
   fi
-  local d="${KEEP_FLUXVM_SRC:-/opt/fluxvm-src}"
+  local d="${MERION_FLUXVM_SRC:-/opt/fluxvm-src}"
   $SUDO mkdir -p "$d" && $SUDO chown "$(id -un)" "$d"
   [[ -d "$d/fluxvm" ]] || git clone https://github.com/zyvorai/fluxvm.git "$d/fluxvm"
   [[ -d "$d/guestkit" ]] || git clone https://github.com/zyvorai/guestkit.git "$d/guestkit"
@@ -178,7 +196,7 @@ phase_sdk() {
 }
 
 fluxctl_profile_enforced() {
-  [[ -n "${KEEP_UP_AA_ENFORCED:-}" ]] && { [[ "$KEEP_UP_AA_ENFORCED" == 1 ]]; return; }
+  [[ -n "${MERION_UP_AA_ENFORCED:-}" ]] && { [[ "$MERION_UP_AA_ENFORCED" == 1 ]]; return; }
   [[ -r /sys/kernel/security/apparmor/profiles ]] && $SUDO grep -q '^fluxctl (enforce)' /sys/kernel/security/apparmor/profiles 2>/dev/null
 }
 template_listed() { curl -fsS -m 5 "$FLUXVM_URL/v1/templates" 2>/dev/null | grep -q '"node22-agent"'; }
@@ -201,8 +219,8 @@ mint_token() {
   local op body resp
   op=$(operator_token); [[ -n "$op" ]] || { echo "no operator token in $ENV_FILE (has the runtime been installed?)" >&2; return 1; }
   body=$(printf '{"user_id":"%s","scopes":["read","run","approve"],"ttl_seconds":%d}' "$USER_ID" $((TTL_DAYS * 86400)))
-  resp=$(curl -fsS -m 10 -X POST -H "Authorization: Bearer $op" -H 'content-type: application/json' -d "$body" "$KEEP_URL/v1/user-tokens") \
-    || { echo "could not mint a user token at $KEEP_URL (is the runtime running?)" >&2; return 1; }
+  resp=$(curl -fsS -m 10 -X POST -H "Authorization: Bearer $op" -H 'content-type: application/json' -d "$body" "$MERION_URL/v1/user-tokens") \
+    || { echo "could not mint a user token at $MERION_URL (is the runtime running?)" >&2; return 1; }
   python3 -c 'import json,sys; t=json.load(sys.stdin)["token"]; assert t.startswith("kut1."); print(t)' <<<"$resp"
 }
 phase_token() {
@@ -218,7 +236,7 @@ phase_token() {
     2. In Solvor, Settings:   Host  http://127.0.0.1:9096
                               User  $USER_ID
                               Token $tok
-       (or: make run KEEP_HOST=http://127.0.0.1:9096 KEEP_TOKEN=$tok   in the Solvor repo)
+       (or: make run MERION_HOST=http://127.0.0.1:9096 MERION_TOKEN=$tok   in the Solvor repo)
 
   The token is valid for $TTL_DAYS day(s), scoped to '$USER_ID' (read, run, approve), and was not saved anywhere.
   Mint another with: sudo $0 --token-only --user-id $USER_ID
