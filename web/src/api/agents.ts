@@ -353,6 +353,19 @@ export async function decideApproval(
   return apiPost(`/api/approvals/${encodeURIComponent(id)}`, body)
 }
 
+export interface SpeculateResult {
+  approval: { id: string } | null
+  changeset: { id: string; state: string; command: string; exit_code?: number | null }
+}
+
+/** Run `command` in the session VM and stage its file changes for approval. */
+export async function speculateSession(
+  id: string,
+  body: { command: string; paths: string[]; ttl_seconds?: number },
+): Promise<SpeculateResult> {
+  return apiPost(`/api/sessions/${encodeURIComponent(id)}/speculate`, body)
+}
+
 export async function createSession(body: {
   agent: string
   input?: unknown

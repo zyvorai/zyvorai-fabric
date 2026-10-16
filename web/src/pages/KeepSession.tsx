@@ -14,6 +14,7 @@ import {
   getSessionBrowserView,
   getSessionCockpit,
   SessionView,
+  speculateSession,
 } from '../api/agents'
 import { getToken } from '../api/client'
 import { PageHeader, Card, EmptyState } from '../components/ui'
@@ -135,6 +136,33 @@ export default function KeepSession() {
       void load()
     } catch (e) {
       toastFailure(toast, 'Approval decision failed', e)
+    }
+  }
+
+  const [specCommand, setSpecCommand] = useState('')
+  const [specPaths, setSpecPaths] = useState('/work')
+  const [speculating, setSpeculating] = useState(false)
+
+  const speculate = async () => {
+    if (!sessionId) return
+    const paths = specPaths.split(',').map((p) => p.trim()).filter(Boolean)
+    if (!specCommand.trim() || paths.length === 0) {
+      toast.error('A command and at least one guest path are required')
+      return
+    }
+    setSpeculating(true)
+    try {
+      const r = await speculateSession(sessionId, { command: specCommand.trim(), paths })
+      toast.success(
+        r.approval
+          ? 'Changes staged. Review and approve below.'
+          : `Speculation finished (${r.changeset.state}); nothing to approve.`,
+      )
+      void load()
+    } catch (e) {
+      toastFailure(toast, 'Speculate failed', e)
+    } finally {
+      setSpeculating(false)
     }
   }
 
@@ -424,6 +452,38 @@ export default function KeepSession() {
             </p>
           )}
         </Card>
+
+        {session?.status === 'running' && (
+          <Card className="p-4 space-y-3 text-sm" data-testid="speculate-form">
+            <h2 className="text-base font-semibold text-[var(--zf-ink)]">Speculate</h2>
+            <p className="text-xs text-[var(--zf-muted)]">
+              Run a command in the VM and review its file changes before they are kept.
+              Only the listed directories are compared.
+            </p>
+            <input
+              className="zf-input w-full font-mono text-xs"
+              placeholder="command, e.g. echo hello > /work/notes.txt"
+              aria-label="Command"
+              value={specCommand}
+              onChange={(e) => setSpecCommand(e.target.value)}
+            />
+            <input
+              className="zf-input w-full font-mono text-xs"
+              placeholder="/work, /data"
+              aria-label="Guest paths to compare"
+              value={specPaths}
+              onChange={(e) => setSpecPaths(e.target.value)}
+            />
+            <button
+              type="button"
+              className="zf-btn zf-btn-primary zf-btn-sm"
+              disabled={speculating}
+              onClick={() => void speculate()}
+            >
+              {speculating ? 'Speculating…' : 'Speculate'}
+            </button>
+          </Card>
+        )}
 
         <Card className="p-4 space-y-3 text-sm">
           <h2 className="text-base font-semibold text-[var(--zf-ink)]">Approval</h2>
