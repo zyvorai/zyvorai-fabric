@@ -32,6 +32,8 @@
 #   merionctl approvals [pending|approved|denied]            # approval inbox and history
 #   merionctl speculate <session-id> --paths /work[,/data] [--ttl <s>] -- <command>
 #                                   # run it in an isolated copy of the cell; the file changes wait behind an approval
+#   merionctl changeset-policy list|show|set|rm <user> [<agent>] [--paths /work[,..]] [--kinds added,modified] [--max-files N] [--max-bytes N] [--deny GLOB,..]
+#                                      # operator-set auto-approval; see docs/merion/design/auto-approve-changesets.md
 #   merionctl decide <approval-id> approved|denied           # a person's decision; approved applies a changeset on FluxVM
 #
 # Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
@@ -637,6 +639,40 @@ if os.environ["TTL"]:
 print(json.dumps(b))' "$@")
     api POST "/v1/sessions/${id}/speculate" -H 'Content-Type: application/json' -d "$body"
     echo
+    ;;
+
+  changeset-policy)
+    sub="${1:-}" user="${2:-}" agent="${3:-}"
+    [[ -n "$sub" && -n "$user" ]] || { echo "usage: merionctl changeset-policy list|show|set|rm <user> [<agent>] ..." >&2; exit 1; }
+    case "$sub" in
+      list) api GET "/v1/users/${user}/changeset-policies"; echo ;;
+      show) [[ -n "$agent" ]] || { echo "agent required" >&2; exit 1; }; api GET "/v1/users/${user}/changeset-policies/${agent}"; echo ;;
+      rm) [[ -n "$agent" ]] || { echo "agent required" >&2; exit 1; }; api DELETE "/v1/users/${user}/changeset-policies/${agent}"; echo "removed" ;;
+      set)
+        [[ -n "$agent" ]] || { echo "agent required" >&2; exit 1; }
+        shift 3
+        paths="" kinds="added" maxf="" maxb="" deny=""
+        while [[ $# -gt 0 ]]; do
+          case "$1" in
+            --paths) paths="${2:-}"; shift 2 ;;
+            --kinds) kinds="${2:-}"; shift 2 ;;
+            --max-files) maxf="${2:-}"; shift 2 ;;
+            --max-bytes) maxb="${2:-}"; shift 2 ;;
+            --deny) deny="${2:-}"; shift 2 ;;
+            *) echo "unknown option: $1" >&2; exit 1 ;;
+          esac
+        done
+        [[ -n "$paths" ]] || { echo "--paths is required (guest directories, for example --paths /work)" >&2; exit 1; }
+        body=$(PATHS="$paths" KINDS="$kinds" MAXF="$maxf" MAXB="$maxb" DENY="$deny" AGENT="$agent" python3 -c '
+import json, os
+sp = lambda k: [x for x in os.environ[k].split(",") if x]
+b = {"id": os.environ["AGENT"], "paths": sp("PATHS"), "kinds": sp("KINDS"), "deny_globs": sp("DENY")}
+if os.environ["MAXF"]: b["max_files"] = int(os.environ["MAXF"])
+if os.environ["MAXB"]: b["max_bytes"] = int(os.environ["MAXB"])
+print(json.dumps(b))')
+        api PUT "/v1/users/${user}/changeset-policies/${agent}" -H 'Content-Type: application/json' -d "$body"; echo ;;
+      *) echo "unknown: policy changeset $sub" >&2; exit 1 ;;
+    esac
     ;;
 
   decide)

@@ -6,7 +6,7 @@
 - **Auto-approve policies for speculate (off by default).** An operator can set a bounded policy per user and agent
   (`/v1/users/{id}/changeset-policies/{agent}`); a changeset inside it is approved and applied without a click, journaled with
   the policy id and version. Operator-only writes, per-session hourly cap of 30, and a required phone signature always wins.
-  See `docs/merion/design/auto-approve-changesets.md`. End-to-end checks are now 82.
+  See `docs/merion/design/auto-approve-changesets.md`. End-to-end checks are now 85.
 
 ### Changed (breaking)
 - **Keep is now Merion in every identifier.** Wire and config names moved: `X-Keep-*` headers are now `X-Merion-*` with **no compatibility**

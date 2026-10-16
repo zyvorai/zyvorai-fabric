@@ -16,7 +16,7 @@ and is independent.
 - **A required phone signature wins**: when `ZYVOR_AGENT_REQUIRE_DEVICE_SIGNATURE=1` or the approval's credential
   requires one, nothing is auto-approved.
 - Cap: 30 auto-approvals per session per hour, then a person decides.
-- Not built: a tenant-wide ceiling, `merionctl policy changeset`, a console section, and a distinct `decided_by` field
+- Not built: a tenant-wide ceiling, a console section, and a distinct `decided_by` field
   (the comment prefix is the marker for now).
 - Tested with `scripts/merion-e2e.sh` against the FluxVM stub (18 checks: no policy waits; a user token cannot set one;
   bad policy 400; inside the policy runs approve then apply on FluxVM; a tightened policy leaves it pending; delete).
