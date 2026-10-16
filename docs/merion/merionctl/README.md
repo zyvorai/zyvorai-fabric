@@ -39,7 +39,7 @@ merionctl trigger add-folder log-triage inbox 30   # needs ZYVOR_AGENT_WATCH_ROO
 merionctl trigger list
 ```
 
-The console shows the same three views at `/app/keep/history` (Runs, Audit, Approvals).
+The console shows the same three views at `/app/merion/history` (Runs, Audit, Approvals).
 
 Send the audit journal to a SIEM. `GET /v1/export/audit?format=ocsf` returns newline-delimited events shaped like
 OCSF *API Activity* (class 6003), one per journal row. It needs an export token with the `audit` scope, the same as the

@@ -11,13 +11,13 @@ Scoreboard (ahead-of-Muse gate, software-test only): [`AHEAD.md`](AHEAD.md) · `
 | merionctl | Script | `scripts/merionctl` |
 | Agent runtime | Policy YAML, goals/artifacts, cockpit, export-token | `agent-runtime/` |
 | Packaged agents | `infra-ops`, `migration-op`, `deploy-op`, `browser-research`, `pdf-brief` + `_fabric` | [`examples/merion-agents/`](../../examples/merion-agents/) |
-| Keep console view | Goal → task → evidence → approval → outcome + PDF demo home | `/app/keep` · `/app/keep/:sessionId` |
+| Keep console view | Goal → task → evidence → approval → outcome + PDF demo home | `/app/merion` · `/app/merion/:sessionId` |
 | Keep 0.2 | **Soft scaffolding complete** + brokered browser; **hardware still gated** | [`KEEP-0.2.md`](MERION-0.2.md) · [`browser/DRIVER.md`](browser/DRIVER.md) |
 | Keep Browser 0.3 | Split-sight, trajectory-as-code, origin IFC, SNI-identity badge, goal tabs | [`browser/BROWSER-0.3.md`](browser/BROWSER-0.3.md) |
 | Host eBPF (FluxVM only) | `deny_udp` + gateway pin; audit `egress_connects`; freeze on deny | FluxVM TC + agent-runtime confine |
 | One-click use cases | Table-driven demos (7): drop a file, get an artifact; expect 0 CONNECT | [`demos/`](demos/README.md) · `examples/merion-agents/<id>/` · `merion-demo.sh` |
 | Your own use cases | Declarative `pack.json` (no code) deployed from the console or `merionctl deploy`; TypeScript agent packs signed with Node and deployed in one command | [`PACKS.md`](PACKS.md) · [Tutorial 19](../tutorials/19-build-your-own-use-case.md) · [Tutorial 20: mail export digest](../tutorials/20-sort-a-mail-export.md) |
-| Run history | Artifact TTL, per-use-case history, line diff between runs, `run.finished` / `run.failed` webhook, console `/app/keep/history`, `merionctl run\|list\|artifacts\|diff\|audit\|approvals` | [`merionctl/README.md`](merionctl/README.md) |
+| Run history | Artifact TTL, per-use-case history, line diff between runs, `run.finished` / `run.failed` webhook, console `/app/merion/history`, `merionctl run\|list\|artifacts\|diff\|audit\|approvals` | [`merionctl/README.md`](merionctl/README.md) |
 | Triggers and batch | Multi-file runs (one cell each), signed webhook and watched-folder triggers, `merionctl trigger` | [`TRIGGERS.md`](TRIGGERS.md) |
 | More file types | `docx`, `xlsx`, `pptx`, `html`, `eml`/`mbox` extractors, zip fan-out, `regex_extract` / `json_path` / `table` rules | [`PACKS.md`](PACKS.md) |
 | Model-assisted use cases | Opt-in host-side model step: vault-gated endpoint, first-use approval, audited calls, sanitised reply, `merionctl grants` | [`MODEL.md`](MODEL.md) |

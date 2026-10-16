@@ -4,7 +4,7 @@ Transcript (`.txt` or `.vtt`) in → `actions.md` out: candidate action items wi
 
 ```bash
 ./scripts/merion-demo.sh meeting-actions examples/merion-agents/meeting-actions/sample.vtt
-# or console: /app/keep → Meeting actions
+# or console: /app/merion → Meeting actions
 # or API: POST /v1/demos/meeting-actions (multipart field `file`)
 ```
 

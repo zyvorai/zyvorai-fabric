@@ -6,7 +6,7 @@ Contract PDF in → `clauses.md` out: the term, renewal, termination, payment, l
 
 | Surface | Path |
 |---|---|
-| Console | `/app/keep` → **Contract clauses** |
+| Console | `/app/merion` → **Contract clauses** |
 | Script | `./scripts/merion-demo.sh contract-clauses [file.pdf]` |
 | Runtime API | `POST /v1/demos/contract-clauses` (multipart field `file`, optional) |
 | fabricd proxy | `POST /api/demos/contract-clauses` (JWT) |

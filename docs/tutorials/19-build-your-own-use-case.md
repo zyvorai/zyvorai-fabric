@@ -20,7 +20,7 @@ Take an invoice as plain text and pull out the totals, the due date and any repe
 
 ### Option A: the console
 
-1. Sign in, open **Keep** (`/app/keep`), and choose **Deploy your own use case → New use case**.
+1. Sign in, open **Keep** (`/app/merion`), and choose **Deploy your own use case → New use case**.
 2. Name it `Invoice check`, choose **Text files**, extensions `txt`.
 3. Add rules: *Lines that mention…* `total, amount due`; *Most repeated lines*; *Counts*.
 4. Paste a few lines of a sample invoice into **Sample text** and click **Deploy use case**.
@@ -79,7 +79,7 @@ export MERION_POLICY_SEED=$(cat ~/.config/zyvor/keep-signer.seed)   # made by ./
 ../scripts/merionctl deploy . --run
 # ✓ deploy agent my-agent (signed)
 # ✓ start a session and goal
-# Open /app/keep/<session> in the console
+# Open /app/merion/<session> in the console
 ```
 
 In Keep mode the deploy is signed over the exact bytes it sends. `merionctl doctor` tells you if the
@@ -91,7 +91,7 @@ runtime is in Keep mode and has your public key registered.
 ../scripts/merionctl bundle .        # writes my-agent.merionpack.json (signed with your seed)
 ```
 
-In `/app/keep`, **Deploy an agent pack**, choose the file, **Deploy pack**. The console uploads the
+In `/app/merion`, **Deploy an agent pack**, choose the file, **Deploy pack**. The console uploads the
 signed bytes untouched; your seed never leaves your machine.
 
 ---

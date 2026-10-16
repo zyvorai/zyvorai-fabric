@@ -6,7 +6,7 @@ One-click Keep demo: **PDF in → `brief.md` out.** No browser. Expect **0 CONNE
 
 | Surface | Path |
 |---|---|
-| Console | `/app/keep` → **Brief this PDF** |
+| Console | `/app/merion` → **Brief this PDF** |
 | Script | `./scripts/merion-demo.sh pdf-brief [file.pdf]` (`merion-demo-pdf.sh` still works) |
 | Runtime API | `POST /v1/demos/pdf-brief` (multipart field `file`, or `pdf`; optional) |
 | fabricd proxy | `POST /api/demos/pdf-brief` (JWT) |

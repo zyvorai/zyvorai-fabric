@@ -241,7 +241,7 @@ fi
 
 step "Done"
 HOST="${TARGET#*@}"
-say "  Console:   https://$HOST:9095/app/keep"
+say "  Console:   https://$HOST:9095/app/merion"
 [[ "$DEV" == "1" ]] || say "  Signer:    $SEED_FILE  (export MERION_POLICY_SEED=\$(cat $SEED_FILE) to sign deploys)"
 say "  Next:      ./scripts/merionctl deploy examples/merion-agents/invoice-check --test   (use ssh -L 9096:127.0.0.1:9096 $TARGET, MERION_API=http://127.0.0.1:9096)"
 say "  Docs:      docs/tutorials/19-build-your-own-use-case.md"

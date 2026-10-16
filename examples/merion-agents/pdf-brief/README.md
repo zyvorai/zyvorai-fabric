@@ -4,7 +4,7 @@ One-click Keep demo: PDF in → `brief.md` out. **No browser. Zero CONNECT.**
 
 ```bash
 ./scripts/merion-demo-pdf.sh examples/merion-agents/pdf-brief/sample.pdf
-# or console: /app/keep → Brief this PDF
+# or console: /app/merion → Brief this PDF
 # or API: POST /v1/demos/pdf-brief (multipart field `pdf`)
 ```
 

@@ -4,7 +4,7 @@ CSV in → `clean.csv` and `report.md` out: blank rows and exact duplicates remo
 
 ```bash
 ./scripts/merion-demo.sh csv-clean examples/merion-agents/csv-clean/sample.csv
-# or console: /app/keep → CSV cleanup
+# or console: /app/merion → CSV cleanup
 # or API: POST /v1/demos/csv-clean (multipart field `file`)
 ```
 

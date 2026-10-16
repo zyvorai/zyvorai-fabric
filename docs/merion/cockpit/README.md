@@ -5,8 +5,8 @@ Operator surfaces shipped in Keep 0.1 / 0.2 soft scaffold:
 | Surface | What you get |
 |---|---|
 | `GET /v1/sessions/{id}/cockpit` | Taint, approvals, decisions, `attestation`, `egress_connects`, `drop_reasons`, browser links |
-| Console `/app/keep` | One-click PDF brief demo (no session yet) |
-| Console `/app/keep/:sessionId` | Goal → task → egress proof → honesty → browser |
+| Console `/app/merion` | One-click PDF brief demo (no session yet) |
+| Console `/app/merion/:sessionId` | Goal → task → egress proof → honesty → browser |
 | `GET /keep/cockpit?session=` | Minimal HTML for phone/laptop (token in query or form) |
 | `GET /v1/sessions/{id}/browser/view` | Sanitized open-tab titles/URLs |
 | `GET /v1/sessions/{id}/browser/screenshot` | One JPEG via host CDP bridge |

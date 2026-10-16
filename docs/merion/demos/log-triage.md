@@ -6,7 +6,7 @@ Log file in → `triage.md` out: lines by level, the most repeated errors (numbe
 
 | Surface | Path |
 |---|---|
-| Console | `/app/keep` → **Log triage** |
+| Console | `/app/merion` → **Log triage** |
 | Script | `./scripts/merion-demo.sh log-triage [file.log]` |
 | Runtime API | `POST /v1/demos/log-triage` (multipart field `file`, optional) |
 | fabricd proxy | `POST /api/demos/log-triage` (JWT) |

@@ -26,7 +26,7 @@ fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096 --tenant acme
 | Bare-metal remote host | `./scripts/deploy remote USER@HOST` |
 | **Kubernetes (k3s lab / Helm)** | [`./scripts/deploy k8s USER@HOST`](deploy.md#run-on-kubernetes) → [docs/KUBERNETES.md](KUBERNETES.md) |
 | **AI inference (Beta)** | [Tutorial 15](tutorials/15-ai-workloads.md) · [docs/ai-workloads.md](ai-workloads.md) · console `/app/ai` |
-| **Keep** (open agent workstation) | [Tutorial 16](tutorials/16-merion-workstation.md) · [Tutorial 17](tutorials/17-merion-pdf-brief.md) · [docs/merion/MERION.md](merion/MERION.md) · `./scripts/merion-live-lab.sh` · console `/keep` · [Pages](https://zyvorai.github.io/fabric/keep) · `./scripts/merionctl` |
+| **Keep** (open agent workstation) | [Tutorial 16](tutorials/16-merion-workstation.md) · [Tutorial 17](tutorials/17-merion-pdf-brief.md) · [docs/merion/MERION.md](merion/MERION.md) · `./scripts/merion-live-lab.sh` · console `/keep` · [Pages](https://zyvorai.github.io/fabric/merion) · `./scripts/merionctl` |
 | Declarative VMs | `fabricctl apply -f config.yaml` |
 | Terraform | [terraform-provider/](../terraform-provider/) |
 | K8s operator (CRDs → API) | [operator/](../operator/) |

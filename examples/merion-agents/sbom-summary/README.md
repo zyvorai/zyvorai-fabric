@@ -4,7 +4,7 @@ CycloneDX, SPDX or SARIF JSON in → `summary.md` out: component or package coun
 
 ```bash
 ./scripts/merion-demo.sh sbom-summary examples/merion-agents/sbom-summary/sample.json
-# or console: /app/keep → SBOM summary
+# or console: /app/merion → SBOM summary
 # or API: POST /v1/demos/sbom-summary (multipart field `file`)
 ```
 

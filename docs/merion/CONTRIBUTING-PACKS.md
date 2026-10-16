@@ -31,7 +31,7 @@ cargo test --manifest-path agent-runtime/Cargo.toml --lib every_shipped     # va
 
 ## Then
 
-Add the pack to the tables in [SCENARIOS.md](SCENARIOS.md) and a line to the changelog. The website gallery ([`/keep/packs`](https://zyvorai.github.io/fabric/keep/packs)) and
+Add the pack to the tables in [SCENARIOS.md](SCENARIOS.md) and a line to the changelog. The website gallery ([`/keep/packs`](https://zyvorai.github.io/fabric/merion/packs)) and
 the Solvor catalogue are generated from the packs, so you do not edit them by hand (`npm run gen:packs` in `website/`, `python3 integrations/macos-merion/tools/gen_catalog.py`).
 
 ## Good first packs

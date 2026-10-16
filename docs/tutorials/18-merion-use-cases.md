@@ -21,7 +21,7 @@ Related: [Tutorial 17](17-merion-pdf-brief.md) · [demos index](../merion/demos/
 
 ## What you will learn
 
-1. List the demos a runtime offers and run any of them from the script or `/app/keep`.
+1. List the demos a runtime offers and run any of them from the script or `/app/merion`.
 2. Read each artifact and see what was, and was not, extracted.
 3. Confirm the fail-closed rule (`egress_connects > 0` freezes the session, `409`).
 
@@ -58,14 +58,14 @@ Every demo ships a small sample under `examples/merion-agents/<id>/`:
 Each run prints the JSON result and ends with `OK — <artifacts> ready, 0 CONNECT`. The
 script exits `2` if `egress_connects` is not `0`.
 
-Console path: sign in → **Keep** → `/app/keep`, pick a use case, choose a file (or leave
+Console path: sign in → **Keep** → `/app/merion`, pick a use case, choose a file (or leave
 it empty for the sample), and click **Run**.
 
 ---
 
 ## Step 2: Read the artifacts
 
-Open the session cockpit (`/app/keep/<session>`) and read each artifact:
+Open the session cockpit (`/app/merion/<session>`) and read each artifact:
 
 | Demo | What to look for |
 |---|---|

@@ -59,7 +59,7 @@ MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-pilot-gate.sh
 | Signed Keep mutations | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; startup rejects empty signers. PUT policy needs `X-Merion-Policy-Signature`; POST agent needs `X-Merion-Manifest-Signature` over the exact JSON body. |
 | Session / cockpit / restart | Cockpit `software-test`; session recovers after runtime restart |
 | OOB approvals | Webhook + approve/deny outside agent chat |
-| Console Keep view | `/app/keep/:sessionId` — goal, task, evidence, approval, outcome |
+| Console Keep view | `/app/merion/:sessionId` — goal, task, evidence, approval, outcome |
 | infra-ops pack | `./scripts/merion-pack-demo.sh infra-ops` |
 
 Latest archived run: [pilot-runs/20260924T182930Z](pilot-runs/20260924T182930Z/)

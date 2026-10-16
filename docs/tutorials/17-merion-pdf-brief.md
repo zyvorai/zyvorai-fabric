@@ -19,7 +19,7 @@ Related: [Tutorial 16](16-merion-workstation.md) · [pdf-brief demo](../merion/d
 
 ## What you will learn
 
-1. Run the PDF → brief demo from script or `/app/keep`.
+1. Run the PDF → brief demo from script or `/app/merion`.
 2. Read `egress_connects` on the cockpit (and optional FluxVM `drop_reasons`).
 3. Fail closed when CONNECT > 0 (session freeze / `ebpf_deny`).
 
@@ -37,13 +37,13 @@ curl -fsS ${MERION_TOKEN:+-H "Authorization: Bearer $MERION_TOKEN"} "$MERION_API
 # with poppler-utils so guest `pdftotext` works.
 ```
 
-Console path (fabricd proxies demos): sign in → **Keep** → `/app/keep`.
+Console path (fabricd proxies demos): sign in → **Keep** → `/app/merion`.
 
 ---
 
 ## Step 1 — One click (console)
 
-1. Open `/app/keep`.
+1. Open `/app/merion`.
 2. Pick a PDF or leave empty for the lab sample.
 3. Click **Brief this PDF**.
 4. Watch chips: `cell up` → `extract` → `brief.md`.
@@ -63,7 +63,7 @@ fix that — do **not** fall through to a browser pack.
 ```
 
 Expect JSON with `egress_connects: 0`, `artifact_title: brief.md`, and a
-`cockpit_url` like `/app/keep/<session-id>`. Exit code 2 if CONNECT ≠ 0.
+`cockpit_url` like `/app/merion/<session-id>`. Exit code 2 if CONNECT ≠ 0.
 
 Direct API (multipart optional — omit `pdf` for the lab sample):
 
