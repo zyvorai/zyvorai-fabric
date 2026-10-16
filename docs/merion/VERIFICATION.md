@@ -131,3 +131,13 @@ MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-live-scenario
 MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-live-tenancy.sh
 MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-bench.sh --runs 8 --concurrency "1 2 4"
 ```
+
+## Auto-approve policies on the lab host (2026-10-16)
+
+| Check | Result |
+|---|---|
+| Policy routes (`PUT`/`GET`/`DELETE`, bad policy, no token) | 200 / 200 / 204, 400, 401 |
+| Required phone signature with a matching policy | not auto-approved, journaled `a phone signature is required` |
+| Signature not required, matching policy, real FluxVM cell | **not auto-approved**: FluxVM reported `egress: unrestricted`, journaled `egress is unrestricted` |
+| Approve then apply through a policy on real FluxVM | **not proven**; only the FluxVM stub has run it (`merion-e2e.sh`, 85/85) |
+
