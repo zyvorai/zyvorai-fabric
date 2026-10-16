@@ -59,7 +59,7 @@ Keychain services and the iOS bundle id. This is what was run afterwards, on `ma
 
 | Check | Result | Run with |
 |---|---|---|
-| End to end against the FluxVM stub | **64 passed, 0 failed** | `./scripts/merion-e2e.sh` |
+| End to end against the FluxVM stub | **82 passed, 0 failed** | `./scripts/merion-e2e.sh` |
 | Speculate → approve → apply, and speculate → reject, on the stub | applied only after approve; reject never applies | `./scripts/demo/run-speculate.sh` |
 | iOS app | builds for the simulator, unsigned; **not run** | `xcodegen generate && xcodebuild -scheme MerionPhone -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build` in `integrations/ios-merion` |
 | Website | `npm run build` succeeds (it failed after the rename until the docs category id was fixed in #377) | `npm ci && npm run build` in `website/` |

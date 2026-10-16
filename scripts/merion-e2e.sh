@@ -380,6 +380,37 @@ else
   check_eq "operator denies the second one" 200 "$(http_code "${AUTH[@]}" -X POST "$API/v1/approvals/$AID2" -d '{"decision":"denied"}')"
   OPS=$(python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl")
   check_eq "denied changeset was rejected, never applied" "speculate,approve,apply,speculate,reject,speculate,reject" "$OPS"
+
+  echo "==> auto-approve policy (operator-set; stage two)"
+  ASID=$(curl -sf "${AUTH[@]}" -d '{"agent":"keep-desk","input":{},"user_id":"autouser"}' "$API/v1/sessions" | json_get id)
+  for _ in $(seq 1 60); do
+    [[ "$(curl -sf "${AUTH[@]}" "$API/v1/sessions/$ASID" | json_get status || true)" == "running" ]] && break
+    sleep 0.5
+  done
+  POL='{"id":"notes","paths":["/tmp"],"kinds":["added"],"max_files":5,"max_bytes":1000}'
+  SPEC='{"command":"echo hello > /tmp/specdir/a.txt","paths":["/tmp"]}'
+  ops() { python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl"; }
+  check_eq "no policy: a speculate waits for a person" 201 "$(http_code "${AUTH[@]}" -X POST "$API/v1/sessions/$ASID/speculate" -d "$SPEC")"
+  check "no policy: approval is pending" '"status":"pending"' "$(body)"
+  PEND=$(body | json_get approval.id)
+  UTOK=$(curl -sf "${AUTH[@]}" -d '{"user_id":"autouser"}' "$API/v1/user-tokens" | json_get token)
+  check_eq "a user token cannot set a policy" 403 "$(http_code -H "Authorization: Bearer $UTOK" -H 'Content-Type: application/json' -X PUT "$API/v1/users/autouser/changeset-policies/keep-desk" -d "$POL")"
+  check_eq "a user can read their own policies" 200 "$(http_code -H "Authorization: Bearer $UTOK" "$API/v1/users/autouser/changeset-policies")"
+  check_eq "a bad policy is refused" 400 "$(http_code "${AUTH[@]}" -X PUT "$API/v1/users/autouser/changeset-policies/keep-desk" -d '{"id":"x","paths":["relative"]}')"
+  check_eq "operator sets the policy" 200 "$(http_code "${AUTH[@]}" -X PUT "$API/v1/users/autouser/changeset-policies/keep-desk" -d "$POL")"
+  check "policy version starts at 1" '"version":1' "$(body)"
+  BEFORE=$(ops)
+  check_eq "policy: speculate returns" 201 "$(http_code "${AUTH[@]}" -X POST "$API/v1/sessions/$ASID/speculate" -d "$SPEC")"
+  check "policy: approved without a person" '"status":"approved"' "$(body)"
+  check "policy: the decision names the policy" "auto-approved by policy notes v1" "$(body)"
+  check_eq "policy: approve then apply reached FluxVM" "$BEFORE,speculate,approve,apply" "$(ops)"
+  check_eq "operator tightens the policy (needs modified)" 200 "$(http_code "${AUTH[@]}" -X PUT "$API/v1/users/autouser/changeset-policies/keep-desk" -d '{"id":"notes","paths":["/work"],"kinds":["added"]}')"
+  check "policy version is now 2" '"version":2' "$(body)"
+  check_eq "outside the policy: speculate returns" 201 "$(http_code "${AUTH[@]}" -X POST "$API/v1/sessions/$ASID/speculate" -d "$SPEC")"
+  check "outside the policy: stays pending" '"status":"pending"' "$(body)"
+  check_eq "outside the policy: nothing applied" "$BEFORE,speculate,approve,apply,speculate" "$(ops)"
+  check_eq "operator removes the policy" 204 "$(http_code "${AUTH[@]}" -X DELETE "$API/v1/users/autouser/changeset-policies/keep-desk")"
+  check_eq "removed policy is gone" 404 "$(http_code "${AUTH[@]}" "$API/v1/users/autouser/changeset-policies/keep-desk")"
 fi
 
 echo "==> user-held unwrap scaffold (refused without SNP/TDX)"

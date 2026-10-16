@@ -310,7 +310,7 @@ pub fn verify_decision_format(
 }
 
 /// Should a decision made with a user token have to be signed by an enrolled phone?
-fn signature_required(state: &crate::AppState, approval: &ApprovalRecord) -> bool {
+pub(crate) fn signature_required(state: &crate::AppState, approval: &ApprovalRecord) -> bool {
     if std::env::var("ZYVOR_AGENT_REQUIRE_DEVICE_SIGNATURE").is_ok_and(|v| v == "1") {
         return true;
     }

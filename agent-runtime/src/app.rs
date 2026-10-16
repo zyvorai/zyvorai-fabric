@@ -478,6 +478,16 @@ pub fn public_router(state: Arc<AppState>) -> Router {
             "/v1/users/{id}/devices/{device}",
             axum::routing::delete(remove_device),
         )
+        .route(
+            "/v1/users/{id}/changeset-policies",
+            get(list_changeset_policies),
+        )
+        .route(
+            "/v1/users/{id}/changeset-policies/{agent}",
+            get(get_changeset_policy)
+                .put(put_changeset_policy)
+                .delete(delete_changeset_policy),
+        )
         .route("/v1/usage", get(usage_route))
         .route("/v1/inbox", get(inbox))
         .route("/v1/receipts", get(crate::receipts::list_receipts))
@@ -4019,10 +4029,209 @@ async fn speculate_session(
     audit_approval_planned(&state, &record).await;
     let policy_file = std::env::var("ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE").ok();
     dry_run_changeset_policy(&state, &session, &record, &changeset, policy_file.as_deref()).await;
-    Ok((
-        StatusCode::CREATED,
-        Json(json!({ "approval": record, "changeset": changeset })),
-    ))
+    let (record, auto_error) = auto_decide_changeset(&state, &session, record, &changeset).await;
+    let mut body = json!({ "approval": record, "changeset": changeset });
+    if let Some(error) = auto_error {
+        body["auto_apply_error"] = json!(error);
+    }
+    Ok((StatusCode::CREATED, Json(body)))
+}
+
+/// Stage two of auto-approval (docs/merion/design/auto-approve-changesets.md): if the operator set a policy
+/// for this user's agent and the measured changeset is inside it, decide it the way a person's approve does
+/// (same transition, same FluxVM approve-then-apply). Every doubt leaves the approval pending: no policy,
+/// a session with no user, a phone signature being required, the hourly cap, or any refusal from the
+/// evaluator. Returns the approval as it now stands and an error if the apply step failed.
+async fn auto_decide_changeset(
+    state: &AppState,
+    session: &SessionRecord,
+    record: ApprovalRecord,
+    changeset: &crate::fluxvm::Changeset,
+) -> (ApprovalRecord, Option<String>) {
+    use crate::changeset_policy::{eligible, Subject, MAX_AUTO_PER_HOUR};
+    let Some(user) = session.user_id.as_deref() else {
+        return (record, None);
+    };
+    let Some(stored) = state.store.get_changeset_policy(user, &session.agent).await else {
+        return (record, None);
+    };
+    let policy = &stored.policy;
+    let subject = Subject {
+        exit_code: changeset.exit_code,
+        changes: &changeset.changes,
+        side_effects: &changeset.side_effects,
+        staged: &changeset.staged,
+        unstaged: &changeset.unstaged,
+        tainted: !session.tainted_by.is_empty(),
+    };
+    let since = Utc::now() - chrono::Duration::hours(1);
+    let recent = state
+        .store
+        .approvals_of_session(session.id)
+        .await
+        .iter()
+        .filter(|a| {
+            a.kind == ApprovalKind::Changeset
+                && a.status == ApprovalStatus::Approved
+                && a.comment.as_deref().is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX))
+                && a.decided_at.is_some_and(|t| t > since)
+        })
+        .count();
+    let verdict = if crate::devices::signature_required(state, &record) {
+        Err("a phone signature is required, so a person decides".to_string())
+    } else if session.status != SessionStatus::Running {
+        Err("the session is not running".to_string())
+    } else if recent >= MAX_AUTO_PER_HOUR {
+        Err(format!("{MAX_AUTO_PER_HOUR} auto-approvals in the last hour, so a person decides"))
+    } else {
+        eligible(policy, &subject)
+    };
+    let audit = |phase: AuditPhase, detail: Value| {
+        let record = &record;
+        async move {
+            if let Err(error) = state
+                .store
+                .audit
+                .append(
+                    Some(record.session_id),
+                    phase,
+                    "changeset.policy".to_string(),
+                    record.subject.clone(),
+                    detail,
+                )
+                .await
+            {
+                tracing::error!(%error, approval_id = %record.id, "failed to write audit entry");
+            }
+        }
+    };
+    let files = match verdict {
+        Ok(files) => files,
+        Err(reason) => {
+            audit(
+                AuditPhase::Planned,
+                json!({"approval_id": record.id, "auto": false, "policy_id": policy.id,
+                       "policy_version": policy.version, "reason": reason}),
+            )
+            .await;
+            return (record, None);
+        }
+    };
+    let comment = format!("{AUTO_APPROVED_PREFIX} {} v{}", policy.id, policy.version);
+    let decided = match state
+        .store
+        .transition_approval(record.id, ApprovalStatus::Approved, Some(comment), None)
+        .await
+    {
+        Ok(Some(decided)) => decided,
+        Ok(None) => return (record, None),
+        Err(error) => {
+            tracing::error!(%error, approval_id = %record.id, "auto-approval failed to record");
+            return (record, None);
+        }
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(decided.session_id),
+            AuditPhase::Approved,
+            format!("approval.{}", decided.kind.as_str()),
+            decided.subject.clone(),
+            json!({"approval_id": decided.id, "comment": decided.comment, "auto": true,
+                   "policy_id": policy.id, "policy_version": policy.version, "files": files}),
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %decided.id, "failed to write audit entry");
+    }
+    let apply_error = settle_changeset(state, session, &decided)
+        .await
+        .err()
+        .map(|e| format!("{e:?}"));
+    (decided, apply_error)
+}
+
+/// The start of the comment an automatic approval carries, so it is never mistaken for a person's.
+const AUTO_APPROVED_PREFIX: &str = "auto-approved by policy";
+
+/// `GET /v1/users/{id}/changeset-policies`: the operator, or the user for their own id.
+async fn list_changeset_policies(
+    State(state): State<Arc<AppState>>,
+    Path(user): Path<String>,
+) -> Json<Value> {
+    Json(json!({ "items": state.store.list_changeset_policies(&user).await }))
+}
+
+/// `GET /v1/users/{id}/changeset-policies/{agent}` (operator).
+async fn get_changeset_policy(
+    State(state): State<Arc<AppState>>,
+    Path((user, agent)): Path<(String, String)>,
+) -> ApiResult<Json<Value>> {
+    match state.store.get_changeset_policy(&user, &agent).await {
+        Some(p) => Ok(Json(json!(p))),
+        None => Err(ApiError::not_found("no policy for that user and agent")),
+    }
+}
+
+/// `PUT /v1/users/{id}/changeset-policies/{agent}` (operator only): pre-authorise a bounded class of
+/// changeset for one user's agent. A user, session or worker token cannot set it, so nothing the agent
+/// can reach widens what skips a person's click. The body is the policy; the stored version is assigned here.
+async fn put_changeset_policy(
+    State(state): State<Arc<AppState>>,
+    Path((user, agent)): Path<(String, String)>,
+    body: String,
+) -> ApiResult<Json<Value>> {
+    crate::model::validate_user_id(&user).map_err(ApiError::bad_request)?;
+    if agent.is_empty() || agent.len() > 128 {
+        return Err(ApiError::bad_request("agent name is empty or too long"));
+    }
+    let policy =
+        crate::changeset_policy::ChangesetPolicy::parse(&body).map_err(ApiError::bad_request)?;
+    let stored = state
+        .store
+        .save_changeset_policy(&user, &agent, policy)
+        .await
+        .map_err(ApiError::internal)?;
+    let _ = state
+        .store
+        .audit
+        .append(
+            None,
+            AuditPhase::Performed,
+            "merion.changeset_policy.set",
+            Some(user),
+            json!({ "agent": agent, "policy": stored.policy }),
+        )
+        .await;
+    Ok(Json(json!(stored)))
+}
+
+/// `DELETE /v1/users/{id}/changeset-policies/{agent}` (operator): takes effect on the next speculate.
+async fn delete_changeset_policy(
+    State(state): State<Arc<AppState>>,
+    Path((user, agent)): Path<(String, String)>,
+) -> ApiResult<StatusCode> {
+    if !state
+        .store
+        .delete_changeset_policy(&user, &agent)
+        .await
+        .map_err(ApiError::internal)?
+    {
+        return Err(ApiError::not_found("no policy for that user and agent"));
+    }
+    let _ = state
+        .store
+        .audit
+        .append(
+            None,
+            AuditPhase::Performed,
+            "merion.changeset_policy.removed",
+            Some(user),
+            json!({ "agent": agent }),
+        )
+        .await;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// Stage one of auto-approval (docs/merion/design/auto-approve-changesets.md): say whether an operator's
