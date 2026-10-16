@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../assets/keep/cockpit.svg" alt="The Keep cockpit: a sealed cell, zero outbound connections, an approval waiting for you, and split-sight between the agent and you." width="900">
+<img src="../assets/merion/cockpit.svg" alt="The Merion cockpit: a sealed cell, zero outbound connections, an approval waiting for you, and split-sight between the agent and you." width="900">
 
 # Keep
 
@@ -23,10 +23,10 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 </div>
 
 <p align="center">
-  <img src="../assets/demos/keep-live-speculate.gif" alt="Keep with a real FluxVM microVM: a proposed change waits for approval, is applied on approve, and is left out on deny" width="820">
+  <img src="../assets/demos/merion-live-speculate.gif" alt="Merion with a real FluxVM microVM: a proposed change waits for approval, is applied on approve, and is left out on deny" width="820">
 </p>
 
-<p align="center"><sub>A real run with a real FluxVM microVM on KVM; waits trimmed, times are from a loaded shared host. A stub-backed version anyone can run: <a href="../assets/demos/keep-speculate.gif">keep-speculate</a>. <a href="../assets/demos/README.md">How these are made</a>.</sub></p>
+<p align="center"><sub>A real run with a real FluxVM microVM on KVM; waits trimmed, times are from a loaded shared host. A stub-backed version anyone can run: <a href="../assets/demos/merion-speculate.gif">merion-speculate</a>. <a href="../assets/demos/README.md">How these are made</a>.</sub></p>
 
 ## Proven, not promised
 
@@ -48,7 +48,7 @@ branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.m
 
 
 <p align="center">
-  <img src="../assets/keep/demo-static.svg" alt="Real output of ./scripts/merion-e2e.sh: 39 checks passed, 0 failed" width="760">
+  <img src="../assets/merion/demo-static.svg" alt="Real output of ./scripts/merion-e2e.sh: 64 checks passed, 0 failed" width="760">
 </p>
 
 <p align="center"><sub>Real output of <code>./scripts/merion-e2e.sh</code>, condensed. Record your own GIF with <code>./scripts/merion-record-demo.sh</code>.</sub></p>
@@ -186,7 +186,7 @@ Buying, sending, deleting and new logins never confirm inside the chat. Approval
 When the agent needs the web, a brokered Chromium does the browsing. The agent works from an **accessibility outline** (`heading "Vendor SOW"`, `@e1 button "Download PDF"`); you watch the real pixels with a tab listing, a screenshot and a read-only screencast. Only the listing endpoints are exposed; there is no mutating DevTools access. More: [browser/README.md](browser/README.md).
 
 <p align="center">
-  <img src="../assets/keep/split-sight.svg" alt="The agent sees an accessibility outline; you see the real pixels" width="760">
+  <img src="../assets/merion/split-sight.svg" alt="The agent sees an accessibility outline; you see the real pixels" width="760">
 </p>
 
 ### Cockpit
@@ -225,7 +225,7 @@ git clone https://github.com/zyvorai/fabric && cd fabric
 cargo test --manifest-path agent-runtime/Cargo.toml --lib
 
 # 2. End to end: live runtime + FluxVM sandbox stub + merionctl
-./scripts/merion-e2e.sh          # ends with: passed=39 failed=0
+./scripts/merion-e2e.sh          # ends with: passed=64 failed=0
 
 # 3. On a FluxVM host with a node22-agent template (./scripts/merion-bake-node22-agent.sh builds it)
 ./scripts/merion-live-lab.sh

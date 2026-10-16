@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="760" height="250" viewBox="0 0 760 250" role="img" aria-label="Stack: Keep product layer on Fabric control plane on FluxVM hypervisor">
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="250" viewBox="0 0 760 250" role="img" aria-label="Stack: Merion product layer on Fabric control plane on FluxVM hypervisor">
 <rect width="100%" height="100%" rx="12" fill="#0c1118"/>
 <rect x="0.5" y="0.5" width="759" height="249" rx="12" fill="none" stroke="#1a2330"/>
 <g font-family="ui-monospace,SFMono-Regular,Menlo,monospace">
 <rect x="28" y="28" width="704" height="52" rx="8" fill="#111a25" stroke="#6ee7b7"/>
-<text x="48" y="52" fill="#6ee7b7" font-size="15" font-weight="700">Keep</text>
+<text x="48" y="52" fill="#6ee7b7" font-size="15" font-weight="700">Merion</text>
 <text x="48" y="70" fill="#8b9bb0" font-size="12">Product layer: signed policy, vault, approvals, browser, demos</text>
 <rect x="28" y="92" width="704" height="52" rx="8" fill="#111a25" stroke="#1a2330"/>
 <text x="48" y="116" fill="#e8eef5" font-size="15" font-weight="700">Fabric</text>
@@ -11,6 +11,6 @@
 <rect x="28" y="156" width="704" height="52" rx="8" fill="#111a25" stroke="#1a2330"/>
 <text x="48" y="180" fill="#e8eef5" font-size="15" font-weight="700">FluxVM</text>
 <text x="48" y="198" fill="#8b9bb0" font-size="12">Hypervisor: runs the cell, enforces network rules on the host (TC/eBPF)</text>
-<text x="28" y="234" fill="#8b9bb0" font-size="12">Keep is not a third hypervisor: Fabric’s agent runtime plus a FluxVM cell.</text>
+<text x="28" y="234" fill="#8b9bb0" font-size="12">Merion is not a third hypervisor: Fabric’s agent runtime plus a FluxVM cell.</text>
 </g>
 </svg>

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600" role="img" aria-labelledby="t d">
-  <title id="t">The Keep cockpit</title>
-  <desc id="d">A Keep session brieffing a PDF: the sealed cell is up, extraction is done, the brief is ready, and outbound connections read zero. Approvals wait for you, and the agent sees page structure while you see pixels.</desc>
+  <title id="t">The Merion cockpit</title>
+  <desc id="d">A Merion session brieffing a PDF: the sealed cell is up, extraction is done, the brief is ready, and outbound connections read zero. Approvals wait for you, and the agent sees page structure while you see pixels.</desc>
   <defs>
     <radialGradient id="glow" cx="50%" cy="0%" r="80%">
       <stop offset="0" stop-color="#6ee7b7" stop-opacity="0.16"/>
@@ -30,7 +30,7 @@
 
   <!-- window chrome -->
   <circle cx="92" cy="80" r="6" fill="#3a475b"/><circle cx="114" cy="80" r="6" fill="#3a475b"/><circle cx="136" cy="80" r="6" fill="#3a475b"/>
-  <text x="500" y="85" text-anchor="middle" class="sans" font-size="13" fill="#8b9bb0">Keep · vendor-sow.pdf</text>
+  <text x="500" y="85" text-anchor="middle" class="sans" font-size="13" fill="#8b9bb0">Merion · vendor-sow.pdf</text>
   <line x1="60" y1="108" x2="940" y2="108" stroke="#2a3648"/>
 
   <!-- left: goal + steps -->

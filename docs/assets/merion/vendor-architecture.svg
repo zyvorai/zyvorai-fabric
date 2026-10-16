@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="t d">
-  <title id="t">Keep for a phone vendor: architecture</title>
-  <desc id="d">The phone talks to the vendor's gateway, which places each user on one Keep shard. Each shard is a host running the Keep runtime and FluxVM cells. Approvals go to the phone through the vendor's push relay, and the model is the vendor's choice, called through the vault.</desc>
+  <title id="t">Merion for a phone vendor: architecture</title>
+  <desc id="d">The phone talks to the vendor's gateway, which places each user on one Merion shard. Each shard is a host running the Merion runtime and FluxVM cells. Approvals go to the phone through the vendor's push relay, and the model is the vendor's choice, called through the vault.</desc>
   <style>
     text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif;fill:#1d1d1f}
     .h{font-size:16px;font-weight:650}
@@ -28,7 +28,7 @@
   <rect x="24" y="52" width="560" height="536" rx="20" fill="#faf8ff" stroke="#cdbff2"/>
   <rect x="616" y="52" width="560" height="536" rx="20" fill="#f4f9ff" stroke="#b7d5fb"/>
   <text class="z" x="44" y="80" style="fill:#5a3fb0">THE VENDOR OWNS</text>
-  <text class="z" x="636" y="80" style="fill:#0058b8">KEEP PROVIDES</text>
+  <text class="z" x="636" y="80" style="fill:#0058b8">MERION PROVIDES</text>
 
   <!-- phone -->
   <rect x="50" y="108" width="140" height="272" rx="26" class="box ph"/>
@@ -59,7 +59,7 @@
   <!-- push relay -->
   <rect x="290" y="340" width="222" height="132" rx="16" class="box v dash"/>
   <text class="h" x="308" y="368">Push relay</text>
-  <text class="t" x="308" y="392">Turns Keep's signed message</text>
+  <text class="t" x="308" y="392">Turns Merion's signed message</text>
   <text class="t" x="308" y="410">into your push: FCM, Mi Push,</text>
   <text class="t" x="308" y="428">HMS, OPPO, vivo</text>
   <text class="s" x="308" y="454">Interface built; adapters are yours</text>
@@ -73,7 +73,7 @@
     <rect x="650" y="100" width="500" height="120" rx="16" class="box k"/>
     <text class="h" x="670" y="128">Shard A</text>
     <text class="s" x="740" y="128">region 1 · one host</text>
-    <text class="s" x="670" y="148">Keep runtime + FluxVM</text>
+    <text class="s" x="670" y="148">Merion runtime + FluxVM</text>
     <rect x="670" y="162" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="696" y="185">ana</text>
     <rect x="730" y="162" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="756" y="185">ben</text>
     <rect x="790" y="162" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="816" y="185">chen</text>
@@ -85,7 +85,7 @@
     <rect x="650" y="236" width="500" height="120" rx="16" class="box k"/>
     <text class="h" x="670" y="264">Shard B</text>
     <text class="s" x="740" y="264">region 1 · one host</text>
-    <text class="s" x="670" y="284">Keep runtime + FluxVM</text>
+    <text class="s" x="670" y="284">Merion runtime + FluxVM</text>
     <rect x="670" y="298" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="696" y="321">dev</text>
     <rect x="730" y="298" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="756" y="321">eli</text>
     <rect x="790" y="298" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="816" y="321">fay</text>
@@ -97,7 +97,7 @@
     <rect x="650" y="372" width="500" height="120" rx="16" class="box k"/>
     <text class="h" x="670" y="400">Shard C</text>
     <text class="s" x="740" y="400">region 2 · one host</text>
-    <text class="s" x="670" y="420">Keep runtime + FluxVM</text>
+    <text class="s" x="670" y="420">Merion runtime + FluxVM</text>
     <rect x="670" y="434" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="696" y="457">gus</text>
     <rect x="730" y="434" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="756" y="457">hui</text>
     <rect x="790" y="434" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="816" y="457">ivy</text>
@@ -125,7 +125,7 @@
 
   <!-- legend -->
   <rect x="44" y="612" width="14" height="14" rx="4" class="box v"/><text class="s" x="66" y="624">Vendor runs it</text>
-  <rect x="180" y="612" width="14" height="14" rx="4" class="box k"/><text class="s" x="202" y="624">Keep provides it</text>
+  <rect x="180" y="612" width="14" height="14" rx="4" class="box k"/><text class="s" x="202" y="624">Merion provides it</text>
   <rect x="330" y="612" width="14" height="14" rx="4" class="box v dash"/><text class="s" x="352" y="624">Interface only: vendor writes the adapter</text>
-  <text class="s" x="44" y="650">Keep stays a single-host building block. The vendor runs many hosts and routes each user to one.</text>
+  <text class="s" x="44" y="650">Merion stays a single-host building block. The vendor runs many hosts and routes each user to one.</text>
 </svg>

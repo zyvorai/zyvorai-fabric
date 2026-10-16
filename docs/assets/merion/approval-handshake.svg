@@ -23,7 +23,7 @@
   <line class="life" x1="120" y1="66" x2="120" y2="700"/>
   <rect x="40" y="22" width="160" height="42" rx="12" fill="#f5f5f7" stroke="#8e8e93" stroke-width="1.5"/><text class="h c" x="120" y="48">Agent cell</text>
   <line class="life" x1="370" y1="66" x2="370" y2="700"/>
-  <rect x="290" y="22" width="160" height="42" rx="12" fill="#eaf3ff" stroke="#0071e3" stroke-width="1.5"/><text class="h c" x="370" y="48">Keep shard</text>
+  <rect x="290" y="22" width="160" height="42" rx="12" fill="#eaf3ff" stroke="#0071e3" stroke-width="1.5"/><text class="h c" x="370" y="48">Merion shard</text>
   <line class="life" x1="620" y1="66" x2="620" y2="700"/>
   <rect x="540" y="22" width="160" height="42" rx="12" fill="#f3efff" stroke="#7c5cd6" stroke-width="1.5"/><text class="h c" x="620" y="48">Vendor push relay</text>
   <line class="life" x1="870" y1="66" x2="870" y2="700"/>
@@ -59,7 +59,7 @@
   <text class="t c" x="245.0" y="682"><tspan class="n">9</tspan>  approved: the action runs</text>
   <rect x="985" y="330" width="195" height="182" rx="12" fill="#f5f5f7" stroke="#d2d2d7"/>
   <text class="h" x="999" y="354" style="font-size:12.5px">The text the phone signs</text>
-  <text class="m" x="999" y="376">keep-approval-v1</text>
+  <text class="m" x="999" y="376">merion-approval-v1</text>
   <text class="m" x="999" y="392">approval: &lt;id&gt;</text>
   <text class="m" x="999" y="408">decision: approved</text>
   <text class="m" x="999" y="424">kind: &lt;kind&gt;</text>
