@@ -5,7 +5,7 @@ import Head from '@docusaurus/Head';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import marketing from '../../../docs/merion/marketing.json';
 import Reveal from '../components/Reveal';
-import KeepStory from '../components/KeepStory';
+import MerionStory from '../components/MerionStory';
 import CockpitMock from '../components/compare/CockpitMock';
 import ProfileLadder from '../components/compare/ProfileLadder';
 import Quickstart from '../components/compare/Quickstart';
@@ -26,7 +26,7 @@ const INSTALL: Quick[] = marketing.install.map((tab, i) => ({
   ...(i === 0 ? {href: '/docs/tutorials/merion-pdf-brief', cta: 'Then brief a PDF'} : {}),
 }));
 
-export default function KeepPage(): ReactNode {
+export default function MerionPage(): ReactNode {
   useHashScroll();
   const card = useBaseUrl('/img/social-card.png', {absolute: true});
   const compare = marketing.compare.filter((r) => COMPARE_ROWS.includes(r.label));
@@ -72,7 +72,7 @@ export default function KeepPage(): ReactNode {
             title="A real computer for an agent you can’t fully trust."
             lede="A sealed cell, keys you hold, approvals only you can give, and a counter that proves it."
             wide>
-            <KeepStory />
+            <MerionStory />
           </Section>
 
           <Section

@@ -4,11 +4,11 @@
 import { Link } from 'react-router'
 import { useAuth } from '../../contexts/AuthContext'
 import MarketingLayout from '../../components/MarketingLayout'
-import KeepDemoStoryboard from '../../components/keep/KeepDemoStoryboard'
-import KeepSplitSight from '../../components/keep/KeepSplitSight'
-import KeepMuseCompare from '../../components/keep/KeepMuseCompare'
-import KeepInstall from '../../components/keep/KeepInstall'
-import KeepDemoFrame from '../../components/keep/KeepDemoFrame'
+import MerionDemoStoryboard from '../../components/merion/MerionDemoStoryboard'
+import MerionSplitSight from '../../components/merion/MerionSplitSight'
+import MerionMuseCompare from '../../components/merion/MerionMuseCompare'
+import MerionInstall from '../../components/merion/MerionInstall'
+import MerionDemoFrame from '../../components/merion/MerionDemoFrame'
 import marketing from '../../../../docs/merion/marketing.json'
 
 const DOCS = 'https://github.com/zyvorai/fabric/blob/main/docs'
@@ -44,15 +44,15 @@ export default function Keep() {
             </a>
           </div>
           <div className="keep-mkt-hero-plane mkt-reveal-delay-2">
-            <KeepSplitSight />
+            <MerionSplitSight />
           </div>
         </section>
 
         <section className="keep-mkt-section">
           <p className="keep-mkt-eyebrow">Get started</p>
           <h2>Run it in 60 seconds.</h2>
-          <KeepInstall />
-          <KeepDemoFrame />
+          <MerionInstall />
+          <MerionDemoFrame />
         </section>
 
         <section className="keep-mkt-section">
@@ -83,7 +83,7 @@ export default function Keep() {
             Give Keep a vendor PDF and it hands back a one-page brief. The agent works inside its
             cell with no browser, and the cockpit shows zero outbound connections.
           </p>
-          <KeepDemoStoryboard />
+          <MerionDemoStoryboard />
           <p className="keep-mkt-crumb">
             <a href={`${DOCS}/tutorials/17-merion-pdf-brief.md`} target="_blank" rel="noreferrer">
               Run it yourself →
@@ -133,7 +133,7 @@ export default function Keep() {
         <section className="keep-mkt-section">
           <p className="keep-mkt-eyebrow">Meta Muse vs Keep</p>
           <h2>Same threat model. Different owner.</h2>
-          <KeepMuseCompare />
+          <MerionMuseCompare />
           <p className="keep-mkt-honesty">Honest about the limits: {marketing.honesty}</p>
         </section>
 

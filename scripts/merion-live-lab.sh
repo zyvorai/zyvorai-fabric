@@ -33,8 +33,8 @@ echo "    Pilot mode: $MERION_PILOT_MODE"
 if [[ -x agent-runtime/target/release/zyvor-fabric-agent-runtime ]]; then
   export MERION_E2E_BIN="${MERION_E2E_BIN:-$ROOT/agent-runtime/target/release/zyvor-fabric-agent-runtime}"
 fi
-if [[ -x agent-runtime/target/release/examples/keep_sign_policy ]]; then
-  export MERION_SIGN_BIN="${MERION_SIGN_BIN:-$ROOT/agent-runtime/target/release/examples/keep_sign_policy}"
+if [[ -x agent-runtime/target/release/examples/merion_sign_policy ]]; then
+  export MERION_SIGN_BIN="${MERION_SIGN_BIN:-$ROOT/agent-runtime/target/release/examples/merion_sign_policy}"
 fi
 
 exec ./scripts/merion-e2e.sh

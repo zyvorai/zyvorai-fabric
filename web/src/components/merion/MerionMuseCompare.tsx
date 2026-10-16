@@ -1,0 +1,68 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: Apache-2.0
+
+import marketing from '../../../../docs/merion/marketing.json'
+
+/**
+ * Meta Muse vs Keep (+ Fabric / FluxVM) — marketing only. Rows live in
+ * docs/merion/marketing.json, shared with the Keep README and the docs site; every
+ * row is stated in docs/merion/MERION.md.
+ */
+const ROWS: { label: string; muse: string; keep: string }[] = marketing.compare
+
+export default function MerionMuseCompare() {
+  return (
+    <div className="keep-mkt-versus">
+      <p className="keep-mkt-stack-lede">
+        Muse got the threat model right: treat the model as compromised the moment it reads a
+        webpage. Keep is the version you run, read and take with you.
+      </p>
+
+      <ol className="keep-mkt-stack" aria-label="Who does what">
+        <li>
+          <span className="keep-mkt-stack-name">Meta Muse</span>
+          <span className="keep-mkt-stack-role">
+            A closed personal-agent product that runs on Meta’s cloud.
+          </span>
+        </li>
+        <li>
+          <span className="keep-mkt-stack-name">Keep</span>
+          <span className="keep-mkt-stack-role">
+            The open product layer: policy, vault, approvals, browser and demos.
+          </span>
+        </li>
+        <li>
+          <span className="keep-mkt-stack-name">Fabric</span>
+          <span className="keep-mkt-stack-role">
+            The control plane: console, sign-in, agents and sessions, and the front door to Keep’s
+            APIs.
+          </span>
+        </li>
+        <li>
+          <span className="keep-mkt-stack-name">FluxVM</span>
+          <span className="keep-mkt-stack-role">
+            The hypervisor: it runs the cell and enforces the network rules on the host.
+          </span>
+        </li>
+      </ol>
+      <p className="keep-mkt-stage-line">
+        Keep is not a third hypervisor. Keep is Fabric’s agent runtime plus a FluxVM cell.
+      </p>
+
+      <div className="keep-mkt-versus-head" aria-hidden>
+        <span />
+        <span>Meta Muse</span>
+        <span>Keep</span>
+      </div>
+      <ul className="keep-mkt-versus-rows">
+        {ROWS.map((r) => (
+          <li key={r.label}>
+            <span className="keep-mkt-versus-label">{r.label}</span>
+            <span className="keep-mkt-versus-muse">{r.muse}</span>
+            <span className="keep-mkt-versus-keep">{r.keep}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}

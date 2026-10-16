@@ -453,9 +453,9 @@ pub fn public_router(state: Arc<AppState>) -> Router {
             post(crate::suggestions::dismiss),
         )
         .route("/v1/goals/{id}/browse", post(crate::goals::goal_browse))
-        .route("/v1/merion/status", get(crate::demos::keep_status))
+        .route("/v1/merion/status", get(crate::demos::merion_status))
         // Pre-rename alias, kept so existing clients keep working.
-        .route("/v1/keep/status", get(crate::demos::keep_status))
+        .route("/v1/keep/status", get(crate::demos::merion_status))
         .route(
             "/v1/demos",
             get(crate::demos::demo_list).post(crate::demos::demo_save),
@@ -2542,7 +2542,7 @@ async fn get_policy_suggestions(
         .get_agent(&name)
         .await
         .ok_or_else(|| ApiError::not_found("agent not found"))?;
-    let current = crate::policy::KeepPolicy::from_manifest(&agent.manifest);
+    let current = crate::policy::MerionPolicy::from_manifest(&agent.manifest);
     let sessions: std::collections::HashSet<Uuid> = state
         .store
         .list_sessions()
@@ -2587,7 +2587,7 @@ async fn get_agent_policy(
         .get_agent(&name)
         .await
         .ok_or_else(|| ApiError::not_found("agent not found"))?;
-    let yaml = crate::policy::KeepPolicy::from_manifest(&agent.manifest)
+    let yaml = crate::policy::MerionPolicy::from_manifest(&agent.manifest)
         .to_yaml()
         .map_err(ApiError::internal)?;
     Ok((
@@ -2617,9 +2617,9 @@ async fn put_agent_policy(
         .get_agent(&name)
         .await
         .ok_or_else(|| ApiError::not_found("agent not found"))?;
-    let policy = crate::policy::KeepPolicy::from_yaml(&body).map_err(ApiError::bad_request)?;
+    let policy = crate::policy::MerionPolicy::from_yaml(&body).map_err(ApiError::bad_request)?;
     policy.enforceable().map_err(ApiError::bad_request)?;
-    let current = crate::policy::KeepPolicy::from_manifest(&agent.manifest);
+    let current = crate::policy::MerionPolicy::from_manifest(&agent.manifest);
     let risks = crate::policy_lint::review_change(Some(&current), &policy);
     let acked =
         header_str(&headers, "x-merion-policy-ack-risk") == Some("1");
@@ -2671,7 +2671,7 @@ async fn put_agent_policy(
     Ok(Json(json!({
         "name": record.name,
         "version": record.version,
-        "policy": crate::policy::KeepPolicy::from_manifest(&record.manifest),
+        "policy": crate::policy::MerionPolicy::from_manifest(&record.manifest),
         "risks": risks,
     })))
 }
@@ -3207,8 +3207,8 @@ async fn pack_agent(
         .get_agent(&name)
         .await
         .ok_or_else(|| ApiError::not_found("agent not found"))?;
-    let policy = crate::policy::KeepPolicy::from_manifest(&agent.manifest);
-    let pack = crate::policy::KeepPackManifest {
+    let policy = crate::policy::MerionPolicy::from_manifest(&agent.manifest);
+    let pack = crate::policy::MerionPackManifest {
         version: 1,
         agent: agent.name.clone(),
         agent_version: agent.version.clone(),

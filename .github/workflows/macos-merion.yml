@@ -1,0 +1,31 @@
+name: Solvor (Mac app)
+on:
+  pull_request:
+    paths: ['integrations/macos-merion/**', 'integrations/ios-merion/**', 'docs/merion/mobile/test-vectors.json', 'examples/merion-agents/**', '.github/workflows/macos-merion.yml']
+  push:
+    branches: [main]
+    paths: ['integrations/macos-merion/**', 'integrations/ios-merion/**', 'docs/merion/mobile/test-vectors.json', '.github/workflows/macos-merion.yml']
+permissions:
+  contents: read
+jobs:
+  keepkit:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - name: MerionKit unit tests
+        working-directory: integrations/macos-merion
+        run: swift test
+      - name: App builds and its tests pass
+        working-directory: integrations/macos-merion
+        run: xcodebuild -project Solvor.xcodeproj -scheme Solvor -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO test
+  iphone:
+    # Builds the iPhone app for the simulator, unsigned. It does not run it: signing, a device and TestFlight need an Apple developer team.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - name: Generate the project
+        working-directory: integrations/ios-merion
+        run: brew install xcodegen && xcodegen generate
+      - name: Build for the iOS simulator
+        working-directory: integrations/ios-merion
+        run: xcodebuild -project MerionPhone.xcodeproj -scheme MerionPhone -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build

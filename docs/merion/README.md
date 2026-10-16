@@ -9,7 +9,7 @@
 Keep gives an untrusted AI agent its own sealed computer on hardware you control,
 while you hold the policy, the credentials and the approvals. Open source, Apache-2.0.
 
-[![Keep CI](https://github.com/zyvorai/fabric/actions/workflows/keep.yml/badge.svg)](../../.github/workflows/keep.yml)
+[![Keep CI](https://github.com/zyvorai/fabric/actions/workflows/merion.yml/badge.svg)](../../.github/workflows/merion.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](../../LICENSE)
 ![Rust](https://img.shields.io/badge/runtime-Rust-orange)
 ![Evidence](https://img.shields.io/badge/evidence-software--test-lightgrey)
@@ -327,8 +327,8 @@ Sources for the Muse column: [Meta, "Introducing Muse", 2026-09](https://about.f
 | [`scripts/merion-e2e.sh`](../../scripts/merion-e2e.sh) · [`merion-live-lab.sh`](../../scripts/merion-live-lab.sh) · [`merion-pilot-gate.sh`](../../scripts/merion-pilot-gate.sh) | End-to-end checks: stub, live lab and pilot gate |
 | [`examples/merion-agents/`](../../examples/merion-agents/) | The packaged use cases and agents |
 | `docs/merion/` | This documentation tree (spec, sentinel, vault, approvals, cell, browser, cockpit, demos, packs) |
-| `web/src/pages/KeepHome.tsx` · `KeepSession.tsx` | The console: `/app/keep` and `/app/keep/:sessionId` |
-| [`.github/workflows/keep.yml`](../../.github/workflows/keep.yml) | CI: unit tests, the seven demos end to end, a custom use case, a signed pack deploy, and the stub e2e |
+| `web/src/pages/MerionHome.tsx` · `MerionSession.tsx` | The console: `/app/keep` and `/app/keep/:sessionId` |
+| [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml) | CI: unit tests, the seven demos end to end, a custom use case, a signed pack deploy, and the stub e2e |
 | [`pilot-runs/`](pilot-runs/) | Archived live-gate runs on a FluxVM host |
 
 ## FAQ

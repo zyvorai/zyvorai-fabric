@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Builds the Keep runtime (zyvor-fabric-agent-runtime). Build from the repo root:
 #   docker build -f agent-runtime/Dockerfile -t zyvor-fabric-agent-runtime:local agent-runtime
-# It only serves HTTP and talks to FluxVM, so it needs no capabilities; see charts/zyvor-keep.
+# It only serves HTTP and talks to FluxVM, so it needs no capabilities; see charts/zyvor-merion.
 FROM rust:1.98-slim AS build
 WORKDIR /build
 COPY . .

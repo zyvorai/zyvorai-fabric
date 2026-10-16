@@ -14,7 +14,7 @@ with `std::env::var` on each use. That is simple, and it has four costs:
 - **Rotation.** Changing a key means editing the env and restarting the runtime, which ends running sessions.
 - **No central audit or revocation.** A company that keeps its secrets in Vault, or in Kubernetes Secrets mounted by a CSI driver, cannot see or
   cut off Keep's use of them from the place that owns them.
-- **The Helm chart** (`charts/zyvor-keep`) has no good answer: secrets go through `runtime.extraEnv`, which puts them in the pod spec.
+- **The Helm chart** (`charts/zyvor-merion`) has no good answer: secrets go through `runtime.extraEnv`, which puts them in the pod spec.
 
 This note is about **where the secret comes from**. It does not change who may use it: host, method, path, port, user and approval checks stay
 exactly as they are.

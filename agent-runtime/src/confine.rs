@@ -18,14 +18,14 @@ use std::net::IpAddr;
 /// guest (which is not there before the guest has booted, and may not be there at all).
 pub fn deny_all_policy(session_id: Option<&str>, agent: Option<&str>) -> Value {
     let mut labels = vec![
-        "keep.zyvor.dev/proxy=strict".to_string(),
-        "keep.zyvor.dev/egress=none".to_string(),
+        "merion.zyvor.dev/proxy=strict".to_string(),
+        "merion.zyvor.dev/egress=none".to_string(),
     ];
     if let Some(sid) = session_id {
-        labels.push(format!("keep.zyvor.dev/session={sid}"));
+        labels.push(format!("merion.zyvor.dev/session={sid}"));
     }
     if let Some(a) = agent {
-        labels.push(format!("keep.zyvor.dev/agent={a}"));
+        labels.push(format!("merion.zyvor.dev/agent={a}"));
     }
     json!({
         "default_allow": false,
@@ -56,14 +56,14 @@ pub fn strict_policy(
         ports.push(format!("tcp/{port}"));
     }
     let mut labels = vec![
-        "keep.zyvor.dev/role=browser".to_string(),
-        "keep.zyvor.dev/proxy=strict".to_string(),
+        "merion.zyvor.dev/role=browser".to_string(),
+        "merion.zyvor.dev/proxy=strict".to_string(),
     ];
     if let Some(sid) = session_id {
-        labels.push(format!("keep.zyvor.dev/session={sid}"));
+        labels.push(format!("merion.zyvor.dev/session={sid}"));
     }
     if let Some(a) = agent {
-        labels.push(format!("keep.zyvor.dev/agent={a}"));
+        labels.push(format!("merion.zyvor.dev/agent={a}"));
     }
     let mut fqdns: Vec<String> = allow_fqdns
         .iter()
@@ -155,8 +155,8 @@ mod tests {
         assert_eq!(p["deny_udp"], true);
         assert_eq!(p["allow_icmp"], false);
         let labels: Vec<String> = serde_json::from_value(p["labels"].clone()).unwrap();
-        assert!(labels.contains(&"keep.zyvor.dev/egress=none".to_string()));
-        assert!(labels.contains(&"keep.zyvor.dev/session=sess-1".to_string()));
+        assert!(labels.contains(&"merion.zyvor.dev/egress=none".to_string()));
+        assert!(labels.contains(&"merion.zyvor.dev/session=sess-1".to_string()));
         // Nothing is allowed, unlike the broker-only policy an agent session gets.
         let strict = strict_policy("10.0.0.1".parse().unwrap(), 9097, None, &[], None, None);
         assert_ne!(p["allow_cidrs"], strict["allow_cidrs"]);
@@ -229,7 +229,7 @@ mod tests {
             .as_array()
             .unwrap()
             .iter()
-            .any(|l| l.as_str() == Some("keep.zyvor.dev/role=browser")));
+            .any(|l| l.as_str() == Some("merion.zyvor.dev/role=browser")));
     }
 
     #[test]

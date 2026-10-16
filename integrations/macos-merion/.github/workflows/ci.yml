@@ -1,0 +1,16 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - name: MerionKit unit tests
+        run: swift test
+      - name: App builds and its tests pass
+        run: xcodebuild -project Solvor.xcodeproj -scheme Solvor -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO test

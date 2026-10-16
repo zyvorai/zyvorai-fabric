@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source for Keep marketing copy. Consumed by website/src/pages/keep.tsx and web/src/components/keep/*. Every Muse-side row must be stated in docs/merion/MERION.md; rows with no source are left out.",
+  "_comment": "Single source for Keep marketing copy. Consumed by website/src/pages/keep.tsx and web/src/components/merion/*. Every Muse-side row must be stated in docs/merion/MERION.md; rows with no source are left out.",
   "tagline": "Your agent gets a real computer. You keep the keys.",
   "lede": "Keep gives an untrusted AI agent its own sealed computer on hardware you control, while you hold the policy, the credentials and the approvals. Open source.",
   "values": [

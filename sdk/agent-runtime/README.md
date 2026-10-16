@@ -145,5 +145,5 @@ fabric-agent pack deploy ./my-usecase --test          # declarative use case: sa
 fabric-agent pack bundle ./my-pack                    # <name>.merionpack.json for the console's Deploy a pack
 ```
 
-Signing uses Node's built-in Ed25519, byte-compatible with `keep_sign_policy`, so no Rust toolchain
+Signing uses Node's built-in Ed25519, byte-compatible with `merion_sign_policy`, so no Rust toolchain
 is needed. `--dry-run` prints the plan without contacting the runtime.

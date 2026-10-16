@@ -129,7 +129,7 @@ keep-phone decide phone.key ana-phone approval.json approved          # body the
 
 ## Show what the person is approving
 
-An approval from a credential with a `preview` (see [connectors](../connectors/README.md#what-the-person-sees-before-they-approve)) carries `preview: {kind, fields: [{label, value}]}` in `GET /v1/inbox` (and `GET /v1/approvals`). Show those fields, not only the `prompt`: the host rendered them from the real request body (recipients, subject, text; an event's guests and whether they are emailed). The signed `action-sha256` covers `planned_action.preview_sha256`, so what you display is what is signed. The preview is dropped once the approval is decided. The iPhone app in [`integrations/ios-keep`](../../../integrations/ios-keep/) does this.
+An approval from a credential with a `preview` (see [connectors](../connectors/README.md#what-the-person-sees-before-they-approve)) carries `preview: {kind, fields: [{label, value}]}` in `GET /v1/inbox` (and `GET /v1/approvals`). Show those fields, not only the `prompt`: the host rendered them from the real request body (recipients, subject, text; an event's guests and whether they are emailed). The signed `action-sha256` covers `planned_action.preview_sha256`, so what you display is what is signed. The preview is dropped once the approval is decided. The iPhone app in [`integrations/ios-merion`](../../../integrations/ios-merion/) does this.
 
 ## Android sketch (P-256 in the Keystore)
 

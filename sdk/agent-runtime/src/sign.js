@@ -4,7 +4,7 @@
 import { createPrivateKey, createPublicKey, sign } from "node:crypto";
 
 // PKCS#8 wrapper for a raw 32-byte Ed25519 seed. This is what lets Node sign
-// with the same seed `keep_sign_policy` uses, with no Rust toolchain.
+// with the same seed `merion_sign_policy` uses, with no Rust toolchain.
 const PKCS8_ED25519_PREFIX = Buffer.from("302e020100300506032b657004220420", "hex");
 
 export function seedFromHex(hex) {

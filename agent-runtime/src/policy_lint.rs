@@ -12,7 +12,7 @@
 //! A [`Severity::High`] finding makes `PUT …/policy` refuse the change unless
 //! the caller acknowledges it (see `put_agent_policy`).
 
-use crate::policy::KeepPolicy;
+use crate::policy::MerionPolicy;
 use serde::Serialize;
 use std::collections::BTreeSet;
 use std::net::IpAddr;
@@ -152,7 +152,7 @@ fn host_findings(host: &str, out: &mut Vec<Finding>) {
 
 /// Review a policy change. `old` is `None` for a first policy, in which case
 /// every allowed host counts as new.
-pub fn review_change(old: Option<&KeepPolicy>, new: &KeepPolicy) -> Vec<Finding> {
+pub fn review_change(old: Option<&MerionPolicy>, new: &MerionPolicy) -> Vec<Finding> {
     let mut out = Vec::new();
 
     if new.default_egress == "allow" && old.is_none_or(|o| o.default_egress != "allow") {
@@ -334,8 +334,8 @@ pub fn summarize_high(findings: &[Finding]) -> String {
 mod tests {
     use super::*;
 
-    fn pol(yaml: &str) -> KeepPolicy {
-        KeepPolicy::from_yaml(yaml).unwrap()
+    fn pol(yaml: &str) -> MerionPolicy {
+        MerionPolicy::from_yaml(yaml).unwrap()
     }
 
     fn codes(f: &[Finding]) -> Vec<&'static str> {

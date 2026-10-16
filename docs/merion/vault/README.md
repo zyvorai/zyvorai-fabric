@@ -89,7 +89,7 @@ with the same class. `config` usually means a token, secret id or CA file that i
 
 #### On Kubernetes
 
-The `zyvor-keep` chart (`charts/zyvor-keep`) takes `credentials.descriptors` (rendered to a ConfigMap and mounted read-only, and never holding a
+The `zyvor-merion` chart (`charts/zyvor-merion`) takes `credentials.descriptors` (rendered to a ConfigMap and mounted read-only, and never holding a
 secret), `runtime.extraVolumes` and `runtime.extraVolumeMounts` (to mount the Secret, CSI or Vault Agent files that `file` sources read), and
 `serviceAccount.name` (the account whose token Vault's Kubernetes login sends). A changed descriptor restarts the runtime, which reads them once at
 startup.

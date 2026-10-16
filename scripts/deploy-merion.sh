@@ -213,7 +213,7 @@ curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:9096/v1/merion/stat
   | python3 -c '
 import json, sys
 s = json.load(sys.stdin)
-print("  · Keep mode: %s, trusted signers: %d, use cases: %d built-in" % (s["keep_mode"], s["trusted_signers"], s["demos"]["builtin"]))'
+print("  · Keep mode: %s, trusted signers: %d, use cases: %d built-in" % (s["merion_mode"], s["trusted_signers"], s["demos"]["builtin"]))'
 
 echo
 echo "==> smoke test: CSV cleanup (needs no extra tools in the template)"

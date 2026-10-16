@@ -34,9 +34,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 KEEPCTL="$ROOT/scripts/merionctl"
-SIGN_EX="$ROOT/agent-runtime/examples/keep_sign_policy.rs"
+SIGN_EX="$ROOT/agent-runtime/examples/merion_sign_policy.rs"
 BIN="${MERION_E2E_BIN:-$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runtime}"
-SIGN_BIN="${MERION_SIGN_BIN:-$ROOT/agent-runtime/target/debug/examples/keep_sign_policy}"
+SIGN_BIN="${MERION_SIGN_BIN:-$ROOT/agent-runtime/target/debug/examples/merion_sign_policy}"
 API="http://127.0.0.1:19097"
 STUB_PORT=17797
 TOKEN="keep-e2e-token"
@@ -90,7 +90,7 @@ for p in sys.argv[1].split("."):
 print("" if cur is None else (cur if not isinstance(cur,(dict,list)) else json.dumps(cur)))' "$1"
 }
 
-echo "==> build agent-runtime + keep_sign_policy"
+echo "==> build agent-runtime + merion_sign_policy"
 NEED_BUILD=0
 [[ -x "$BIN" && -x "$SIGN_BIN" ]] || NEED_BUILD=1
 if [[ "$NEED_BUILD" -eq 0 ]]; then
@@ -102,7 +102,7 @@ if [[ "$NEED_BUILD" -eq 0 ]]; then
   fi
 fi
 if [[ "$NEED_BUILD" -eq 1 ]]; then
-  cargo build --manifest-path "$ROOT/agent-runtime/Cargo.toml" --example keep_sign_policy
+  cargo build --manifest-path "$ROOT/agent-runtime/Cargo.toml" --example merion_sign_policy
   cargo build --manifest-path "$ROOT/agent-runtime/Cargo.toml"
 fi
 test -x "$BIN"

@@ -20,18 +20,18 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct KeepPolicy {
+pub struct MerionPolicy {
     pub version: u32,
     #[serde(default = "default_deny")]
     pub default_egress: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub allow: Vec<KeepAllow>,
+    pub allow: Vec<MerionAllow>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub deny: Vec<KeepDeny>,
+    pub deny: Vec<MerionDeny>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub taint: Option<KeepTaint>,
+    pub taint: Option<MerionTaint>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub browser: Option<KeepBrowser>,
+    pub browser: Option<MerionBrowser>,
 }
 
 fn default_deny() -> String {
@@ -39,7 +39,7 @@ fn default_deny() -> String {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
-pub struct KeepAllow {
+pub struct MerionAllow {
     pub host: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub methods: Vec<String>,
@@ -61,7 +61,7 @@ pub struct KeepAllow {
     pub binaries: Vec<crate::model::BinaryRule>,
 }
 
-impl KeepAllow {
+impl MerionAllow {
     /// True when the entry restricts what the request body may ask for.
     pub fn reads_body(&self) -> bool {
         !self.rpc_methods.is_empty()
@@ -76,12 +76,12 @@ impl KeepAllow {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct KeepDeny {
+pub struct MerionDeny {
     pub host: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct KeepTaint {
+pub struct MerionTaint {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub trusted_hosts: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -89,35 +89,35 @@ pub struct KeepTaint {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct KeepBrowser {
-    #[serde(default = "keep_browser_enabled_default")]
+pub struct MerionBrowser {
+    #[serde(default = "merion_browser_enabled_default")]
     pub enabled: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub allow_hosts: Vec<String>,
-    #[serde(default = "keep_browser_true")]
+    #[serde(default = "merion_browser_true")]
     pub block_file_url: bool,
-    #[serde(default = "keep_browser_max_tabs")]
+    #[serde(default = "merion_browser_max_tabs")]
     pub max_tabs: u32,
-    #[serde(default = "keep_browser_true")]
+    #[serde(default = "merion_browser_true")]
     pub snapshot_only: bool,
-    #[serde(default = "keep_browser_downloads")]
+    #[serde(default = "merion_browser_downloads")]
     pub downloads: String,
 }
 
-fn keep_browser_enabled_default() -> bool {
+fn merion_browser_enabled_default() -> bool {
     true
 }
-fn keep_browser_true() -> bool {
+fn merion_browser_true() -> bool {
     true
 }
-fn keep_browser_max_tabs() -> u32 {
+fn merion_browser_max_tabs() -> u32 {
     8
 }
-fn keep_browser_downloads() -> String {
+fn merion_browser_downloads() -> String {
     "deny".into()
 }
 
-impl KeepBrowser {
+impl MerionBrowser {
     pub fn to_manifest_policy(&self) -> BrowserPolicy {
         BrowserPolicy {
             enabled: self.enabled,
@@ -149,12 +149,12 @@ pub struct PolicyTrust {
     /// When true, unsigned policy is refused (requires non-empty signers).
     pub require_signature: bool,
     /// Keep mode: fail-closed; signers mandatory; REQUIRE_SIGNATURE=0 ignored.
-    pub keep_mode: bool,
+    pub merion_mode: bool,
 }
 
 impl PolicyTrust {
     pub fn from_env() -> Result<Self> {
-        let keep_mode = crate::config::env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE")
+        let merion_mode = crate::config::env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE")
             .as_deref()
             == Some("1");
         let raw = std::env::var("ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS").unwrap_or_default();
@@ -166,13 +166,13 @@ impl PolicyTrust {
                 .map_err(|_| anyhow::anyhow!("POLICY_TRUSTED_SIGNERS entry must be 32 bytes"))?;
             trusted_signers.push(arr);
         }
-        if keep_mode && trusted_signers.is_empty() {
+        if merion_mode && trusted_signers.is_empty() {
             bail!(
                 "ZYVOR_AGENT_MERION_MODE=1 (or the older ZYVOR_AGENT_KEEP_MODE=1) requires \
                  ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS (comma-separated hex Ed25519 public keys)"
             );
         }
-        let require_signature = if keep_mode {
+        let require_signature = if merion_mode {
             true
         } else {
             match std::env::var("ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE")
@@ -187,14 +187,14 @@ impl PolicyTrust {
         let trust = Self {
             trusted_signers,
             require_signature,
-            keep_mode,
+            merion_mode,
         };
         trust.validate_configuration()?;
         Ok(trust)
     }
 
     fn validate_configuration(&self) -> Result<()> {
-        if self.keep_mode && (self.trusted_signers.is_empty() || !self.require_signature) {
+        if self.merion_mode && (self.trusted_signers.is_empty() || !self.require_signature) {
             bail!("Keep mode requires trusted policy signers and signature enforcement");
         }
         Ok(())
@@ -204,7 +204,7 @@ impl PolicyTrust {
     /// covers only a subset of manifest fields, so signing its projection would
     /// leave security-sensitive fields writable without authorization.
     pub fn verify_deployment(&self, body: &[u8], signature_hex: Option<&str>) -> Result<()> {
-        if !self.keep_mode {
+        if !self.merion_mode {
             return Ok(());
         }
         self.verify_yaml(body, signature_hex)
@@ -212,7 +212,7 @@ impl PolicyTrust {
     }
 
     pub fn verify_yaml(&self, yaml: &[u8], signature_hex: Option<&str>) -> Result<()> {
-        if self.keep_mode || self.require_signature {
+        if self.merion_mode || self.require_signature {
             if self.trusted_signers.is_empty() {
                 bail!("policy signature required but no trusted signers configured");
             }
@@ -249,16 +249,16 @@ pub fn sign_policy_yaml(yaml: &[u8], seed32: &[u8; 32]) -> String {
     hex::encode(key.sign(yaml).to_bytes())
 }
 
-impl KeepPolicy {
+impl MerionPolicy {
     pub fn from_manifest(m: &AgentManifest) -> Self {
         let ask = match m.egress_mode {
             EgressMode::Ask | EgressMode::Sentinel => Some("always".into()),
             EgressMode::Deny => None,
         };
-        let mut allow: Vec<KeepAllow> = m
+        let mut allow: Vec<MerionAllow> = m
             .egress_allow_hosts
             .iter()
-            .map(|host| KeepAllow {
+            .map(|host| MerionAllow {
                 host: host.clone(),
                 ask: ask.clone(),
                 ..Default::default()
@@ -272,7 +272,7 @@ impl KeepPolicy {
                 existing.graphql_operations = rule.graphql_operations.clone();
                 existing.binaries = rule.binaries.clone();
             } else {
-                allow.push(KeepAllow {
+                allow.push(MerionAllow {
                     host: rule.host.clone(),
                     methods: rule.methods.clone(),
                     ask: ask.clone(),
@@ -284,11 +284,11 @@ impl KeepPolicy {
                 });
             }
         }
-        let taint = m.taint.as_ref().map(|t| KeepTaint {
+        let taint = m.taint.as_ref().map(|t| MerionTaint {
             trusted_hosts: t.trusted_hosts.clone(),
             on_untrusted_page: Some("block_egress_until_ask".into()),
         });
-        let browser = m.browser.as_ref().map(KeepBrowser::from_manifest_policy);
+        let browser = m.browser.as_ref().map(MerionBrowser::from_manifest_policy);
         Self {
             version: 1,
             default_egress: "deny".into(),
@@ -403,7 +403,7 @@ pub fn host_matches_list(host: &str, list: &[String]) -> bool {
 
 /// Pack metadata written by `merionctl pack` (no raw secrets).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeepPackManifest {
+pub struct MerionPackManifest {
     pub version: u32,
     pub agent: String,
     pub agent_version: String,
@@ -436,9 +436,9 @@ mod tests {
     #[test]
     fn round_trip_yaml() {
         let m = bare_manifest();
-        let yaml = KeepPolicy::from_manifest(&m).to_yaml().unwrap();
+        let yaml = MerionPolicy::from_manifest(&m).to_yaml().unwrap();
         assert!(yaml.contains("api.github.com"));
-        let back = KeepPolicy::from_yaml(&yaml).unwrap();
+        let back = MerionPolicy::from_yaml(&yaml).unwrap();
         let mut m2 = bare_manifest();
         m2.egress_allow_hosts.clear();
         m2.egress_mode = EgressMode::Deny;
@@ -463,7 +463,7 @@ browser:
   snapshot_only: true
   downloads: deny
 "#;
-        let p = KeepPolicy::from_yaml(yaml).unwrap();
+        let p = MerionPolicy::from_yaml(yaml).unwrap();
         let b = p.browser.as_ref().unwrap();
         assert!(b.enabled);
         assert_eq!(b.max_tabs, 4);
@@ -476,7 +476,7 @@ browser:
 
     #[test]
     fn enforceable_rejects_unenforced_fields() {
-        let ok = |y: &str| KeepPolicy::from_yaml(y).unwrap().enforceable();
+        let ok = |y: &str| MerionPolicy::from_yaml(y).unwrap().enforceable();
         assert!(
             ok("version: 1\ndefault_egress: deny\nallow:\n  - { host: api.github.com }\n").is_ok()
         );
@@ -523,7 +523,7 @@ browser:
   enabled: true
   allow_hosts: [example.com, pay.example.com]
 "#;
-        let p = KeepPolicy::from_yaml(yaml).unwrap();
+        let p = MerionPolicy::from_yaml(yaml).unwrap();
         let mut m = bare_manifest();
         p.apply_to_manifest(&mut m);
         let bp = m.browser.as_ref().unwrap();
@@ -550,7 +550,7 @@ browser:
         let trust = PolicyTrust {
             trusted_signers: vec![pk],
             require_signature: true,
-            keep_mode: false,
+            merion_mode: false,
         };
         trust.verify_yaml(yaml, Some(&sig)).unwrap();
         assert!(trust.verify_yaml(yaml, Some("00")).is_err());
@@ -559,7 +559,7 @@ browser:
 
     /// Ed25519 is deterministic, so a signature made by the Node SDK
     /// (`fabric-agent pack`, sdk/agent-runtime/src/sign.js) must equal the one
-    /// `keep_sign_policy` makes for the same seed and bytes. This fixture was
+    /// `merion_sign_policy` makes for the same seed and bytes. This fixture was
     /// produced by the Node signer; if it ever drifts, Node-signed deploys would
     /// be rejected in Keep mode.
     #[test]
@@ -578,26 +578,26 @@ browser:
     }
 
     #[test]
-    fn keep_mode_refuses_unsigned_even_if_require_flag_would_be_off() {
+    fn merion_mode_refuses_unsigned_even_if_require_flag_would_be_off() {
         let seed = [9u8; 32];
         let yaml = b"version: 1\ndefault_egress: deny\n";
         let sig = sign_policy_yaml(yaml, &seed);
         let pk = SigningKey::from_bytes(&seed).verifying_key().to_bytes();
         let trust = PolicyTrust {
             trusted_signers: vec![pk],
-            require_signature: false, // would allow unsigned without keep_mode
-            keep_mode: true,
+            require_signature: false, // would allow unsigned without merion_mode
+            merion_mode: true,
         };
         assert!(trust.verify_yaml(yaml, None).is_err());
         trust.verify_yaml(yaml, Some(&sig)).unwrap();
     }
 
     #[test]
-    fn keep_mode_refuses_when_no_signers() {
+    fn merion_mode_refuses_when_no_signers() {
         let trust = PolicyTrust {
             trusted_signers: vec![],
             require_signature: true,
-            keep_mode: true,
+            merion_mode: true,
         };
         assert!(trust
             .verify_yaml(b"version: 1\n", Some("abcd"))
@@ -607,11 +607,11 @@ browser:
     }
 
     #[test]
-    fn without_keep_mode_empty_signers_accept_unsigned() {
+    fn without_merion_mode_empty_signers_accept_unsigned() {
         let trust = PolicyTrust {
             trusted_signers: vec![],
             require_signature: false,
-            keep_mode: false,
+            merion_mode: false,
         };
         trust.verify_yaml(b"version: 1\n", None).unwrap();
     }
@@ -622,7 +622,7 @@ browser:
         let trust = PolicyTrust {
             trusted_signers: vec![SigningKey::from_bytes(&seed).verifying_key().to_bytes()],
             require_signature: true,
-            keep_mode: true,
+            merion_mode: true,
         };
         let body = br#"{"name":"operator","manifest":{"allow_private_networks":false}}"#;
         let signature = sign_policy_yaml(body, &seed);
@@ -633,9 +633,9 @@ browser:
     }
 
     #[test]
-    fn keep_mode_refuses_missing_signer_or_disabled_enforcement() {
+    fn merion_mode_refuses_missing_signer_or_disabled_enforcement() {
         let mut trust = PolicyTrust {
-            keep_mode: true,
+            merion_mode: true,
             ..Default::default()
         };
         assert!(trust.validate_configuration().is_err());
@@ -648,7 +648,7 @@ browser:
     #[test]
     fn body_rules_survive_the_policy_round_trip() {
         let yaml = "version: 1\nallow:\n  - { host: mcp.example.com, methods: [POST], rpc_methods: [tools/call, tools/list], mcp_tools: [search], ask: first }\n  - { host: graph.example.com, graphql_operations: [query] }\n";
-        let policy = KeepPolicy::from_yaml(yaml).unwrap();
+        let policy = MerionPolicy::from_yaml(yaml).unwrap();
         let mut m = bare_manifest();
         policy.apply_to_manifest(&mut m);
         let mcp = m
@@ -667,7 +667,7 @@ browser:
         assert_eq!(graph.graphql_operations, vec!["query"]);
         assert!(m.validate_egress_policy().is_ok());
         // And back out again unchanged.
-        let back = KeepPolicy::from_manifest(&m);
+        let back = MerionPolicy::from_manifest(&m);
         let allow = back
             .allow
             .iter()

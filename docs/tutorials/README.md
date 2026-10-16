@@ -50,7 +50,7 @@ curl -sk "$FABRIC_HOST/readyz" | jq '{ok, store, fluxvm_ok: .fluxvm.ok}'
 Deep-dive series (groups, CNP, observe, UX):
 [edge-dataplane/](edge-dataplane/README.md).
 
-**Keep** product docs: [docs/merion/MERION.md](../merion/MERION.md) · [confine](../merion/confine.md) · [PDF demo](../merion/demos/pdf-brief.md) · production gate: [docs/merion/PRODUCTION.md](../merion/PRODUCTION.md) · CI: [`.github/workflows/keep.yml`](../../.github/workflows/keep.yml) · lab: `./scripts/merion-live-lab.sh` · demo: `./scripts/merion-demo-pdf.sh`.
+**Keep** product docs: [docs/merion/MERION.md](../merion/MERION.md) · [confine](../merion/confine.md) · [PDF demo](../merion/demos/pdf-brief.md) · production gate: [docs/merion/PRODUCTION.md](../merion/PRODUCTION.md) · CI: [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml) · lab: `./scripts/merion-live-lab.sh` · demo: `./scripts/merion-demo-pdf.sh`.
 
 ---
 

@@ -27,7 +27,7 @@ Scoreboard (ahead-of-Muse gate, software-test only): [`AHEAD.md`](AHEAD.md) · `
 | Model choice | `model_socket` wired for agents (`ctx.model.chat()`, CLI harness), any OpenAI-compatible endpoint | [`MODELS.md`](MODELS.md) |
 | Phone vendors | Blueprint, reference gateway, benchmark, partial zh-CN console | [`VENDORS.md`](VENDORS.md) |
 | Install Keep | `./scripts/deploy keep user@host` (needs FluxVM on the host); `merionctl doctor` | [`PRODUCTION.md`](PRODUCTION.md) · `scripts/deploy-merion.sh` |
-| Install on Kubernetes | `charts/zyvor-keep`: a `hostNetwork` DaemonSet beside FluxVM, Keep mode on by default, credential descriptors, secret volumes, a service account. Rendered and schema-checked; **never installed in a cluster** | [`PRODUCTION.md`](PRODUCTION.md#install-keep-on-kubernetes) |
+| Install on Kubernetes | `charts/zyvor-merion`: a `hostNetwork` DaemonSet beside FluxVM, Keep mode on by default, credential descriptors, secret volumes, a service account. Rendered and schema-checked; **never installed in a cluster** | [`PRODUCTION.md`](PRODUCTION.md#install-keep-on-kubernetes) |
 | Policy changes | A risk check (409 until acknowledged) on every policy update; `merionctl policy suggest` drafts allow rules from an agent's denied requests | [`sentinel/README.md`](sentinel/README.md) |
 | Egress rules by body and program | MCP, JSON-RPC and GraphQL body rules; `binaries` (which program in the cell may call, from the guest's `/proc`). The attribution script was run on real Linux, including across a `bwrap` PID namespace; **not** in a real cell | [`sentinel/README.md`](sentinel/README.md) |
 | Operator egress guard | `ZYVOR_AGENT_GUARD_URL`: an HTTP service that may refuse any brokered request; fails closed | `agent-runtime/README.md` |
@@ -35,7 +35,7 @@ Scoreboard (ahead-of-Muse gate, software-test only): [`AHEAD.md`](AHEAD.md) · `
 | GPU cells | `gpus` in the agent manifest; FluxVM picks free VFIO-bound GPUs under a lock. Picking logic tested; **no real GPU** | `agent-runtime/README.md` · FluxVM `docs/sandbox-gpus.md` |
 | Audit export | `GET /v1/export/audit?format=ocsf`: OCSF-shaped NDJSON, chain hashes carried; not run through the OCSF schema validator | [`merionctl/README.md`](merionctl/README.md) |
 | Credential sources | A credential's secret from a file, or from HashiCorp Vault (token, AppRole, Kubernetes login); `GET /v1/vault/status` lists each source. Tested against a mock; **no real Vault** | [`vault/README.md`](vault/README.md#credentials-from-a-file-source) |
-| CI | Keep workflow: unit tests, **demos e2e** (7 built-ins, a custom use case, signed pack deploy in Keep mode, against the real runtime and the FluxVM stand-in), stub e2e | [`.github/workflows/keep.yml`](../../.github/workflows/keep.yml) |
+| CI | Keep workflow: unit tests, **demos e2e** (7 built-ins, a custom use case, signed pack deploy in Keep mode, against the real runtime and the FluxVM stand-in), stub e2e | [`.github/workflows/merion.yml`](../../.github/workflows/merion.yml) |
 | Tutorial | Hands-on + pack appendix + demos + your own | [Tutorial 16](../tutorials/16-merion-workstation.md) · [Tutorial 17](../tutorials/17-merion-pdf-brief.md) · [Tutorial 18](../tutorials/18-merion-use-cases.md) · [Tutorial 19](../tutorials/19-build-your-own-use-case.md) |
 
 ## Packaged agents

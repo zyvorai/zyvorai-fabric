@@ -1,6 +1,6 @@
 import type { Fabric } from "./index.js";
 
-export declare const EVIDENCE_FORMAT: "zyvor-keep-evidence-v1";
+export declare const EVIDENCE_FORMAT: "zyvor-merion-evidence-v1";
 
 export interface EvidencePayload {
   format: typeof EVIDENCE_FORMAT;
