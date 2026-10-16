@@ -34,6 +34,8 @@
 
 </div>
 
+<p align="center"><img src="docs/assets/merion/launch-hero.png" alt="Merion: your agent gets a real computer, you keep the keys. A sealed cell, approvals signed on your phone, nothing applied until you say so." width="900"></p>
+
 ---
 
 ## What's new

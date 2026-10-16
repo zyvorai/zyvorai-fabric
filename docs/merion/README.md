@@ -30,6 +30,8 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 
 ## Proven, not promised
 
+<p align="center"><img src="../assets/merion/proven.png" alt="533 runtime tests, 64 of 64 end-to-end checks, 14 of 14 live signing checks, 0 outbound connections from the sealed cell" width="860"></p>
+
 Checked on a real host after the Keep → Merion rename, and every line has a command behind it ([the full table](VERIFICATION.md#after-the-keep--merion-rename-2026-10-16)):
 
 | | |
@@ -38,6 +40,8 @@ Checked on a real host after the Keep → Merion rename, and every line has a co
 | **0 outbound connections** from a sealed cell on the redeployed host | the CSV cleanup smoke test in `deploy-merion.sh` |
 | **Unsigned, flipped or forged approvals: refused.** Valid ones: accepted once | 14 of 14 live signing checks, both signature formats |
 | **The agent can't approve its own work** | speculate holds a diff until a person decides; a deny is never applied |
+
+<p align="center"><img src="../assets/merion/approval-phone.png" alt="A phone asks to apply one file change; unsigned, flipped and forged decisions are refused with 403 and a valid signature is accepted once" width="860"></p>
 
 What this does not claim: it is `software-test` evidence, the signer in that run was a script rather than a phone, and grants, confined exec and
 branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.md).
