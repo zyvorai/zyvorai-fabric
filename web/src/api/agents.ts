@@ -361,7 +361,7 @@ export interface SpeculateResult {
 /** Run `command` in the session VM and stage its file changes for approval. */
 export async function speculateSession(
   id: string,
-  body: { command: string; paths: string[]; ttl_seconds?: number },
+  body: { command?: string; commands?: string[]; paths: string[]; ttl_seconds?: number },
 ): Promise<SpeculateResult> {
   return apiPost(`/api/sessions/${encodeURIComponent(id)}/speculate`, body)
 }

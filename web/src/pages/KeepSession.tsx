@@ -152,13 +152,18 @@ export default function KeepSession() {
   const speculate = async () => {
     if (!sessionId) return
     const paths = specPaths.split(',').map((p) => p.trim()).filter(Boolean)
-    if (!specCommand.trim() || paths.length === 0) {
+    // One command per line; several run in order as a single changeset.
+    const lines = specCommand.split('\n').map((l) => l.trim()).filter(Boolean)
+    if (lines.length === 0 || paths.length === 0) {
       toast.error('A command and at least one guest path are required')
       return
     }
     setSpeculating(true)
     try {
-      const r = await speculateSession(sessionId, { command: specCommand.trim(), paths })
+      const r = await speculateSession(
+        sessionId,
+        lines.length === 1 ? { command: lines[0], paths } : { commands: lines, paths },
+      )
       toast.success(
         r.approval
           ? 'Changes staged. Review and approve below.'
@@ -466,10 +471,11 @@ export default function KeepSession() {
               Run a command in the VM and review its file changes before they are kept.
               Only the listed directories are compared.
             </p>
-            <input
+            <textarea
               className="zf-input w-full font-mono text-xs"
-              placeholder="command, e.g. echo hello > /work/notes.txt"
-              aria-label="Command"
+              rows={3}
+              placeholder={'command, e.g. echo hello > /work/notes.txt\none command per line; they run in order and stop at the first failure'}
+              aria-label="Commands"
               value={specCommand}
               onChange={(e) => setSpecCommand(e.target.value)}
             />

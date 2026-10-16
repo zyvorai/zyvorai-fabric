@@ -26,6 +26,7 @@ keepctl diff <older-artifact-id> <newer-artifact-id>   # what changed between tw
 keepctl audit <session-uuid> --limit 20           # journal rows; the hash-chain check goes to stderr
 keepctl approvals pending                         # pending | approved | denied, or none for all
 keepctl speculate <session-id> --paths /work -- <cmd>   # run in an isolated copy of the cell; changes wait behind a `changeset` approval
+keepctl speculate <session-id> --paths /work --cmd <c1> --cmd <c2>   # several commands, in order, as one changeset (max 16)
 keepctl decide <approval-id> approved|denied             # a person's decision; approved applies the changeset on FluxVM
 ```
 

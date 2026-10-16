@@ -605,22 +605,31 @@ for a in json.load(sys.stdin)["items"]:
 
   speculate)
     id="${1:-}"
-    [[ -n "$id" ]] || { echo "usage: keepctl speculate <session-id> --paths /work[,/data] [--ttl <s>] -- <command>" >&2; exit 1; }
+    [[ -n "$id" ]] || { echo "usage: keepctl speculate <session-id> --paths /work[,/data] [--ttl <s>] (-- <command> | --cmd <command> [--cmd <command> ...])" >&2; exit 1; }
     shift
-    paths="" ttl=""
+    paths="" ttl="" cmds=()
     while [[ $# -gt 0 && "$1" != "--" ]]; do
       case "$1" in
         --paths) paths="${2:-}"; shift 2 ;;
         --ttl) ttl="${2:-}"; shift 2 ;;
+        --cmd) [[ -n "${2:-}" ]] || { echo "--cmd needs a command" >&2; exit 1; }; cmds+=("$2"); shift 2 ;;
         *) echo "unknown option: $1" >&2; exit 1 ;;
       esac
     done
     [[ "${1:-}" == "--" ]] && shift
     [[ -n "$paths" ]] || { echo "--paths is required: name the guest directories to compare, for example --paths /work" >&2; exit 1; }
-    [[ $# -gt 0 ]] || { echo "a command is required after --" >&2; exit 1; }
-    body=$(PATHS="$paths" TTL="$ttl" python3 -c '
+    if [[ ${#cmds[@]} -gt 0 && $# -gt 0 ]]; then
+      echo "give either --cmd (repeatable) or -- <command>, not both" >&2; exit 1
+    fi
+    [[ ${#cmds[@]} -gt 0 || $# -gt 0 ]] || { echo "a command is required: -- <command> or --cmd <command>" >&2; exit 1; }
+    if [[ ${#cmds[@]} -gt 0 ]]; then set -- "${cmds[@]}"; mode=commands; else mode=command; fi
+    body=$(PATHS="$paths" TTL="$ttl" MODE="$mode" python3 -c '
 import json, os, sys
-b = {"command": " ".join(sys.argv[1:]), "paths": [p for p in os.environ["PATHS"].split(",") if p]}
+b = {"paths": [p for p in os.environ["PATHS"].split(",") if p]}
+if os.environ["MODE"] == "commands":
+    b["commands"] = sys.argv[1:]
+else:
+    b["command"] = " ".join(sys.argv[1:])
 if os.environ["TTL"]:
     b["ttl_seconds"] = int(os.environ["TTL"])
 print(json.dumps(b))' "$@")
