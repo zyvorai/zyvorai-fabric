@@ -1,0 +1,257 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: Apache-2.0
+
+//! Would a pre-authorised policy have approved this changeset? (docs/merion/design/auto-approve-changesets.md)
+//!
+//! This is stage one: a pure evaluator plus a dry-run audit entry. Nothing here approves anything. The
+//! policy matches on what FluxVM measured, never on the command text, and every doubt means "a person decides".
+
+use serde::Deserialize;
+use serde_json::Value;
+
+const KINDS: [&str; 3] = ["added", "modified", "deleted"];
+
+/// Never auto-approvable, whatever a policy says. A policy can add to this list, not remove from it.
+const DENY_FLOOR: [&str; 6] = ["*/.ssh/*", "*.pem", "*.key", "*/.env*", "*/.aws/*", "*/.gnupg/*"];
+
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct ChangesetPolicy {
+    pub id: String,
+    #[serde(default)]
+    pub version: u32,
+    /// Every changed file must be under one of these guest directories.
+    pub paths: Vec<String>,
+    /// Allowed change kinds; only `added` when absent.
+    #[serde(default = "default_kinds")]
+    pub kinds: Vec<String>,
+    #[serde(default = "default_max_files")]
+    pub max_files: usize,
+    /// Total size of added and modified files. When set, a file with no reported size disqualifies.
+    #[serde(default)]
+    pub max_bytes: Option<u64>,
+    #[serde(default)]
+    pub deny_globs: Vec<String>,
+    #[serde(default)]
+    pub require_exit_code: i32,
+}
+
+fn default_kinds() -> Vec<String> {
+    vec!["added".to_string()]
+}
+fn default_max_files() -> usize {
+    20
+}
+
+/// What the evaluator needs from a changeset and its session.
+pub struct Subject<'a> {
+    pub exit_code: i32,
+    pub changes: &'a Value,
+    pub side_effects: &'a Value,
+    pub staged: &'a Value,
+    pub unstaged: &'a [String],
+    pub tainted: bool,
+}
+
+impl ChangesetPolicy {
+    pub fn parse(text: &str) -> Result<Self, String> {
+        let p: Self = serde_json::from_str(text).map_err(|e| format!("policy is not valid: {e}"))?;
+        if p.id.trim().is_empty() {
+            return Err("policy needs an id".into());
+        }
+        if p.paths.is_empty() || p.paths.iter().any(|d| !d.starts_with('/') || d.contains("..")) {
+            return Err("paths must be absolute guest directories without `..`".into());
+        }
+        if p.kinds.is_empty() || p.kinds.iter().any(|k| !KINDS.contains(&k.as_str())) {
+            return Err("kinds may only list added, modified, deleted".into());
+        }
+        Ok(p)
+    }
+}
+
+/// `Ok(files)` when the policy would approve; otherwise the first reason a person has to decide.
+pub fn eligible(policy: &ChangesetPolicy, s: &Subject) -> Result<usize, String> {
+    if s.tainted {
+        return Err("session is tainted".into());
+    }
+    if !s.unstaged.is_empty() {
+        return Err("changes that could not be staged".into());
+    }
+    if s.exit_code != policy.require_exit_code {
+        return Err(format!("exit code {} is not {}", s.exit_code, policy.require_exit_code));
+    }
+    let se = s.side_effects.as_object().ok_or("side effects not reported")?;
+    // Egress must be reported as blocked (or absent); anything else sent something out.
+    match se.get("egress").and_then(Value::as_str) {
+        Some("blocked") | None => {}
+        Some(other) => return Err(format!("egress is {other}")),
+    }
+    if se.get("non_replayable").and_then(Value::as_array).is_none_or(|a| !a.is_empty()) {
+        return Err("non-replayable side effects".into());
+    }
+    let changes = s.changes.as_object().ok_or("changes not reported")?;
+    if let Some(unknown) = changes.keys().find(|k| !KINDS.contains(&k.as_str()) && *k != "unchanged") {
+        return Err(format!("unknown change kind {unknown}"));
+    }
+    let (mut files, mut bytes) = (0usize, 0u64);
+    for kind in KINDS {
+        let list = changes.get(kind).and_then(Value::as_array).ok_or_else(|| format!("{kind} not reported"))?;
+        if list.is_empty() {
+            continue;
+        }
+        if !policy.kinds.iter().any(|k| k == kind) {
+            return Err(format!("{kind} is not allowed"));
+        }
+        for item in list {
+            let path = item.as_str().ok_or("a changed path is not text")?;
+            if path.contains("..") || !under(path, &policy.paths) {
+                return Err(format!("{path} is outside the allowed paths"));
+            }
+            if DENY_FLOOR.iter().copied().chain(policy.deny_globs.iter().map(String::as_str)).any(|g| glob(g, path))
+                || path.rsplit('/').next().is_some_and(|b| b.starts_with('.'))
+            {
+                return Err(format!("{path} is on the never-auto-approve list"));
+            }
+            if kind != "deleted" {
+                if let Some(max) = policy.max_bytes {
+                    let size = s.staged.get(path).and_then(|f| f.get("size")).and_then(Value::as_u64);
+                    bytes += size.ok_or_else(|| format!("no size reported for {path}"))?;
+                    if bytes > max {
+                        return Err(format!("{bytes} bytes is over {max}"));
+                    }
+                }
+            }
+            files += 1;
+        }
+    }
+    if files == 0 {
+        return Err("no changes".into());
+    }
+    if files > policy.max_files {
+        return Err(format!("{files} files is over {}", policy.max_files));
+    }
+    Ok(files)
+}
+
+fn under(path: &str, dirs: &[String]) -> bool {
+    dirs.iter().any(|d| {
+        let d = d.trim_end_matches('/');
+        path.strip_prefix(d).is_some_and(|rest| rest.starts_with('/'))
+    })
+}
+
+/// `*` matches any run of characters, `/` included.
+fn glob(pattern: &str, text: &str) -> bool {
+    let parts: Vec<&str> = pattern.split('*').collect();
+    let (first, last) = (parts[0], parts[parts.len() - 1]);
+    if parts.len() == 1 {
+        return pattern == text;
+    }
+    if !text.starts_with(first) || !text.ends_with(last) || text.len() < first.len() + last.len() {
+        return false;
+    }
+    let mut rest = &text[first.len()..text.len() - last.len()];
+    for mid in &parts[1..parts.len() - 1] {
+        match rest.find(mid) {
+            Some(i) => rest = &rest[i + mid.len()..],
+            None => return false,
+        }
+    }
+    true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn policy() -> ChangesetPolicy {
+        ChangesetPolicy::parse(r#"{"id":"notes","paths":["/work"],"max_bytes":100}"#).unwrap()
+    }
+    fn ok_changes() -> Value {
+        json!({"added":["/work/a.txt"],"modified":[],"deleted":[],"unchanged":3})
+    }
+    fn se() -> Value {
+        json!({"egress":"blocked","non_replayable":[],"replayable":[]})
+    }
+    fn staged() -> Value {
+        json!({"/work/a.txt":{"size":6}})
+    }
+    fn check(p: &ChangesetPolicy, changes: &Value, side: &Value, staged: &Value, exit: i32, unstaged: &[String], tainted: bool) -> Result<usize, String> {
+        eligible(p, &Subject { exit_code: exit, changes, side_effects: side, staged, unstaged, tainted })
+    }
+
+    #[test]
+    fn a_small_added_file_under_an_allowed_path_is_eligible() {
+        assert_eq!(check(&policy(), &ok_changes(), &se(), &staged(), 0, &[], false), Ok(1));
+    }
+
+    #[test]
+    fn each_disqualifier_leaves_it_to_a_person() {
+        let p = policy();
+        let c = ok_changes();
+        let bad = |r: Result<usize, String>, needle: &str| {
+            let e = r.unwrap_err();
+            assert!(e.contains(needle), "{e} should mention {needle}");
+        };
+        bad(check(&p, &c, &se(), &staged(), 0, &[], true), "tainted");
+        bad(check(&p, &c, &se(), &staged(), 0, &["/work/x".into()], false), "staged");
+        bad(check(&p, &c, &se(), &staged(), 1, &[], false), "exit code");
+        bad(check(&p, &c, &json!({"egress":"allowed","non_replayable":[]}), &staged(), 0, &[], false), "egress");
+        bad(check(&p, &c, &json!({"egress":"blocked","non_replayable":["sent mail"]}), &staged(), 0, &[], false), "non-replayable");
+        bad(check(&p, &c, &json!({"egress":"blocked"}), &staged(), 0, &[], false), "non-replayable");
+        bad(check(&p, &json!({"added":[],"modified":["/work/a.txt"],"deleted":[]}), &se(), &staged(), 0, &[], false), "modified is not allowed");
+        bad(check(&p, &json!({"added":[],"modified":[],"deleted":["/work/a.txt"]}), &se(), &staged(), 0, &[], false), "deleted is not allowed");
+        bad(check(&p, &json!({"added":["/etc/passwd"],"modified":[],"deleted":[]}), &se(), &staged(), 0, &[], false), "outside");
+        bad(check(&p, &json!({"added":["/work/../etc/x"],"modified":[],"deleted":[]}), &se(), &staged(), 0, &[], false), "outside");
+        bad(check(&p, &json!({"added":["/workshop/a"],"modified":[],"deleted":[]}), &se(), &staged(), 0, &[], false), "outside");
+        bad(check(&p, &c, &se(), &json!({"/work/a.txt":{"size":101}}), 0, &[], false), "over");
+        bad(check(&p, &c, &se(), &json!({}), 0, &[], false), "no size");
+        bad(check(&p, &json!({"added":[],"modified":[],"deleted":[]}), &se(), &staged(), 0, &[], false), "no changes");
+    }
+
+    #[test]
+    fn the_deny_floor_cannot_be_removed_and_dotfiles_never_pass() {
+        let p = policy();
+        for path in ["/work/.ssh/id_rsa", "/work/server.pem", "/work/.env", "/work/deploy.key", "/work/.hidden"] {
+            let c = json!({"added":[path],"modified":[],"deleted":[]});
+            let e = check(&p, &c, &se(), &json!({path:{"size":1}}), 0, &[], false).unwrap_err();
+            assert!(e.contains("never-auto-approve"), "{path}: {e}");
+        }
+        let extra = ChangesetPolicy::parse(r#"{"id":"n","paths":["/work"],"deny_globs":["*.secret"]}"#).unwrap();
+        let c = json!({"added":["/work/a.secret"],"modified":[],"deleted":[]});
+        assert!(check(&extra, &c, &se(), &json!({}), 0, &[], false).is_err());
+    }
+
+    #[test]
+    fn missing_or_odd_shapes_fail_closed() {
+        let p = policy();
+        assert!(check(&p, &Value::Null, &se(), &staged(), 0, &[], false).is_err());
+        assert!(check(&p, &ok_changes(), &Value::Null, &staged(), 0, &[], false).is_err());
+        assert!(check(&p, &json!({"added":["/work/a"],"modified":[],"deleted":[],"renamed":["x"]}), &se(), &staged(), 0, &[], false).is_err());
+        assert!(check(&p, &json!({"added":["/work/a"]}), &se(), &staged(), 0, &[], false).is_err());
+        assert!(check(&p, &json!({"added":[7],"modified":[],"deleted":[]}), &se(), &staged(), 0, &[], false).is_err());
+    }
+
+    #[test]
+    fn too_many_files_is_refused() {
+        let p = ChangesetPolicy::parse(r#"{"id":"n","paths":["/work"],"max_files":1}"#).unwrap();
+        let c = json!({"added":["/work/a","/work/b"],"modified":[],"deleted":[]});
+        assert!(check(&p, &c, &se(), &json!({}), 0, &[], false).unwrap_err().contains("over 1"));
+    }
+
+    #[test]
+    fn bad_policies_are_rejected() {
+        for text in [
+            "{}",
+            r#"{"id":"","paths":["/work"]}"#,
+            r#"{"id":"a","paths":[]}"#,
+            r#"{"id":"a","paths":["work"]}"#,
+            r#"{"id":"a","paths":["/work/.."]}"#,
+            r#"{"id":"a","paths":["/work"],"kinds":["renamed"]}"#,
+            r#"{"id":"a","paths":["/work"],"surprise":1}"#,
+        ] {
+            assert!(ChangesetPolicy::parse(text).is_err(), "{text}");
+        }
+    }
+}
