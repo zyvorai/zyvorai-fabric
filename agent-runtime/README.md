@@ -33,10 +33,10 @@ Deploy JavaScript/TypeScript agents like serverless functions while giving every
 - GitHub session CI that runs those paths with no FluxVM and no model key
 - **Keep** product surface (0.1 live proof): Keep mode fail-closed signed
   `keep.policy.yaml`, BYO `model_socket`, credential `authorize_resolve`, session
-  cockpit + browser live view, measured/`software-test` labeling, `scripts/keepctl`,
-  scoped export tokens, `./scripts/keep-live-lab.sh` —
-  [docs/keep/KEEP.md](../docs/keep/KEEP.md) · [PRODUCTION.md](../docs/keep/PRODUCTION.md) ·
-  [Tutorial 16](../docs/tutorials/16-keep-workstation.md) · [CI](../.github/workflows/keep.yml)
+  cockpit + browser live view, measured/`software-test` labeling, `scripts/merionctl`,
+  scoped export tokens, `./scripts/merion-live-lab.sh` —
+  [docs/merion/MERION.md](../docs/merion/MERION.md) · [PRODUCTION.md](../docs/merion/PRODUCTION.md) ·
+  [Tutorial 16](../docs/tutorials/16-merion-workstation.md) · [CI](../.github/workflows/keep.yml)
 
 The runtime is intentionally a standalone component in the Fabric repository. It consumes FluxVM's existing `/v1/sandboxes` API directly and does not alter the existing `zyvor-fabricd` VM API or backend workspace.
 
@@ -218,7 +218,7 @@ A credential descriptor can require a decision per request: `"requires_approval"
 
 ### Inside the sandbox: a contained worker
 
-`"inner_container": "strict"` starts the worker (and so any browser it launches) through `/opt/zyvor/contain.sh`, which the runtime writes into the guest: an unprivileged `agent` user in a bubblewrap container with a read-only view of the guest (the agent cannot edit its own bundle, the worker or the launcher), a private `/tmp`, its writable home, no capabilities and no new privileges. The template needs `bubblewrap` and `util-linux` (`templates/browser-agent/build.json` has both), and it fails closed: without them the worker never starts. A seccomp filter (`/opt/zyvor/seccomp.bpf`, written next to the launcher and loaded with `bwrap --seccomp`) answers `EPERM` to the syscalls an agent has no business making: `ptrace`, `process_vm_*`, `mount` and the new mount API, `pivot_root`, `chroot`, module loading, `kexec`, `bpf`, `perf_event_open`, `userfaultfd`, kernel keyrings, clock and port changes, and `io_uring` (the list is `DENIED_SYSCALLS` in `src/contain.rs`). It is x86_64 only, kills other architectures and the x32 ABI, and the launcher refuses to run if the filter file is missing or the CPU is not x86_64. It leaves `unshare`, `clone`, `setns`, `memfd_create`, `seccomp` and `prctl` alone, because Chromium, V8 and Node use them. The VM stays the outer boundary; this limits what an escape from the agent's own process gets. It shares the network namespace on purpose, since the agent must reach the broker, so pair it with `confinement: strict`. Known gap: the guest agent's vsock channel is reachable from that namespace, so set a guest-agent token for an untrusted agent. There is deliberately no Landlock layer: see `docs/keep/REMAINING.md` §6 for why. Not exercised against a live FluxVM guest yet; the launcher's logic is tested with stand-in binaries. The filter itself was run under a real `bwrap` on a Linux x86_64 host (denied calls returned `EPERM`, ordinary process, socket and file work was unaffected, every syscall number matched the kernel header), but not through `contain.sh` in a cell, and not with Chromium.
+`"inner_container": "strict"` starts the worker (and so any browser it launches) through `/opt/zyvor/contain.sh`, which the runtime writes into the guest: an unprivileged `agent` user in a bubblewrap container with a read-only view of the guest (the agent cannot edit its own bundle, the worker or the launcher), a private `/tmp`, its writable home, no capabilities and no new privileges. The template needs `bubblewrap` and `util-linux` (`templates/browser-agent/build.json` has both), and it fails closed: without them the worker never starts. A seccomp filter (`/opt/zyvor/seccomp.bpf`, written next to the launcher and loaded with `bwrap --seccomp`) answers `EPERM` to the syscalls an agent has no business making: `ptrace`, `process_vm_*`, `mount` and the new mount API, `pivot_root`, `chroot`, module loading, `kexec`, `bpf`, `perf_event_open`, `userfaultfd`, kernel keyrings, clock and port changes, and `io_uring` (the list is `DENIED_SYSCALLS` in `src/contain.rs`). It is x86_64 only, kills other architectures and the x32 ABI, and the launcher refuses to run if the filter file is missing or the CPU is not x86_64. It leaves `unshare`, `clone`, `setns`, `memfd_create`, `seccomp` and `prctl` alone, because Chromium, V8 and Node use them. The VM stays the outer boundary; this limits what an escape from the agent's own process gets. It shares the network namespace on purpose, since the agent must reach the broker, so pair it with `confinement: strict`. Known gap: the guest agent's vsock channel is reachable from that namespace, so set a guest-agent token for an untrusted agent. There is deliberately no Landlock layer: see `docs/merion/REMAINING.md` §6 for why. Not exercised against a live FluxVM guest yet; the launcher's logic is tested with stand-in binaries. The filter itself was run under a real `bwrap` on a Linux x86_64 host (denied calls returned `EPERM`, ordinary process, socket and file work was unaffected, every syscall number matched the kernel header), but not through `contain.sh` in a cell, and not with Chromium.
 
 ### Always-on workstations
 
@@ -571,19 +571,19 @@ Session metadata, TTL deadlines, warm-pool claims and the host event journal sur
 
 `.github/workflows/agent-runtime.yml` typechecks the crate, builds the example bundles, and runs a real session on the GitHub runner. Runners have no FluxVM, so [`agent-runtime/tests/sandbox_stub.py`](tests/sandbox_stub.py) stores the guest files and starts `worker.mjs` or `harness.mjs` with Node on the runner. Provider APIs are not called.
 
-**Keep** (policy YAML, cockpit routes, keepctl, docs) has its own workflow:
+**Keep** (policy YAML, cockpit routes, merionctl, docs) has its own workflow:
 [`.github/workflows/keep.yml`](../.github/workflows/keep.yml). Locally:
 
 ```bash
 cargo test --manifest-path agent-runtime/Cargo.toml --lib
 cargo test --manifest-path agent-runtime/Cargo.toml policy -- --nocapture
-./scripts/keep-e2e.sh
-./scripts/keep-live-lab.sh   # FluxVM host; guest boot needs KEEP_E2E_TEMPLATE
-./scripts/keepctl --help
+./scripts/merion-e2e.sh
+./scripts/merion-live-lab.sh   # FluxVM host; guest boot needs KEEP_E2E_TEMPLATE
+./scripts/merionctl --help
 ```
 
-Tutorial: [docs/tutorials/16-keep-workstation.md](../docs/tutorials/16-keep-workstation.md).  
-Production gate: [docs/keep/PRODUCTION.md](../docs/keep/PRODUCTION.md).
+Tutorial: [docs/tutorials/16-merion-workstation.md](../docs/tutorials/16-merion-workstation.md).  
+Production gate: [docs/merion/PRODUCTION.md](../docs/merion/PRODUCTION.md).
 
 [`agent-runtime/tests/session-ci.sh`](tests/session-ci.sh) deploys four agents and checks each path:
 

@@ -384,7 +384,7 @@ pub(crate) async fn demo_list(State(state): State<Arc<AppState>>) -> Json<Value>
     Json(json!({ "demos": demos }))
 }
 
-/// `GET /v1/keep/status` — what `keepctl doctor` and the console check before
+/// `GET /v1/keep/status` — what `merionctl doctor` and the console check before
 /// a first deploy: Keep mode, trusted signers, FluxVM readiness, demo counts.
 pub(crate) async fn keep_status(State(state): State<Arc<AppState>>) -> Json<Value> {
     let fluxvm = state.fluxvm.security_capabilities().await;

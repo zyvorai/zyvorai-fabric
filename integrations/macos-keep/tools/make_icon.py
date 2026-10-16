@@ -4,7 +4,7 @@
 The mark is an original face (two eyes, a smile) — not a letter, not anyone else's mascot — on an Apple-blue gradient, inside a
 sealed "cell" frame whose rings are closing. One drop of Zyvor orange (`--hs-accent-fill #ff5a15` at zyvor.dev) sits on it, the
 same warm glow the rest of the app keeps for a single accent. Needs rsvg-convert (brew install librsvg). Run from anywhere;
-writes Resources/Assets.xcassets and docs/assets/keep/solvor-icon.png.
+writes Resources/Assets.xcassets and docs/assets/merion/solvor-icon.png.
 """
 import json, os, subprocess, sys
 

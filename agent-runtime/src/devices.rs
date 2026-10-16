@@ -670,7 +670,7 @@ mod tests {
 
     // ---- cross-language test vectors ---------------------------------------------------------
     //
-    // `docs/keep/mobile/test-vectors.json` pins the exact payload and signatures, so a phone client
+    // `docs/merion/mobile/test-vectors.json` pins the exact payload and signatures, so a phone client
     // in any language can prove it agrees with this verifier. The signatures are deterministic
     // (Ed25519, and P-256 with RFC 6979), so the file is stable. Regenerate it after a deliberate
     // change with `KEEP_WRITE_VECTORS=1 cargo test --lib test_vectors`.
@@ -733,7 +733,7 @@ mod tests {
     fn test_vectors_are_current_and_verify() {
         let path = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../docs/keep/mobile/test-vectors.json"
+            "/../docs/merion/mobile/test-vectors.json"
         );
         let want = build_vectors();
         if std::env::var("KEEP_WRITE_VECTORS").is_ok_and(|v| v == "1") {
@@ -741,7 +741,7 @@ mod tests {
             std::fs::write(path, serde_json::to_string_pretty(&want).unwrap() + "\n").unwrap();
         }
         let on_disk: Value = serde_json::from_str(&std::fs::read_to_string(path).expect(
-            "docs/keep/mobile/test-vectors.json is missing: KEEP_WRITE_VECTORS=1 cargo test --lib test_vectors",
+            "docs/merion/mobile/test-vectors.json is missing: KEEP_WRITE_VECTORS=1 cargo test --lib test_vectors",
         ))
         .unwrap();
         assert_eq!(

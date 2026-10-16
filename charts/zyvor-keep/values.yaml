@@ -44,12 +44,12 @@ keep:
   ## runtime refuses to start without trusted signers. Turn it off only for a lab.
   mode: true
   ## Hex Ed25519 public keys (64 characters each) that may sign policy. Required when keep.mode is true.
-  ## Create one with `scripts/deploy-keep.sh`, or see docs/keep/sentinel/README.md. Never put a seed here.
+  ## Create one with `scripts/deploy-merion.sh`, or see docs/merion/sentinel/README.md. Never put a seed here.
   trustedSigners: []
 
 ## Credential descriptors, for ZYVOR_AGENT_CREDENTIALS_FILE: a map of credential name to descriptor. A
 ## descriptor names where a secret comes from and never holds one: an `env` variable, or a `source`
-## (a mounted `file`, or `vault`). Rendered to a ConfigMap and mounted read-only. See docs/keep/vault/README.md.
+## (a mounted `file`, or `vault`). Rendered to a ConfigMap and mounted read-only. See docs/merion/vault/README.md.
 ## Example:
 ##   credentials:
 ##     descriptors:

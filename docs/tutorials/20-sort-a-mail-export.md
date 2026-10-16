@@ -18,7 +18,7 @@ Node 20+ for the CLI, `cd sdk/agent-runtime && npm ci` once.
 
 ## What you get
 
-For an export like [`sample.txt`](../../examples/keep-agents/inbox-digest/sample.txt) (a made-up mailbox,
+For an export like [`sample.txt`](../../examples/merion-agents/inbox-digest/sample.txt) (a made-up mailbox,
 `example.com` addresses only), the run produces `inbox-digest.md`. This is real output from the
 runtime, trimmed:
 
@@ -61,8 +61,8 @@ Export a month at a time, as plain text, from your mail client: `.txt`, `.eml` o
 ## Step 2: deploy the pack and test it
 
 ```bash
-./scripts/keepctl deploy examples/keep-agents/inbox-digest --dry-run    # what it would do
-./scripts/keepctl deploy examples/keep-agents/inbox-digest --test       # deploy, run on the sample, require 0 CONNECT
+./scripts/merionctl deploy examples/merion-agents/inbox-digest --dry-run    # what it would do
+./scripts/merionctl deploy examples/merion-agents/inbox-digest --test       # deploy, run on the sample, require 0 CONNECT
 ```
 
 You should see `test passed: inbox-digest.md, 0 CONNECT`. Or use the console: **Keep** (`/app/keep`) →
@@ -79,7 +79,7 @@ curl -sf -X POST -F "file=@my-mail-september.txt" "$KEEP_API/v1/demos/inbox-dige
 
 ## Step 4: tune it to your mail
 
-The rules are in [`pack.json`](../../examples/keep-agents/inbox-digest/pack.json). Each section is a
+The rules are in [`pack.json`](../../examples/merion-agents/inbox-digest/pack.json). Each section is a
 `keyword_sections` rule: a title, a list of keywords (case-insensitive), and how many lines to show.
 
 ```json
@@ -88,8 +88,8 @@ The rules are in [`pack.json`](../../examples/keep-agents/inbox-digest/pack.json
 ```
 
 Add the words your own mail uses ("PO number", "your order", a client's name), then run
-`keepctl deploy examples/keep-agents/inbox-digest --test` again. Rules are bounded: up to 20 per use
-case, no regular expressions and no commands. See [PACKS.md](../keep/PACKS.md).
+`merionctl deploy examples/merion-agents/inbox-digest --test` again. Rules are bounded: up to 20 per use
+case, no regular expressions and no commands. See [PACKS.md](../merion/PACKS.md).
 
 ## What this does not do
 
@@ -105,6 +105,6 @@ It is a pattern the runtime supports, not something Keep ships.
 
 ## Next
 
-- [Tutorial 18](18-keep-use-cases.md): the built-in use cases (contract clauses, meeting actions, log triage and more)
+- [Tutorial 18](18-merion-use-cases.md): the built-in use cases (contract clauses, meeting actions, log triage and more)
 - [Tutorial 19](19-build-your-own-use-case.md): your own use case, then your own agent
-- [PACKS.md](../keep/PACKS.md): the full `pack.json` reference
+- [PACKS.md](../merion/PACKS.md): the full `pack.json` reference

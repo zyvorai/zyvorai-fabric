@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { decisionBody, generateDevice, signDecision, signingPayload, verifyDecision, verifyRelaySignature } from "../src/phone.js";
 
 // The runtime's test suite writes these; both sides must agree on them.
-const vectors = JSON.parse(readFileSync(new URL("../../../docs/keep/mobile/test-vectors.json", import.meta.url), "utf8"));
+const vectors = JSON.parse(readFileSync(new URL("../../../docs/merion/mobile/test-vectors.json", import.meta.url), "utf8"));
 const approval = { ...vectors.approval, sign: vectors.sign };
 
 test("the payload matches the runtime's byte for byte", () => {

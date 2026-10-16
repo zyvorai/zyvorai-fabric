@@ -65,10 +65,10 @@ some layouts) — if it does, that is worth a follow-up to make the hotkey confi
 ## 6. Approving a waiting request (Touch ID)
 
 This needs a request waiting for you and a device enrolled in the Secure Enclave, which needs an operator token once. It is the longest check, so do it
-with me: I set up the waiting approval on the lab host with `scripts/keep-live-tenancy.sh` (needs `KEEP_POLICY_SEED`) and you approve it in
+with me: I set up the waiting approval on the lab host with `scripts/merion-live-tenancy.sh` (needs `KEEP_POLICY_SEED`) and you approve it in
 **Approvals** with Touch ID.
 
 **Pass:** the approval shows the action text, Touch ID approves it, the host accepts the signature, and the agent continues. Denying works the same way.
 
 ## When all six pass
-Move the item from "Built but not verified" to "Verified" in [README.md](../README.md) and in `docs/keep/MACOS-APP.md` (in the fabric repo), with the date and macOS version.
+Move the item from "Built but not verified" to "Verified" in [README.md](../README.md) and in `docs/merion/MACOS-APP.md` (in the fabric repo), with the date and macOS version.

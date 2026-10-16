@@ -140,7 +140,7 @@ pub(crate) async fn driver_call(
     // Dead-man: too many taint events → browser tools 403 until policy reset.
     if session.browse.limits.taint_events >= 8 {
         return Err(ApiError::forbidden(
-            "browser tools locked after repeated taint events — keepctl policy / untaint",
+            "browser tools locked after repeated taint events — merionctl policy / untaint",
         ));
     }
 

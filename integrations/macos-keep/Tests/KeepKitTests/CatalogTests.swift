@@ -24,8 +24,8 @@ final class CatalogTests: XCTestCase {
     func testEveryExamplePackIsInTheCatalogue() throws {
         var dir = URL(fileURLWithPath: #filePath)
         for _ in 0..<5 { dir.deleteLastPathComponent() }   // CatalogTests.swift, KeepKitTests, Tests, macos-keep, integrations -> the repository root
-        let examples = dir.appendingPathComponent("examples/keep-agents")
-        guard let packs = try? FileManager.default.contentsOfDirectory(atPath: examples.path) else { throw XCTSkip("examples/keep-agents not found") }
+        let examples = dir.appendingPathComponent("examples/merion-agents")
+        guard let packs = try? FileManager.default.contentsOfDirectory(atPath: examples.path) else { throw XCTSkip("examples/merion-agents not found") }
         let known = Set(Catalog.entries.map(\.id))
         for p in packs {
             guard let data = try? Data(contentsOf: examples.appendingPathComponent("\(p)/pack.json")),

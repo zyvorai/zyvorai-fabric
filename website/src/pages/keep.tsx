@@ -3,7 +3,7 @@ import Link from '@docusaurus/Link';
 import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-import marketing from '../../../docs/keep/marketing.json';
+import marketing from '../../../docs/merion/marketing.json';
 import Reveal from '../components/Reveal';
 import KeepStory from '../components/KeepStory';
 import CockpitMock from '../components/compare/CockpitMock';
@@ -52,7 +52,7 @@ export default function KeepPage(): ReactNode {
               <a className="button button--primary button--lg" href="#try">
                 Try it in 60 seconds
               </a>
-              <Link className="button button--outline button--lg button--secondary" to="/docs/keep/">
+              <Link className="button button--outline button--lg button--secondary" to="/docs/merion/">
                 Read the docs
               </Link>
             </>
@@ -202,7 +202,7 @@ export default function KeepPage(): ReactNode {
               Extractive: no model reads the file, and the office packs list and count rather than add up. The Windows samples follow the commands’ documented layouts and are
               not yet checked against a real Windows export. The output can name hosts, accounts and software, and the
               evidence class is software-test.{' '}
-              <a href="https://github.com/zyvorai/fabric/blob/main/docs/keep/SCENARIOS.md#mac-and-windows-packs">
+              <a href="https://github.com/zyvorai/fabric/blob/main/docs/merion/SCENARIOS.md#mac-and-windows-packs">
                 Details and commands
               </a>
               .

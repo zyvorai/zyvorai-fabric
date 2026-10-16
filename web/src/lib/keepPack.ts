@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * A `.keeppack.json` made by `fabric-agent pack bundle` / `keepctl bundle`.
+ * A `.keeppack.json` made by `fabric-agent pack bundle` / `merionctl bundle`.
  * `deploy_json` is the exact string that was signed; the console uploads the
  * file untouched so the signature still verifies. The signer seed never
  * reaches the browser.

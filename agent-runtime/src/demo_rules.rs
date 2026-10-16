@@ -882,14 +882,14 @@ fn json_scalar(v: &serde_json::Value) -> String {
 mod tests {
     use super::*;
 
-    /// Every declarative pack shipped in `examples/keep-agents` must pass the same validation the deploy path applies,
+    /// Every declarative pack shipped in `examples/merion-agents` must pass the same validation the deploy path applies,
     /// so a limit (a 200-character pattern, an 80-character title) is caught here and not by a red CI job on main.
     #[test]
     fn every_shipped_usecase_pack_validates() {
-        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/keep-agents");
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/merion-agents");
         // the contributor template must stay a valid pack too, or the guide would hand people a broken file
         let template =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/keep/pack-template");
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/merion/pack-template");
         let pack_only = [
             "kind",
             "name",
@@ -901,7 +901,7 @@ mod tests {
         ];
         let mut checked = 0;
         let mut entries: Vec<_> = std::fs::read_dir(&dir)
-            .expect("examples/keep-agents")
+            .expect("examples/merion-agents")
             .flatten()
             .collect();
         entries.sort_by_key(|e| e.file_name());

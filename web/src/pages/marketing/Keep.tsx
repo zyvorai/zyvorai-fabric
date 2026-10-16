@@ -9,7 +9,7 @@ import KeepSplitSight from '../../components/keep/KeepSplitSight'
 import KeepMuseCompare from '../../components/keep/KeepMuseCompare'
 import KeepInstall from '../../components/keep/KeepInstall'
 import KeepDemoFrame from '../../components/keep/KeepDemoFrame'
-import marketing from '../../../../docs/keep/marketing.json'
+import marketing from '../../../../docs/merion/marketing.json'
 
 const DOCS = 'https://github.com/zyvorai/fabric/blob/main/docs'
 

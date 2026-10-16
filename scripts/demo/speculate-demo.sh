@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Narrated Keep speculate -> review -> approve demo. It runs against the live Keep runtime that
-# scripts/keep-e2e.sh starts (KEEP_E2E_DEMO=scripts/demo/speculate-demo.sh), so every HTTP call
+# scripts/merion-e2e.sh starts (KEEP_E2E_DEMO=scripts/demo/speculate-demo.sh), so every HTTP call
 # below is real. FluxVM itself is the CI stub: no VM boots, and the changeset body is a response
 # captured from a real FluxVM. The banner says so, because a recording must not imply more.
 set -euo pipefail

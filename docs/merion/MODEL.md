@@ -1,0 +1,83 @@
+---
+sidebar_position: 7
+---
+
+# Model-assisted use cases
+
+Every built-in use case is extractive: no model is called, which is why the cockpit can honestly
+show `0` outbound connections. A use case can opt in to one **model step** that adds a short
+generated summary. That step sends data off the machine, so it is built to be visible, gated, and
+recorded.
+
+```json
+{
+  "id": "invoice-brief",
+  "title": "Invoice brief",
+  "accepts": ["pdf"],
+  "extract": "pdftotext",
+  "summary": [{ "kind": "stats" }],
+  "model": {
+    "credential": "llm",
+    "base_url": "https://api.example.com/v1",
+    "model": "small-1",
+    "instruction": "List the invoices and the total due."
+  }
+}
+```
+
+## What happens
+
+1. The cell extracts the text, as always, and finishes. **The cell has no network path for the model
+   step**, so its connection count stays `0` and the freeze-on-connect rule is unchanged.
+2. The **host** sends the extracted text (cut to `max_input_chars`, default 24 000) to
+   `<base_url>/chat/completions` (OpenAI-compatible), with your `instruction` as the system message
+   and a fixed preamble telling the model the document is untrusted data.
+3. The reply is added to the artifact under **Model summary**, marked as not extractive.
+
+## What controls it
+
+| Control | How |
+|---|---|
+| **The vault decides reachability.** | `credential` must exist in the operator's credentials file, and its host, method (`POST`), path prefix and port limits must allow the call. A pack can name an endpoint; only the operator can make it reachable. A refusal is a 403 before any approval. |
+| **First use needs a person.** | The first time a use case uses an endpoint, the run waits for an out-of-band approval (webhook or phone, or the run's cockpit in the console; **History → Approvals** lists it with a link), never the chat. It says the host, the model and how many bytes leave. Approve once and that combination is remembered. |
+| **A change is a new question.** | The approval is keyed by use case, `base_url`, `model` and `credential`. Change any of them and it asks again. Rewording the `instruction` does not, since it does not change where the text goes. |
+| **You can take it back.** | `merionctl grants list` and `merionctl grants revoke <key>` (`GET/DELETE /v1/model-grants`). |
+| **Every call is audited.** | A `model.call` row per call: host, model, credential name, request size and SHA-256, reply size, status. Never the text, never the key. |
+| **No key in a pack.** | A pack has nowhere to put one (unknown fields are refused). The key comes from the host environment through the vault and is added to the request on the host. |
+| **No redirects.** | The credential is never sent to a second host. |
+| **Only TLS.** | `base_url` must be `https`, or `http` for a loopback address (a local model). No credentials, query or fragment in the URL. |
+| **The reply is untrusted.** | Control characters and markup are removed and length is capped (16 000 characters, 600 per line) before it reaches an artifact. |
+
+If anything fails (vault refusal, denied or expired approval, endpoint error), the **run fails**;
+Keep does not quietly fall back to an extractive-only result.
+
+## Configure the endpoint
+
+On the runtime, add the credential (`ZYVOR_AGENT_CREDENTIALS_FILE`) and set the key in the host
+environment:
+
+```json
+{
+  "llm": {
+    "host": "api.example.com",
+    "header": "authorization",
+    "prefix": "Bearer ",
+    "env": "EXAMPLE_API_KEY",
+    "allowed_methods": ["POST"],
+    "path_prefixes": ["/v1/chat/completions"]
+  }
+}
+```
+
+For a local model on `http://127.0.0.1:8080/v1`, set `"host": "127.0.0.1"` and
+`"allowed_ports": [8080]`.
+
+## What this does not claim
+
+- The extracted text **does** leave the machine, for the host you approved. The cockpit and the run
+  response say so: `0 CONNECT from the cell · extracted text sent to <host>`.
+- The secret lives in the host environment, so the host operator can read it (see the honest limit in
+  [the overview](README.md)). The vault protects it from the agent and the pack, not from the operator.
+- A model can be steered by text in the document. It has no tools here: its reply becomes text in an
+  artifact and nothing else, and that text is sanitised. Treat the summary as a draft.
+- The endpoint sees the text. Keep does not vouch for the provider; pick one you trust with that file.

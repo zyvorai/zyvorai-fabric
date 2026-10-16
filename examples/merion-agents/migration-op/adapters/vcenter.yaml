@@ -1,0 +1,22 @@
+# vCenter site adapter (signed skill sketch)
+
+Signed like `keep.policy.yaml`. Snapshot refs preferred; adapter only supplies
+fallback roles. Not a general web agent.
+
+```yaml
+version: 1
+name: vcenter
+hosts: [vcenter.example.com]
+must_approve:
+  - role: button
+    name: Power on
+  - role: button
+    name: Migrate
+fallback_roles:
+  inventory: treeitem
+  search: searchbox
+goal_allow_hosts: [vcenter.example.com, guestkit.example.com]
+```
+
+Pack under `examples/merion-agents/migration-op/adapters/` and sign with the same
+Ed25519 trust used for Keep policy.

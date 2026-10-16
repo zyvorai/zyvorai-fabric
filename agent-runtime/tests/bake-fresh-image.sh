@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/keep-bake-node22-agent.sh: --force must build a NEW image beside the old one (an in-place rebuild fails on a locked image),
+# scripts/merion-bake-node22-agent.sh: --force must build a NEW image beside the old one (an in-place rebuild fails on a locked image),
 # re-point the template, keep the previous spec for rollback, and never touch the old image. Runs with fake fluxctl and no root.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -21,7 +21,7 @@ SH
 chmod +x "$W/bin/fluxctl"
 export PATH="$W/bin:$PATH" FAKE_LOG="$W/calls.log" KEEP_SUDO="" KEEP_NODE_IMAGES_DIR="$W/images" KEEP_NODE_TEMPLATE_DIR="$W/tmpl" \
   KEEP_NODE_TAR="$W/node.tar.xz" KEEP_NODE_GUEST_AGENT="$W/agent"
-bake() { "$ROOT/scripts/keep-bake-node22-agent.sh" "$@" 2>&1; }
+bake() { "$ROOT/scripts/merion-bake-node22-agent.sh" "$@" 2>&1; }
 image_of() { python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['image'])" "$1"; }
 
 bake >"$W/o1" || fail "first bake: $(cat "$W/o1")"

@@ -1,5 +1,5 @@
 /**
- * Mac, Windows, office, developer-tool and browser packs for the /keep page. Mirrors the pack tables in docs/keep/SCENARIOS.md. Keep reads a file
+ * Mac, Windows, office, developer-tool and browser packs for the /keep page. Mirrors the pack tables in docs/merion/SCENARIOS.md. Keep reads a file
  * the person exports; it does not connect to the machine or drive its desktop.
  */
 export type DesktopPack = {id: string; os: 'macOS' | 'Windows' | 'Office' | 'Developer' | 'Browser' | 'Excel'; title: string; drop: string; get: string};

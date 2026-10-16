@@ -1,6 +1,6 @@
 import Foundation
 
-// A person's opt-in memory (docs/keep/memory) and the receipts of what happened after they approved (docs/keep/receipts).
+// A person's opt-in memory (docs/merion/memory) and the receipts of what happened after they approved (docs/merion/receipts).
 // Memory is data ABOUT the person that they control: an agent may only propose an entry, and it is used only once they accept it.
 
 public struct MemoryEntry: Codable, Equatable, Hashable, Identifiable, Sendable {

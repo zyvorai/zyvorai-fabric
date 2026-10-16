@@ -498,7 +498,7 @@ pub async fn demo_list(
     proxy(&state, Method::GET, "/v1/demos", None, None, None).await
 }
 
-/// Keep readiness for the console and `keepctl doctor`: Keep mode, signers,
+/// Keep readiness for the console and `merionctl doctor`: Keep mode, signers,
 /// FluxVM readiness and demo counts.
 pub async fn keep_status(
     RequireRead(_claims): RequireRead,
@@ -507,7 +507,7 @@ pub async fn keep_status(
     proxy(&state, Method::GET, "/v1/keep/status", None, None, None).await
 }
 
-/// A signed pack made by `fabric-agent pack bundle` / `keepctl bundle`.
+/// A signed pack made by `fabric-agent pack bundle` / `merionctl bundle`.
 ///
 /// `deploy_json` is the exact string that was signed. It is forwarded as raw
 /// bytes, never parsed and re-serialised, so the Ed25519 signature still

@@ -5,7 +5,7 @@
 //!
 //! A credential whose descriptor sets `oauth.connection` (see [`crate::credentials`]) is **per person**: the refresh token is the one *that
 //! person* stored here, so their agent reads *their* mail and calendar and nobody else's. The person gets the refresh token once, on their own
-//! machine, with `scripts/keep-google-auth.py`, and stores it with their own token (`PUT /v1/connections/{name}`).
+//! machine, with `scripts/merion-google-auth.py`, and stores it with their own token (`PUT /v1/connections/{name}`).
 //!
 //! * **Write-only.** The refresh token is never returned, listed, logged or journaled. `GET /v1/connections` says only whether each connection
 //!   is set, and since when.

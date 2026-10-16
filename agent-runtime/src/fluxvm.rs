@@ -43,7 +43,7 @@ fn create_concurrency() -> usize {
 #[derive(Debug, Clone, Deserialize)]
 pub struct SandboxRecord {
     pub id: Uuid,
-    /// Set by the local simulator (`agent-runtime/sim/`, `scripts/keep-demo-local.sh`), never by FluxVM. A simulated cell runs the
+    /// Set by the local simulator (`agent-runtime/sim/`, `scripts/merion-demo-local.sh`), never by FluxVM. A simulated cell runs the
     /// extractors on the operator's own machine with no VM and no network policy, so a run in it must not claim to be sealed.
     #[serde(default)]
     pub simulated: bool,

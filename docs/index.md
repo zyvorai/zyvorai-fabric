@@ -35,8 +35,8 @@ Step-by-step walkthroughs for common workflows.
 | [08 OpenStack Clients](tutorials/08-openstack-clients.md) | Drive Fabric with `openstack` CLI / curl (Keystone/Nova/…) |
 | [09 Edge dataplane](tutorials/09-edge-dataplane.md) | FluxVM Network Fabric via Fabric API / CLI / UI |
 | [15 AI Workloads](tutorials/15-ai-workloads.md) | OpenAI inference: Janus or NVIDIA, gateway, MIG (Beta) |
-| [16 Keep workstation](tutorials/16-keep-workstation.md) | Keep mode, signed policy, cockpit, browser |
-| [17 Keep PDF brief](tutorials/17-keep-pdf-brief.md) | One-click PDF → brief.md, 0 CONNECT |
+| [16 Keep workstation](tutorials/16-merion-workstation.md) | Keep mode, signed policy, cockpit, browser |
+| [17 Keep PDF brief](tutorials/17-merion-pdf-brief.md) | One-click PDF → brief.md, 0 CONNECT |
 | [OpenStack Compatibility reference](openstack-compat.md) | Endpoints, public URL, limitations |
 | [Proven infrastructure](proven-infra/README.md) | Compatibility matrix, SLOs, chaos, upgrade/rollback (#14–#17) |
 

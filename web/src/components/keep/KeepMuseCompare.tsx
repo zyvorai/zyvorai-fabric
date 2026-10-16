@@ -1,12 +1,12 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-import marketing from '../../../../docs/keep/marketing.json'
+import marketing from '../../../../docs/merion/marketing.json'
 
 /**
  * Meta Muse vs Keep (+ Fabric / FluxVM) — marketing only. Rows live in
- * docs/keep/marketing.json, shared with the Keep README and the docs site; every
- * row is stated in docs/keep/KEEP.md.
+ * docs/merion/marketing.json, shared with the Keep README and the docs site; every
+ * row is stated in docs/merion/MERION.md.
  */
 const ROWS: { label: string; muse: string; keep: string }[] = marketing.compare
 

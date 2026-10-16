@@ -1,6 +1,6 @@
 import Foundation
 
-// Conversations with an agent over AG-UI (docs/keep/AGUI.md) and the stored threads (docs/keep/threads/README.md).
+// Conversations with an agent over AG-UI (docs/merion/AGUI.md) and the stored threads (docs/merion/threads/README.md).
 // A chat can show that an approval is waiting and what it would do, and can never decide one: that is `KeepClient.decide`, signed on the device.
 
 public struct ChatThread: Codable, Equatable, Hashable, Identifiable, Sendable {

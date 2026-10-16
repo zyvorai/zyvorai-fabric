@@ -135,7 +135,7 @@ Standby VMs are single-use. Fabric never returns a sandbox to the pool after use
 
 ## Packs: one-command deploy
 
-`fabric-agent pack` deploys a directory with a `pack.json` (see [docs/keep/PACKS.md](../../docs/keep/PACKS.md)):
+`fabric-agent pack` deploys a directory with a `pack.json` (see [docs/merion/PACKS.md](../../docs/merion/PACKS.md)):
 
 ```bash
 export KEEP_POLICY_SEED=$(openssl rand -hex 32)       # your signing key (Keep mode)

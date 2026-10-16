@@ -124,7 +124,7 @@ struct ProofPill: View {
             .font(.callout).padding(.horizontal, 12).padding(.vertical, 6)
             .foregroundStyle(.orange)
             .background(Color.orange.opacity(0.16), in: Capsule())
-            .help("This host is the local simulator (scripts/keep-demo-local.sh). Your file ran as an ordinary process on the host, so the connection count is not evidence. Use a Keep host with FluxVM for a sealed cell.")
+            .help("This host is the local simulator (scripts/merion-demo-local.sh). Your file ran as an ordinary process on the host, so the connection count is not evidence. Use a Keep host with FluxVM for a sealed cell.")
         } else {
             sealedPill
         }

@@ -1,6 +1,6 @@
 /**
- * Copy for /keep/phones. Kept apart from docs/keep/marketing.json on purpose: that file is shared with the
- * Zyvor web app, and this page is GitHub-site only for now. Facts mirror docs/keep/VENDORS.md.
+ * Copy for /keep/phones. Kept apart from docs/merion/marketing.json on purpose: that file is shared with the
+ * Zyvor web app, and this page is GitHub-site only for now. Facts mirror docs/merion/VENDORS.md.
  */
 
 export type Step = {
@@ -69,14 +69,14 @@ export const OWNS: {who: 'vendor' | 'keep'; title: string; body: string}[] = [
 export type Status = 'built' | 'reference' | 'gap';
 
 export const STATUS: {area: string; state: Status; note: string; href?: string}[] = [
-  {area: 'Sealed cell, signed policy, vault, egress control, audit', state: 'built', note: 'Deny-by-default egress on the host, a tamper-evident audit journal', href: '/docs/keep/'},
-  {area: 'Many users on one shard: tokens, isolation, quotas, usage, revocation', state: 'built', note: 'Two users in real cells, side by side, on the lab host', href: '/docs/keep/TENANCY'},
-  {area: 'Phone-signed approvals and device enrolment (server side)', state: 'built', note: 'Covered by unit and CI end-to-end tests. Not yet run with a waiting agent on the lab host', href: '/docs/keep/mobile/'},
-  {area: 'The vendor’s choice of model', state: 'built', note: 'Tested against a stub OpenAI-compatible endpoint', href: '/docs/keep/MODELS'},
-  {area: 'Document use cases, triggers, batch, ready-made scenarios', state: 'built', note: '7 built-in use cases and scenario packs, run live', href: '/docs/keep/SCENARIOS'},
+  {area: 'Sealed cell, signed policy, vault, egress control, audit', state: 'built', note: 'Deny-by-default egress on the host, a tamper-evident audit journal', href: '/docs/merion/'},
+  {area: 'Many users on one shard: tokens, isolation, quotas, usage, revocation', state: 'built', note: 'Two users in real cells, side by side, on the lab host', href: '/docs/merion/TENANCY'},
+  {area: 'Phone-signed approvals and device enrolment (server side)', state: 'built', note: 'Covered by unit and CI end-to-end tests. Not yet run with a waiting agent on the lab host', href: '/docs/merion/mobile/'},
+  {area: 'The vendor’s choice of model', state: 'built', note: 'Tested against a stub OpenAI-compatible endpoint', href: '/docs/merion/MODELS'},
+  {area: 'Document use cases, triggers, batch, ready-made scenarios', state: 'built', note: '7 built-in use cases and scenario packs, run live', href: '/docs/merion/SCENARIOS'},
   {area: 'Vendor gateway: login, placement, token minting, push relay', state: 'reference', note: 'Reference code, tested; not a product', href: 'https://github.com/zyvorai/fabric/tree/main/reference/vendor-gateway'},
-  {area: 'Node phone client and test vectors', state: 'reference', note: 'Reference client; vectors pin the signed text', href: '/docs/keep/mobile/'},
-  {area: 'Benchmark script for cold start and concurrency', state: 'reference', note: 'One lab host measured; run it on yours', href: '/docs/keep/VENDORS#sizing-measure-do-not-guess'},
+  {area: 'Node phone client and test vectors', state: 'reference', note: 'Reference client; vectors pin the signed text', href: '/docs/merion/mobile/'},
+  {area: 'Benchmark script for cold start and concurrency', state: 'reference', note: 'One lab host measured; run it on yours', href: '/docs/merion/VENDORS#sizing-measure-do-not-guess'},
   {area: 'An Android app', state: 'gap', note: 'Not built. The guide has a signing sketch and test vectors to start from'},
   {area: 'Push adapters for FCM, Mi Push, HMS, OPPO, vivo', state: 'gap', note: 'Placeholders: each needs the vendor’s own credentials'},
   {area: 'Warm-pool and hibernate latency', state: 'gap', note: 'Not measured. Sessions report startup_ms so you can'},
@@ -101,7 +101,7 @@ export const CANNOT_SAY = [
 
 export type UseCase = {id: string; title: string; files: string[]; drop: string; get: string; built?: boolean};
 
-/** Ready-made use cases a phone user can run. Mirrors docs/keep/SCENARIOS.md ("Phone-user packs"). */
+/** Ready-made use cases a phone user can run. Mirrors docs/merion/SCENARIOS.md ("Phone-user packs"). */
 export const USE_CASES: UseCase[] = [
   {id: 'chat-export-digest', title: 'Chat digest', files: ['.txt'], drop: 'An exported chat', get: 'Who talks most, plans and times, open questions, money, links'},
   {id: 'bank-sms-ledger', title: 'Bank alerts ledger', files: ['.txt'], drop: 'Saved bank and card SMS alerts', get: 'Money out and in, amounts, merchants, declined lines. One-time codes are not listed'},

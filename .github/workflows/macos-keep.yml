@@ -1,10 +1,10 @@
 name: Solvor (Mac app)
 on:
   pull_request:
-    paths: ['integrations/macos-keep/**', 'integrations/ios-keep/**', 'docs/keep/mobile/test-vectors.json', 'examples/keep-agents/**', '.github/workflows/macos-keep.yml']
+    paths: ['integrations/macos-keep/**', 'integrations/ios-keep/**', 'docs/merion/mobile/test-vectors.json', 'examples/merion-agents/**', '.github/workflows/macos-keep.yml']
   push:
     branches: [main]
-    paths: ['integrations/macos-keep/**', 'integrations/ios-keep/**', 'docs/keep/mobile/test-vectors.json', '.github/workflows/macos-keep.yml']
+    paths: ['integrations/macos-keep/**', 'integrations/ios-keep/**', 'docs/merion/mobile/test-vectors.json', '.github/workflows/macos-keep.yml']
 permissions:
   contents: read
 jobs:

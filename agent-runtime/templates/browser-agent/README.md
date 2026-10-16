@@ -33,18 +33,18 @@ Same flow as Tutorial 11, on the FluxVM host. Prefer:
 curl -fsSL -o /tmp/node20.tar.xz \
   https://nodejs.org/dist/v20.18.1/node-v20.18.1-linux-x64.tar.xz
 (cd /tmp && npm pack playwright-core@1.49.1 && mv playwright-core-*.tgz playwright-pack.tgz)
-./scripts/keep-bake-browser-agent.sh
+./scripts/merion-bake-browser-agent.sh
 ```
 
 Pins: Node `v20.18.1`, `playwright-core@1.49.1`, Debian `chromium` + `chromium-driver`.
 The base is Debian 12 because Ubuntu's `chromium-browser` is a snap stub.
 
-CI smoke (no KVM): `./scripts/keep-bake-browser-smoke.sh`.
+CI smoke (no KVM): `./scripts/merion-bake-browser-smoke.sh`.
 
 ## Keeping browser traffic on the broker
 
 The guest starts with `ZYVOR_EGRESS_PROXY` set to the runtime's HTTPS CONNECT
-proxy. See [`docs/keep/browser/DRIVER.md`](../../../docs/keep/browser/DRIVER.md).
+proxy. See [`docs/merion/browser/DRIVER.md`](../../../docs/merion/browser/DRIVER.md).
 
 - Only `CONNECT` to `ZYVOR_AGENT_PROXY_CONNECT_PORTS` (default `443`); plain `http://` refused.
 - Deploy with `"confinement": "strict"`. Verify:
