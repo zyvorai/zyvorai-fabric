@@ -101,7 +101,7 @@ pub struct AppState {
     pub mitm: Option<Arc<mitm::Mitm>>,
     /// Extra roots the broker trusts for upstream TLS.
     pub extra_roots: Vec<reqwest::Certificate>,
-    /// Keep: Ed25519 trusted signers for `keep.policy.yaml`.
+    /// Keep: Ed25519 trusted signers for `merion.policy.yaml`.
     pub policy_trust: PolicyTrust,
     /// Keep: scoped export tokens (training default off).
     pub export_tokens: ExportTokenStore,

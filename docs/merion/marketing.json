@@ -9,7 +9,7 @@
     },
     {
       "title": "You read it",
-      "body": "Policy is a signed keep.policy.yaml you can diff in git. Apache-2.0."
+      "body": "Policy is a signed merion.policy.yaml you can diff in git. Apache-2.0."
     },
     {
       "title": "You take it with you",
@@ -55,7 +55,7 @@
   ],
   "compare": [
     { "label": "Where it runs", "muse": "Meta’s cloud only.", "keep": "Your laptop, mini-PC or FluxVM host." },
-    { "label": "Policy", "muse": "A closed policy engine.", "keep": "A signed keep.policy.yaml you can diff in git." },
+    { "label": "Policy", "muse": "A closed policy engine.", "keep": "A signed merion.policy.yaml you can diff in git." },
     { "label": "The cell", "muse": "Its own dedicated cloud VM; a separate Sentinel on the same machine, kept apart at the system level.", "keep": "A Firecracker/KVM microVM per cell on FluxVM, with its own kernel; the network policy is applied by the host, outside the guest." },
     { "label": "Model", "muse": "Tied to Muse Spark.", "keep": "Bring your own model socket." },
     { "label": "Training", "muse": "Trajectories may train after sanitization.", "keep": "Off by default. Export needs a scoped token." },

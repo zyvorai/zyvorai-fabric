@@ -37,7 +37,7 @@ export default function Product() {
           <Link to="/sign-in" className="zf-btn zf-btn-primary">
             Sign in to console
           </Link>
-          <Link to="/keep" className="zf-btn zf-btn-secondary">
+          <Link to="/merion" className="zf-btn zf-btn-secondary">
             Meet Keep →
           </Link>
         </div>

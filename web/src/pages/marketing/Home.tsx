@@ -75,7 +75,7 @@ export default function Home() {
           <Link to="/platform" className="zf-btn mkt-band-cta">
             See the platform
           </Link>
-          <Link to="/keep" className="zf-btn zf-btn-secondary">
+          <Link to="/merion" className="zf-btn zf-btn-secondary">
             Meet Keep →
           </Link>
         </div>

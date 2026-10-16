@@ -62,7 +62,7 @@ Treat the model as compromised the moment it reads a webpage.
 | | Muse | Keep |
 |---|---|---|
 | Where it runs | Meta cloud only | Laptop, mini-PC, FluxVM host, rented SNP/TDX — same API |
-| Policy | Closed Sentinel | Signed `keep.policy.yaml` you can diff in git |
+| Policy | Closed Sentinel | Signed `merion.policy.yaml` you can diff in git |
 | Cell | Its own dedicated cloud VM; Sentinel on the same machine, kept apart at the system level (Meta) | Firecracker / KVM microVM via FluxVM; the network policy is applied by the host, outside the guest |
 | Model | Married to Muse Spark | BYO model socket |
 | Training | Trajectories may train after sanitization | Training default **off**; export needs a scoped token |
@@ -114,7 +114,7 @@ Security profiles (FluxVM Phase 6):
 ## Keep 0.1 — shipped
 
 1. **BYO model** — a manifest's `model_socket` names an OpenAI-compatible endpoint (Qwen, DeepSeek, GLM, a local server) that an agent calls with `ctx.model.chat()` through the egress broker, and that CLI agents are pointed at; it also travels with pack / unpack. One-click use cases can opt in to a host-side model step, gated by the vault and an approval. See [MODELS.md](MODELS.md) and [MODEL.md](MODEL.md).
-2. **Signed YAML Sentinel** — Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) fail-closed; `sentinel/keep.policy.yaml`.
+2. **Signed YAML Sentinel** — Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) fail-closed; `sentinel/merion.policy.yaml`.
 3. **Firecracker / measured cell** — agent kernel ≠ host kernel intent; `security_profile: measured` → evidence `software-test`.
 4. **Phone-only high-risk approvals** — buy / send / delete via webhook / `/v1/approvals`, never in chat.
 5. **Pack / unpack** — `merionctl pack` → USB or S3 → `merionctl unpack` on another FluxVM node.
@@ -148,7 +148,7 @@ fabric/docs/merion/
   STATUS.md
   confine.md        # FluxVM host eBPF (deny_udp)
   demos/            # one-click use cases (pdf-brief, contract-clauses, log-triage, ...)
-  sentinel/         # keep.policy.yaml example
+  sentinel/         # merion.policy.yaml example
   vault/ cell/ browser/ approve/ cockpit/
 fabric/scripts/merionctl
 fabric/scripts/merion-demo-pdf.sh

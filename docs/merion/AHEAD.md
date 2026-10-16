@@ -4,7 +4,7 @@ Muse owns distribution. Keep owns the cell.
 
 | Claim | This PR | Not this PR |
 |---|---|---|
-| Policy you can diff | `keep.policy.yaml` hashed into the receipt | A new policy language |
+| Policy you can diff | `merion.policy.yaml` hashed into the receipt | A new policy language |
 | 0 CONNECT on the extractive path | Scoreboard asserts `egress_connects: 0` and freeze-on-slip | A new dataplane |
 | Two models, one policy | Distinct `model_sockets` on one policy hash | Muse Spark parity |
 | Leave | Pack round-trip of policy, manifest, notes | Secrets in the pack |

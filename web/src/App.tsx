@@ -151,9 +151,9 @@ function ConsoleRoutes() {
             <Route path="agents" element={<Agents />} />
             <Route path="sessions" element={<Sessions />} />
             <Route path="sessions/:id" element={<Sessions />} />
-            <Route path="keep" element={<KeepHome />} />
-            <Route path="keep/history" element={<KeepHistory />} />
-            <Route path="keep/:sessionId" element={<KeepSession />} />
+            <Route path="merion" element={<KeepHome />} />
+            <Route path="merion/history" element={<KeepHistory />} />
+            <Route path="merion/:sessionId" element={<KeepSession />} />
             <Route path="schedules" element={<Schedules />} />
             <Route path="autoscale" element={<AutoscalePage />} />
             <Route path="zones" element={<Zones />} />
@@ -249,7 +249,7 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/product" element={<Product />} />
       <Route path="/platform" element={<Platform />} />
-      <Route path="/keep" element={<Keep />} />
+      <Route path="/merion" element={<Keep />} />
       <Route path="/security" element={<SecurityPage />} />
       <Route path="/sign-in" element={<SignIn />} />
       <Route path="/login" element={<Navigate to="/sign-in" replace />} />

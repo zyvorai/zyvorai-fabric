@@ -78,7 +78,7 @@ export default function Agents() {
         <EmptyState
           icon={<Bot className="w-8 h-8" />}
           title="No agents deployed"
-          description="Start from a Keep pack (infra-ops, migration-op, deploy-op, pdf-brief) under examples/merion-agents/, or open Keep at /app/keep for the one-click PDF demo. Requires [agent_runtime] in zyvor-fabricd.toml."
+          description="Start from a Keep pack (infra-ops, migration-op, deploy-op, pdf-brief) under examples/merion-agents/, or open Keep at /app/merion for the one-click PDF demo. Requires [agent_runtime] in zyvor-fabricd.toml."
           action={
             canDeploy ? (
               <button type="button" className="zf-btn zf-btn-primary" onClick={() => setShowDeploy(true)}>

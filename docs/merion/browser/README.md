@@ -15,6 +15,6 @@
 - **Host password fill:** `POST …/browser/fill-secret` after vault
   `authorize_resolve` (value never returned to the model).
 - FluxVM bridge: sandbox HTTP/WS to guest ports.
-- Bake: [`scripts/merion-bake-browser-agent.sh`](../../scripts/merion-bake-browser-agent.sh);
-  CI smoke: [`scripts/merion-bake-browser-smoke.sh`](../../scripts/merion-bake-browser-smoke.sh).
+- Bake: [`scripts/merion-bake-browser-agent.sh`](../../../scripts/merion-bake-browser-agent.sh);
+  CI smoke: [`scripts/merion-bake-browser-smoke.sh`](../../../scripts/merion-bake-browser-smoke.sh).
 - Honesty remains **software-test**. Input takeover is not implemented.

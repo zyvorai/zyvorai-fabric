@@ -48,7 +48,7 @@ console.log(cockpit, audit.chain.chain_ok, receipts.length, metering.usage.runs)
 `audit()` reads a bounded recent view, including the chain verification result.
 For a full audit export, an operator must separately mint an export token scoped to
 `audit`; call `keep.evidence.exportAudit({ exportToken, sessionId })`. The SDK sends
-that capability in `X-Keep-Export-Token`, never in a URL. Receipts record brokered
+that capability in `X-Merion-Export-Token`, never in a URL. Receipts record brokered
 approved actions, not every agent action; see `agent-runtime/src/receipts.rs`.
 
 An operator can create a restricted client token and later revoke its user's
@@ -142,7 +142,7 @@ export MERION_POLICY_SEED=$(openssl rand -hex 32)       # your signing key (Keep
 fabric-agent pack keys                                # public key to register on the runtime
 fabric-agent pack deploy ./my-pack --run              # build, sign, deploy, apply policy, start a session
 fabric-agent pack deploy ./my-usecase --test          # declarative use case: save, run on its sample, need 0 CONNECT
-fabric-agent pack bundle ./my-pack                    # <name>.keeppack.json for the console's Deploy a pack
+fabric-agent pack bundle ./my-pack                    # <name>.merionpack.json for the console's Deploy a pack
 ```
 
 Signing uses Node's built-in Ed25519, byte-compatible with `keep_sign_policy`, so no Rust toolchain

@@ -56,7 +56,7 @@ MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-pilot-gate.sh
 |---|---|
 | Template required | Missing template → **FAIL** (no soft PASS) |
 | Happy + deny | Gate runs twice; deny path shows no unapproved mutate |
-| Signed Keep mutations | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; startup rejects empty signers. PUT policy needs `X-Keep-Policy-Signature`; POST agent needs `X-Keep-Manifest-Signature` over the exact JSON body. |
+| Signed Keep mutations | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; startup rejects empty signers. PUT policy needs `X-Merion-Policy-Signature`; POST agent needs `X-Merion-Manifest-Signature` over the exact JSON body. |
 | Session / cockpit / restart | Cockpit `software-test`; session recovers after runtime restart |
 | OOB approvals | Webhook + approve/deny outside agent chat |
 | Console Keep view | `/app/keep/:sessionId` — goal, task, evidence, approval, outcome |
@@ -107,8 +107,8 @@ being treated as policy-verified; signing does not retroactively attest them.
 
 | Item | How to verify |
 |---|---|
-| Signed Keep mutations | Keep mode or `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`; PUT policy + POST deploy require matching Ed25519 signatures (`X-Keep-Policy-Signature` / `X-Keep-Manifest-Signature`) |
-| Export-token gate | `POST /v1/export-tokens`; pack/export need `X-Keep-Export-Token` |
+| Signed Keep mutations | Keep mode or `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`; PUT policy + POST deploy require matching Ed25519 signatures (`X-Merion-Policy-Signature` / `X-Merion-Manifest-Signature`) |
+| Export-token gate | `POST /v1/export-tokens`; pack/export need `X-Merion-Export-Token` |
 | Firecracker cell | FluxVM Firecracker templates; `cell_backend: firecracker` |
 | Full pack metadata | `merionctl pack` → policy, agent pin, vault **names** (no raw secrets) |
 | Phone approvals | Webhook `ui.actions` + `channel: out_of_band` |

@@ -12,7 +12,7 @@ interface Props {
 }
 
 /**
- * "Deploy a pack": upload a `.keeppack.json` made with `fabric-agent pack bundle`.
+ * "Deploy a pack": upload a `.merionpack.json` made with `fabric-agent pack bundle`.
  * The author signs it on their own machine; the console only uploads the file,
  * so the signing seed never reaches the browser.
  */
@@ -76,7 +76,7 @@ export default function DeployPack({ status, onDeployed, onError }: Props) {
         onClick={() => inputRef.current?.click()}
         disabled={busy}
       >
-        {fileName || 'Choose a .keeppack.json'}
+        {fileName || 'Choose a .merionpack.json'}
       </button>
       {summary && (
         <ul className="text-sm text-[var(--zf-muted)] list-disc pl-5">
@@ -86,7 +86,7 @@ export default function DeployPack({ status, onDeployed, onError }: Props) {
           <li>{summary.signed ? 'Signed by its author' : 'Not signed'}</li>
           <li>
             {summary.hasPolicy
-              ? `Includes keep.policy.yaml${summary.policySigned ? ' (signed)' : ''}`
+              ? `Includes merion.policy.yaml${summary.policySigned ? ' (signed)' : ''}`
               : 'No separate policy'}
           </li>
         </ul>

@@ -13,7 +13,7 @@ import {DESKTOP_PACKS} from '../data/desktopPacks';
 import type {Quick} from '../components/compare/data';
 import {CtaBand, HeroShell, HonestyBand, Page, Section, useHashScroll} from '../components/marketing/Shell';
 import shell from '../components/marketing/Shell.module.css';
-import styles from './keep.module.css';
+import styles from './merion.module.css';
 
 const COMPARE_ROWS = ['Where it runs', 'Policy', 'The cell', 'Model'];
 
@@ -23,7 +23,7 @@ const INSTALL: Quick[] = marketing.install.map((tab, i) => ({
   label: tab.label,
   blurb: tab.note,
   code: tab.commands.join('\n'),
-  ...(i === 0 ? {href: '/docs/tutorials/keep-pdf-brief', cta: 'Then brief a PDF'} : {}),
+  ...(i === 0 ? {href: '/docs/tutorials/merion-pdf-brief', cta: 'Then brief a PDF'} : {}),
 }));
 
 export default function KeepPage(): ReactNode {
@@ -165,13 +165,13 @@ export default function KeepPage(): ReactNode {
             <Reveal>
               <div className={styles.phonesFigure}>
                 <img
-                  src={useBaseUrl('/keep/vendor-architecture.svg')}
+                  src={useBaseUrl('/merion/vendor-architecture.svg')}
                   alt="Phone, vendor gateway and push relay on the vendor side; shards running Keep cells on the Keep side."
                   loading="lazy"
                 />
               </div>
             </Reveal>
-            <Link className={styles.more} to="/keep/phones">
+            <Link className={styles.more} to="/merion/phones">
               Keep for phone makers ›
             </Link>
           </Section>

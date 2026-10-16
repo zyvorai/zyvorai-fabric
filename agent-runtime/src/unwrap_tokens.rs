@@ -4,7 +4,7 @@
 //! Operator unwrap tokens for Keep 0.1 vault ceremony.
 //!
 //! When `ZYVOR_AGENT_VAULT_UNWRAP_REQUIRED=1`, credential resolve requires
-//! `X-Keep-Unwrap-Token`. Secrets still come from **host env** — this is a
+//! `X-Merion-Unwrap-Token`. Secrets still come from **host env** — this is a
 //! software gate, not user-held YubiKey / attested unwrap (Keep 0.2).
 
 use anyhow::{bail, Result};
@@ -78,7 +78,7 @@ impl UnwrapTokenStore {
     pub async fn authorize(&self, raw_token: Option<&str>) -> Result<()> {
         let Some(raw) = raw_token.map(str::trim).filter(|s| !s.is_empty()) else {
             bail!(
-                "vault unwrap required: present X-Keep-Unwrap-Token \
+                "vault unwrap required: present X-Merion-Unwrap-Token \
                  (mint via POST /v1/vault/unwrap-tokens). Secrets still come from host env \
                  (software-test); Keep 0.2 needs user-held unwrap on attested hardware."
             );

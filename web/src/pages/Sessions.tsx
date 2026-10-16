@@ -96,7 +96,7 @@ export default function Sessions() {
           <div>Updated: {detail.updated_at}</div>
           {detail.error && <div className="text-red-700">Error: {detail.error}</div>}
           <div className="flex flex-wrap gap-2 pt-2">
-            <Link to={`/app/keep/${detail.id}`} className="zf-btn zf-btn-primary zf-btn-sm">
+            <Link to={`/app/merion/${detail.id}`} className="zf-btn zf-btn-primary zf-btn-sm">
               Keep view
             </Link>
             <button type="button" className="zf-btn zf-btn-ghost zf-btn-sm" onClick={() => void act(detail.id, 'hibernate')}>

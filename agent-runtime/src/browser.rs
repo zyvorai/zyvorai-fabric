@@ -81,7 +81,7 @@ pub fn browser_tools_allowed(
         return Err("browser tools require confinement: strict");
     }
     if browser.is_some_and(|b| !b.enabled) {
-        return Err("browser tools disabled by keep.policy.yaml browser.enabled=false");
+        return Err("browser tools disabled by merion.policy.yaml browser.enabled=false");
     }
     Ok(())
 }

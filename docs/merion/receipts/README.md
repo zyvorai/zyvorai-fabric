@@ -16,7 +16,7 @@ A retry (a goal step tried again after a failure, a client timeout) would otherw
 | The request | The broker |
 |---|---|
 | first time this key is used | holds it for approval as usual, sends it, keeps the receipt |
-| the **same** request again (same method, URL with query, body) | does **not** send it and does **not** ask again: it answers with the recorded status and a small JSON body `{"replayed": true, "receipt_id": ..., "original_status": ...}` (headers `x-keep-replayed`, `x-keep-receipt`); journaled as `merion.action.replayed` |
+| the **same** request again (same method, URL with query, body) | does **not** send it and does **not** ask again: it answers with the recorded status and a small JSON body `{"replayed": true, "receipt_id": ..., "original_status": ...}` (headers `x-merion-replayed`, `x-merion-receipt`); journaled as `merion.action.replayed` |
 | the same key with a **different** request | refused, 409 |
 | the same key while the first is still waiting or running | refused, 409 (never two in flight) |
 | an invalid key (empty, spaces, over 128 characters) | refused, 400, before anything is asked or sent |

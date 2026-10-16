@@ -249,7 +249,7 @@
   session ends. Docs: [docs/merion/PRODUCTION.md](docs/merion/PRODUCTION.md),
   [docs/merion/STATUS.md](docs/merion/STATUS.md).
 - **Signed agent deployments in Keep mode.** `POST /v1/agents` requires
-  `X-Keep-Manifest-Signature` over the exact JSON body when
+  `X-Merion-Manifest-Signature` over the exact JSON body when
   `ZYVOR_AGENT_MERION_MODE=1`; `merionctl create --signature` / `policy sign agent.json`.
 - **Keep packaged agents (infra, migration, deploy).** Goals/plans/artifacts API
   (`/v1/goals`, `/v1/artifacts`, advance → `/v1/approvals`); cockpit `active_goal` /
@@ -258,7 +258,7 @@
   `examples/merion-agents/`; demo `./scripts/merion-pack-demo.sh`. Docs:
   [docs/merion/goals](docs/merion/goals/README.md), Tutorial 16 appendix, STATUS.
 - **Keep 0.1 live proof.** Fail-closed Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) requires
-  trusted policy signers at startup and refuses unsigned `keep.policy.yaml` updates;
+  trusted policy signers at startup and refuses unsigned `merion.policy.yaml` updates;
   `CredentialVault::authorize_resolve` allowlists host/method/path/user before
   host-env secret injection; operator browser live view
   (`GET /v1/sessions/{id}/browser/view`, `/keep/browser`); cockpit reports

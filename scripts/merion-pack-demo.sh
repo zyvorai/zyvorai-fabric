@@ -124,7 +124,7 @@ PY
     echo "$RESP" >&2
     echo "deploy failed — is agent-runtime up at $BASE?" >&2
     echo "hint: merge examples/merion-agents/_fabric/credentials.fabric-api.json into ZYVOR_AGENT_CREDENTIALS_FILE" >&2
-    echo "hint: Keep mode needs merionctl policy sign + X-Keep-Manifest-Signature" >&2
+    echo "hint: Keep mode needs merionctl policy sign + X-Merion-Manifest-Signature" >&2
     exit 1
   }
   echo "$RESP"

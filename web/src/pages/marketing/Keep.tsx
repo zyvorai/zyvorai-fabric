@@ -15,7 +15,7 @@ const DOCS = 'https://github.com/zyvorai/fabric/blob/main/docs'
 
 export default function Keep() {
   const { isAuthenticated } = useAuth()
-  const primaryTo = isAuthenticated ? '/app/keep' : '/sign-in'
+  const primaryTo = isAuthenticated ? '/app/merion' : '/sign-in'
   const primaryLabel = isAuthenticated ? 'Brief a PDF' : 'Sign in to brief a PDF'
 
   return (
@@ -85,7 +85,7 @@ export default function Keep() {
           </p>
           <KeepDemoStoryboard />
           <p className="keep-mkt-crumb">
-            <a href={`${DOCS}/tutorials/17-keep-pdf-brief.md`} target="_blank" rel="noreferrer">
+            <a href={`${DOCS}/tutorials/17-merion-pdf-brief.md`} target="_blank" rel="noreferrer">
               Run it yourself →
             </a>
           </p>
@@ -100,7 +100,7 @@ export default function Keep() {
             a connection slips through anyway, the session freezes.
           </p>
           <p className="keep-mkt-crumb">
-            <a href={`${DOCS}/keep/confine.md`} target="_blank" rel="noreferrer">
+            <a href={`${DOCS}/merion/confine.md`} target="_blank" rel="noreferrer">
               How host confinement works →
             </a>
           </p>
@@ -114,7 +114,7 @@ export default function Keep() {
             agent is doing, what it touched, and what is waiting for your approval.
           </p>
           <p className="keep-mkt-crumb">
-            <a href={`${DOCS}/tutorials/16-keep-workstation.md`} target="_blank" rel="noreferrer">
+            <a href={`${DOCS}/tutorials/16-merion-workstation.md`} target="_blank" rel="noreferrer">
               Hands-on tutorial →
             </a>
           </p>
@@ -145,7 +145,7 @@ export default function Keep() {
               {isAuthenticated ? 'Open Keep' : 'Sign in'}
             </Link>
             <a
-              href={`${DOCS}/tutorials/17-keep-pdf-brief.md`}
+              href={`${DOCS}/tutorials/17-merion-pdf-brief.md`}
               className="zf-btn zf-btn-secondary"
               target="_blank"
               rel="noreferrer"
@@ -153,7 +153,7 @@ export default function Keep() {
               PDF demo tutorial →
             </a>
             <a
-              href={`${DOCS}/keep/KEEP.md`}
+              href={`${DOCS}/merion/MERION.md`}
               className="zf-btn zf-btn-ghost"
               target="_blank"
               rel="noreferrer"

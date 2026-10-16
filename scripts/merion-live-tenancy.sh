@@ -92,7 +92,7 @@ cat > "$WPACK/pack.json" <<JSON
   "manifest": { "template": "${ZYVOR_DEMO_TEMPLATE:-node22-agent}", "egress_mode": "deny", "confinement": "strict" },
   "goal": { "title": "Wait", "text": "Wait for two decisions." } }
 JSON
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$WPACK/keep.policy.yaml"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$WPACK/merion.policy.yaml"
 SESSION=""
 if [[ -z "${MERION_POLICY_SEED:-}" ]]; then
   echo "  skip the phone-signed approval: set MERION_POLICY_SEED to deploy the waiter agent (Keep mode needs a signed deploy)"

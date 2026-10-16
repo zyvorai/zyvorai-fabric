@@ -92,7 +92,7 @@ the whole spec is at most 64 KB.
 ```
 
 `manifest` is passed to `POST /v1/agents` unchanged, so it uses the runtime's field names.
-If the pack has a `keep.policy.yaml` it is applied after the deploy.
+If the pack has a `merion.policy.yaml` it is applied after the deploy.
 
 ## Signing
 
@@ -108,7 +108,7 @@ node sdk/agent-runtime/src/cli.js pack keys           # public key: register it 
 
 `fabric-agent pack` signs with Node's built-in crypto, so no Rust toolchain is needed. A Rust
 test pins a Node-made signature against `keep_sign_policy`, so the two cannot drift. The seed
-stays on your machine; the console only ever receives a finished, signed `.keeppack.json`.
+stays on your machine; the console only ever receives a finished, signed `.merionpack.json`.
 
 ## Where the boundary is
 

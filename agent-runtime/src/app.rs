@@ -659,9 +659,7 @@ async fn deploy_agent(
     headers: HeaderMap,
     body: Bytes,
 ) -> ApiResult<(StatusCode, Json<crate::model::AgentRecord>)> {
-    let signature = headers
-        .get("x-keep-manifest-signature")
-        .and_then(|value| value.to_str().ok());
+    let signature = header_str(&headers, "x-merion-manifest-signature");
     state
         .policy_trust
         .verify_deployment(&body, signature)
@@ -2345,6 +2343,11 @@ async fn delegate_session(
     Ok((status, Json(view)))
 }
 
+/// A request header's value as text, if present and valid UTF-8.
+fn header_str<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
+    headers.get(name).and_then(|v| v.to_str().ok())
+}
+
 #[derive(Debug, serde::Deserialize)]
 struct AuditQuery {
     #[serde(default)]
@@ -2403,7 +2406,7 @@ async fn list_audit(
     ))
 }
 
-/// Full audit/trajectory export — requires X-Keep-Export-Token (training default off).
+/// Full audit/trajectory export — requires X-Merion-Export-Token (training default off).
 async fn export_audit(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
@@ -2418,9 +2421,7 @@ async fn export_audit(
             )))
         }
     };
-    let export = headers
-        .get("x-keep-export-token")
-        .and_then(|v| v.to_str().ok());
+    let export = header_str(&headers, "x-merion-export-token");
     state
         .export_tokens
         .authorize(export, "audit")
@@ -2463,7 +2464,7 @@ async fn export_audit(
                     "application/x-ndjson; charset=utf-8",
                 ),
                 (
-                    axum::http::HeaderName::from_static("x-keep-audit-chain"),
+                    axum::http::HeaderName::from_static("x-merion-audit-chain"),
                     verdict,
                 ),
             ],
@@ -2576,7 +2577,7 @@ async fn get_policy_suggestions(
     })))
 }
 
-/// Keep: readable Sentinel policy as `keep.policy.yaml`.
+/// Keep: readable Sentinel policy as `merion.policy.yaml`.
 async fn get_agent_policy(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
@@ -2606,9 +2607,7 @@ async fn put_agent_policy(
     headers: HeaderMap,
     body: String,
 ) -> ApiResult<Json<Value>> {
-    let sig = headers
-        .get("x-keep-policy-signature")
-        .and_then(|v| v.to_str().ok());
+    let sig = header_str(&headers, "x-merion-policy-signature");
     state
         .policy_trust
         .verify_yaml(body.as_bytes(), sig)
@@ -2622,13 +2621,11 @@ async fn put_agent_policy(
     policy.enforceable().map_err(ApiError::bad_request)?;
     let current = crate::policy::KeepPolicy::from_manifest(&agent.manifest);
     let risks = crate::policy_lint::review_change(Some(&current), &policy);
-    let acked = headers
-        .get("x-keep-policy-ack-risk")
-        .and_then(|v| v.to_str().ok())
-        == Some("1");
+    let acked =
+        header_str(&headers, "x-merion-policy-ack-risk") == Some("1");
     if crate::policy_lint::needs_ack(&risks) && !acked {
         return Err(ApiError::conflict(format!(
-            "policy change widens access ({}); review it and resend with X-Keep-Policy-Ack-Risk: 1",
+            "policy change widens access ({}); review it and resend with X-Merion-Policy-Ack-Risk: 1",
             crate::policy_lint::summarize_high(&risks)
         )));
     }
@@ -2961,7 +2958,7 @@ async fn mint_export_token(
         "scope": record.scope,
         "expires_at": record.expires_at,
         "id": record.id,
-        "note": "Present as X-Keep-Export-Token. Without it, GET /v1/audit and pack export are refused.",
+        "note": "Present as X-Merion-Export-Token. Without it, GET /v1/audit and pack export are refused.",
     })))
 }
 
@@ -3199,9 +3196,7 @@ async fn pack_agent(
     Path(name): Path<String>,
     headers: HeaderMap,
 ) -> ApiResult<Json<Value>> {
-    let export = headers
-        .get("x-keep-export-token")
-        .and_then(|v| v.to_str().ok());
+    let export = header_str(&headers, "x-merion-export-token");
     state
         .export_tokens
         .authorize(export, "pack")

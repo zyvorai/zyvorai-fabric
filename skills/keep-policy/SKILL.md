@@ -1,6 +1,6 @@
 ---
 name: keep-policy
-description: Write, sign and load a Keep Sentinel policy (keep.policy.yaml). Use when asked to allow or deny an agent's network access, tighten egress, or set which actions need approval.
+description: Write, sign and load a Keep Sentinel policy (merion.policy.yaml). Use when asked to allow or deny an agent's network access, tighten egress, or set which actions need approval.
 ---
 
 # Keep policy
@@ -29,8 +29,8 @@ taint:
 Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) refuses unsigned policy. The signature is Ed25519 over the exact bytes of the file, so do not reformat the YAML after signing.
 
 ```bash
-./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" keep.policy.yaml > keep.policy.yaml.sig
-./scripts/merionctl policy set <agent> keep.policy.yaml keep.policy.yaml.sig
+./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" merion.policy.yaml > merion.policy.yaml.sig
+./scripts/merionctl policy set <agent> merion.policy.yaml merion.policy.yaml.sig
 merionctl policy show <agent>
 ```
 

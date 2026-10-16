@@ -1,6 +1,6 @@
 # vCenter site adapter (signed skill sketch)
 
-Signed like `keep.policy.yaml`. Snapshot refs preferred; adapter only supplies
+Signed like `merion.policy.yaml`. Snapshot refs preferred; adapter only supplies
 fallback roles. Not a general web agent.
 
 ```yaml

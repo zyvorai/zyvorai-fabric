@@ -17,7 +17,7 @@ Credential injection requires **HTTPS** to fabricd.
 
 ## Policy recipe
 
-[`keep.policy.fabric.yaml`](./merion.policy.fabric.yaml) — allow GET without ask,
+[`merion.policy.fabric.yaml`](./merion.policy.fabric.yaml) — allow GET without ask,
 mutate always ask. Sign in Keep mode before `PUT /v1/agents/{name}/policy`.
 
 ## Client

@@ -9,7 +9,7 @@ export MERION_TOKEN=…   # ZYVOR_AGENT_API_TOKEN
 merionctl create -f deploy.json
 merionctl policy show my-agent
 # Keep mode: signature required
-merionctl policy set my-agent docs/merion/sentinel/merion.policy.yaml keep.policy.yaml.sig
+merionctl policy set my-agent docs/merion/sentinel/merion.policy.yaml merion.policy.yaml.sig
 merionctl pack   /tmp/keep-pack my-agent
 merionctl unpack /tmp/keep-pack my-agent
 merionctl export-token 'trajectory:read:7d' 3600
@@ -47,12 +47,12 @@ JSON export:
 
 ```bash
 TOK=$(merionctl export-token audit:read:1h 600 | jq -r .token)
-curl -sD- -H "Authorization: Bearer $MERION_TOKEN" -H "X-Keep-Export-Token: $TOK" \
+curl -sD- -H "Authorization: Bearer $MERION_TOKEN" -H "X-Merion-Export-Token: $TOK" \
   "$MERION_API/v1/export/audit?format=ocsf&limit=500" -o audit.ndjson
 ```
 
 Each event carries its row's `hash` (as `metadata.uid`) and `prev_hash` (under `unmapped`), so the receiver can
-re-check the order. The chain verdict is in the `X-Keep-Audit-Chain` response header (`ok` or `broken`). The mapping is
+re-check the order. The chain verdict is in the `X-Merion-Audit-Chain` response header (`ok` or `broken`). The mapping is
 shape-only and has not been run through the OCSF schema validator; `audit.jsonl` and `merionctl audit` stay the
 source of truth.
 

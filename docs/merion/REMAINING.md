@@ -95,7 +95,7 @@ sources, was decided and built; see the table above.)
 - Like the vault, the **host operator can read** threads, memory, suggestions and per-person connection files.
 - `POST` routes that take options treat an **empty body** as "no options"; a client should not rely on a 400 for that.
 - A **policy update that widens access** (default egress `allow`, a metadata or private host, a `*` host, a write method added, weaker approval, a removed
-  taint guard, wider body or program rules) is refused with 409 until it is sent with `X-Keep-Policy-Ack-Risk: 1`. The check is syntactic: it reports what
+  taint guard, wider body or program rules) is refused with 409 until it is sent with `X-Merion-Policy-Ack-Risk: 1`. The check is syntactic: it reports what
   a change adds and is not a proof of what a cell can reach.
 - A policy update **drops `path_prefixes` and `max_body_bytes`** from egress rules: the policy round trip carries methods, body rules and `binaries`, not those
   two, so a `PUT` resets them. Found on 2026-09-30 and not fixed.
