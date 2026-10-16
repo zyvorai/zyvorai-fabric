@@ -2,11 +2,11 @@ import CryptoKit
 import Foundation
 import Security
 
-/// The exact text an approval is signed over (`keep-approval-v1`, docs/merion/mobile/README.md). It is readable on purpose:
+/// The exact text an approval is signed over (`merion-approval-v1`, or the legacy `keep-approval-v1` for an older host; docs/merion/mobile/README.md). It is readable on purpose:
 /// show it, or the parts a person understands, before they confirm.
 public enum ApprovalPayload {
     public static func text(approvalId: String, decision: Decision, kind: String, subject: String?, sign: SignInfo) -> String {
-        "keep-approval-v1\napproval: \(approvalId)\ndecision: \(decision.rawValue)\nkind: \(kind)\nsubject: \(subject ?? "")\n"
+        "\(sign.preferredFormat)\napproval: \(approvalId)\ndecision: \(decision.rawValue)\nkind: \(kind)\nsubject: \(subject ?? "")\n"
             + "action-sha256: \(sign.actionSha256)\nchallenge: \(sign.challenge)\nexpires: \(sign.expiresAt)\n"
     }
 

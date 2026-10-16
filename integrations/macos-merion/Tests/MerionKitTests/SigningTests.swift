@@ -7,23 +7,26 @@ import XCTest
 final class SigningTests: XCTestCase {
     struct Vectors: Decodable {
         struct Approval: Decodable { var id: String; var kind: String; var subject: String? }
-        struct Sign: Decodable { var actionSha256: String; var challenge: String; var expiresAt: Int; var format: String }
+        struct Sign: Decodable { var actionSha256: String; var challenge: String; var expiresAt: Int; var format: String; var formats: [String]? }
         struct Case: Decodable { var alg: String; var decision: String; var payload: String; var publicKey: String; var signature: String }
-        var approval: Approval; var sign: Sign; var cases: [Case]
+        var approval: Approval; var sign: Sign; var cases: [Case]; var casesMerion: [Case]
     }
     func vectors() throws -> Vectors { try Fixture.decode(Vectors.self, "test-vectors.json") }
 
     func testThePayloadMatchesEveryVector() throws {
         let v = try vectors()
-        for c in v.cases {
-            let sign = SignInfo(format: v.sign.format, challenge: v.sign.challenge, expiresAt: v.sign.expiresAt, actionSha256: v.sign.actionSha256, algorithms: nil)
-            let text = ApprovalPayload.text(approvalId: v.approval.id, decision: try XCTUnwrap(Decision(rawValue: c.decision)), kind: v.approval.kind, subject: v.approval.subject, sign: sign)
-            XCTAssertEqual(text, c.payload, "\(c.alg) \(c.decision)")
+        // A host that lists merion-approval-v1 gets that payload; one that announces only the legacy format gets the legacy one.
+        for (formats, cases) in [(v.sign.formats, v.casesMerion), (nil, v.cases)] {
+            for c in cases {
+                let sign = SignInfo(format: v.sign.format, challenge: v.sign.challenge, expiresAt: v.sign.expiresAt, actionSha256: v.sign.actionSha256, algorithms: nil, formats: formats)
+                let text = ApprovalPayload.text(approvalId: v.approval.id, decision: try XCTUnwrap(Decision(rawValue: c.decision)), kind: v.approval.kind, subject: v.approval.subject, sign: sign)
+                XCTAssertEqual(text, c.payload, "\(formats == nil ? "legacy" : "merion") \(c.alg) \(c.decision)")
+            }
         }
     }
 
     func testTheRuntimeSignaturesVerifyWithCryptoKit() throws {
-        for c in try vectors().cases {
+        for c in try vectors().cases + vectors().casesMerion {
             let payload = Data(c.payload.utf8)
             let sig = try XCTUnwrap(Data(base64Encoded: c.signature)), pub = try XCTUnwrap(Data(base64Encoded: c.publicKey))
             switch c.alg {
