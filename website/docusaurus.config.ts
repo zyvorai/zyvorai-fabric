@@ -131,6 +131,7 @@ const config: Config = {
           position: 'right',
           label: 'Docs',
         },
+        {to: '/support', label: 'Support', position: 'right'},
         {
           href: 'https://github.com/zyvorai/zyvorai-fabric',
           label: 'GitHub',
@@ -159,6 +160,7 @@ const config: Config = {
           title: 'Project',
           items: [
             {label: 'GitHub', href: 'https://github.com/zyvorai/zyvorai-fabric'},
+            {label: 'Support', to: '/support'},
             {
               label: 'Changelog',
               href: 'https://github.com/zyvorai/zyvorai-fabric/blob/main/CHANGELOG.md',
