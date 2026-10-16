@@ -28,6 +28,21 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 
 <p align="center"><sub>A real run with a real FluxVM microVM on KVM; waits trimmed, times are from a loaded shared host. A stub-backed version anyone can run: <a href="../assets/demos/keep-speculate.gif">keep-speculate</a>. <a href="../assets/demos/README.md">How these are made</a>.</sub></p>
 
+## Proven, not promised
+
+Checked on a real host after the Keep → Merion rename, and every line has a command behind it ([the full table](VERIFICATION.md#after-the-keep--merion-rename-2026-10-16)):
+
+| | |
+|---|---|
+| **533** runtime tests, **64/64** end-to-end checks | `cargo test` · `./scripts/merion-e2e.sh` |
+| **0 outbound connections** from a sealed cell on the redeployed host | the CSV cleanup smoke test in `deploy-merion.sh` |
+| **Unsigned, flipped or forged approvals: refused.** Valid ones: accepted once | 14 of 14 live signing checks, both signature formats |
+| **The agent can't approve its own work** | speculate holds a diff until a person decides; a deny is never applied |
+
+What this does not claim: it is `software-test` evidence, the signer in that run was a script rather than a phone, and grants, confined exec and
+branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.md).
+
+
 <p align="center">
   <img src="../assets/keep/demo-static.svg" alt="Real output of ./scripts/merion-e2e.sh: 39 checks passed, 0 failed" width="760">
 </p>

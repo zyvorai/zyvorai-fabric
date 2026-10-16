@@ -17,13 +17,13 @@ environment, not a hardware-attested one ([SECURITY-PROFILES.md](SECURITY-PROFIL
 
 | Suite | Result | Run with |
 |---|---|---|
-| Runtime unit tests | **403 passed**, 0 failed | `cargo test --manifest-path agent-runtime/Cargo.toml --lib` |
+| Runtime unit tests | **533 passed**, 0 failed (2026-10-16) | `cargo test --manifest-path agent-runtime/Cargo.toml --lib` |
 | Runtime lint | clippy `-D warnings` and `cargo fmt --check` clean | CI `keep-unit` |
 | Pack lint | every shipped use-case pack and the contributor template validate with the runtime's own checks | `cargo test --lib every_shipped` |
 | Use cases end to end (stub cell) | **170 checks passed** | `bash agent-runtime/tests/demos-ci.sh` |
-| Solvor client library | **82 tests passed**, 6 skipped (they need a live host) | `swift test` in `integrations/macos-merion` |
+| Solvor client library | **83 tests passed**, 0 failures, 6 skipped (they need a live host) | `swift test` in `integrations/macos-merion` |
 | Web console | **419 tests passed** | `npx vitest run` in `web/` |
-| SDK | **77 tests passed** | `npm test` in `sdk/agent-runtime` |
+| SDK | **88 tests passed** | `npm test` in `sdk/agent-runtime` |
 | Shell tooling | `merion-up.sh` (8 checks), the template bake (3), shellcheck | `agent-runtime/tests/merion-up.sh`, `bake-fresh-image.sh` |
 
 The stub-cell suites run the fixed extractors as ordinary processes: they prove the runtime, the packs and the API, **not** isolation.
@@ -52,6 +52,53 @@ Every run boots a fresh cell, so these are **cold** numbers. Creating cells is s
 plateaus at about 6 runs a minute on this host regardless of concurrency; warm pools, hibernate and resume, and long soaks are **not measured**. Do not size a fleet
 from a short run.
 
+## After the Keep → Merion rename (2026-10-16)
+
+The rename changed wire names (`X-Merion-*` headers, `merion-approval-v1`, `/app/merion`, `.merionpack.json`), env vars, the Helm chart,
+Keychain services and the iOS bundle id. This is what was run afterwards, on `main` at `c2d6a42a`.
+
+| Check | Result | Run with |
+|---|---|---|
+| End to end against the FluxVM stub | **64 passed, 0 failed** | `./scripts/merion-e2e.sh` |
+| Speculate → approve → apply, and speculate → reject, on the stub | applied only after approve; reject never applies | `./scripts/demo/run-speculate.sh` |
+| iOS app | builds for the simulator, unsigned; **not run** | `xcodegen generate && xcodebuild -scheme MerionPhone -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build` in `integrations/ios-merion` |
+| Website | `npm run build` succeeds (it failed after the rename until the docs category id was fixed in #377) | `npm ci && npm run build` in `website/` |
+| fabricd on Linux | compiled on the lab host during `deploy-merion.sh`; `/health` 200 | `./scripts/deploy-merion.sh user@host` |
+| Redeploy of the Keep runtime | services active, `/healthz` 200, `/v1/merion/status` 401 without a token, the CSV smoke test ran in a sealed cell with **0 CONNECT** | `./scripts/deploy-merion.sh user@host` |
+
+### Signed approvals on a host, with required signatures on
+
+`ZYVOR_AGENT_REQUIRE_DEVICE_SIGNATURE=1` was set on the lab host. A throwaway user and a P-256 device (the SDK reference phone, over an SSH tunnel)
+tried each path against the live runtime: **14 of 14 checks behaved as expected**.
+
+| Attempt | Result |
+|---|---|
+| `GET /v1/inbox` announces `format: keep-approval-v1`, `formats: [keep-approval-v1, merion-approval-v1]` | yes |
+| Decision with a user token and no signature | **403** |
+| Valid signature, but the decision flipped after signing | **403** |
+| Signature from a key that is not enrolled for the user | **403** |
+| The approval after those three | still pending |
+| Valid `merion-approval-v1` approve / deny | **200** / **200** (audit row `format=merion-approval-v1`) |
+| Valid legacy `keep-approval-v1` approve | **200** (audit row `format=keep-approval-v1`) |
+| Replay of an accepted decision | **409** |
+| Operator token, no signature | **200** (the operator is exempt by design) |
+| After cleanup: device removed, user tokens revoked, old token reused | **204**, then **401** |
+
+Limits: the signer was a Node script, not a phone or the Solvor app, and not a Secure Enclave key. A real device, a real push relay and the
+Secure Enclave key migration after the rename are **not verified**. The enrolled test device is removed; the test sessions and approvals stay in the
+append-only journal.
+
+### Auto-approve, stage one (dry run only)
+
+`agent-runtime/src/changeset_policy.rs` judges a speculate changeset against an operator policy file and journals `changeset.policy.dry_run`.
+It decides nothing. Covered by unit tests only (each disqualifier, the deny floor, malformed policies, a check that a dry run leaves the approval
+pending and FluxVM sees only `speculate`); **not run on the lab host**. See [the design note](design/auto-approve-changesets.md).
+
+### Not run
+
+CI results for `c2d6a42a` (the runs were queued when this was written); grants, confined exec, balloon and branching on a real FluxVM (need a newer
+guest image and, for branching, a reflink host); speculate approve and deny against a long-lived session on the lab host.
+
 ## Feature matrix
 
 | Feature | Evidence | Boundary |
@@ -60,7 +107,7 @@ from a short run.
 | 60+ use cases | Each has a validated spec; those with a sample run in `demos-ci.sh` and on real cells | The bank packs, the two PDF packs and the OCR packs have not been run on real customer files |
 | OCR (photos and screenshots) | Real tesseract through the runtime in `demos-ci.sh`; `receipt-photo` in a real cell | English only, no HEIC, no scanned PDFs; check amounts against the original |
 | Tenancy | 14 live checks, unit tests | Not a hostile-tenant proof against a compromised host |
-| Approvals signed on a device | Signing checked against the runtime's test vectors (MerionKit and SDK tests) | Not run in the app against a waiting approval ([TODO.md](TODO.md)) |
+| Approvals signed on a device | Test vectors in both formats (MerionKit and SDK tests); live on the lab host with signatures required: unsigned, flipped and forged decisions refused, valid ones accepted (see above) | Signed by a script, not run in the app or on a phone against a waiting approval ([TODO.md](TODO.md)) |
 | Solvor (macOS 26) | Builds, 55 unit tests, connected to a real host, watched-folder flow end to end, email pipeline in real cells | Browser email on real webmail, Siri, microphone, Services, `keep://`: built, **not verified** ([VERIFY.md](https://github.com/zyvorai/solvor/blob/main/docs/VERIFY.md)) |
 | Local demo (simulator) | Runs on a Mac end to end; every result labelled `SIMULATED, not sealed` | Not isolated, by design |
 | One-command host (`merion-up.sh`) | 9 checks with fake facts. On a clean Ubuntu 24.04 VM (nested KVM, 4 vCPU, 8 GB, 2026-09-26) the real flow was run in stages, fixing what broke: rustup under sudo, missing C toolchain, FluxVM build dependencies (pkg-config, libsystemd-dev, clang, libbpf-dev; no OpenSSL), a static guest agent, starting FluxVM (its unit needs `/run/netns` and `/var/lib/kubelet`), the template bake (inputs staged under `/var/lib/fluxvm`, a failed build no longer leaves a half-built image, phase order). A run of `sudo ./scripts/merion-up.sh` with FluxVM's AppArmor profile enforced and fixed ([zyvorai/fluxvm#108](https://github.com/zyvorai/fluxvm/pull/108) and [#110](https://github.com/zyvorai/fluxvm/pull/110)) exited 0: template baked, runtime deployed, `csv-clean` and `pdf-brief` ran in sealed cells with 0 CONNECT, a token was printed; a second `--dry-run` was all ok. On that same host `./scripts/merion-live-scenarios.sh` then ran **66 passed, 0 failed** in real cells (a first pass before the SDK step was added failed its pack deploys with "install the SDK first"; `merion-up.sh` now runs `npm ci` for the SDK) | Not one uninterrupted pass from an empty machine (FluxVM was already built when the last run started); before FluxVM #108 and #110 its AppArmor profile blocked the image build and cell creation (#110 was open when this was written); a few harmless capability denials (`sys_module`, `audit_write`) remain; Ubuntu 24.04 only; Solvor not connected; evidence class `software-test` |

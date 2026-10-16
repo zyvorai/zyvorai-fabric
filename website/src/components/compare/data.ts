@@ -25,7 +25,7 @@ export type Profile = {
   claim: string;
   status: ProfileStatus;
   statusLabel: string;
-  /** Field names are from KEEP-0.2.md; the values are illustrative. */
+  /** Field names are from MERION-0.2.md; the values are illustrative. */
   receipt: [field: string, value: string][];
 };
 
@@ -93,7 +93,7 @@ export const PROFILES: Profile[] = [
 ];
 
 /* ------------------------------------------------------------ 2. roadmap */
-/* Source: docs/merion/STATUS.md, KEEP-0.2.md, browser/BROWSER-0.3.md. */
+/* Source: docs/merion/STATUS.md, MERION-0.2.md, browser/BROWSER-0.3.md. */
 
 export type RoadState = 'shipped' | 'gated' | 'next';
 
@@ -155,7 +155,7 @@ export const ROADMAP: RoadItem[] = [
       'Soft scaffolding complete: attestation receipt, no host recover on confidential',
       'Pending hardware: user-held unwrap, verified SNP/TDX flags',
     ],
-    href: '/docs/merion/KEEP-0.2',
+    href: '/docs/merion/MERION-0.2',
     cta: 'Keep 0.2',
   },
   {
