@@ -3,8 +3,8 @@
 Binary: [`scripts/merionctl`](../../../scripts/merionctl)
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096
-export KEEP_TOKEN=…   # ZYVOR_AGENT_API_TOKEN
+export MERION_API=http://127.0.0.1:9096
+export MERION_TOKEN=…   # ZYVOR_AGENT_API_TOKEN
 
 merionctl create -f deploy.json
 merionctl policy show my-agent
@@ -47,8 +47,8 @@ JSON export:
 
 ```bash
 TOK=$(merionctl export-token audit:read:1h 600 | jq -r .token)
-curl -sD- -H "Authorization: Bearer $KEEP_TOKEN" -H "X-Keep-Export-Token: $TOK" \
-  "$KEEP_API/v1/export/audit?format=ocsf&limit=500" -o audit.ndjson
+curl -sD- -H "Authorization: Bearer $MERION_TOKEN" -H "X-Keep-Export-Token: $TOK" \
+  "$MERION_API/v1/export/audit?format=ocsf&limit=500" -o audit.ndjson
 ```
 
 Each event carries its row's `hash` (as `metadata.uid`) and `prev_hash` (under `unmapped`), so the receiver can

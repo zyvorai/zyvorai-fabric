@@ -187,7 +187,7 @@
   TypeScript agent packs deploy in one command, signed with Node's Ed25519
   (byte-compatible with `keep_sign_policy`). New `merionctl bundle` / `doctor`,
   console **Deploy an agent pack**, `POST /v1/demos` + `DELETE /v1/demos/{id}`,
-  `GET /v1/keep/status`, fabricd `POST /api/packs` (admin, signed bytes forwarded
+  `GET /v1/merion/status`, fabricd `POST /api/packs` (admin, signed bytes forwarded
   untouched). Docs: [PACKS.md](docs/merion/PACKS.md),
   [Tutorial 19](docs/tutorials/19-build-your-own-use-case.md).
 - **Six more one-click use cases**, table-driven: contract clauses, security
@@ -250,20 +250,20 @@
   [docs/merion/STATUS.md](docs/merion/STATUS.md).
 - **Signed agent deployments in Keep mode.** `POST /v1/agents` requires
   `X-Keep-Manifest-Signature` over the exact JSON body when
-  `ZYVOR_AGENT_KEEP_MODE=1`; `merionctl create --signature` / `policy sign agent.json`.
+  `ZYVOR_AGENT_MERION_MODE=1`; `merionctl create --signature` / `policy sign agent.json`.
 - **Keep packaged agents (infra, migration, deploy).** Goals/plans/artifacts API
   (`/v1/goals`, `/v1/artifacts`, advance → `/v1/approvals`); cockpit `active_goal` /
   `recent_artifacts`; shared `_fabric` client + `fabric-api` credential/policy
   recipes; packs `infra-ops`, `migration-op`, `deploy-op` under
   `examples/merion-agents/`; demo `./scripts/merion-pack-demo.sh`. Docs:
   [docs/merion/goals](docs/merion/goals/README.md), Tutorial 16 appendix, STATUS.
-- **Keep 0.1 live proof.** Fail-closed Keep mode (`ZYVOR_AGENT_KEEP_MODE=1`) requires
+- **Keep 0.1 live proof.** Fail-closed Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) requires
   trusted policy signers at startup and refuses unsigned `keep.policy.yaml` updates;
   `CredentialVault::authorize_resolve` allowlists host/method/path/user before
   host-env secret injection; operator browser live view
   (`GET /v1/sessions/{id}/browser/view`, `/keep/browser`); cockpit reports
   `evidence_class: software-test` and measured `security_profile`; lab gate
-  `./scripts/merion-live-lab.sh` / `KEEP_E2E_FLUXVM=1 ./scripts/merion-e2e.sh`.
+  `./scripts/merion-live-lab.sh` / `MERION_E2E_FLUXVM=1 ./scripts/merion-e2e.sh`.
   Product page at console `/keep`. Docs: [docs/merion/PRODUCTION.md](docs/merion/PRODUCTION.md),
   [Tutorial 16](docs/tutorials/16-merion-workstation.md).
 - **Inner containment, always-on workstations and a browser tab view.**

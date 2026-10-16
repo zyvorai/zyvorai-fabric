@@ -2,7 +2,7 @@
 
 Policy is a **signed file** you can diff in git.
 
-**Keep mode** (`ZYVOR_AGENT_KEEP_MODE=1`): runtime refuses to start without
+**Keep mode** (`ZYVOR_AGENT_MERION_MODE=1`): runtime refuses to start without
 `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`, and every `PUT …/policy` must carry
 `X-Keep-Policy-Signature`. Unsigned policy must not load.
 
@@ -48,7 +48,7 @@ syntactic: it reports what the change *adds*, and it is not a proof of what a ce
 | Info | `new_host` |
 
 A change with a High finding is refused with `409` and the reasons. Review it, then resend with
-`X-Keep-Policy-Ack-Risk: 1` (`KEEP_POLICY_ACK_RISK=1 merionctl policy set …`). The response lists every finding under
+`X-Keep-Policy-Ack-Risk: 1` (`MERION_POLICY_ACK_RISK=1 merionctl policy set …`). The response lists every finding under
 `risks`, and the audit row `keep.policy.set` records the codes and whether they were acknowledged. Per-host checks
 run for newly added hosts only, so an unchanged entry does not block later edits.
 

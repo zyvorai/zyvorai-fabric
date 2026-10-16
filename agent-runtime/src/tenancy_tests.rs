@@ -312,6 +312,7 @@ async fn operator_routes_are_closed_to_user_tokens() {
     let t = Some(w.ana.token.as_str());
     for (m, p) in [
         ("GET", "/v1/keep/status"),
+        ("GET", "/v1/merion/status"),
         ("GET", "/v1/agents"),
         ("POST", "/v1/agents"),
         ("POST", "/v1/user-tokens"),

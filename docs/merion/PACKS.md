@@ -96,12 +96,12 @@ If the pack has a `keep.policy.yaml` it is applied after the deploy.
 
 ## Signing
 
-In Keep mode (`ZYVOR_AGENT_KEEP_MODE=1`) the runtime only accepts a deploy signed by a trusted
+In Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) the runtime only accepts a deploy signed by a trusted
 signer. The signature is Ed25519 over the **exact bytes** of the request body (and over the
 policy YAML for the policy).
 
 ```bash
-export KEEP_POLICY_SEED=$(openssl rand -hex 32)      # your key; keep it private
+export MERION_POLICY_SEED=$(openssl rand -hex 32)      # your key; keep it private
 node sdk/agent-runtime/src/cli.js pack keys           # public key: register it on the runtime
                                                       # as ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS
 ```

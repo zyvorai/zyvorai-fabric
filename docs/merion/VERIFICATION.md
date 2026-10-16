@@ -33,7 +33,7 @@ The stub-cell suites run the fixed extractors as ordinary processes: they prove 
 | Check | Result | Run with |
 |---|---|---|
 | Every shipped use case and scenario, each in its own cell, egress count asserted | **62 passed, 0 failed** (two earlier full passes: 57/57, 62/62) | `./scripts/merion-live-scenarios.sh` |
-| Two users, real cells: isolation, revocation, operator routes closed to user tokens, the reference gateway | **14 passed**; the phone-signed approval step is skipped without `KEEP_POLICY_SEED` (18 pass with it, earlier run) | `./scripts/merion-live-tenancy.sh` |
+| Two users, real cells: isolation, revocation, operator routes closed to user tokens, the reference gateway | **14 passed**; the phone-signed approval step is skipped without `MERION_POLICY_SEED` (18 pass with it, earlier run) | `./scripts/merion-live-tenancy.sh` |
 | AG-UI run of `echo-agent` on a real cell (agent session with guest networking) | One run by hand: 7 events, valid against `@ag-ui/core` 1.0.0; not in CI | [AGUI.md](AGUI.md) |
 | OCR of a photo in a real cell | `receipt-photo` read a generated receipt image | part of the scenarios |
 | Concurrency, before the create gate (csv-clean, 20 runs per pass, concurrency 4) | **3, 3 and 3 of 20 failed** in three passes: FluxVM handed two VMs the same nbd device or mismatched a guest-agent token | a one-off loop, see PR #210 |
@@ -80,7 +80,7 @@ from a short run.
 cargo test --manifest-path agent-runtime/Cargo.toml --lib
 bash agent-runtime/tests/demos-ci.sh
 # on a FluxVM host with the node22-agent template:
-KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=... ./scripts/merion-live-scenarios.sh
-KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=... ./scripts/merion-live-tenancy.sh
-KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=... ./scripts/merion-bench.sh --runs 8 --concurrency "1 2 4"
+MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-live-scenarios.sh
+MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-live-tenancy.sh
+MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-bench.sh --runs 8 --concurrency "1 2 4"
 ```

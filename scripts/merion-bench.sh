@@ -7,7 +7,7 @@
 # (Needs a runtime that ends a use-case session when its run finishes, so the cell is released; on an older
 # runtime the cells linger for 30 minutes and will exhaust the host.) Sizing a fleet from anything else is a guess.
 #
-#   export KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=...
+#   export MERION_API=http://127.0.0.1:9096 MERION_TOKEN=...
 #   ./scripts/merion-bench.sh                          # 6 runs at concurrency 1, 2, 4
 #   ./scripts/merion-bench.sh --runs 10 --concurrency "1 2 4 8"
 #
@@ -15,6 +15,10 @@
 # level whose cells would need more than 60% of the memory that is available, so it cannot take the host down.
 # What it does not measure: warm-pool starts (agent sessions report `startup_ms`), hibernate/resume, or
 # a long soak. It says so rather than guessing.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+
 set -uo pipefail
 
 RUNS=6
@@ -29,11 +33,11 @@ while [[ $# -gt 0 ]]; do
     *) echo "unknown option: $1" >&2; exit 64 ;;
   esac
 done
-: "${KEEP_API:=${ZYVOR_AGENT_URL:-http://127.0.0.1:9096}}"
+: "${MERION_API:=${ZYVOR_AGENT_URL:-http://127.0.0.1:9096}}"
 AUTH=()
-[[ -n "${KEEP_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}" ]] && AUTH=(-H "Authorization: Bearer ${KEEP_TOKEN:-$ZYVOR_AGENT_TOKEN}")
+[[ -n "${MERION_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}" ]] && AUTH=(-H "Authorization: Bearer ${MERION_TOKEN:-$ZYVOR_AGENT_TOKEN}")
 command -v python3 >/dev/null || { echo "python3 is required" >&2; exit 1; }
-curl -sf "${AUTH[@]}" "$KEEP_API/healthz" >/dev/null || { echo "runtime not reachable at $KEEP_API" >&2; exit 2; }
+curl -sf "${AUTH[@]}" "$MERION_API/healthz" >/dev/null || { echo "runtime not reachable at $MERION_API" >&2; exit 2; }
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/keep-bench.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
@@ -51,10 +55,10 @@ PY
 HAVE_MEM=0; [[ -r /proc/meminfo ]] && HAVE_MEM=1
 
 echo "==> keep bench: $USE_CASE x $RUNS runs per level, levels: $LEVELS"
-echo "    shard: $KEEP_API   cell memory: ${CELL_MIB} MiB (template)   host stats: $([[ $HAVE_MEM == 1 ]] && echo yes || echo 'no (run on the host for memory figures)')"
+echo "    shard: $MERION_API   cell memory: ${CELL_MIB} MiB (template)   host stats: $([[ $HAVE_MEM == 1 ]] && echo yes || echo 'no (run on the host for memory figures)')"
 
 one_run() { # writes "<seconds> <http>" to $1, and the response body to $1.body
-  curl -s -o "$1.body" -w '%{time_total} %{http_code}\n' "${AUTH[@]}" -X POST -F "file=@$WORK/in.csv" "$KEEP_API/v1/demos/$USE_CASE" > "$1"
+  curl -s -o "$1.body" -w '%{time_total} %{http_code}\n' "${AUTH[@]}" -X POST -F "file=@$WORK/in.csv" "$MERION_API/v1/demos/$USE_CASE" > "$1"
 }
 
 RESULTS="$WORK/results.jsonl"

@@ -113,7 +113,7 @@ impl Config {
             approval_webhook: approval_webhook_from_env()?,
             confine_all: env_opt("ZYVOR_AGENT_CONFINE").is_some_and(|v| v == "1"),
             security_profile: {
-                let keep = env_opt("ZYVOR_AGENT_KEEP_MODE").as_deref() == Some("1");
+                let keep = env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE").as_deref() == Some("1");
                 match env_opt("ZYVOR_AGENT_SECURITY_PROFILE") {
                     Some(s) if !s.is_empty() => Some(s),
                     _ if keep => Some("measured".into()),
@@ -229,6 +229,17 @@ fn env_opt(name: &str) -> Option<String> {
     std::env::var(name).ok().filter(|v| !v.trim().is_empty())
 }
 
+/// A setting that was renamed: `new` wins, `old` is still read so existing env files and
+/// units keep working. Using only the old name logs one warning per process start.
+pub fn env_compat(new: &str, old: &str) -> Option<String> {
+    if let Some(v) = env_opt(new) {
+        return Some(v);
+    }
+    let v = env_opt(old)?;
+    tracing::warn!("{old} is deprecated, set {new} instead");
+    Some(v)
+}
+
 /// A retention period in days: unset or 0 means "keep", otherwise 1 to 3650.
 fn env_days(name: &str) -> Result<Option<u64>> {
     parse_days(env_opt(name).as_deref()).with_context(|| format!("invalid {name}"))
@@ -257,6 +268,21 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_renamed_setting_prefers_the_new_name_and_falls_back_to_the_old() {
+        // Names unique to this test: the process environment is shared between tests.
+        let (new, old) = ("ZYVOR_TEST_COMPAT_NEW_A", "ZYVOR_TEST_COMPAT_OLD_A");
+        assert_eq!(env_compat(new, old), None);
+        std::env::set_var(old, "legacy");
+        assert_eq!(env_compat(new, old).as_deref(), Some("legacy"));
+        std::env::set_var(new, "current");
+        assert_eq!(env_compat(new, old).as_deref(), Some("current"));
+        std::env::set_var(new, "  ");
+        assert_eq!(env_compat(new, old).as_deref(), Some("legacy"));
+        std::env::remove_var(new);
+        std::env::remove_var(old);
+    }
 
     #[test]
     fn refuses_to_start_with_neither_token_nor_opt_out() {

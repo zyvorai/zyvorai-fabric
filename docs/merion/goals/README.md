@@ -19,7 +19,7 @@ Set `"autorun": true` when creating a goal (or `PATCH` it later) and a backgroun
 A goal that does not say `autorun` is never touched by the worker, and `PATCH {"autorun": false}` pauses one at once (no further step starts).
 
 ```bash
-curl -X POST "$KEEP_API/v1/goals" -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'content-type: application/json' -d '{
+curl -X POST "$MERION_API/v1/goals" -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'content-type: application/json' -d '{
   "title": "Weekly report", "agent": "report-agent", "user_id": "ana", "autorun": true, "max_attempts": 3,
   "plan": [
     {"title": "Collect", "input": {"folder": "inbox"}},

@@ -74,7 +74,7 @@ In the console, choose **Inbox digest**, drop in your file and click **Run**. Th
 reads the file, the digest is built, and the cockpit shows **0 CONNECT**. From the API:
 
 ```bash
-curl -sf -X POST -F "file=@my-mail-september.txt" "$KEEP_API/v1/demos/inbox-digest"
+curl -sf -X POST -F "file=@my-mail-september.txt" "$MERION_API/v1/demos/inbox-digest"
 ```
 
 ## Step 4: tune it to your mail

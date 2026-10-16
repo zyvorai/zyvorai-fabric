@@ -4,7 +4,7 @@
 # ============================================================================
 # keep-watch — notice when a public web page changes, using a Keep use case to read it
 # ============================================================================
-#   KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=... ./scripts/merion-watch.sh https://status.example.com [options]
+#   MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-watch.sh https://status.example.com [options]
 #
 #   --use-case ID     the use case that reads the page (default status-page-watch; it must accept .html)
 #   --match TEXT      alert ONLY when TEXT newly appears in the summary (for example "in stock"); other changes are shown but do not alert
@@ -20,11 +20,16 @@
 # (the runtime's own /v1/artifacts/{a}/diff/{b}). It does not log in, run JavaScript, or click anything, and it does not fetch pages for you from the host:
 # a public page only, as you would open it. Do not put a token or password in the URL.
 # ============================================================================
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+[ -n "${MERION_WATCH_STATE+x}" ] || [ -z "${KEEP_WATCH_STATE:-}" ] || export MERION_WATCH_STATE="$KEEP_WATCH_STATE"
+
 set -euo pipefail
 
-: "${KEEP_API:=http://127.0.0.1:9096}"
+: "${MERION_API:=http://127.0.0.1:9096}"
 USE_CASE=status-page-watch; MATCH=""; NOTIFY=0; MAX_FAIL=3
-STATE_DIR="${KEEP_WATCH_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/keep-watch}"
+STATE_DIR="${MERION_WATCH_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/keep-watch}"
 URL=""
 usage() { sed -n '5,20p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while [[ $# -gt 0 ]]; do
@@ -46,7 +51,7 @@ done
 [[ "$USE_CASE" =~ ^[a-z0-9-]{1,48}$ ]] || { echo "bad use case id" >&2; exit 64; }
 [[ "$MAX_FAIL" =~ ^[1-9][0-9]*$ ]] || { echo "--max-failures must be a positive number" >&2; exit 64; }
 command -v curl >/dev/null && command -v python3 >/dev/null || { echo "curl and python3 are required" >&2; exit 1; }
-AUTH=(); [[ -n "${KEEP_TOKEN:-}" ]] && AUTH=(-H "Authorization: Bearer $KEEP_TOKEN")
+AUTH=(); [[ -n "${MERION_TOKEN:-}" ]] && AUTH=(-H "Authorization: Bearer $MERION_TOKEN")
 
 mkdir -p "$STATE_DIR"; chmod 700 "$STATE_DIR" 2>/dev/null || true
 KEY="$(printf '%s' "$URL" | python3 -c 'import hashlib,sys; print(hashlib.sha256(sys.stdin.buffer.read()).hexdigest()[:16])')"
@@ -81,7 +86,7 @@ curl -fsSL --proto '=http,https' --proto-redir '=http,https' --max-time 30 --max
 [[ -s "$W/page.html" ]] || fail "the page was empty"
 
 # 2. read it in a sealed cell (a constant file name, so the summary does not change because of the name)
-RESP="$(curl -sS -m 180 "${AUTH[@]}" -X POST -F "file=@$W/page.html" "$KEEP_API/v1/demos/$USE_CASE" 2>"$W/run.err")" || fail "the use case run failed: $(clean < "$W/run.err" | head -1)"
+RESP="$(curl -sS -m 180 "${AUTH[@]}" -X POST -F "file=@$W/page.html" "$MERION_API/v1/demos/$USE_CASE" 2>"$W/run.err")" || fail "the use case run failed: $(clean < "$W/run.err" | head -1)"
 NEW="$(python3 -c 'import json,sys
 try: print(json.load(sys.stdin)["artifacts"][0]["id"])
 except Exception: print("")' <<<"$RESP")"
@@ -95,7 +100,7 @@ if [[ -z "$LAST" ]]; then
 fi
 
 # 4. compare with the last summary using the runtime's own diff
-DIFF="$(curl -sS -m 60 "${AUTH[@]}" "$KEEP_API/v1/artifacts/$LAST/diff/$NEW" 2>/dev/null || true)"
+DIFF="$(curl -sS -m 60 "${AUTH[@]}" "$MERION_API/v1/artifacts/$LAST/diff/$NEW" 2>/dev/null || true)"
 python3 - "$DIFF" "$W/diff.txt" <<'PY'
 import json, sys
 try:
@@ -114,7 +119,7 @@ CHANGED=0; [[ -s "$W/diff.txt" ]] && CHANGED=1
 
 # 5. --match: alert only when TEXT is newly in the summary (it was not there last time); other changes are shown but do not alert
 if [[ -n "$MATCH" ]]; then
-  body() { curl -sS -m 30 "${AUTH[@]}" "$KEEP_API/v1/artifacts/$1" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("body",""))' 2>/dev/null || true; }
+  body() { curl -sS -m 30 "${AUTH[@]}" "$MERION_API/v1/artifacts/$1" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("body",""))' 2>/dev/null || true; }
   if (( CHANGED )) && grep -qiF -- "$MATCH" <<<"$(body "$NEW")" && ! grep -qiF -- "$MATCH" <<<"$(body "$LAST")"; then
     echo "MATCH: \"$MATCH\" now appears for $URL"; clean < "$W/diff.txt"; notify "\"$MATCH\" now appears on $URL"; exit 3
   fi

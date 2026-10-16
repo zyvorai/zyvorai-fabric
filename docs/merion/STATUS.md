@@ -63,7 +63,7 @@ cargo test --manifest-path agent-runtime/Cargo.toml goals -- --nocapture
 # One-click demos, custom use case and signed pack deploy (real runtime + FluxVM stand-in, no VM):
 bash agent-runtime/tests/demos-ci.sh
 # Lab FluxVM host (template required — soft-pass removed):
-KEEP_E2E_TEMPLATE=node22-agent ./scripts/merion-live-lab.sh
+MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-live-lab.sh
 # Full pilot (happy + deny, archived logs):
 ./scripts/merion-pilot-gate.sh
 ./scripts/merion-pack-demo.sh infra-ops

@@ -13,5 +13,5 @@ Record with a synthetic file only (the repo has samples under `examples/merion-a
 | 0:50 | Result again | "Nothing was sent to the mail site, and Solvor never sends or deletes anything." |
 | 0:55 | Settings caption: "evidence class: software-test" | "It is honest about the limits: whoever runs the host can read a cell's memory." |
 
-Before recording: `make run KEEP_HOST=... KEEP_TOKEN=...` against a real host, and confirm every step on screen actually works. Do not show
+Before recording: `make run MERION_HOST=... MERION_TOKEN=...` against a real host, and confirm every step on screen actually works. Do not show
 Siri or the microphone until they are verified (see the TODO).

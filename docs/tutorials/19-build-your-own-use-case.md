@@ -33,7 +33,7 @@ guest reads your file, the summary is built, and the cockpit shows **0 CONNECT**
 `examples/merion-agents/invoice-check/` is the same thing as a `pack.json`:
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=...      # or ssh -L 9096:127.0.0.1:9096 user@host
+export MERION_API=http://127.0.0.1:9096 MERION_TOKEN=...      # or ssh -L 9096:127.0.0.1:9096 user@host
 ./scripts/merionctl deploy examples/merion-agents/invoice-check --dry-run   # what it would do
 ./scripts/merionctl deploy examples/merion-agents/invoice-check --test      # deploy, run on the sample, require 0 CONNECT
 ```
@@ -75,7 +75,7 @@ JSON
 Deploy and start a session in one command:
 
 ```bash
-export KEEP_POLICY_SEED=$(cat ~/.config/zyvor/keep-signer.seed)   # made by ./scripts/deploy keep
+export MERION_POLICY_SEED=$(cat ~/.config/zyvor/keep-signer.seed)   # made by ./scripts/deploy keep
 ../scripts/merionctl deploy . --run
 # ✓ deploy agent my-agent (signed)
 # ✓ start a session and goal

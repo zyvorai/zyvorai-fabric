@@ -7,13 +7,20 @@
 #   ./scripts/merion-pack-demo.sh [infra-ops|migration-op|deploy-op] [--live-session]
 #
 # Env:
-#   KEEP_API / KEEP_TOKEN   agent-runtime (default http://127.0.0.1:9096)
+#   MERION_API / MERION_TOKEN   agent-runtime (default http://127.0.0.1:9096)
 #   FABRIC_HOST             hostname for credential/policy (default 127.0.0.1)
 #   FABRIC_API_BASE         fabricd origin for session input (default https://FABRIC_HOST:9095)
 #   SKIP_DEPLOY=1           only create goal/artifact (agent already deployed)
-#   KEEP_PACK_DRY=1         skip fabric-agent build if unavailable; stub bundle
-#   KEEP_E2E_TEMPLATE       template for --live-session (default agent-node)
+#   MERION_PACK_DRY=1         skip fabric-agent build if unavailable; stub bundle
+#   MERION_E2E_TEMPLATE       template for --live-session (default agent-node)
 #
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_E2E_TEMPLATE+x}" ] || [ -z "${KEEP_E2E_TEMPLATE:-}" ] || export MERION_E2E_TEMPLATE="$KEEP_E2E_TEMPLATE"
+[ -n "${MERION_PACK_DRY+x}" ] || [ -z "${KEEP_PACK_DRY:-}" ] || export MERION_PACK_DRY="$KEEP_PACK_DRY"
+[ -n "${MERION_POLICY_SEED+x}" ] || [ -z "${KEEP_POLICY_SEED:-}" ] || export MERION_POLICY_SEED="$KEEP_POLICY_SEED"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -35,11 +42,11 @@ if [[ ! -d "$PACK_DIR" ]]; then
   exit 1
 fi
 
-BASE="${KEEP_API:-${ZYVOR_AGENT_URL:-http://127.0.0.1:9096}}"
-TOKEN="${KEEP_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}"
+BASE="${MERION_API:-${ZYVOR_AGENT_URL:-http://127.0.0.1:9096}}"
+TOKEN="${MERION_TOKEN:-${ZYVOR_AGENT_TOKEN:-}}"
 FABRIC_HOST="${FABRIC_HOST:-127.0.0.1}"
 FABRIC_API_BASE="${FABRIC_API_BASE:-https://${FABRIC_HOST}:9095}"
-TEMPLATE="${KEEP_E2E_TEMPLATE:-agent-node}"
+TEMPLATE="${MERION_E2E_TEMPLATE:-agent-node}"
 
 auth=()
 if [[ -n "$TOKEN" ]]; then
@@ -62,11 +69,11 @@ if [[ "${SKIP_DEPLOY:-}" != "1" ]]; then
     echo "==> fabric-agent build"
     (cd "$ROOT/sdk/agent-runtime" && npm ci --silent >/dev/null 2>&1 || npm ci)
     (cd "$ROOT/sdk/agent-runtime" && npx fabric-agent build "$PACK_DIR/agent.ts" --out "$BUNDLE_FILE")
-  elif [[ "${KEEP_PACK_DRY:-}" == "1" ]]; then
-    echo "==> KEEP_PACK_DRY=1 — stub bundle (no Fabric calls)"
+  elif [[ "${MERION_PACK_DRY:-}" == "1" ]]; then
+    echo "==> MERION_PACK_DRY=1 — stub bundle (no Fabric calls)"
     printf 'export default async function(ctx){ ctx.emit("pack.stub",{pack:"%s"}); return {ok:true,stub:true}; }\n' "$PACK" >"$BUNDLE_FILE"
   else
-    echo "fabric-agent / npx not available; set KEEP_PACK_DRY=1 for stub deploy" >&2
+    echo "fabric-agent / npx not available; set MERION_PACK_DRY=1 for stub deploy" >&2
     exit 1
   fi
 
@@ -108,10 +115,10 @@ PY
   fi
 
   echo "==> deploy $PACK"
-  if [[ -n "${KEEP_POLICY_SEED:-}" ]]; then
+  if [[ -n "${MERION_POLICY_SEED:-}" ]]; then
     "$KEEPCTL" policy sign "$DEPLOY" >/dev/null
   elif [[ ! -f "${DEPLOY}.sig" ]]; then
-    echo "note: Keep mode needs a signed deploy — set KEEP_POLICY_SEED or provide ${DEPLOY}.sig" >&2
+    echo "note: Keep mode needs a signed deploy — set MERION_POLICY_SEED or provide ${DEPLOY}.sig" >&2
   fi
   RESP=$("$KEEPCTL" create -f "$DEPLOY" 2>&1) || {
     echo "$RESP" >&2

@@ -7,7 +7,7 @@
 #
 #   merionctl init <name> [--dir <dir>]   # start a new use-case pack from the template (valid, with a sample); then edit, deploy --dry-run, deploy --test
 #   merionctl deploy <pack-dir> [--run] [--test] [--dry-run]
-#                                   # one command: build, sign (KEEP_POLICY_SEED), deploy a pack.json
+#                                   # one command: build, sign (MERION_POLICY_SEED), deploy a pack.json
 #   merionctl bundle <pack-dir>        # write <name>.keeppack.json for the console's Deploy a pack
 #   merionctl doctor [--smoke]         # runtime, Keep mode, signers, FluxVM, demos (+ a live CSV cleanup)
 #   merionctl create -f agent.json --signature agent.json.sig
@@ -34,18 +34,29 @@
 #                                   # run it in an isolated copy of the cell; the file changes wait behind an approval
 #   merionctl decide <approval-id> approved|denied           # a person's decision; approved applies a changeset on FluxVM
 #
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_EXPORT_TOKEN+x}" ] || [ -z "${KEEP_EXPORT_TOKEN:-}" ] || export MERION_EXPORT_TOKEN="$KEEP_EXPORT_TOKEN"
+[ -n "${MERION_MANIFEST_SIGNATURE+x}" ] || [ -z "${KEEP_MANIFEST_SIGNATURE:-}" ] || export MERION_MANIFEST_SIGNATURE="$KEEP_MANIFEST_SIGNATURE"
+[ -n "${MERION_POLICY_ACK_RISK+x}" ] || [ -z "${KEEP_POLICY_ACK_RISK:-}" ] || export MERION_POLICY_ACK_RISK="$KEEP_POLICY_ACK_RISK"
+[ -n "${MERION_POLICY_SEED+x}" ] || [ -z "${KEEP_POLICY_SEED:-}" ] || export MERION_POLICY_SEED="$KEEP_POLICY_SEED"
+[ -n "${MERION_POLICY_SIGNATURE+x}" ] || [ -z "${KEEP_POLICY_SIGNATURE:-}" ] || export MERION_POLICY_SIGNATURE="$KEEP_POLICY_SIGNATURE"
+[ -n "${MERION_SIGN_BIN+x}" ] || [ -z "${KEEP_SIGN_BIN:-}" ] || export MERION_SIGN_BIN="$KEEP_SIGN_BIN"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+[ -n "${MERION_UNWRAP_TOKEN+x}" ] || [ -z "${KEEP_UNWRAP_TOKEN:-}" ] || export MERION_UNWRAP_TOKEN="$KEEP_UNWRAP_TOKEN"
+
 set -euo pipefail
 
-if [[ -n "${KEEP_API:-}" ]]; then
-  BASE="$KEEP_API"
+if [[ -n "${MERION_API:-}" ]]; then
+  BASE="$MERION_API"
 elif [[ -n "${ZYVOR_AGENT_URL:-}" ]]; then
   BASE="$ZYVOR_AGENT_URL"
 else
   BASE="http://127.0.0.1:9096"
 fi
 
-if [[ -n "${KEEP_TOKEN:-}" ]]; then
-  AUTH_TOKEN="$KEEP_TOKEN"
+if [[ -n "${MERION_TOKEN:-}" ]]; then
+  AUTH_TOKEN="$MERION_TOKEN"
 elif [[ -n "${ZYVOR_AGENT_TOKEN:-}" ]]; then
   AUTH_TOKEN="$ZYVOR_AGENT_TOKEN"
 else
@@ -87,8 +98,8 @@ case "$cmd" in
       SIG_ARGS=(-H "X-Keep-Manifest-Signature: $(tr -d ' \n' <"$sig_file")")
     elif [[ -n "$file" && -f "${file}.sig" ]]; then
       SIG_ARGS=(-H "X-Keep-Manifest-Signature: $(tr -d ' \n' <"${file}.sig")")
-    elif [[ -n "${KEEP_MANIFEST_SIGNATURE:-}" ]]; then
-      SIG_ARGS=(-H "X-Keep-Manifest-Signature: $KEEP_MANIFEST_SIGNATURE")
+    elif [[ -n "${MERION_MANIFEST_SIGNATURE:-}" ]]; then
+      SIG_ARGS=(-H "X-Keep-Manifest-Signature: $MERION_MANIFEST_SIGNATURE")
     fi
     if [[ -n "$file" ]]; then
       api POST /v1/agents -H 'Content-Type: application/json' "${SIG_ARGS[@]}" --data-binary @"$file"
@@ -115,11 +126,11 @@ case "$cmd" in
     smoke=0
     [[ "${1:-}" == "--smoke" ]] && smoke=1
     echo "runtime  $BASE"
-    api GET /healthz >/dev/null 2>&1 || { echo "  ✗ /healthz failed: is agent-runtime running and KEEP_API/KEEP_TOKEN right?" >&2; exit 1; }
+    api GET /healthz >/dev/null 2>&1 || { echo "  ✗ /healthz failed: is agent-runtime running and MERION_API/MERION_TOKEN right?" >&2; exit 1; }
     echo "  ✓ reachable"
-    status=$(api GET /v1/keep/status 2>/dev/null || true)
+    status=$(api GET /v1/merion/status 2>/dev/null || api GET /v1/keep/status 2>/dev/null || true)
     if [[ -z "$status" ]]; then
-      echo "  ! /v1/keep/status missing: this runtime predates merionctl doctor; upgrade it" >&2
+      echo "  ! /v1/merion/status and /v1/keep/status are both missing: this runtime predates merionctl doctor; upgrade it" >&2
       exit 1
     fi
     rc=0
@@ -149,14 +160,14 @@ sys.exit(1 if bad else 0)' || rc=$?
   pack)
     out="${1:-}"
     name="${2:-}"
-    [[ -n "$out" && -n "$name" ]] || { echo "usage: merionctl pack <dir> <agent>  (needs KEEP_EXPORT_TOKEN with scope pack)" >&2; exit 1; }
-    [[ -n "${KEEP_EXPORT_TOKEN:-}" ]] || { echo "set KEEP_EXPORT_TOKEN (merionctl export-token pack)" >&2; exit 1; }
+    [[ -n "$out" && -n "$name" ]] || { echo "usage: merionctl pack <dir> <agent>  (needs MERION_EXPORT_TOKEN with scope pack)" >&2; exit 1; }
+    [[ -n "${MERION_EXPORT_TOKEN:-}" ]] || { echo "set MERION_EXPORT_TOKEN (merionctl export-token pack)" >&2; exit 1; }
     mkdir -p "$out"
     if [[ -n "$AUTH_TOKEN" ]]; then
-      curl -fsS -H "Authorization: Bearer ${AUTH_TOKEN}" -H "X-Keep-Export-Token: $KEEP_EXPORT_TOKEN" \
+      curl -fsS -H "Authorization: Bearer ${AUTH_TOKEN}" -H "X-Keep-Export-Token: $MERION_EXPORT_TOKEN" \
         "$BASE/v1/agents/${name}/pack" >"$out/pack.json"
     else
-      curl -fsS -H "X-Keep-Export-Token: $KEEP_EXPORT_TOKEN" \
+      curl -fsS -H "X-Keep-Export-Token: $MERION_EXPORT_TOKEN" \
         "$BASE/v1/agents/${name}/pack" >"$out/pack.json"
     fi
     KEEPCTL_PACK_OUT="$out" python3 - <<'PY'
@@ -187,10 +198,10 @@ PY
       SIG_ARGS=(-H "X-Keep-Policy-Signature: $(tr -d ' \n' <"$3")")
     elif [[ -f "$dir/keep.policy.yaml.sig" ]]; then
       SIG_ARGS=(-H "X-Keep-Policy-Signature: $(tr -d ' \n' <"$dir/keep.policy.yaml.sig")")
-    elif [[ -n "${KEEP_POLICY_SIGNATURE:-}" ]]; then
-      SIG_ARGS=(-H "X-Keep-Policy-Signature: $KEEP_POLICY_SIGNATURE")
+    elif [[ -n "${MERION_POLICY_SIGNATURE:-}" ]]; then
+      SIG_ARGS=(-H "X-Keep-Policy-Signature: $MERION_POLICY_SIGNATURE")
     fi
-    if [[ "${KEEP_POLICY_ACK_RISK:-}" == "1" ]]; then
+    if [[ "${MERION_POLICY_ACK_RISK:-}" == "1" ]]; then
       SIG_ARGS+=(-H "X-Keep-Policy-Ack-Risk: 1")
     fi
     api PUT "/v1/agents/${name}/policy" -H 'Content-Type: application/x-yaml' \
@@ -204,15 +215,15 @@ PY
     case "$sub" in
       sign)
         file="${1:-}"
-        seed="${2:-${KEEP_POLICY_SEED:-}}"
+        seed="${2:-${MERION_POLICY_SEED:-}}"
         [[ -n "$file" && -n "$seed" ]] || {
           echo "usage: merionctl policy sign <policy.yaml|agent.json> [seed32hex]" >&2
-          echo "  or set KEEP_POLICY_SEED; writes <file>.sig and prints hex sig" >&2
+          echo "  or set MERION_POLICY_SEED; writes <file>.sig and prints hex sig" >&2
           exit 1
         }
         sign_bin=""
         for c in \
-          "${KEEP_SIGN_BIN:-}" \
+          "${MERION_SIGN_BIN:-}" \
           "$(dirname "$0")/../agent-runtime/target/debug/examples/keep_sign_policy" \
           "$(dirname "$0")/../agent-runtime/target/release/examples/keep_sign_policy"; do
           [[ -n "$c" && -x "$c" ]] && { sign_bin=$c; break; }
@@ -268,10 +279,10 @@ else:
               SIG_ARGS=(-H "X-Keep-Policy-Signature: $(tr -d ' \n' <"$1")")
             elif [[ -f "${file}.sig" ]]; then
               SIG_ARGS=(-H "X-Keep-Policy-Signature: $(tr -d ' \n' <"${file}.sig")")
-            elif [[ -n "${KEEP_POLICY_SIGNATURE:-}" ]]; then
-              SIG_ARGS=(-H "X-Keep-Policy-Signature: $KEEP_POLICY_SIGNATURE")
+            elif [[ -n "${MERION_POLICY_SIGNATURE:-}" ]]; then
+              SIG_ARGS=(-H "X-Keep-Policy-Signature: $MERION_POLICY_SIGNATURE")
             fi
-            if [[ "${KEEP_POLICY_ACK_RISK:-}" == "1" ]]; then
+            if [[ "${MERION_POLICY_ACK_RISK:-}" == "1" ]]; then
               SIG_ARGS+=(-H "X-Keep-Policy-Ack-Risk: 1")
             fi
             api PUT "/v1/agents/${name}/policy" -H 'Content-Type: application/x-yaml' \
@@ -305,8 +316,8 @@ else:
     ;;
 
   unwrap)
-    tok="${1:-${KEEP_UNWRAP_TOKEN:-}}"
-    [[ -n "$tok" ]] || { echo "usage: merionctl unwrap <token>  (or KEEP_UNWRAP_TOKEN)" >&2; exit 1; }
+    tok="${1:-${MERION_UNWRAP_TOKEN:-}}"
+    [[ -n "$tok" ]] || { echo "usage: merionctl unwrap <token>  (or MERION_UNWRAP_TOKEN)" >&2; exit 1; }
     api POST /v1/vault/unwrap -H 'Content-Type: application/json' \
       -d "{\"token\":$(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$tok")}"
     echo

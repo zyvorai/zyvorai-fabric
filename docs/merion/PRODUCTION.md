@@ -48,7 +48,7 @@ helm install keep charts/zyvor-keep -n keep --create-namespace \
 Run on a customer-like FluxVM host with a registered agent template (`node22-agent` / `agent-node`; bake it with `./scripts/merion-bake-node22-agent.sh`):
 
 ```bash
-KEEP_E2E_TEMPLATE=node22-agent ./scripts/merion-pilot-gate.sh
+MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-pilot-gate.sh
 # Archives under docs/merion/pilot-runs/<stamp>/{happy,deny}/
 ```
 
@@ -56,7 +56,7 @@ KEEP_E2E_TEMPLATE=node22-agent ./scripts/merion-pilot-gate.sh
 |---|---|
 | Template required | Missing template → **FAIL** (no soft PASS) |
 | Happy + deny | Gate runs twice; deny path shows no unapproved mutate |
-| Signed Keep mutations | `ZYVOR_AGENT_KEEP_MODE=1` + trusted signers; startup rejects empty signers. PUT policy needs `X-Keep-Policy-Signature`; POST agent needs `X-Keep-Manifest-Signature` over the exact JSON body. |
+| Signed Keep mutations | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; startup rejects empty signers. PUT policy needs `X-Keep-Policy-Signature`; POST agent needs `X-Keep-Manifest-Signature` over the exact JSON body. |
 | Session / cockpit / restart | Cockpit `software-test`; session recovers after runtime restart |
 | OOB approvals | Webhook + approve/deny outside agent chat |
 | Console Keep view | `/app/keep/:sessionId` — goal, task, evidence, approval, outcome |
@@ -74,32 +74,32 @@ pilot gate prefers `node22-fc` when registered.
 | Item | How to verify |
 |---|---|
 | Stub Keep e2e (CI) | `./scripts/merion-e2e.sh` · `.github/workflows/keep.yml` |
-| **Live FluxVM Keep proof** | `KEEP_E2E_FLUXVM=1 ./scripts/merion-e2e.sh` or `./scripts/merion-live-lab.sh` (needs `KEEP_E2E_TEMPLATE`) |
-| Keep-mode signed policy | `ZYVOR_AGENT_KEEP_MODE=1` + trusted signers; unsigned PUT → 403; unsigned deploy → 403; start refuses empty signers |
+| **Live FluxVM Keep proof** | `MERION_E2E_FLUXVM=1 ./scripts/merion-e2e.sh` or `./scripts/merion-live-lab.sh` (needs `MERION_E2E_TEMPLATE`) |
+| Keep-mode signed policy | `ZYVOR_AGENT_MERION_MODE=1` + trusted signers; unsigned PUT → 403; unsigned deploy → 403; start refuses empty signers |
 | Credential authority | `authorize_resolve` allowlists host/method/path/user; secrets still host-env (not 0.2 unwrap) |
 | Confine | `ZYVOR_AGENT_CONFINE=1` / `confinement: strict` on live path |
 | Measured profile | `ZYVOR_AGENT_SECURITY_PROFILE=measured` (Keep mode default); cockpit `evidence_class: software-test` |
 | Browser live view | `GET /v1/sessions/{id}/browser/view` + `/browser/screenshot` (JPEG via CDP bridge); no input takeover |
-| Cockpit / approvals | `GET /keep/cockpit?session=` · out-of-band webhook |
+| Cockpit / approvals | `GET /merion/cockpit?session=` · out-of-band webhook |
 
 ```bash
 # CI default — FluxVM stub
 ./scripts/merion-e2e.sh
 
 # Lab release gate — live FluxVM (template required)
-KEEP_E2E_TEMPLATE=node22-agent ./scripts/merion-live-lab.sh
+MERION_E2E_TEMPLATE=node22-agent ./scripts/merion-live-lab.sh
 ```
 
 To deploy in enforced Keep mode, sign the exact JSON file you send:
 
 ```bash
-merionctl policy sign agent.json   # uses KEEP_POLICY_SEED; writes agent.json.sig
+merionctl policy sign agent.json   # uses MERION_POLICY_SEED; writes agent.json.sig
 merionctl create -f agent.json --signature agent.json.sig
 ```
 
 The signer public key belongs in `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS` on the
 runtime. A policy update still signs the exact YAML sent to PUT. Generic agent
-runtime installations can leave `ZYVOR_AGENT_KEEP_MODE` unset. Existing agents
+runtime installations can leave `ZYVOR_AGENT_MERION_MODE` unset. Existing agents
 created before enforced mode must be redeployed with a signed manifest before
 being treated as policy-verified; signing does not retroactively attest them.
 

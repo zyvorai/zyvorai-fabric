@@ -9,7 +9,7 @@ sidebar_position: 10
 `POST /v1/sessions` and `POST /v1/sessions/{id}/steer`, so scopes, quotas, tenancy and the agent's own policy apply unchanged, and a user token needs the `run` scope.
 
 ```bash
-curl -N -X POST "$KEEP_API/v1/agui" -H "Authorization: Bearer $KEEP_TOKEN" -H 'content-type: application/json' -d '{
+curl -N -X POST "$MERION_API/v1/agui" -H "Authorization: Bearer $MERION_TOKEN" -H 'content-type: application/json' -d '{
   "threadId": "t-1", "runId": "r-1",
   "messages": [{"id": "m1", "role": "user", "content": "What is the total due?"}],
   "forwardedProps": {"agent": "model-agent"}
@@ -23,7 +23,7 @@ curl -N -X POST "$KEEP_API/v1/agui" -H "Authorization: Bearer $KEEP_TOKEN" -H 'c
 No chat framework needed to try it. `merion-chat.py` serves one static page and forwards exactly one route to `/v1/agui`:
 
 ```bash
-KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=... ./scripts/merion-chat.py --agent echo-agent      # then open http://127.0.0.1:8787
+MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-chat.py --agent echo-agent      # then open http://127.0.0.1:8787
 ```
 
 Your token stays in that process; the browser never sees it. The agent is fixed by `--agent` (the page cannot choose another), it listens on `127.0.0.1` only and refuses a

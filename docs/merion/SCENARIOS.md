@@ -206,7 +206,7 @@ each month's `.xlsx` into that folder. Each file runs once.
 and point the live script at your runtime:
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=...
+export MERION_API=http://127.0.0.1:9096 MERION_TOKEN=...
 ./scripts/merion-live-scenarios.sh            # built-ins, scenario packs, batch, zip, webhook trigger, history
 ./scripts/merion-live-scenarios.sh --quick    # a smaller run
 ```

@@ -127,7 +127,7 @@ taint:
 - **Deny by default.** Anything not listed is refused.
 - **Ask levels** per rule: `always`, `first` or `never`.
 - **Taint.** After the agent reads an untrusted page, egress is blocked until you approve, and the cockpit paints the process red.
-- **Signed.** In Keep mode (`ZYVOR_AGENT_KEEP_MODE=1`) the runtime refuses to start without `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`, and every policy update must carry an Ed25519 signature over the exact YAML bytes. Unsigned policy does not load.
+- **Signed.** In Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) the runtime refuses to start without `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS`, and every policy update must carry an Ed25519 signature over the exact YAML bytes. Unsigned policy does not load.
 - **Changes are checked.** A policy update is compared with the one the agent runs now. One that widens access (default egress `allow`, a metadata or private host, a `*` host, a write method added, weaker approval, a removed taint guard, wider body or program rules) is refused with `409` until you resend it with `X-Keep-Policy-Ack-Risk: 1`. It is a syntactic check on what the change adds, not a proof of what a cell can reach.
 - **Body and program rules.** For MCP, JSON-RPC and GraphQL endpoints, where every call is a `POST` to one URL, an entry can limit the JSON-RPC methods, the MCP tools and the GraphQL operation types the body may use, and `binaries` limits which program in the cell may call. Both fail closed. `binaries` covers the JSON broker only and does not work for confidential cells.
 - **Drafts from denials.** `merionctl policy suggest` turns an agent's denied requests into a draft policy to read, sign and load. Nothing is applied automatically.
@@ -215,8 +215,8 @@ cargo test --manifest-path agent-runtime/Cargo.toml --lib
 `merionctl` in ten lines:
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096
-export KEEP_TOKEN=…                      # ZYVOR_AGENT_API_TOKEN
+export MERION_API=http://127.0.0.1:9096
+export MERION_TOKEN=…                      # ZYVOR_AGENT_API_TOKEN
 
 merionctl create -f deploy.json            # deploy an agent
 merionctl policy show my-agent

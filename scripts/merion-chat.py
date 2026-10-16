@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """keep-chat: a small web chat for a Keep agent, over the AG-UI endpoint (POST /v1/agui).
 
-    KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=... ./scripts/merion-chat.py --agent echo-agent      # then open http://127.0.0.1:8787
+    MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-chat.py --agent echo-agent      # then open http://127.0.0.1:8787
 
 It serves one static page, forwards the chat run (POST /agui) and lets the page list, reopen and forget this agent's conversations
 (GET /threads, GET /threads/<id>/messages, DELETE /threads/<id>), read what was done after you approved (/receipts, read-only), manage the person's memory (/memory: read, turn on or off, add, delete, accept or
@@ -132,7 +132,7 @@ def make_handler(upstream: str, token: str, agent: str, port: int, user: str = "
     up = urllib.parse.urlparse(upstream)
     ident = {}   # who the token is, learned once from the host
     if up.scheme not in ("http", "https") or not up.hostname:
-        raise SystemExit("KEEP_API must be an http(s) URL")
+        raise SystemExit("MERION_API must be an http(s) URL")
 
     class Handler(BaseHTTPRequestHandler):
         server_version = "keep-chat"
@@ -531,8 +531,8 @@ def main():
     args = ap.parse_args()
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,39}", args.agent):
         raise SystemExit("--agent must be a pack name: lowercase letters, digits and '-'")
-    upstream = os.environ.get("KEEP_API", "http://127.0.0.1:9096")
-    token = os.environ.get("KEEP_TOKEN", "")
+    upstream = os.environ.get("MERION_API", os.environ.get("KEEP_API", "http://127.0.0.1:9096"))
+    token = os.environ.get("MERION_TOKEN", os.environ.get("KEEP_TOKEN", ""))
     srv = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(upstream, token, args.agent, args.port, args.user))
     print(f"keep-chat: agent '{args.agent}' on {upstream}. Open http://127.0.0.1:{args.port}   (Ctrl-C to stop)", flush=True)
     try:

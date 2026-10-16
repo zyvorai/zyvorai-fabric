@@ -154,7 +154,9 @@ pub struct PolicyTrust {
 
 impl PolicyTrust {
     pub fn from_env() -> Result<Self> {
-        let keep_mode = std::env::var("ZYVOR_AGENT_KEEP_MODE").ok().as_deref() == Some("1");
+        let keep_mode = crate::config::env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE")
+            .as_deref()
+            == Some("1");
         let raw = std::env::var("ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS").unwrap_or_default();
         let mut trusted_signers = Vec::new();
         for part in raw.split(',').map(str::trim).filter(|s| !s.is_empty()) {
@@ -166,8 +168,8 @@ impl PolicyTrust {
         }
         if keep_mode && trusted_signers.is_empty() {
             bail!(
-                "ZYVOR_AGENT_KEEP_MODE=1 requires ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS \
-                 (comma-separated hex Ed25519 public keys)"
+                "ZYVOR_AGENT_MERION_MODE=1 (or the older ZYVOR_AGENT_KEEP_MODE=1) requires \
+                 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS (comma-separated hex Ed25519 public keys)"
             );
         }
         let require_signature = if keep_mode {

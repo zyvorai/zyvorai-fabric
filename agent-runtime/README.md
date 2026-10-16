@@ -230,7 +230,7 @@ With `"browser_port": 9222` (Chromium started with remote debugging on that port
 
 - `GET /v1/sessions/{id}/browser/json/list` (also `json`, `json/version`, `json/protocol`) — raw DevTools listings with WebSocket/frontend URLs stripped
 - `GET /v1/sessions/{id}/browser/view` — Keep 0.1 live tab summary (title + URL)
-- `GET /keep/browser?session=<uuid>` — HTML that polls the live view
+- `GET /merion/browser?session=<uuid>` — HTML that polls the live view
 
 Only listing paths are forwarded, plus a screenshot and a read-only screencast through the host CDP bridge. **Input takeover is not implemented.**
 
@@ -345,7 +345,7 @@ Configuration:
 | `ZYVOR_AGENT_FLUXVM_URL` | `http://127.0.0.1:7788` | FluxVM API |
 | `ZYVOR_AGENT_FLUXVM_TOKEN` | unset | FluxVM bearer token |
 | `ZYVOR_AGENT_API_TOKEN` | unset | public Agent Runtime bearer token |
-| `ZYVOR_AGENT_KEEP_MODE` | unset | `1` = Keep 0.1 fail-closed: trusted signers required; unsigned policy refused |
+| `ZYVOR_AGENT_MERION_MODE` | unset | `1` = Keep 0.1 fail-closed: trusted signers required; unsigned policy refused |
 | `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS` | unset | comma-separated hex Ed25519 public keys for `keep.policy.yaml` |
 | `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE` | auto | ignored when Keep mode is on; otherwise `1`/`0` |
 | `ZYVOR_AGENT_SECURITY_PROFILE` | unset / `measured` in Keep mode | passed to FluxVM on sandbox create |
@@ -578,7 +578,7 @@ Session metadata, TTL deadlines, warm-pool claims and the host event journal sur
 cargo test --manifest-path agent-runtime/Cargo.toml --lib
 cargo test --manifest-path agent-runtime/Cargo.toml policy -- --nocapture
 ./scripts/merion-e2e.sh
-./scripts/merion-live-lab.sh   # FluxVM host; guest boot needs KEEP_E2E_TEMPLATE
+./scripts/merion-live-lab.sh   # FluxVM host; guest boot needs MERION_E2E_TEMPLATE
 ./scripts/merionctl --help
 ```
 

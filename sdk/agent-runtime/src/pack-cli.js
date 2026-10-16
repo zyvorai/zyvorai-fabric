@@ -23,10 +23,14 @@ export async function runPackCommand(argv) {
   const [sub, ...rest] = argv;
   try {
     const f = flagsOf(rest);
-    const seedVar = f["seed-env"] ?? "KEEP_POLICY_SEED";
-    const seed = process.env[seedVar] || undefined;
-    const url = f.url || process.env.FABRIC_AGENT_URL || process.env.KEEP_API || "http://127.0.0.1:9096";
-    const token = f.token || process.env.FABRIC_AGENT_TOKEN || process.env.KEEP_TOKEN;
+    const seedVar = f["seed-env"] ?? "MERION_POLICY_SEED";
+    // KEEP_POLICY_SEED is the pre-rename name; it is still read when the default variable is in use.
+    const seed =
+      process.env[seedVar] ||
+      (f["seed-env"] ? undefined : process.env.KEEP_POLICY_SEED) ||
+      undefined;
+    const url = f.url || process.env.FABRIC_AGENT_URL || (process.env.MERION_API ?? process.env.KEEP_API) || "http://127.0.0.1:9096";
+    const token = f.token || process.env.FABRIC_AGENT_TOKEN || (process.env.MERION_TOKEN ?? process.env.KEEP_TOKEN);
 
     if (sub === "keys") {
       if (!seed) throw new Error(`set ${seedVar} to a 32-byte hex seed (openssl rand -hex 32)`);

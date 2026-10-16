@@ -6,7 +6,7 @@ calls `ctx.model.chat()`. Point the socket at Qwen, DeepSeek, GLM, a local vLLM 
 
 ```bash
 ./scripts/merionctl deploy examples/merion-agents/model-agent
-curl -X POST $KEEP_API/v1/sessions -H "Authorization: Bearer $KEEP_TOKEN" -H 'content-type: application/json' \
+curl -X POST $MERION_API/v1/sessions -H "Authorization: Bearer $MERION_TOKEN" -H 'content-type: application/json' \
   -d '{"agent":"model-agent","input":{"question":"What is 2+2?"}}'
 ```
 

@@ -453,6 +453,8 @@ pub fn public_router(state: Arc<AppState>) -> Router {
             post(crate::suggestions::dismiss),
         )
         .route("/v1/goals/{id}/browse", post(crate::goals::goal_browse))
+        .route("/v1/merion/status", get(crate::demos::keep_status))
+        // Pre-rename alias, kept so existing clients keep working.
         .route("/v1/keep/status", get(crate::demos::keep_status))
         .route(
             "/v1/demos",
@@ -557,6 +559,8 @@ pub fn public_router(state: Arc<AppState>) -> Router {
                 crate::demos::MAX_BATCH_BYTES,
             )),
         )
+        .route("/merion/cockpit", get(cockpit_page))
+        .route("/merion/browser", get(crate::browser::browser_page))
         .route("/keep/cockpit", get(cockpit_page))
         .route("/keep/browser", get(crate::browser::browser_page))
         .merge(protected)
@@ -2792,7 +2796,7 @@ async fn session_cockpit(
         "browser_view": format!("/v1/sessions/{id}/browser/view"),
         "browser_screenshot": format!("/v1/sessions/{id}/browser/screenshot"),
         "browser_screencast": format!("/v1/sessions/{id}/browser/screencast"),
-        "browser_page": format!("/keep/browser?session={id}"),
+        "browser_page": format!("/merion/browser?session={id}"),
         "browser": browser_cap,
         "agent_paused_reason": session.agent_paused_reason,
         "browse": {

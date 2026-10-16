@@ -16,10 +16,10 @@ launchd, Task Scheduler) was not run here; the steps follow those tools' documen
 
 ```bash
 # 1. run a use case on a file (returns JSON with the artifact id and egress_connects)
-curl -s -X POST -H "Authorization: Bearer $KEEP_TOKEN" -F file=@report.pdf "$KEEP_API/v1/demos/pdf-brief"
+curl -s -X POST -H "Authorization: Bearer $MERION_TOKEN" -F file=@report.pdf "$MERION_API/v1/demos/pdf-brief"
 
 # 2. read the summary
-curl -s -H "Authorization: Bearer $KEEP_TOKEN" "$KEEP_API/v1/artifacts/<artifacts[0].id>"   # the "body" field is Markdown
+curl -s -H "Authorization: Bearer $MERION_TOKEN" "$MERION_API/v1/artifacts/<artifacts[0].id>"   # the "body" field is Markdown
 ```
 
 *Verified* (operator token; a user token reaching only its own runs is verified in the live tenancy script). Use a **scoped user
@@ -33,14 +33,14 @@ login, no JavaScript); the sealed cell never touches the network. The saved page
 own diff between this summary and the last one, so you see the lines that changed, once.
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=...      # a user token
+export MERION_API=http://127.0.0.1:9096 MERION_TOKEN=...      # a user token
 ./scripts/merion-watch.sh https://status.example.com                          # first run: BASELINE; later: UNCHANGED, or CHANGED with the lines (exit 3)
 ./scripts/merion-watch.sh https://shop.example.com/item --match "in stock"    # alert ONLY when "in stock" newly appears in the summary
 ./scripts/merion-watch.sh https://status.example.com --notify                 # also a desktop notification (osascript / notify-send)
 ```
 
 Exit codes: `0` unchanged (or the first run), `3` changed (or matched), `2` the fetch or run failed, `4` failed `--max-failures` times in a row (default 3). Run it every few
-minutes from cron (`*/10 * * * * KEEP_API=... KEEP_TOKEN=... /path/to/merion-watch.sh URL --notify`) or a launchd `StartInterval` job; a non-zero exit is your alert. The last
+minutes from cron (`*/10 * * * * MERION_API=... MERION_TOKEN=... /path/to/merion-watch.sh URL --notify`) or a launchd `StartInterval` job; a non-zero exit is your alert. The last
 result per URL is kept in `~/.local/state/keep-watch/`. Use a use case that reads what you care about (your own pack works if it accepts `.html`); a page is judged only as
 well as the pack's keywords match its words. Do not put a password or token in the URL: the script refuses `user:pass@`.
 
@@ -69,9 +69,9 @@ Save as `~/bin/keep-drop.sh`, `chmod +x` it. The token comes from the Keychain, 
 #!/bin/bash
 # usage: keep-drop.sh <use-case> <file>
 TOKEN=$(security find-generic-password -s keep-token -w)
-RESP=$(curl -s -X POST -H "Authorization: Bearer $TOKEN" -F file=@"$2" "$KEEP_API/v1/demos/$1")
+RESP=$(curl -s -X POST -H "Authorization: Bearer $TOKEN" -F file=@"$2" "$MERION_API/v1/demos/$1")
 ID=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["artifacts"][0]["id"])' "$RESP")
-curl -s -H "Authorization: Bearer $TOKEN" "$KEEP_API/v1/artifacts/$ID" > "${2%.*}.keep.json"
+curl -s -H "Authorization: Bearer $TOKEN" "$MERION_API/v1/artifacts/$ID" > "${2%.*}.keep.json"
 ```
 
 Store the token once with `security add-generic-password -s keep-token -a "$USER" -w`. To run it whenever a file lands in a folder,
@@ -84,9 +84,9 @@ With PowerShell 7 (`-Form` needs it), install the `Microsoft.PowerShell.SecretMa
 
 ```powershell
 $token = Get-Secret -Name KeepToken -AsPlainText
-$r = Invoke-RestMethod -Method Post -Uri "$env:KEEP_API/v1/demos/pdf-brief" `
+$r = Invoke-RestMethod -Method Post -Uri "$env:MERION_API/v1/demos/pdf-brief" `
       -Headers @{ Authorization = "Bearer $token" } -Form @{ file = Get-Item .\report.pdf }
-(Invoke-RestMethod -Uri "$env:KEEP_API/v1/artifacts/$($r.artifacts[0].id)" -Headers @{ Authorization = "Bearer $token" }).body
+(Invoke-RestMethod -Uri "$env:MERION_API/v1/artifacts/$($r.artifacts[0].id)" -Headers @{ Authorization = "Bearer $token" }).body
 ```
 
 Run it on a schedule with **Task Scheduler** (an action that starts `pwsh -File keep-drop.ps1`). Windows PowerShell 5.1 has no `-Form`; use

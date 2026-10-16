@@ -26,7 +26,7 @@ taint:
 
 ## Load it
 
-Keep mode (`ZYVOR_AGENT_KEEP_MODE=1`) refuses unsigned policy. The signature is Ed25519 over the exact bytes of the file, so do not reformat the YAML after signing.
+Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) refuses unsigned policy. The signature is Ed25519 over the exact bytes of the file, so do not reformat the YAML after signing.
 
 ```bash
 ./agent-runtime/target/release/examples/keep_sign_policy sign "$SEED" keep.policy.yaml > keep.policy.yaml.sig
@@ -44,7 +44,7 @@ For these endpoints the verb is always `POST`, so limit the body instead: `rpc_m
 
 ## Risk check
 
-The runtime compares every new policy with the current one. A change with a High finding (default egress `allow`, a metadata or private host, a `*` host, a write method added, weaker `ask`, a removed taint guard, a dropped or widened body rule, a widened program list) is refused with `409` and the reasons. Show those reasons to the user. Resend with `KEEP_POLICY_ACK_RISK=1 merionctl policy set ...` only after the user says the change is intended. Codes are listed in `docs/merion/sentinel/README.md`.
+The runtime compares every new policy with the current one. A change with a High finding (default egress `allow`, a metadata or private host, a `*` host, a write method added, weaker `ask`, a removed taint guard, a dropped or widened body rule, a widened program list) is refused with `409` and the reasons. Show those reasons to the user. Resend with `MERION_POLICY_ACK_RISK=1 merionctl policy set ...` only after the user says the change is intended. Codes are listed in `docs/merion/sentinel/README.md`.
 
 ## Drafting from denials
 

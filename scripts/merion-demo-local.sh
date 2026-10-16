@@ -7,22 +7,31 @@
 #   ./scripts/merion-demo-local.sh            # start the simulator and the runtime, print how to connect, run until Ctrl-C
 #   ./scripts/merion-demo-local.sh --dry-run  # check the tools and print the plan
 #
-# Needs: python3, node 20+, curl, and either cargo (to build the runtime once) or KEEP_RUNTIME_BIN. No KVM, no Docker, no root.
+# Needs: python3, node 20+, curl, and either cargo (to build the runtime once) or MERION_RUNTIME_BIN. No KVM, no Docker, no root.
 #
 # THIS IS A SIMULATOR. There is no VM and no network policy: the fixed extractors run as ordinary processes on this machine, so nothing here is
 # isolated and the "0 connections" number is not evidence. Every result says "SIMULATED, not sealed" (evidence class `simulated`), and Solvor
 # and the console show that instead of the proof. It exists so you can see what the use cases give you before you set up a Keep host
 # (scripts/merion-up.sh). Never feed it files you would not run a script on.
 # ============================================================================
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_HOST+x}" ] || [ -z "${KEEP_HOST:-}" ] || export MERION_HOST="$KEEP_HOST"
+[ -n "${MERION_LOCAL_EGRESS_PORT+x}" ] || [ -z "${KEEP_LOCAL_EGRESS_PORT:-}" ] || export MERION_LOCAL_EGRESS_PORT="$KEEP_LOCAL_EGRESS_PORT"
+[ -n "${MERION_LOCAL_PORT+x}" ] || [ -z "${KEEP_LOCAL_PORT:-}" ] || export MERION_LOCAL_PORT="$KEEP_LOCAL_PORT"
+[ -n "${MERION_RUNTIME_BIN+x}" ] || [ -z "${KEEP_RUNTIME_BIN:-}" ] || export MERION_RUNTIME_BIN="$KEEP_RUNTIME_BIN"
+[ -n "${MERION_SIM_PORT+x}" ] || [ -z "${KEEP_SIM_PORT:-}" ] || export MERION_SIM_PORT="$KEEP_SIM_PORT"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD=0
-if [[ -n "${KEEP_RUNTIME_BIN:-}" ]]; then BIN="$KEEP_RUNTIME_BIN"; else BIN="$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runtime"; BUILD=1; fi
-SIM_PORT="${KEEP_SIM_PORT:-17788}"
-API_PORT="${KEEP_LOCAL_PORT:-19096}"
-EGRESS_PORT="${KEEP_LOCAL_EGRESS_PORT:-18082}"
+if [[ -n "${MERION_RUNTIME_BIN:-}" ]]; then BIN="$MERION_RUNTIME_BIN"; else BIN="$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runtime"; BUILD=1; fi
+SIM_PORT="${MERION_SIM_PORT:-17788}"
+API_PORT="${MERION_LOCAL_PORT:-19096}"
+EGRESS_PORT="${MERION_LOCAL_EGRESS_PORT:-18082}"
 DRY=0
 case "${1:-}" in
   --dry-run) DRY=1 ;;
@@ -36,11 +45,11 @@ MISSING=0
 need python3 "install Python 3"
 need curl "install curl"
 need node "install Node 20 or newer: https://nodejs.org"
-if (( BUILD )) || [[ ! -x "$BIN" ]]; then need cargo "install Rust from https://rustup.rs, or set KEEP_RUNTIME_BIN to a built runtime"; fi
+if (( BUILD )) || [[ ! -x "$BIN" ]]; then need cargo "install Rust from https://rustup.rs, or set MERION_RUNTIME_BIN to a built runtime"; fi
 (( MISSING == 0 )) || exit 1
 if command -v node >/dev/null 2>&1 && (( $(node -p 'process.versions.node.split(".")[0]') < 20 )); then echo "node 20 or newer is required" >&2; exit 1; fi
 for p in "$SIM_PORT" "$API_PORT" "$EGRESS_PORT"; do
-  if (echo >"/dev/tcp/127.0.0.1/$p") 2>/dev/null; then echo "port $p is already in use (set KEEP_SIM_PORT / KEEP_LOCAL_PORT / KEEP_LOCAL_EGRESS_PORT)" >&2; exit 1; fi
+  if (echo >"/dev/tcp/127.0.0.1/$p") 2>/dev/null; then echo "port $p is already in use (set MERION_SIM_PORT / MERION_LOCAL_PORT / MERION_LOCAL_EGRESS_PORT)" >&2; exit 1; fi
 done
 
 echo "keep-demo-local: SIMULATOR, NOT SEALED (no VM, no network policy). Runtime at http://127.0.0.1:$API_PORT"
@@ -91,18 +100,18 @@ cat <<OUT
 
   Try a use case now (a sample file ships with each pack):
 
-    KEEP_API=http://127.0.0.1:$API_PORT KEEP_TOKEN=$USER_TOKEN $ROOT/scripts/merion-demo.sh csv-clean
-    KEEP_API=http://127.0.0.1:$API_PORT KEEP_TOKEN=$USER_TOKEN $ROOT/scripts/merion-demo.sh list
+    MERION_API=http://127.0.0.1:$API_PORT MERION_TOKEN=$USER_TOKEN $ROOT/scripts/merion-demo.sh csv-clean
+    MERION_API=http://127.0.0.1:$API_PORT MERION_TOKEN=$USER_TOKEN $ROOT/scripts/merion-demo.sh list
 
   Solvor (Mac app) finds this host by itself. Paste the token into its first screen, or copy this link and paste it there:
 
     keep://connect?host=http://127.0.0.1:$API_PORT&token=$USER_TOKEN
     (or: Settings, Host http://127.0.0.1:$API_PORT, Token above)
-    or, in the Solvor repo:  make run KEEP_HOST=http://127.0.0.1:$API_PORT KEEP_TOKEN=$USER_TOKEN
+    or, in the Solvor repo:  make run MERION_HOST=http://127.0.0.1:$API_PORT MERION_TOKEN=$USER_TOKEN
 
   Chat with the example agent in a browser (a token stays on your machine; the page never sees it):
 
-    KEEP_API=http://127.0.0.1:$API_PORT KEEP_TOKEN=$USER_TOKEN $ROOT/scripts/merion-chat.py --agent echo-agent      # then open http://127.0.0.1:8787
+    MERION_API=http://127.0.0.1:$API_PORT MERION_TOKEN=$USER_TOKEN $ROOT/scripts/merion-chat.py --agent echo-agent      # then open http://127.0.0.1:8787
     (use --agent memory-agent to try Goals and Memory in the page: say "remember I like aisle seats" and review the suggestion under Memory)
 
   Solvor shows an amber "Simulated, not sealed" notice instead of the proof pill.

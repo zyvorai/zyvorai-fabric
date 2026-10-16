@@ -10,19 +10,22 @@
 #   sudo ./uninstall.sh --purge      # Remove everything including data
 # ============================================================================
 
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_DATA+x}" ] || [ -z "${KEEP_DATA:-}" ] || export MERION_DATA="$KEEP_DATA"
+
 set -euo pipefail
 
 info()  { echo "  ✅ $*"; }
 warn()  { echo "  ⚠️  $*"; }
 step()  { echo ""; echo "  🔧 $*"; }
 
-KEEP_DATA=true
+MERION_DATA=true
 PURGE=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --keep-data) KEEP_DATA=true; shift ;;
-        --purge)     PURGE=true; KEEP_DATA=false; shift ;;
+        --keep-data) MERION_DATA=true; shift ;;
+        --purge)     PURGE=true; MERION_DATA=false; shift ;;
         --help|-h)
             echo "Usage: sudo $0 [--keep-data|--purge]"
             echo ""
@@ -108,7 +111,7 @@ if $PURGE; then
     rm -rf /var/log/zyvor-fabricd 2>/dev/null && info "Removed /var/log/zyvor-fabricd" || true
     rm -rf /run/zyvor-fabricd 2>/dev/null
     getent group zyvor-fabricd &>/dev/null && groupdel zyvor-fabricd 2>/dev/null && info "Removed zyvor-fabricd group" || true
-elif $KEEP_DATA; then
+elif $MERION_DATA; then
     step "Keeping data"
     info "/var/lib/zyvor-fabricd preserved (use --purge to remove)"
     info "/var/log/zyvor-fabricd preserved"
@@ -119,7 +122,7 @@ echo "  ════════════════════════
 echo "  🎉 zyvor-fabricd uninstalled"
 echo "  ════════════════════════════════════════════════════"
 echo ""
-if $KEEP_DATA; then
+if $MERION_DATA; then
     echo "  📁 Kept: /var/lib/zyvor-fabricd (VM images and state)"
     echo "  📁 Kept: /var/log/zyvor-fabricd (logs)"
     echo ""
