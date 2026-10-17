@@ -39,11 +39,11 @@ BIN="${MERION_E2E_BIN:-$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runti
 SIGN_BIN="${MERION_SIGN_BIN:-$ROOT/agent-runtime/target/debug/examples/merion_sign_policy}"
 API="http://127.0.0.1:19097"
 STUB_PORT=17797
-TOKEN="keep-e2e-token"
+TOKEN="merion-e2e-token"
 PASS=0
 FAIL=0
 pids=()
-W="$(mktemp -d "${TMPDIR:-/tmp}/keep-e2e.XXXXXX")"
+W="$(mktemp -d "${TMPDIR:-/tmp}/merion-e2e.XXXXXX")"
 
 cleanup() {
   for p in "${pids[@]:-}"; do kill "$p" 2>/dev/null || true; done

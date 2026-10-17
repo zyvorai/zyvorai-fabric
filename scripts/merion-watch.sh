@@ -2,14 +2,14 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # ============================================================================
-# keep-watch — notice when a public web page changes, using a Keep use case to read it
+# merion-watch — notice when a public web page changes, using a Keep use case to read it
 # ============================================================================
 #   MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-watch.sh https://status.example.com [options]
 #
 #   --use-case ID     the use case that reads the page (default status-page-watch; it must accept .html)
 #   --match TEXT      alert ONLY when TEXT newly appears in the summary (for example "in stock"); other changes are shown but do not alert
 #   --notify          show a desktop notification on a change (osascript on macOS, notify-send on Linux)
-#   --state-dir DIR   where the last run is remembered (default ~/.local/state/keep-watch)
+#   --state-dir DIR   where the last run is remembered (default ~/.local/state/merion-watch)
 #   --max-failures N  after N failures in a row exit 4 instead of 2 (default 3)
 #
 # Run it from cron or launchd every few minutes. Exit codes: 0 unchanged (or the first run), 3 changed or matched, 2 the fetch or the run
@@ -29,7 +29,7 @@ set -euo pipefail
 
 : "${MERION_API:=http://127.0.0.1:9096}"
 USE_CASE=status-page-watch; MATCH=""; NOTIFY=0; MAX_FAIL=3
-STATE_DIR="${MERION_WATCH_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/keep-watch}"
+STATE_DIR="${MERION_WATCH_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/merion-watch}"
 URL=""
 usage() { sed -n '5,20p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while [[ $# -gt 0 ]]; do
@@ -81,7 +81,7 @@ fail() { # message
 }
 
 # 1. fetch the page on this machine: http(s) only, no redirects to other schemes, 2 MiB and 30 s at most
-curl -fsSL --proto '=http,https' --proto-redir '=http,https' --max-time 30 --max-filesize 2097152 -A 'keep-watch' -o "$W/page.html" -- "$URL" 2>"$W/curl.err" \
+curl -fsSL --proto '=http,https' --proto-redir '=http,https' --max-time 30 --max-filesize 2097152 -A 'merion-watch' -o "$W/page.html" -- "$URL" 2>"$W/curl.err" \
   || fail "could not fetch the page: $(clean < "$W/curl.err" | head -1)"
 [[ -s "$W/page.html" ]] || fail "the page was empty"
 

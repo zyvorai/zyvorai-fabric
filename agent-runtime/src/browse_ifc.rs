@@ -172,7 +172,7 @@ pub fn host_from_url(url: &str) -> Option<String> {
 
 /// Fabric network identity for the Chromium renderer (dataplane / PacketWolf).
 pub fn browser_network_identity(tenant: &str, session_id: Uuid) -> String {
-    format!("keep-browser/{tenant}/{session_id}")
+    format!("merion-browser/{tenant}/{session_id}")
 }
 
 /// Honesty / capability badge — one JSON object for cockpit + marketing.
@@ -422,7 +422,7 @@ mod tests {
             "allowed",
             true,
             Some(&AgentPausedReason::VaultFill),
-            Some("keep-browser/t/s"),
+            Some("merion-browser/t/s"),
         );
         assert_eq!(b["browser"], "a11y-only");
         assert_eq!(b["proxy"], "strict");

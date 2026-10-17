@@ -29,7 +29,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GATEWAY=0; [[ "${1:-}" == "--gateway" ]] && GATEWAY=1
 N=$RANDOM
 ANA="live-ana-$N"; BEN="live-ben-$N"
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/keep-live-tenancy.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/merion-live-tenancy.XXXXXX")"
 PIDS=(); PASSED=0; FAILED=0
 cleanup() {
   for p in ${PIDS[@]+"${PIDS[@]}"}; do kill "$p" 2>/dev/null || true; done

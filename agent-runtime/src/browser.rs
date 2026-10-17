@@ -1243,7 +1243,7 @@ pub(crate) async fn browser_doctor(
         "confinement": agent.manifest.confinement,
         "network_identity": session.browse.network_identity,
         "warnings": warnings,
-        "advice": "FluxVM veth should carry identity keep-browser/tenant/session; Service Fabric may CONNECT only to egress_allow_hosts.",
+        "advice": "FluxVM veth should carry identity merion-browser/tenant/session; Service Fabric may CONNECT only to egress_allow_hosts.",
     })))
 }
 

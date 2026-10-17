@@ -10,7 +10,7 @@ Measured appliance — not Muse consumer chrome. Model proposes `open` / `snapsh
 | Split-sight pause | `agent_paused_reason`, `POST …/agent-pause\|resume`, `merionctl session pause` |
 | Trajectory-as-code | artifact `kind=browse-script`, `GET …/browser/script`, `merionctl browse replay` |
 | Origin taint lattice | tab/clipboard OriginSet IFC; paste across disjoint hosts denied |
-| SNI-identity label | `browse.network_identity = keep-browser/{tenant}/{session}`; doctor + Hubble link stub |
+| SNI-identity label | `browse.network_identity = merion-browser/{tenant}/{session}`; doctor + Hubble link stub |
 | Vault-typed fill | pause during fill-secret; audit `source: vault:name` without value |
 | Goal-bound tabs | `goal.allow_hosts` + `POST /v1/goals/{id}/browse` |
 | Witness + overlay | scaffold on `act` click (pixel_label / snapshot_text) |

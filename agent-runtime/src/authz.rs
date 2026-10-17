@@ -101,7 +101,7 @@ pub fn signing_key(api_token: Option<&str>, secret_env: Option<&str>) -> Option<
     }
     api_token
         .filter(|t| !t.is_empty())
-        .map(|t| hmac_sha256(t.as_bytes(), b"keep-user-token-v1").to_vec())
+        .map(|t| hmac_sha256(t.as_bytes(), b"merion-user-token-v1").to_vec())
 }
 
 pub fn signing_key_for(state: &AppState) -> Option<Vec<u8>> {

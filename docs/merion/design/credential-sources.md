@@ -115,7 +115,7 @@ fetch time, and the last failure class. It never returns a value, and neither do
   `http` to a non-loopback host. Tests for `file`: trimming, rotation after the TTL, a missing file, a group-readable file refused, `..` refused.
 - A test through the real broker path: a sourced secret is injected on an allowed request, a request that fails the descriptor's checks **never
   causes a fetch** (the mock records zero calls), and no secret value appears in the journal, an error or the cockpit.
-- The existing credential tests and `keep-e2e` run unchanged, which is the test that `env` still works.
+- The existing credential tests and `merion-e2e` run unchanged, which is the test that `env` still works.
 - **What I cannot verify here:** a real Vault. The mock proves the requests and the failure handling, not that a particular Vault version or auth
   backend accepts them. Someone with a Vault should run the documented dev-server steps once before this is trusted; I would write them down.
 

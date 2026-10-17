@@ -16,7 +16,7 @@ command -v vhs >/dev/null || { echo "vhs not found (brew install vhs)" >&2; exit
 # Warm the build so the recording shows the run, not the compile.
 cargo build --manifest-path agent-runtime/Cargo.toml --bins --examples >/dev/null 2>&1
 
-TAPE="$(mktemp "${TMPDIR:-/tmp}/keep-demo.XXXXXX.tape")"
+TAPE="$(mktemp "${TMPDIR:-/tmp}/merion-demo.XXXXXX.tape")"
 trap 'rm -f "$TAPE"' EXIT
 cat >"$TAPE" <<TAPE
 Output "$ROOT/docs/assets/merion/demo.gif"

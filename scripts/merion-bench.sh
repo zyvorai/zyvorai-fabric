@@ -39,7 +39,7 @@ AUTH=()
 command -v python3 >/dev/null || { echo "python3 is required" >&2; exit 1; }
 curl -sf "${AUTH[@]}" "$MERION_API/healthz" >/dev/null || { echo "runtime not reachable at $MERION_API" >&2; exit 2; }
 
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/keep-bench.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/merion-bench.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 printf 'name,qty\nAnn,1\nBob,2\nCy,3\n' > "$WORK/in.csv"
 

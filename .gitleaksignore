@@ -16,3 +16,26 @@ a363604c65393ce9012736c390b747d97437a2dc:agent-runtime/tests/demos-ci.sh:curl-au
 6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Tests/MerionKitTests/SafetyTests.swift:aws-access-token:6
 6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Tests/MerionKitTests/SafetyTests.swift:aws-access-token:23
 6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Tests/MerionKitTests/SafetyTests.swift:generic-api-key:6
+
+# Placeholders and test fixtures found when the full-history scan moved to the gitleaks CLI. None is a credential:
+# - SafetyTests.swift: the fake key AKIAABCDEFGHIJKLMNOP the test plants to prove the file is refused
+# - ApprovalSigner.swift: `P256.Signing.PrivateKey` type names, not key material
+# - l7.rs: a made-up JWT in a unit test; Makefile: an evaluation-only chart value
+# - docs: truncated `eyJhbGciOiJIUzI1NiJ9...` example tokens
+# - enforcement.rs: the base64 of the words "iamaprivatekey", used as a test value
+0a219882e256f5aa78a769ca096bf56ae3a8c696:Makefile:generic-api-key:146
+52ee02cc34ced714937953ba96928aab10bfaca6:backend/vpn-mesh/src/enforcement.rs:generic-api-key:276
+52ee02cc34ced714937953ba96928aab10bfaca6:backend/vpn-mesh/src/enforcement.rs:generic-api-key:306
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Sources/KeepKit/ApprovalSigner.swift:generic-api-key:42
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Sources/KeepKit/ApprovalSigner.swift:generic-api-key:43
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Tests/KeepKitTests/SafetyTests.swift:aws-access-token:23
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Tests/KeepKitTests/SafetyTests.swift:aws-access-token:6
+6c69fed36d0be036483296f668e07a377d402755:integrations/macos-keep/Tests/KeepKitTests/SafetyTests.swift:generic-api-key:6
+b6d461582b0e146c3bd3a046178a607a3e6b7878:docs/security.md:generic-api-key:23
+c41ee2f194505de7e51e90886d61501c2f443f00:docs/guides/cli/api-reference.md:generic-api-key:52
+c41ee2f194505de7e51e90886d61501c2f443f00:docs/reference/api/websocket.md:generic-api-key:165
+c41ee2f194505de7e51e90886d61501c2f443f00:docs/reference/api/websocket.md:generic-api-key:223
+c41ee2f194505de7e51e90886d61501c2f443f00:docs/reference/api/websocket.md:generic-api-key:38
+c41ee2f194505de7e51e90886d61501c2f443f00:docs/tutorials/06-security-hardening.md:generic-api-key:45
+c41ee2f194505de7e51e90886d61501c2f443f00:docs/tutorials/06-security-hardening.md:generic-api-key:55
+f30bb7d96b73af7ac60e4e03a94d87bc867fd16d:agent-runtime/src/l7.rs:jwt:180

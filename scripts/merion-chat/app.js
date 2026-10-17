@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 const app = $("app"), log = $("log"), statusEl = $("status"), form = $("form"), input = $("input"), sendBtn = $("send");
 const threadsEl = $("threads"), threadsEmpty = $("threads-empty"), hello = $("hello");
 const agentName = $("agent-name").textContent.trim();
-const KEY = "keep-chat-thread";   // the conversation to reopen after a reload; only a convenience, so a blocked or empty storage is fine
+const KEY = "merion-chat-thread";   // the conversation to reopen after a reload; only a convenience, so a blocked or empty storage is fine
 const remembered = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
 const remember = (id) => { try { localStorage.setItem(KEY, id); } catch { /* storage may be blocked */ } };
 

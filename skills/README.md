@@ -5,8 +5,8 @@ folder with a `SKILL.md`. Copy a folder into your agent's skills directory (for 
 
 | Skill | Use it to |
 |---|---|
-| [`keep-cli`](keep-cli/SKILL.md) | Run use cases and inspect runs with `merionctl` |
-| [`keep-policy`](keep-policy/SKILL.md) | Write, sign and load a `merion.policy.yaml` |
-| [`keep-debug`](keep-debug/SKILL.md) | Work out why a cell was blocked or froze |
+| [`merion-cli`](merion-cli/SKILL.md) | Run use cases and inspect runs with `merionctl` |
+| [`merion-policy`](merion-policy/SKILL.md) | Write, sign and load a `merion.policy.yaml` |
+| [`merion-debug`](merion-debug/SKILL.md) | Work out why a cell was blocked or froze |
 
 The skills only restate what is in `docs/merion/`. If a skill and the docs disagree, the docs win; fix the skill.
