@@ -4,7 +4,7 @@
 /** Real output of scripts/merion-e2e.sh, condensed (public/merion/demo-static.svg). */
 export default function MerionDemoFrame() {
   return (
-    <figure className="keep-mkt-demo">
+    <figure className="merion-mkt-demo">
       <img
         src="/merion/demo-static.svg"
         alt="Real output of ./scripts/merion-e2e.sh: 40 checks passed, 0 failed"

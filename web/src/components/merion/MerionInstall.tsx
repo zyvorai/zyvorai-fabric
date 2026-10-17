@@ -22,8 +22,8 @@ export default function MerionInstall() {
   }
 
   return (
-    <div className="keep-mkt-install" id="install">
-      <div className="keep-mkt-install-tabs" role="tablist">
+    <div className="merion-mkt-install" id="install">
+      <div className="merion-mkt-install-tabs" role="tablist">
         {marketing.install.map((s, i) => (
           <button
             key={s.label}
@@ -36,15 +36,15 @@ export default function MerionInstall() {
           </button>
         ))}
       </div>
-      <div className="keep-mkt-install-code">
+      <div className="merion-mkt-install-code">
         <pre>
           <code>{text}</code>
         </pre>
-        <button className="keep-mkt-install-copy" onClick={copy} aria-label="Copy commands">
+        <button className="merion-mkt-install-copy" onClick={copy} aria-label="Copy commands">
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <p className="keep-mkt-install-note">{step.note}</p>
+      <p className="merion-mkt-install-note">{step.note}</p>
     </div>
   )
 }

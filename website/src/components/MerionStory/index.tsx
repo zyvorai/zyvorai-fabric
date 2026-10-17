@@ -125,9 +125,9 @@ export default function MerionStory(): ReactNode {
             <button
               type="button"
               role="tab"
-              id={`keep-tab-${b.id}`}
+              id={`merion-tab-${b.id}`}
               aria-selected={i === active}
-              aria-controls="keep-visual"
+              aria-controls="merion-visual"
               className={styles.itemHead}
               onClick={() => setActive(i)}>
               <span>{b.title}</span>
@@ -140,9 +140,9 @@ export default function MerionStory(): ReactNode {
         ))}
       </div>
       <div
-        id="keep-visual"
+        id="merion-visual"
         role="tabpanel"
-        aria-labelledby={`keep-tab-${BEATS[active].id}`}
+        aria-labelledby={`merion-tab-${BEATS[active].id}`}
         className={styles.stage}
         key={BEATS[active].id}>
         {BEATS[active].visual}

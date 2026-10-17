@@ -291,15 +291,15 @@ a:hover {
   }
 }
 
-/* —— Keep marketing (Muse-caliber product story; no Muse consumer chrome) —— */
-.keep-mkt {
+/* —— Merion marketing (Muse-caliber product story; no Muse consumer chrome) —— */
+.merion-mkt {
   --keep-steel: #1a2330;
   --keep-mist: #8b9bb0;
   --keep-ink: #e8eef5;
   --keep-accent: #6ee7b7;
   --keep-plane: #0c1118;
 }
-.keep-mkt-hero {
+.merion-mkt-hero {
   position: relative;
   min-height: calc(100vh - 48px);
   display: flex;
@@ -314,7 +314,7 @@ a:hover {
     linear-gradient(180deg, #0a0e14 0%, var(--keep-steel) 48%, #0c1118 100%);
   color: var(--keep-ink);
 }
-.keep-mkt-hero::before {
+.merion-mkt-hero::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -322,11 +322,11 @@ a:hover {
   pointer-events: none;
   opacity: 0.5;
 }
-.keep-mkt-hero > * {
+.merion-mkt-hero > * {
   position: relative;
   z-index: 1;
 }
-.keep-mkt-brand {
+.merion-mkt-brand {
   font-size: clamp(3.5rem, 12vw, 7.5rem);
   font-weight: 600;
   letter-spacing: -0.055em;
@@ -334,7 +334,7 @@ a:hover {
   margin: 0 0 20px;
   color: #fff;
 }
-.keep-mkt-hero h1 {
+.merion-mkt-hero h1 {
   font-size: clamp(1.35rem, 3.2vw, 2rem);
   font-weight: 500;
   letter-spacing: -0.03em;
@@ -343,7 +343,7 @@ a:hover {
   color: rgba(232, 238, 245, 0.92);
   max-width: 22ch;
 }
-.keep-mkt-hero .lede {
+.merion-mkt-hero .lede {
   font-size: clamp(1rem, 2vw, 1.2rem);
   color: var(--keep-mist);
   max-width: 34rem;
@@ -351,17 +351,17 @@ a:hover {
   line-height: 1.45;
   font-weight: 400;
 }
-.keep-mkt-hero .mkt-cta-row .zf-btn-primary {
+.merion-mkt-hero .mkt-cta-row .zf-btn-primary {
   background: #fff;
   color: #0c1118;
   border-color: #fff;
 }
-.keep-mkt-hero .mkt-cta-row .zf-btn-secondary {
+.merion-mkt-hero .mkt-cta-row .zf-btn-secondary {
   background: transparent;
   color: #e8eef5;
   border-color: rgba(232, 238, 245, 0.35);
 }
-.keep-mkt-hero-plane {
+.merion-mkt-hero-plane {
   width: 100%;
   max-width: 960px;
   margin-top: 48px;
@@ -372,13 +372,13 @@ a:hover {
   box-shadow: 0 -40px 80px rgba(0, 0, 0, 0.35);
 }
 
-.keep-mkt-section {
+.merion-mkt-section {
   padding: 100px 24px;
   max-width: 920px;
   margin: 0 auto;
   scroll-margin-top: 64px;
 }
-.keep-mkt-section h2 {
+.merion-mkt-section h2 {
   font-size: clamp(1.85rem, 4vw, 2.75rem);
   font-weight: 600;
   letter-spacing: -0.035em;
@@ -386,7 +386,7 @@ a:hover {
   line-height: 1.1;
   color: var(--zf-ink);
 }
-.keep-mkt-section p {
+.merion-mkt-section p {
   font-size: 1.2rem;
   color: var(--zf-muted);
   line-height: 1.5;
@@ -394,13 +394,13 @@ a:hover {
   max-width: 38rem;
   margin: 0 0 12px;
 }
-.keep-mkt-section .keep-mkt-crumb {
+.merion-mkt-section .merion-mkt-crumb {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   color: var(--zf-secondary);
   margin-top: 16px;
 }
-.keep-mkt-eyebrow {
+.merion-mkt-eyebrow {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -409,7 +409,7 @@ a:hover {
   margin: 0 0 12px;
 }
 
-.keep-mkt-storyboard {
+.merion-mkt-storyboard {
   margin: 28px 0 8px;
   border: 1px solid var(--zf-hairline);
   background:
@@ -417,23 +417,23 @@ a:hover {
     var(--zf-canvas);
   padding: 28px 24px;
 }
-.keep-mkt-storyboard-inner {
+.merion-mkt-storyboard-inner {
   max-width: 520px;
 }
-.keep-mkt-storyboard-label {
+.merion-mkt-storyboard-label {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--zf-secondary);
   margin-bottom: 16px;
 }
-.keep-mkt-chips {
+.merion-mkt-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 20px;
 }
-.keep-mkt-chip {
+.merion-mkt-chip {
   font-size: 13px;
   font-weight: 500;
   padding: 8px 14px;
@@ -441,28 +441,28 @@ a:hover {
   color: var(--zf-muted);
   transition: border-color 0.35s ease, color 0.35s ease, background 0.35s ease;
 }
-.keep-mkt-chip.is-on {
+.merion-mkt-chip.is-on {
   border-color: rgba(16, 185, 129, 0.45);
   background: rgba(16, 185, 129, 0.1);
   color: var(--zf-ink);
 }
-.keep-mkt-chip.is-pulse {
-  animation: keep-mkt-chip-pulse 0.6s ease;
+.merion-mkt-chip.is-pulse {
+  animation: merion-mkt-chip-pulse 0.6s ease;
 }
-.keep-mkt-connect {
+.merion-mkt-connect {
   display: inline-flex;
   align-items: baseline;
   gap: 12px;
   font-variant-numeric: tabular-nums;
   margin-bottom: 12px;
 }
-.keep-mkt-connect-label {
+.merion-mkt-connect-label {
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--zf-secondary);
 }
-.keep-mkt-connect-num {
+.merion-mkt-connect-num {
   font-size: 2.75rem;
   font-weight: 600;
   letter-spacing: -0.04em;
@@ -470,16 +470,16 @@ a:hover {
   line-height: 1;
   transition: color 0.4s ease;
 }
-.keep-mkt-connect.is-zero .keep-mkt-connect-num {
+.merion-mkt-connect.is-zero .merion-mkt-connect-num {
   color: #059669;
 }
-.keep-mkt-storyboard-note {
+.merion-mkt-storyboard-note {
   font-size: 0.95rem !important;
   max-width: 28rem !important;
   margin: 0 !important;
 }
 
-.keep-mkt-sight {
+.merion-mkt-sight {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0;
@@ -489,11 +489,11 @@ a:hover {
   background: var(--keep-plane);
 }
 @media (max-width: 640px) {
-  .keep-mkt-sight {
+  .merion-mkt-sight {
     grid-template-columns: 1fr;
   }
 }
-.keep-mkt-sight-plane {
+.merion-mkt-sight-plane {
   position: relative;
   padding: 28px 24px;
   display: flex;
@@ -501,23 +501,23 @@ a:hover {
   justify-content: center;
   overflow: hidden;
 }
-.keep-mkt-sight-agent {
+.merion-mkt-sight-agent {
   border-right: 1px solid rgba(232, 238, 245, 0.1);
   background: linear-gradient(160deg, #121820 0%, #0c1118 100%);
 }
-.keep-mkt-sight-ops {
+.merion-mkt-sight-ops {
   background:
     radial-gradient(ellipse 70% 60% at 70% 40%, rgba(110, 231, 183, 0.12), transparent 55%),
     linear-gradient(200deg, #151c26 0%, #0a0e14 100%);
 }
-.keep-mkt-sight-tag {
+.merion-mkt-sight-tag {
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--keep-mist);
   margin-bottom: 14px;
 }
-.keep-mkt-sight-a11y {
+.merion-mkt-sight-a11y {
   margin: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
@@ -526,7 +526,7 @@ a:hover {
   text-align: left;
   white-space: pre-wrap;
 }
-.keep-mkt-sight-pixels {
+.merion-mkt-sight-pixels {
   position: relative;
   min-height: 120px;
   display: flex;
@@ -537,7 +537,7 @@ a:hover {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.keep-mkt-sight-scan {
+.merion-mkt-sight-scan {
   position: absolute;
   inset: 10% 15%;
   border: 1px solid rgba(110, 231, 183, 0.25);
@@ -547,34 +547,34 @@ a:hover {
     rgba(110, 231, 183, 0.08) 48%,
     transparent 52%
   );
-  animation: keep-mkt-scan 4.5s ease-in-out infinite;
+  animation: merion-mkt-scan 4.5s ease-in-out infinite;
 }
-.keep-mkt-compare {
+.merion-mkt-compare {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
   margin-top: 28px;
 }
 @media (max-width: 640px) {
-  .keep-mkt-compare {
+  .merion-mkt-compare {
     grid-template-columns: 1fr;
   }
 }
-.keep-mkt-compare dt {
+.merion-mkt-compare dt {
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--zf-secondary);
   margin-bottom: 8px;
 }
-.keep-mkt-compare dd {
+.merion-mkt-compare dd {
   margin: 0;
   font-size: 1.05rem;
   color: var(--zf-ink);
   line-height: 1.45;
   letter-spacing: -0.015em;
 }
-.keep-mkt-honesty {
+.merion-mkt-honesty {
   margin-top: 40px;
   padding-top: 24px;
   border-top: 1px solid var(--zf-hairline);
@@ -582,16 +582,16 @@ a:hover {
   max-width: 36rem !important;
 }
 
-/* Muse vs Keep full comparison */
-.keep-mkt-versus {
+/* Muse vs Merion full comparison */
+.merion-mkt-versus {
   margin-top: 8px;
 }
-.keep-mkt-stack-lede {
+.merion-mkt-stack-lede {
   font-size: 1.2rem !important;
   max-width: 38rem !important;
   margin: 0 0 28px !important;
 }
-.keep-mkt-stack {
+.merion-mkt-stack {
   list-style: none;
   margin: 0 0 40px;
   padding: 0;
@@ -599,7 +599,7 @@ a:hover {
   gap: 0;
   border-top: 1px solid var(--zf-hairline);
 }
-.keep-mkt-stack li {
+.merion-mkt-stack li {
   display: grid;
   grid-template-columns: 7rem 1fr;
   gap: 16px;
@@ -608,25 +608,25 @@ a:hover {
   border-bottom: 1px solid var(--zf-hairline);
 }
 @media (max-width: 520px) {
-  .keep-mkt-stack li {
+  .merion-mkt-stack li {
     grid-template-columns: 1fr;
     gap: 4px;
   }
 }
-.keep-mkt-stack-name {
+.merion-mkt-stack-name {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--zf-ink);
 }
-.keep-mkt-stack-role {
+.merion-mkt-stack-role {
   font-size: 1.05rem;
   color: var(--zf-muted);
   letter-spacing: -0.015em;
   line-height: 1.4;
 }
-.keep-mkt-versus-head {
+.merion-mkt-versus-head {
   display: grid;
   grid-template-columns: 8.5rem 1fr 1fr;
   gap: 16px;
@@ -638,12 +638,12 @@ a:hover {
   color: var(--zf-secondary);
   border-bottom: 1px solid var(--zf-hairline);
 }
-.keep-mkt-versus-rows {
+.merion-mkt-versus-rows {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.keep-mkt-versus-rows li {
+.merion-mkt-versus-rows li {
   display: grid;
   grid-template-columns: 8.5rem 1fr 1fr;
   gap: 16px;
@@ -651,20 +651,20 @@ a:hover {
   border-bottom: 1px solid var(--zf-hairline);
   align-items: start;
 }
-.keep-mkt-versus-label {
+.merion-mkt-versus-label {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--zf-secondary);
   padding-top: 2px;
 }
-.keep-mkt-versus-muse {
+.merion-mkt-versus-muse {
   font-size: 0.98rem;
   color: var(--zf-muted);
   line-height: 1.45;
   letter-spacing: -0.01em;
 }
-.keep-mkt-versus-keep {
+.merion-mkt-versus-merion {
   font-size: 0.98rem;
   color: var(--zf-ink);
   line-height: 1.45;
@@ -672,29 +672,29 @@ a:hover {
   font-weight: 500;
 }
 @media (max-width: 720px) {
-  .keep-mkt-versus-head {
+  .merion-mkt-versus-head {
     display: none;
   }
-  .keep-mkt-versus-rows li {
+  .merion-mkt-versus-rows li {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-  .keep-mkt-versus-muse::before {
+  .merion-mkt-versus-muse::before {
     content: 'Muse · ';
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--zf-secondary);
   }
-  .keep-mkt-versus-keep::before {
-    content: 'Keep · ';
+  .merion-mkt-versus-merion::before {
+    content: 'Merion · ';
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--zf-secondary);
   }
 }
-.keep-mkt-stage-line {
+.merion-mkt-stage-line {
   margin-top: 36px !important;
   font-size: 1.25rem !important;
   line-height: 1.4 !important;
@@ -702,23 +702,23 @@ a:hover {
   letter-spacing: -0.02em !important;
   max-width: 36rem !important;
 }
-.keep-mkt-stage-line em {
+.merion-mkt-stage-line em {
   font-style: normal;
   font-weight: 600;
 }
 
-@keyframes keep-mkt-chip-pulse {
+@keyframes merion-mkt-chip-pulse {
   0% { transform: scale(1); }
   40% { transform: scale(1.04); }
   100% { transform: scale(1); }
 }
-@keyframes keep-mkt-scan {
+@keyframes merion-mkt-scan {
   0%, 100% { opacity: 0.45; transform: translateY(-6%); }
   50% { opacity: 0.9; transform: translateY(6%); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .keep-mkt-chip.is-pulse,
-  .keep-mkt-sight-scan {
+  .merion-mkt-chip.is-pulse,
+  .merion-mkt-sight-scan {
     animation: none;
   }
 }
@@ -1503,18 +1503,18 @@ html[data-theme='dark'] {
   }
 }
 
-/* Keep marketing: install strip, demo frame, value cards, feature grid */
-.keep-mkt-install {
+/* Merion marketing: install strip, demo frame, value cards, feature grid */
+.merion-mkt-install {
   margin: 24px 0 0;
   max-width: 44rem;
   scroll-margin-top: 80px;
 }
-.keep-mkt-install-tabs {
+.merion-mkt-install-tabs {
   display: flex;
   gap: 4px;
   border-bottom: 1px solid var(--zf-hairline);
 }
-.keep-mkt-install-tabs button {
+.merion-mkt-install-tabs button {
   background: none;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -1526,18 +1526,18 @@ html[data-theme='dark'] {
   color: var(--zf-muted);
   cursor: pointer;
 }
-.keep-mkt-install-tabs button.is-on {
+.merion-mkt-install-tabs button.is-on {
   color: var(--zf-ink);
   border-bottom-color: var(--keep-accent, #6ee7b7);
 }
-.keep-mkt-install-code {
+.merion-mkt-install-code {
   position: relative;
   margin-top: 12px;
   border: 1px solid var(--zf-hairline);
   border-radius: var(--zf-radius-sm);
   background: rgba(26, 35, 48, 0.06);
 }
-.keep-mkt-install-code pre {
+.merion-mkt-install-code pre {
   margin: 0;
   padding: 14px 76px 14px 16px;
   overflow-x: auto;
@@ -1546,7 +1546,7 @@ html[data-theme='dark'] {
   line-height: 1.6;
   color: var(--zf-ink);
 }
-.keep-mkt-install-copy {
+.merion-mkt-install-copy {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -1559,50 +1559,50 @@ html[data-theme='dark'] {
   padding: 4px 10px;
   cursor: pointer;
 }
-.keep-mkt-section p.keep-mkt-install-note {
+.merion-mkt-section p.merion-mkt-install-note {
   font-size: 0.9rem;
   margin: 8px 0 0;
 }
 
-.keep-mkt-demo {
+.merion-mkt-demo {
   margin: 28px 0 8px;
   max-width: 47.5rem;
 }
-.keep-mkt-demo img {
+.merion-mkt-demo img {
   display: block;
   width: 100%;
   height: auto;
   border-radius: 12px;
   box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.55);
 }
-.keep-mkt-demo figcaption {
+.merion-mkt-demo figcaption {
   margin-top: 12px;
   font-size: 13px;
   color: var(--zf-muted);
 }
 
-.keep-mkt-values {
+.merion-mkt-values {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
   gap: 16px;
   margin: 24px 0;
 }
-.keep-mkt-value {
+.merion-mkt-value {
   padding: 20px;
   border: 1px solid var(--zf-hairline);
   border-radius: var(--zf-radius);
   background: var(--zf-surface);
 }
-.keep-mkt-value h3 {
+.merion-mkt-value h3 {
   margin: 0 0 6px;
   font-size: 1.1rem;
   color: var(--zf-ink);
 }
-.keep-mkt-section .keep-mkt-value p {
+.merion-mkt-section .merion-mkt-value p {
   font-size: 0.98rem;
   margin: 0;
 }
-.keep-mkt-features {
+.merion-mkt-features {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -1610,7 +1610,7 @@ html[data-theme='dark'] {
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   gap: 4px 24px;
 }
-.keep-mkt-features li {
+.merion-mkt-features li {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1618,7 +1618,7 @@ html[data-theme='dark'] {
   border-top: 1px solid var(--zf-hairline);
   color: var(--zf-ink);
 }
-.keep-mkt-features span {
+.merion-mkt-features span {
   color: var(--zf-muted);
   font-size: 0.95rem;
   line-height: 1.4;

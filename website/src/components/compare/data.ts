@@ -93,7 +93,7 @@ export const PROFILES: Profile[] = [
 ];
 
 /* ------------------------------------------------------------ 2. roadmap */
-/* Source: docs/merion/STATUS.md, MERION-0.2.md, browser/BROWSER-0.3.md. */
+/* Source: docs/merion/STATUS.md, MERION-0.2.md, browser/BROWSER-0.3.md, design/auto-approve-changesets.md, VERIFICATION.md. */
 
 export type RoadState = 'shipped' | 'gated' | 'next';
 
@@ -124,7 +124,7 @@ export const ROADMAP: RoadItem[] = [
     cta: 'Pilot runs',
   },
   {
-    id: 'keep01',
+    id: 'merion01',
     state: 'shipped',
     title: 'Merion 0.1',
     points: [
@@ -148,7 +148,19 @@ export const ROADMAP: RoadItem[] = [
     cta: 'Browser 0.3',
   },
   {
-    id: 'keep02',
+    id: 'merion04',
+    state: 'shipped',
+    title: 'Merion 0.4',
+    points: [
+      'Auto-approve policies for speculate, off by default',
+      'Journaled with the policy id; a phone signature always wins',
+      'Proven through a policy on one real FluxVM lab host',
+    ],
+    href: '/docs/merion/design/auto-approve-changesets',
+    cta: 'Auto-approve',
+  },
+  {
+    id: 'merion02',
     state: 'gated',
     title: 'Merion 0.2',
     points: [
@@ -374,8 +386,8 @@ export FABRIC_API_TOKEN=…  # fabricd JWT (infra-ops)
     id: 'leave',
     label: 'Pack & leave',
     blurb: 'Export the workstation, then unpack it onto another FluxVM node.',
-    code: `merionctl pack   /tmp/keep-pack my-agent
-merionctl unpack /tmp/keep-pack my-agent   # on the other node`,
+    code: `merionctl pack   /tmp/merion-pack my-agent
+merionctl unpack /tmp/merion-pack my-agent   # on the other node`,
     expect: 'Policy, agent pin and vault names — no raw secrets',
     needs: ['A scoped export token (see PRODUCTION.md)', 'A second FluxVM node to unpack onto'],
     href: '/docs/merion/merionctl/',

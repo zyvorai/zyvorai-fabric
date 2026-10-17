@@ -219,7 +219,7 @@ export default function MerionPage(): ReactNode {
                 <Reveal key={r.label} delay={i * 80} className={styles.row}>
                   <span className={styles.rowLabel}>{r.label}</span>
                   <span className={styles.rowMuse}>{r.muse}</span>
-                  <span className={styles.rowKeep}>{r.keep}</span>
+                  <span className={styles.rowMerion}>{r.merion}</span>
                 </Reveal>
               ))}
             </div>

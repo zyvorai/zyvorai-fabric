@@ -30,7 +30,7 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-/** Tabbed copy-to-clipboard terminal. Defaults to the homepage recipes; /keep passes its own. */
+/** Tabbed copy-to-clipboard terminal. Defaults to the homepage recipes; /merion passes its own. */
 export default function Quickstart({items = QUICKSTARTS}: {items?: Quick[]}): ReactNode {
   const [id, setId] = useState(items[0].id);
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle');

@@ -13,16 +13,16 @@ import marketing from '../../../../docs/merion/marketing.json'
 
 const DOCS = 'https://github.com/zyvorai/fabric/blob/main/docs'
 
-export default function Keep() {
+export default function MerionPage() {
   const { isAuthenticated } = useAuth()
   const primaryTo = isAuthenticated ? '/app/merion' : '/sign-in'
   const primaryLabel = isAuthenticated ? 'Brief a PDF' : 'Sign in to brief a PDF'
 
   return (
     <MarketingLayout>
-      <div className="keep-mkt">
-        <section className="keep-mkt-hero">
-          <p className="mkt-reveal keep-mkt-brand">Merion</p>
+      <div className="merion-mkt">
+        <section className="merion-mkt-hero">
+          <p className="mkt-reveal merion-mkt-brand">Merion</p>
           <h1 className="mkt-reveal-delay">
             {marketing.tagline}
           </h1>
@@ -43,30 +43,30 @@ export default function Keep() {
               Star on GitHub
             </a>
           </div>
-          <div className="keep-mkt-hero-plane mkt-reveal-delay-2">
+          <div className="merion-mkt-hero-plane mkt-reveal-delay-2">
             <MerionSplitSight />
           </div>
         </section>
 
-        <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">Get started</p>
+        <section className="merion-mkt-section">
+          <p className="merion-mkt-eyebrow">Get started</p>
           <h2>Run it in 60 seconds.</h2>
           <MerionInstall />
           <MerionDemoFrame />
         </section>
 
-        <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">Why Merion</p>
+        <section className="merion-mkt-section">
+          <p className="merion-mkt-eyebrow">Why Merion</p>
           <h2>Yours to run, read and take.</h2>
-          <div className="keep-mkt-values">
+          <div className="merion-mkt-values">
             {marketing.values.map((v) => (
-              <div key={v.title} className="keep-mkt-value">
+              <div key={v.title} className="merion-mkt-value">
                 <h3>{v.title}</h3>
                 <p>{v.body}</p>
               </div>
             ))}
           </div>
-          <ul className="keep-mkt-features">
+          <ul className="merion-mkt-features">
             {marketing.features.map((f) => (
               <li key={f.title}>
                 <strong>{f.title}</strong>
@@ -76,52 +76,52 @@ export default function Keep() {
           </ul>
         </section>
 
-        <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">See it work</p>
+        <section className="merion-mkt-section">
+          <p className="merion-mkt-eyebrow">See it work</p>
           <h2>Drop in a PDF. Get a brief.</h2>
           <p>
             Give Merion a vendor PDF and it hands back a one-page brief. The agent works inside its
             cell with no browser, and the cockpit shows zero outbound connections.
           </p>
           <MerionDemoStoryboard />
-          <p className="keep-mkt-crumb">
+          <p className="merion-mkt-crumb">
             <a href={`${DOCS}/tutorials/17-merion-pdf-brief.md`} target="_blank" rel="noreferrer">
               Run it yourself →
             </a>
           </p>
         </section>
 
-        <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">Enforced by the host</p>
+        <section className="merion-mkt-section">
+          <p className="merion-mkt-eyebrow">Enforced by the host</p>
           <h2>The agent never polices itself.</h2>
           <p>
             The network rules live on the host, outside the agent’s reach. Only the gateway is
             reachable, QUIC and WebRTC are blocked, and cloud metadata and public DNS are denied. If
             a connection slips through anyway, the session freezes.
           </p>
-          <p className="keep-mkt-crumb">
+          <p className="merion-mkt-crumb">
             <a href={`${DOCS}/merion/confine.md`} target="_blank" rel="noreferrer">
               How host confinement works →
             </a>
           </p>
         </section>
 
-        <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">Day to day</p>
+        <section className="merion-mkt-section">
+          <p className="merion-mkt-eyebrow">Day to day</p>
           <h2>Set a goal. Approve what matters.</h2>
           <p>
             Deploy a ready-made agent, start a session and follow it from the cockpit: what the
             agent is doing, what it touched, and what is waiting for your approval.
           </p>
-          <p className="keep-mkt-crumb">
+          <p className="merion-mkt-crumb">
             <a href={`${DOCS}/tutorials/16-merion-workstation.md`} target="_blank" rel="noreferrer">
               Hands-on tutorial →
             </a>
           </p>
         </section>
 
-        <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">The browser</p>
+        <section className="merion-mkt-section">
+          <p className="merion-mkt-eyebrow">The browser</p>
           <h2>The agent sees structure. You see the page.</h2>
           <p>
             When the agent needs a browser, the model proposes and Merion’s host-side browser acts.
@@ -130,11 +130,11 @@ export default function Keep() {
           </p>
         </section>
 
-        <section className="keep-mkt-section">
-          <p className="keep-mkt-eyebrow">Meta Muse vs Merion</p>
+        <section className="merion-mkt-section">
+          <p className="merion-mkt-eyebrow">Meta Muse vs Merion</p>
           <h2>Same threat model. Different owner.</h2>
           <MerionMuseCompare />
-          <p className="keep-mkt-honesty">Honest about the limits: {marketing.honesty}</p>
+          <p className="merion-mkt-honesty">Honest about the limits: {marketing.honesty}</p>
         </section>
 
         <section className="mkt-band">
