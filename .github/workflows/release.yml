@@ -125,6 +125,7 @@ jobs:
           find artifacts -type f -name '*.tar.gz' -exec cp {} release/ \;
           find artifacts -type f -name 'SHA256SUMS*.txt' -exec cat {} \; > release/SHA256SUMS.txt
           helm package charts/zyvor-fabric -d release
+          helm package charts/zyvor-merion -d release
           ls -la release/
 
       - name: Generate SBOM (Syft)
@@ -140,6 +141,11 @@ jobs:
         env:
           COSIGN_YES: "true"
         run: cosign sign "ghcr.io/${{ github.repository }}@${{ needs.container.outputs.digest }}"
+
+      - name: Push the Merion chart to GHCR (OCI)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for c in release/zyvor-merion-*.tgz; do helm push "$c" oci://ghcr.io/${{ github.repository_owner }}/charts; done
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
