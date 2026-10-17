@@ -113,7 +113,9 @@ impl Config {
             approval_webhook: approval_webhook_from_env()?,
             confine_all: env_opt("ZYVOR_AGENT_CONFINE").is_some_and(|v| v == "1"),
             security_profile: {
-                let keep = env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE").as_deref() == Some("1");
+                let keep = env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE")
+                    .as_deref()
+                    == Some("1");
                 match env_opt("ZYVOR_AGENT_SECURITY_PROFILE") {
                     Some(s) if !s.is_empty() => Some(s),
                     _ if keep => Some("measured".into()),

@@ -467,7 +467,9 @@ mod tests {
         assert!(list_pins(&dir, "pin-desk").await.unwrap().is_empty());
         // Clearing is journaled.
         let rows = state.store.audit.list(None, 50).await.unwrap();
-        assert!(rows.iter().any(|r| r.action == "merion.binary_pins.cleared"));
+        assert!(rows
+            .iter()
+            .any(|r| r.action == "merion.binary_pins.cleared"));
     }
 
     /// The guest script against real sockets: the test process owns both ends of a connection,

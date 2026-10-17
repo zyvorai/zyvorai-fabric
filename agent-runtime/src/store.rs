@@ -952,7 +952,10 @@ impl Store {
         Ok(existed)
     }
 
-    pub async fn list_changeset_policies(&self, user: &str) -> Vec<crate::changeset_policy::StoredPolicy> {
+    pub async fn list_changeset_policies(
+        &self,
+        user: &str,
+    ) -> Vec<crate::changeset_policy::StoredPolicy> {
         let mut out: Vec<_> = self
             .changeset_policies
             .read()
@@ -986,7 +989,9 @@ impl Store {
     ) -> Result<crate::changeset_policy::StoredPolicy> {
         let mut map = self.changeset_policies.write().await;
         let key = format!("{user}/{agent}");
-        policy.version = map.get(&key).map_or(1, |p| p.policy.version.saturating_add(1));
+        policy.version = map
+            .get(&key)
+            .map_or(1, |p| p.policy.version.saturating_add(1));
         let record = crate::changeset_policy::StoredPolicy {
             user_id: user.to_string(),
             agent: agent.to_string(),

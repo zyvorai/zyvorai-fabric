@@ -886,7 +886,8 @@ mod tests {
     /// so a limit (a 200-character pattern, an 80-character title) is caught here and not by a red CI job on main.
     #[test]
     fn every_shipped_usecase_pack_validates() {
-        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/merion-agents");
+        let dir =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/merion-agents");
         // the contributor template must stay a valid pack too, or the guide would hand people a broken file
         let template =
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/merion/pack-template");

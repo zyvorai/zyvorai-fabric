@@ -2631,8 +2631,7 @@ async fn put_agent_policy(
     policy.enforceable().map_err(ApiError::bad_request)?;
     let current = crate::policy::MerionPolicy::from_manifest(&agent.manifest);
     let risks = crate::policy_lint::review_change(Some(&current), &policy);
-    let acked =
-        header_str(&headers, "x-merion-policy-ack-risk") == Some("1");
+    let acked = header_str(&headers, "x-merion-policy-ack-risk") == Some("1");
     if crate::policy_lint::needs_ack(&risks) && !acked {
         return Err(ApiError::conflict(format!(
             "policy change widens access ({}); review it and resend with X-Merion-Policy-Ack-Risk: 1",
@@ -3955,8 +3954,8 @@ async fn speculate_session(
     if session.status != SessionStatus::Running {
         return Err(ApiError::conflict("only running sessions can speculate"));
     }
-    let command = build_speculate_command(&req.command, &req.commands)
-        .map_err(ApiError::bad_request)?;
+    let command =
+        build_speculate_command(&req.command, &req.commands).map_err(ApiError::bad_request)?;
     let command = command.as_str();
     if command.len() > MAX_SPECULATE_COMMAND_BYTES {
         return Err(ApiError::bad_request(format!(
@@ -4028,7 +4027,14 @@ async fn speculate_session(
         .map_err(ApiError::internal)?;
     audit_approval_planned(&state, &record).await;
     let policy_file = std::env::var("ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE").ok();
-    dry_run_changeset_policy(&state, &session, &record, &changeset, policy_file.as_deref()).await;
+    dry_run_changeset_policy(
+        &state,
+        &session,
+        &record,
+        &changeset,
+        policy_file.as_deref(),
+    )
+    .await;
     let (record, auto_error) = auto_decide_changeset(&state, &session, record, &changeset).await;
     let mut body = json!({ "approval": record, "changeset": changeset });
     if let Some(error) = auto_error {
@@ -4075,7 +4081,9 @@ async fn auto_decide_changeset(
         .filter(|a| {
             a.kind == ApprovalKind::Changeset
                 && a.status == ApprovalStatus::Approved
-                && a.comment.as_deref().is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX))
+                && a.comment
+                    .as_deref()
+                    .is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX))
                 && a.decided_at.is_some_and(|t| t > since)
         })
         .count();
@@ -4084,7 +4092,9 @@ async fn auto_decide_changeset(
     } else if session.status != SessionStatus::Running {
         Err("the session is not running".to_string())
     } else if recent >= MAX_AUTO_PER_HOUR {
-        Err(format!("{MAX_AUTO_PER_HOUR} auto-approvals in the last hour, so a person decides"))
+        Err(format!(
+            "{MAX_AUTO_PER_HOUR} auto-approvals in the last hour, so a person decides"
+        ))
     } else {
         eligible(policy, &subject)
     };
@@ -4170,13 +4180,22 @@ async fn broker_destinations(state: &AppState, session: &SessionRecord) -> Optio
     }
     let host = match state.config.egress_advertise_host.as_deref() {
         Some(v) => v.to_string(),
-        None => state.fluxvm.default_gateway(session.sandbox_id).await.ok()?,
+        None => state
+            .fluxvm
+            .default_gateway(session.sandbox_id)
+            .await
+            .ok()?,
     };
     let gateway = crate::confine::parse_gateway(&host).ok()?;
     let prefix = if gateway.is_ipv4() { 32 } else { 128 };
     let mut ports = vec![state.config.egress_listen.port()];
     ports.extend(state.config.proxy_listen.map(|a| a.port()));
-    Some(ports.into_iter().map(|p| format!("{gateway}/{prefix} tcp/{p}")).collect())
+    Some(
+        ports
+            .into_iter()
+            .map(|p| format!("{gateway}/{prefix} tcp/{p}"))
+            .collect(),
+    )
 }
 
 /// The start of the comment an automatic approval carries, so it is never mistaken for a person's.
@@ -4904,7 +4923,9 @@ mod tests {
             build_speculate_command("", &v(&["a; b", "c # note"])).unwrap(),
             "{ a; b\n} && { c # note\n}"
         );
-        let many: Vec<String> = (0..=MAX_SPECULATE_COMMANDS).map(|i| format!("c{i}")).collect();
+        let many: Vec<String> = (0..=MAX_SPECULATE_COMMANDS)
+            .map(|i| format!("c{i}"))
+            .collect();
         assert!(build_speculate_command("", &many).is_err());
     }
 
@@ -4953,15 +4974,22 @@ mod tests {
         (id, vec![])
     }
 
-    async fn dry_run_detail(policy: Option<&str>, changes: Value) -> (Value, ApprovalStatus, Vec<&'static str>) {
+    async fn dry_run_detail(
+        policy: Option<&str>,
+        changes: Value,
+    ) -> (Value, ApprovalStatus, Vec<&'static str>) {
         let fake = FakeFlux::default();
         let url = start_fake_flux(fake.clone()).await;
         let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
         let session = running_session(&state, SessionStatus::Running).await;
         let (approval, _) = speculate_for_test(&state, session.id).await;
         let record = state.store.get_approval(approval).await.unwrap();
-        let mut cs: crate::fluxvm::Changeset =
-            serde_json::from_value(fake_changeset(&session.sandbox_id.to_string(), "00000000-0000-0000-0000-00000000c0de", "pending")).unwrap();
+        let mut cs: crate::fluxvm::Changeset = serde_json::from_value(fake_changeset(
+            &session.sandbox_id.to_string(),
+            "00000000-0000-0000-0000-00000000c0de",
+            "pending",
+        ))
+        .unwrap();
         cs.changes = changes;
         cs.side_effects = json!({"egress": "blocked", "non_replayable": []});
         cs.staged = json!({"/work/a.txt": {"size": 6}});
@@ -4969,10 +4997,22 @@ mod tests {
         if let Some(text) = policy {
             std::fs::write(&file, text).unwrap();
         }
-        dry_run_changeset_policy(&state, &session, &record, &cs, policy.map(|_| file.to_str().unwrap())).await;
+        dry_run_changeset_policy(
+            &state,
+            &session,
+            &record,
+            &cs,
+            policy.map(|_| file.to_str().unwrap()),
+        )
+        .await;
         let _ = std::fs::remove_file(&file);
         let entries = state.store.audit.list(Some(session.id), 100).await.unwrap();
-        let entry = entries.into_iter().rev().find(|e| e.action == "changeset.policy.dry_run").map(|e| e.detail).unwrap_or(Value::Null);
+        let entry = entries
+            .into_iter()
+            .rev()
+            .find(|e| e.action == "changeset.policy.dry_run")
+            .map(|e| e.detail)
+            .unwrap_or(Value::Null);
         let after = state.store.get_approval(approval).await.unwrap();
         let calls = fake.calls.lock().unwrap().iter().map(|_| "call").collect();
         (entry, after.status, calls)

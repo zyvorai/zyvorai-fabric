@@ -154,9 +154,10 @@ pub struct PolicyTrust {
 
 impl PolicyTrust {
     pub fn from_env() -> Result<Self> {
-        let merion_mode = crate::config::env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE")
-            .as_deref()
-            == Some("1");
+        let merion_mode =
+            crate::config::env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE")
+                .as_deref()
+                == Some("1");
         let raw = std::env::var("ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS").unwrap_or_default();
         let mut trusted_signers = Vec::new();
         for part in raw.split(',').map(str::trim).filter(|s| !s.is_empty()) {
@@ -207,8 +208,9 @@ impl PolicyTrust {
         if !self.merion_mode {
             return Ok(());
         }
-        self.verify_yaml(body, signature_hex)
-            .context("Keep mode requires X-Merion-Manifest-Signature over the exact deployment JSON")
+        self.verify_yaml(body, signature_hex).context(
+            "Keep mode requires X-Merion-Manifest-Signature over the exact deployment JSON",
+        )
     }
 
     pub fn verify_yaml(&self, yaml: &[u8], signature_hex: Option<&str>) -> Result<()> {
