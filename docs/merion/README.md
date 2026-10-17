@@ -16,7 +16,7 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 
 [**Try it in 60 seconds**](#try-it-in-60-seconds) ·
 [How it works](#how-keep-works) ·
-[Merion vs Muse](#keep-vs-meta-muse) ·
+[Merion vs Muse](#merion-vs-meta-muse) ·
 [Docs](MERION.md) ·
 [Website](https://zyvorai.github.io/fabric/merion)
 
@@ -62,7 +62,7 @@ branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.m
 - [Build your own use case](#build-your-own-use-case)
 - [Install it on a host](#install-it-on-a-host)
 - [Security profiles and what we do not claim](#security-profiles-and-what-we-do-not-claim)
-- [Merion vs Meta Muse](#keep-vs-meta-muse)
+- [Merion vs Meta Muse](#merion-vs-meta-muse)
 - [Where everything lives](#where-everything-lives)
 - [FAQ](#faq)
 
@@ -107,7 +107,7 @@ You (phone or laptop)
 
 Merion is a product layer of [Fabric](../../README.md) on the [agent runtime](../../agent-runtime/) and [FluxVM](https://github.com/zyvorai/fluxvm). It is not a second hypervisor and not a separate repository.
 
-The [agent SDK](../../sdk/agent-runtime/README.md#keep-approvals-and-evidence) also exposes Merion's operator
+The [agent SDK](../../sdk/agent-runtime/README.md#merion-approvals-and-evidence) also exposes Merion's operator
 APIs (`keep.approvals.list()` / `decide()` and evidence queries) to your own code. It needs a runtime API token; a
 user token sees only its own sessions and needs the `approve` scope to decide, and an agent's sandbox token cannot
 call these routes. Merion never approves an action on the agent's behalf.

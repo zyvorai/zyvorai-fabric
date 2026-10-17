@@ -3,7 +3,7 @@ import XCTest
 
 final class ApprovalCardTests: XCTestCase {
     private func approval(kind: String = "egress", previewKind: String? = nil, expires: Int? = nil) -> Approval {
-        let sign = expires.map { #","sign":{"format":"keep-approval-v1","challenge":"c","expires_at":\#($0),"action_sha256":"a"}"# } ?? ""
+        let sign = expires.map { #","sign":{"format":"merion-approval-v1","challenge":"c","expires_at":\#($0),"action_sha256":"a"}"# } ?? ""
         let preview = previewKind.map { #","preview":{"kind":"\#($0)","fields":[{"label":"To","value":"ana@example.com"},{"label":"Subject","value":"Lunch?"}]}"# } ?? ""
         return try! JSONDecoder.keep.decode(Approval.self, from: Data(#"{"id":"a1","kind":"\#(kind)","status":"pending"\#(sign)\#(preview)}"#.utf8))
     }

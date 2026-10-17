@@ -154,7 +154,7 @@ enum DebugLaunch {
         }
         if d.bool(forKey: "SolvorDemoApproval") {
             let exp = Int(Date().timeIntervalSince1970) + 272
-            let json = #"{"id":"demo-1","kind":"http.request","status":"pending","sign":{"format":"keep-approval-v1","challenge":"c","expires_at":\#(exp),"action_sha256":"ab"},"preview":{"kind":"gmail-message","fields":[{"label":"To","value":"ana@example.com"},{"label":"Subject","value":"Lunch on Friday?"},{"label":"Text","value":"Hi Ana, are you free for lunch on Friday at 12:30? I found a place near the office."}]}}"#
+            let json = #"{"id":"demo-1","kind":"http.request","status":"pending","sign":{"format":"merion-approval-v1","challenge":"c","expires_at":\#(exp),"action_sha256":"ab"},"preview":{"kind":"gmail-message","fields":[{"label":"To","value":"ana@example.com"},{"label":"Subject","value":"Lunch on Friday?"},{"label":"Text","value":"Hi Ana, are you free for lunch on Friday at 12:30? I found a place near the office."}]}}"#
             Task { @MainActor in
                 for _ in 0..<40 { if app.connected { break }; try? await Task.sleep(nanoseconds: 250_000_000) }
                 try? await Task.sleep(nanoseconds: 1_500_000_000)

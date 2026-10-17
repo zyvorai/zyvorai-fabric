@@ -36,7 +36,7 @@ It covers use-case runs (a file in, a summary out). Agent sessions, browsing and
 | 5 | One user reads another user's runs | Sessions, artifacts, history and audit slices are scoped to the token's user; operator routes are closed to user tokens; a token in a URL is refused | `agent-runtime` tenancy | `scripts/merion-live-tenancy.sh` |
 | 6 | A stolen user token | Tokens are scoped (`read`, `run`, `approve`), expire (60 s to 7 days) and can be revoked per user | `agent-runtime` | tenancy tests, `POST /v1/users/{id}/revoke-tokens` |
 | 7 | A secret in a file you were about to upload | The Solvor app scans the name and the first 512 KB for private keys, cloud and token strings and `.env`-style files and asks first. It never echoes what it found | Solvor (`MerionKit/SecretScan`) | MerionKit tests |
-| 8 | An approval forged or replayed | Approvals are signed by the user's device key over the exact text (`keep-approval-v1`) with a challenge and an expiry; the host verifies the signature | Runtime + the device (Secure Enclave in Solvor) | `docs/merion/mobile/test-vectors.json`, MerionKit signing tests |
+| 8 | An approval forged or replayed | Approvals are signed by the user's device key over the exact text (`merion-approval-v1`) with a challenge and an expiry; the host verifies the signature | Runtime + the device (Secure Enclave in Solvor) | `docs/merion/mobile/test-vectors.json`, MerionKit signing tests |
 | 9 | Output of one run leaks into the next | The cell is deleted when the run ends; a finished run ends its session, and a frozen cell is kept only for inspection | `agent-runtime` | `merion-live-scenarios.sh` |
 
 ## What the egress count is (and is not)
