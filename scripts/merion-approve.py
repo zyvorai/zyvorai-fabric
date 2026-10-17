@@ -6,7 +6,7 @@
     MERION_API=http://127.0.0.1:19096 MERION_TOKEN=<user token> scripts/merion-approve.py --key phone.key --device demo-phone
 
 It shows what is waiting for you (what the host read out of the request: recipients, subject, text) and asks. Approve or deny signs the
-decision with the key file (the same `keep-approval-v1` payload a real phone signs; see docs/merion/mobile/README.md) and sends it. The key sits
+decision with the key file (the same `merion-approval-v1` payload a real phone signs; see docs/merion/mobile/README.md) and sends it. The key sits
 in a file on THIS machine, so this proves the flow, not the phone's hardware protection (a real phone keeps the key in its Secure Enclave or
 StrongBox). Nothing is decided without an answer from you, unless you pass --decision for a scripted run.
 

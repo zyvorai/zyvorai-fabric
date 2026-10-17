@@ -878,7 +878,7 @@ async fn the_inbox_carries_what_a_phone_needs_to_sign() {
     let w = world().await;
     let (_, v) = call(&w.app, "GET", "/v1/inbox", Some(&w.ana.token), None).await;
     let sign = &v["pending_approvals"][0]["sign"];
-    assert_eq!(sign["format"], "keep-approval-v1");
+    assert_eq!(sign["format"], "merion-approval-v1");
     let a = w.state.store.get_approval(w.ana.approval).await.unwrap();
     let key = crate::authz::signing_key(Some(op().as_str()), None).unwrap();
     assert_eq!(sign["challenge"], crate::devices::challenge(&key, &a));

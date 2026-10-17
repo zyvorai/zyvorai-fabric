@@ -130,7 +130,7 @@ applies to human decisions. Auto-approval is a separate server-side path, not a 
 
 | Abuse | Mitigation |
 |---|---|
-| Agent writes a harmless file, then widens its own policy | Policies are not writable with a session/worker token; only a user token with `approve` scope and, where configured, a device signature (`keep-approval-v1`) |
+| Agent writes a harmless file, then widens its own policy | Policies are not writable with a session/worker token; only a user token with `approve` scope and, where configured, a device signature (`merion-approval-v1`) |
 | Agent hides sensitive output under an allowed path | `deny_globs` is a floor that policy cannot remove; `max_files`/`max_bytes` bound blast radius; egress or non-replayable side effects disqualify |
 | Many tiny auto-approved writes add up to something large | Per-session hourly cap; audit lists every one |
 | Policy matches by command string ("looks like echo") | Not a clause. Command is shown but never evaluated |

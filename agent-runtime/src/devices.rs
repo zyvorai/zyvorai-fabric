@@ -30,12 +30,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
-pub const PAYLOAD_FORMAT: &str = "keep-approval-v1";
-/// The same payload under its post-rename name. A signature over one text never verifies as the other,
-/// so accepting both loses no domain separation. Enrolled phones sign [`PAYLOAD_FORMAT`] today.
-pub const PAYLOAD_FORMAT_MERION: &str = "merion-approval-v1";
-/// Payload formats the host verifies, oldest first.
-pub const ACCEPTED_FORMATS: [&str; 2] = [PAYLOAD_FORMAT, PAYLOAD_FORMAT_MERION];
+/// The one payload format the host verifies. The first line of the signed text, so a signature made for
+/// another purpose never verifies as an approval.
+pub const PAYLOAD_FORMAT: &str = "merion-approval-v1";
 const DEFAULT_SIGN_TTL: i64 = 3600;
 const ED25519_SPKI_PREFIX: [u8; 12] = [
     0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00,
@@ -229,16 +226,7 @@ pub fn signing_payload(
     decision: ApprovalStatus,
     challenge: &str,
 ) -> String {
-    signing_payload_as(PAYLOAD_FORMAT, approval, decision, challenge)
-}
-
-/// [`signing_payload`] under a named format (one of [`ACCEPTED_FORMATS`]).
-pub fn signing_payload_as(
-    format: &str,
-    approval: &ApprovalRecord,
-    decision: ApprovalStatus,
-    challenge: &str,
-) -> String {
+    let format = PAYLOAD_FORMAT;
     let decision = match decision {
         ApprovalStatus::Approved => "approved",
         ApprovalStatus::Denied => "denied",
@@ -257,10 +245,7 @@ pub fn signing_payload_as(
 /// What a phone needs, next to an approval, to sign it.
 pub fn signing_info(key: &[u8], approval: &ApprovalRecord) -> Value {
     json!({
-        // `format` stays the legacy name: it is what a client built before the rename signs and may check.
-        // `formats` lists what the host verifies; a client that knows `merion-approval-v1` may sign that.
         "format": PAYLOAD_FORMAT,
-        "formats": ACCEPTED_FORMATS,
         "challenge": challenge(key, approval),
         "expires_at": expires_at(approval),
         "action_sha256": action_sha256(approval),
@@ -300,11 +285,9 @@ pub fn verify_decision_format(
         return Err(SignError::Expired);
     }
     let challenge = challenge(key, approval);
-    for format in ACCEPTED_FORMATS {
-        let payload = signing_payload_as(format, approval, decision, &challenge);
-        if verify_signature(device, payload.as_bytes(), signature) {
-            return Ok(format);
-        }
+    let payload = signing_payload(approval, decision, &challenge);
+    if verify_signature(device, payload.as_bytes(), signature) {
+        return Ok(PAYLOAD_FORMAT);
     }
     Err(SignError::BadSignature)
 }
@@ -684,7 +667,7 @@ mod tests {
     fn the_payload_is_readable_and_names_everything_signed() {
         let a = approval();
         let p = signing_payload(&a, ApprovalStatus::Approved, "c0ffee");
-        assert!(p.starts_with("keep-approval-v1\n"));
+        assert!(p.starts_with("merion-approval-v1\n"));
         let wants = [
             format!("approval: {}", a.id),
             "decision: approved".to_string(),
@@ -726,19 +709,6 @@ mod tests {
         let ed_sk = ed25519_dalek::SigningKey::from_bytes(&[0x07u8; 32]);
         let std = base64::engine::general_purpose::STANDARD;
         let mut cases = Vec::new();
-        let mut cases_merion = Vec::new();
-        // The same cases under `merion-approval-v1`, in their own array so a client that checks
-        // every entry of `cases` against its own payload builder is unaffected.
-        for decision in [ApprovalStatus::Approved, ApprovalStatus::Denied] {
-            let payload = signing_payload_as(PAYLOAD_FORMAT_MERION, &a, decision, &ch);
-            cases_merion.push(json!({
-                "alg": "ed25519",
-                "decision": if decision == ApprovalStatus::Approved { "approved" } else { "denied" },
-                "public_key": std.encode(ed_sk.verifying_key().as_bytes()),
-                "payload": payload,
-                "signature": std.encode(ed_sk.sign(payload.as_bytes()).to_bytes()),
-            }));
-        }
         for decision in [ApprovalStatus::Approved, ApprovalStatus::Denied] {
             let payload = signing_payload(&a, decision, &ch);
             let der: p256::ecdsa::Signature = p256_sk.sign(payload.as_bytes());
@@ -771,7 +741,6 @@ mod tests {
             },
             "sign": signing_info(&key, &a),
             "cases": cases,
-            "cases_merion": cases_merion,
         })
     }
 
@@ -839,40 +808,39 @@ mod tests {
     }
 
     #[test]
-    fn a_signature_over_either_format_verifies_and_the_formats_do_not_mix() {
+    fn a_signature_verifies_only_for_its_decision_and_only_over_the_merion_format() {
         let key = b"k".to_vec();
         let a = approval();
         let (dev, sk) = ed_device();
         let ch = challenge(&key, &a);
-        let sign = |format: &str, decision| {
-            let payload = signing_payload_as(format, &a, decision, &ch);
-            base64::engine::general_purpose::STANDARD.encode(sk.sign(payload.as_bytes()).to_bytes())
+        let sign = |text: String| {
+            base64::engine::general_purpose::STANDARD.encode(sk.sign(text.as_bytes()).to_bytes())
         };
         let now = Utc::now();
-        for f in ACCEPTED_FORMATS {
-            let sig = sign(f, ApprovalStatus::Approved);
-            assert_eq!(
-                verify_decision_format(&key, &dev, &a, ApprovalStatus::Approved, &sig, now),
-                Ok(f)
+        let sig = sign(signing_payload(&a, ApprovalStatus::Approved, &ch));
+        assert_eq!(
+            verify_decision_format(&key, &dev, &a, ApprovalStatus::Approved, &sig, now),
+            Ok("merion-approval-v1")
+        );
+        // The same signature never verifies for a different decision.
+        assert_eq!(
+            verify_decision_format(&key, &dev, &a, ApprovalStatus::Denied, &sig, now),
+            Err(SignError::BadSignature)
+        );
+        // The pre-rename and any other format are refused.
+        for other in ["merion-approval-v1", "other-approval-v1"] {
+            let text = signing_payload(&a, ApprovalStatus::Approved, &ch).replacen(
+                PAYLOAD_FORMAT,
+                other,
+                1,
             );
-            // The same signature never verifies for a different decision.
             assert_eq!(
-                verify_decision_format(&key, &dev, &a, ApprovalStatus::Denied, &sig, now),
+                verify_decision(&key, &dev, &a, ApprovalStatus::Approved, &sign(text), now),
                 Err(SignError::BadSignature)
             );
         }
-        // A format the host does not list is refused.
-        let other = sign("other-approval-v1", ApprovalStatus::Approved);
-        assert_eq!(
-            verify_decision(&key, &dev, &a, ApprovalStatus::Approved, &other, now),
-            Err(SignError::BadSignature)
-        );
-        // The announced info keeps the legacy name and lists both.
         let info = signing_info(&key, &a);
-        assert_eq!(info["format"], "keep-approval-v1");
-        assert_eq!(
-            info["formats"],
-            json!(["keep-approval-v1", "merion-approval-v1"])
-        );
+        assert_eq!(info["format"], "merion-approval-v1");
+        assert!(info.get("formats").is_none());
     }
 }

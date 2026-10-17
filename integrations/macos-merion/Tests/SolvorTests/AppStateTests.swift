@@ -56,7 +56,7 @@ private func approval(_ id: String) -> Approval {
 }
 private func signed(_ id: String, expiresIn seconds: Int = 300) -> Approval {
     let exp = Int(Date().timeIntervalSince1970) + seconds
-    return try! JSONDecoder.keep.decode(Approval.self, from: Data(#"{"id":"\#(id)","kind":"gmail.send","subject":"Hi","status":"pending","sign":{"format":"keep-approval-v1","challenge":"ch","expires_at":\#(exp),"action_sha256":"ab"}}"#.utf8))
+    return try! JSONDecoder.keep.decode(Approval.self, from: Data(#"{"id":"\#(id)","kind":"gmail.send","subject":"Hi","status":"pending","sign":{"format":"merion-approval-v1","challenge":"ch","expires_at":\#(exp),"action_sha256":"ab"}}"#.utf8))
 }
 private func tempFile(_ name: String) -> URL {
     let dir = FileManager.default.temporaryDirectory.appendingPathComponent("solvor-test-\(UUID().uuidString)")

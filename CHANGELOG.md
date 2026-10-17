@@ -18,10 +18,8 @@
   `forwardedProps.eventNames: "merion"`.
   Also renamed: the browser network identity `keep-browser/{tenant}/{session}` → `merion-browser/…` (match it in any FluxVM policy), and the HMAC label that
   derives user-token signing keys from the operator token, so **user tokens minted from the operator token stop verifying and must be reissued** (an explicit
-  `ZYVOR_AGENT_USER_TOKEN_SECRET` is unaffected). The `keep-approval-v1` signing format stays accepted.
-- **Approval signatures accept both formats.** The host verifies `keep-approval-v1` and `merion-approval-v1`; `sign.format` stays the legacy name,
-  `sign.formats` lists both, and the `approval.device_signature` audit row records which one was used. The SDK reference phone and the Swift
-  `ApprovalSigner` now sign `merion-approval-v1` when the host lists it and fall back to the announced format otherwise.
+  `ZYVOR_AGENT_USER_TOKEN_SECRET` is unaffected).
+- **One approval signing format.** The host verifies only `merion-approval-v1` (the first line of the signed text); `keep-approval-v1` is refused and `sign.formats` is gone. **Phones and clients built before the rename must update** and sign `merion-approval-v1`. The SDK reference phone, `MerionKit` and the test vectors (`cases`, no `cases_merion`) follow.
 
 ### Added
 - **Auto-approve, stage one (dry run).** `ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE` names an operator policy file; each speculate then journals
