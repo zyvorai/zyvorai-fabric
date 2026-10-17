@@ -1,6 +1,6 @@
-name: Keep
+name: Merion
 
-# Keep product surface: unit tests + real end-to-end against a live agent-runtime
+# Merion product surface: unit tests + real end-to-end against a live agent-runtime
 # and FluxVM sandbox stub (no /dev/kvm). Also runs the agent-runtime control-plane
 # e2e (proxy, Sentinel, DLP, approvals).
 
@@ -45,7 +45,7 @@ on:
       - ".github/workflows/merion.yml"
 
 jobs:
-  keep-unit:
+  merion-unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -61,13 +61,13 @@ jobs:
         run: cargo clippy --manifest-path agent-runtime/Cargo.toml --all-targets --examples -- -D warnings
       - name: Template bake script (--force builds a new image beside a locked one)
         run: bash agent-runtime/tests/bake-fresh-image.sh
-      - name: keep-chat proxy (token stays server-side, one route, foreign hosts refused)
+      - name: merion-chat proxy (token stays server-side, one route, foreign hosts refused)
         run: python3 agent-runtime/tests/merion-chat-test.py
       - name: Google consent script (PKCE, scopes, token file mode) against a fake Google
         run: python3 agent-runtime/tests/merion-google-auth-test.py
-      - name: keep-up starter (preflight, dry run, token)
+      - name: merion-up starter (preflight, dry run, token)
         run: bash agent-runtime/tests/merion-up.sh
-      - name: Keep / policy / credentials / export tests
+      - name: Merion / policy / credentials / export tests
         run: |
           cargo test --manifest-path agent-runtime/Cargo.toml policy -- --nocapture
           cargo test --manifest-path agent-runtime/Cargo.toml export_tokens -- --nocapture
@@ -82,9 +82,9 @@ jobs:
           cargo test --manifest-path agent-runtime/Cargo.toml \
             fluxvm::tests::sandbox_create_concurrency_parsing_is_bounded -- --exact --nocapture
 
-  keep-demos-e2e:
+  merion-demos-e2e:
     # The one-click demos, a user-defined use case, and a signed pack deploy in
-    # Keep mode, against the real runtime binary and the FluxVM stand-in.
+    # Merion mode, against the real runtime binary and the FluxVM stand-in.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -108,7 +108,7 @@ jobs:
       - name: Demos, custom use cases and signed packs
         run: bash agent-runtime/tests/demos-ci.sh
 
-  keep-browser-bake-smoke:
+  merion-browser-bake-smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -120,7 +120,7 @@ jobs:
           chmod +x scripts/merion-bake-browser-smoke.sh
           ./scripts/merion-bake-browser-smoke.sh
 
-  keep-e2e:
+  merion-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -136,7 +136,7 @@ jobs:
         run: |
           cargo build --manifest-path agent-runtime/Cargo.toml
           cargo build --manifest-path agent-runtime/Cargo.toml --example merion_sign_policy
-      - name: Keep end-to-end (runtime + FluxVM stub + merionctl)
+      - name: Merion end-to-end (runtime + FluxVM stub + merionctl)
         run: |
           chmod +x scripts/merionctl scripts/merion-e2e.sh
           ./scripts/merion-e2e.sh
@@ -167,7 +167,7 @@ jobs:
         if: always()
         run: |
           cat <<'EOF'
-          Locally (full Keep e2e, no KVM):
+          Locally (full Merion e2e, no KVM):
             ./scripts/merion-e2e.sh
             BIN=agent-runtime/target/release/zyvor-fabric-agent-runtime \
               ./agent-runtime/scripts/e2e-no-fluxvm.sh
@@ -181,5 +181,5 @@ jobs:
             X-Merion-Export-Token for GET /v1/export/audit and GET /v1/agents/{name}/pack
 
           Tutorial: docs/tutorials/16-merion-workstation.md
-          Honesty: measured = software-test; TEE host-memory = Keep 0.2 + hardware only.
+          Honesty: measured = software-test; TEE host-memory = Merion 0.2 + hardware only.
           EOF

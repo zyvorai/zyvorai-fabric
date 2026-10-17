@@ -1,5 +1,5 @@
 name: Use case request
-description: Ask for a new Keep use case (a pack that reads a file and summarises it)
+description: Ask for a new Merion use case (a pack that reads a file and summarises it)
 labels: ["use-case"]
 body:
   - type: markdown

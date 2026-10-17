@@ -1,4 +1,4 @@
-name: Keep chart
+name: Merion chart
 
 on:
   pull_request:
@@ -32,7 +32,7 @@ jobs:
           helm lint charts/zyvor-merion --set "merion.trustedSigners={$SIGNER}"
           helm template k charts/zyvor-merion --set "merion.trustedSigners={$SIGNER}" > render.yaml
           kubeconform -strict -summary -kubernetes-version 1.30.0 render.yaml
-      - name: Keep mode without a trusted signer must not render
+      - name: Merion mode without a trusted signer must not render
         run: |
           if helm template k charts/zyvor-merion 2>err.txt; then echo "rendered without a signer"; exit 1; fi
           grep -q "trustedSigners" err.txt
@@ -42,8 +42,8 @@ jobs:
         run: |
           SIGNER=$(printf 'a%.0s' $(seq 1 64))
           cat > values-creds.yaml <<EOF
-          keep: {trustedSigners: ["$SIGNER"]}
-          serviceAccount: {name: keep-runtime}
+          merion: {trustedSigners: ["$SIGNER"]}
+          serviceAccount: {name: merion-runtime}
           credentials:
             descriptors:
               stripe:
@@ -60,7 +60,7 @@ jobs:
           helm template k charts/zyvor-merion -f values-creds.yaml > render-creds.yaml
           kubeconform -strict -summary -kubernetes-version 1.30.0 render-creds.yaml
           grep -q 'ZYVOR_AGENT_CREDENTIALS_FILE' render-creds.yaml
-          grep -q 'serviceAccountName: keep-runtime' render-creds.yaml
+          grep -q 'serviceAccountName: merion-runtime' render-creds.yaml
           grep -q 'mountPath: /run/secrets/stripe' render-creds.yaml
           grep -q 'checksum/credentials' render-creds.yaml
           # Without descriptors, none of it is rendered.
