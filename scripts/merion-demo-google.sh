@@ -2,7 +2,7 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # ============================================================================
-# keep-demo-google — try the Gmail and Calendar agents on YOUR Google account, on this laptop. NOT SEALED.
+# merion-demo-google — try the Gmail and Calendar agents on YOUR Google account, on this laptop. NOT SEALED.
 # ============================================================================
 #   GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... ./scripts/merion-demo-google.sh
 #   ./scripts/merion-demo-google.sh --client-json ~/Downloads/client_secret_....json    # the file Google lets you download
@@ -82,7 +82,7 @@ for p in "$SIM_PORT" "$API_PORT" "$EGRESS_PORT" "$CHAT_PORT" "$((CHAT_PORT+1))" 
   if (echo >"/dev/tcp/127.0.0.1/$p") 2>/dev/null; then echo "port $p is already in use (see MERION_SIM_PORT, MERION_LOCAL_PORT, MERION_LOCAL_EGRESS_PORT, MERION_CHAT_PORT)" >&2; exit 1; fi
 done
 
-echo "keep-demo-google: SIMULATED cell, software phone key. Real Google account access. Runtime at http://127.0.0.1:$API_PORT"
+echo "merion-demo-google: SIMULATED cell, software phone key. Real Google account access. Runtime at http://127.0.0.1:$API_PORT"
 if (( DRY )); then
   echo "would: build the runtime if needed; get your Google consent in the browser unless $TOKEN_FILE exists; start the simulator and the runtime with the"
   echo "       per-person Google credentials and your client id; connect your account for user 'demo'; deploy gmail-triage, mail-compose and calendar-agent;"
@@ -100,7 +100,7 @@ fi
 
 WORK="$(mktemp -d)"
 PIDS=()
-cleanup() { for p in ${PIDS[@]+"${PIDS[@]}"}; do kill "$p" 2>/dev/null || true; done; wait 2>/dev/null || true; rm -rf "$WORK"; echo; echo "keep-demo-google: stopped, temporary state removed. Revoke access any time at https://myaccount.google.com/permissions"; }
+cleanup() { for p in ${PIDS[@]+"${PIDS[@]}"}; do kill "$p" 2>/dev/null || true; done; wait 2>/dev/null || true; rm -rf "$WORK"; echo; echo "merion-demo-google: stopped, temporary state removed. Revoke access any time at https://myaccount.google.com/permissions"; }
 trap cleanup EXIT INT TERM
 
 if (( BUILD )); then echo "building the runtime (incremental)..."; cargo build --manifest-path "$ROOT/agent-runtime/Cargo.toml" 2>&1 | tail -2; fi

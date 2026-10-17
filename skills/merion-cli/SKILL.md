@@ -1,5 +1,5 @@
 ---
-name: keep-cli
+name: merion-cli
 description: Drive a Merion runtime with merionctl. Use when asked to run a Merion use case, deploy a pack, list runs or artifacts, read the audit journal, or check pending approvals.
 ---
 
@@ -32,4 +32,4 @@ export MERION_TOKEN=...   # the runtime's ZYVOR_AGENT_API_TOKEN, never print it
 
 - Read `docs/merion/PACKS.md` before writing a `pack.json`. The `extract` field is a fixed list, never a command.
 - Do not print, log or commit `MERION_TOKEN`.
-- Policy changes go through the `keep-policy` skill, not ad-hoc PUTs.
+- Policy changes go through the `merion-policy` skill, not ad-hoc PUTs.

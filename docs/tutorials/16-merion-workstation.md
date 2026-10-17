@@ -89,7 +89,7 @@ Use Tutorial 11’s deploy JSON shape, and add Merion fields:
 
 ```json
 {
-  "name": "keep-demo",
+  "name": "merion-demo",
   "bundle_base64": "<base64 of bundle.mjs>",
   "manifest": {
     "template": "node22-agent",
@@ -109,7 +109,7 @@ Use Tutorial 11’s deploy JSON shape, and add Merion fields:
 ```
 
 ```bash
-./scripts/merionctl create -f /tmp/keep-demo-deploy.json
+./scripts/merionctl create -f /tmp/merion-demo-deploy.json
 ```
 
 `model_socket` is the BYO brain — swap Grok / local GGUF / vLLM without rebuilding the cell.  
@@ -121,11 +121,11 @@ Console UX: marketing `/keep` → **Open Agents** when signed in.
 ## Step 3 — Readable Sentinel policy (must be signed)
 
 ```bash
-./scripts/merionctl policy show keep-demo > /tmp/merion.policy.yaml
+./scripts/merionctl policy show merion-demo > /tmp/merion.policy.yaml
 # edit allow/deny/ask/taint, then sign and set:
 ./agent-runtime/target/release/examples/merion_sign_policy sign "$SEED" /tmp/merion.policy.yaml \
   > /tmp/merion.policy.yaml.sig
-./scripts/merionctl policy set keep-demo /tmp/merion.policy.yaml /tmp/merion.policy.yaml.sig
+./scripts/merionctl policy set merion-demo /tmp/merion.policy.yaml /tmp/merion.policy.yaml.sig
 ```
 
 Unsigned `PUT` returns **403** in Merion mode. Example schema:
@@ -162,8 +162,8 @@ takeover are **not** in Merion 0.1 — see [browser/README.md](../merion/browser
 ## Step 5 — Pack / unpack (two homes, one disk story)
 
 ```bash
-./scripts/merionctl pack   /tmp/keep-pack keep-demo
-./scripts/merionctl unpack /tmp/keep-pack keep-demo
+./scripts/merionctl pack   /tmp/keep-pack merion-demo
+./scripts/merionctl unpack /tmp/keep-pack merion-demo
 ```
 
 This moves policy + manifest pin. Copy the FluxVM qcow2 / vault export beside

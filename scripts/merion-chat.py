@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
-"""keep-chat: a small web chat for a Keep agent, over the AG-UI endpoint (POST /v1/agui).
+"""merion-chat: a small web chat for a Keep agent, over the AG-UI endpoint (POST /v1/agui).
 
     MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-chat.py --agent echo-agent      # then open http://127.0.0.1:8787
 
@@ -135,10 +135,10 @@ def make_handler(upstream: str, token: str, agent: str, port: int, user: str = "
         raise SystemExit("MERION_API must be an http(s) URL")
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "keep-chat"
+        server_version = "merion-chat"
 
         def log_message(self, fmt, *args):  # quiet: no request bodies, no tokens
-            sys.stderr.write("keep-chat: %s\n" % (fmt % args))
+            sys.stderr.write("merion-chat: %s\n" % (fmt % args))
 
         def _send(self, code, body=b"", ctype="text/plain; charset=utf-8", extra=None):
             self.send_response(code)
@@ -534,7 +534,7 @@ def main():
     upstream = os.environ.get("MERION_API", os.environ.get("KEEP_API", "http://127.0.0.1:9096"))
     token = os.environ.get("MERION_TOKEN", os.environ.get("KEEP_TOKEN", ""))
     srv = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(upstream, token, args.agent, args.port, args.user))
-    print(f"keep-chat: agent '{args.agent}' on {upstream}. Open http://127.0.0.1:{args.port}   (Ctrl-C to stop)", flush=True)
+    print(f"merion-chat: agent '{args.agent}' on {upstream}. Open http://127.0.0.1:{args.port}   (Ctrl-C to stop)", flush=True)
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

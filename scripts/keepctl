@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# Deprecated name: this script is now scripts/merionctl. Kept so existing callers keep working.
-echo "note: scripts/keepctl is now scripts/merionctl" >&2
-exec "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/merionctl" "$@"

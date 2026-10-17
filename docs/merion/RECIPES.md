@@ -41,7 +41,7 @@ export MERION_API=http://127.0.0.1:9096 MERION_TOKEN=...      # a user token
 
 Exit codes: `0` unchanged (or the first run), `3` changed (or matched), `2` the fetch or run failed, `4` failed `--max-failures` times in a row (default 3). Run it every few
 minutes from cron (`*/10 * * * * MERION_API=... MERION_TOKEN=... /path/to/merion-watch.sh URL --notify`) or a launchd `StartInterval` job; a non-zero exit is your alert. The last
-result per URL is kept in `~/.local/state/keep-watch/`. Use a use case that reads what you care about (your own pack works if it accepts `.html`); a page is judged only as
+result per URL is kept in `~/.local/state/merion-watch/`. Use a use case that reads what you care about (your own pack works if it accepts `.html`); a page is judged only as
 well as the pack's keywords match its words. Do not put a password or token in the URL: the script refuses `user:pass@`.
 
 Verified by `agent-runtime/tests/demos-ci.sh` against a local page and a real runtime: baseline, unchanged, a change reported once, `--match` alerting only on new text,

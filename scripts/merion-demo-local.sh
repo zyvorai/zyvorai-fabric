@@ -2,7 +2,7 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # ============================================================================
-# keep-demo-local — try Keep's use cases on this laptop in two minutes. NOT SEALED.
+# merion-demo-local — try Keep's use cases on this laptop in two minutes. NOT SEALED.
 # ============================================================================
 #   ./scripts/merion-demo-local.sh            # start the simulator and the runtime, print how to connect, run until Ctrl-C
 #   ./scripts/merion-demo-local.sh --dry-run  # check the tools and print the plan
@@ -52,7 +52,7 @@ for p in "$SIM_PORT" "$API_PORT" "$EGRESS_PORT"; do
   if (echo >"/dev/tcp/127.0.0.1/$p") 2>/dev/null; then echo "port $p is already in use (set MERION_SIM_PORT / MERION_LOCAL_PORT / MERION_LOCAL_EGRESS_PORT)" >&2; exit 1; fi
 done
 
-echo "keep-demo-local: SIMULATOR, NOT SEALED (no VM, no network policy). Runtime at http://127.0.0.1:$API_PORT"
+echo "merion-demo-local: SIMULATOR, NOT SEALED (no VM, no network policy). Runtime at http://127.0.0.1:$API_PORT"
 if (( DRY )); then
   echo "would: build the runtime if needed, start the simulator on :$SIM_PORT and the runtime on :$API_PORT with a random operator token,"
   echo "       mint a 1-day user token, print the Solvor settings and a first command, then wait until Ctrl-C and delete its temporary state"
@@ -61,7 +61,7 @@ fi
 
 WORK="$(mktemp -d)"
 PIDS=()
-cleanup() { for p in ${PIDS[@]+"${PIDS[@]}"}; do kill "$p" 2>/dev/null || true; done; wait 2>/dev/null || true; rm -rf "$WORK"; echo; echo "keep-demo-local: stopped, temporary state removed"; }
+cleanup() { for p in ${PIDS[@]+"${PIDS[@]}"}; do kill "$p" 2>/dev/null || true; done; wait 2>/dev/null || true; rm -rf "$WORK"; echo; echo "merion-demo-local: stopped, temporary state removed"; }
 trap cleanup EXIT INT TERM
 
 # always an incremental build (a second or two when nothing changed), so the demo never runs a runtime older than this checkout

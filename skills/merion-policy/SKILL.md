@@ -1,5 +1,5 @@
 ---
-name: keep-policy
+name: merion-policy
 description: Write, sign and load a Merion Sentinel policy (merion.policy.yaml). Use when asked to allow or deny an agent's network access, tighten egress, or set which actions need approval.
 ---
 
