@@ -773,7 +773,7 @@ mod tests {
         assert_eq!(v["device"]["id"], "a-fcm");
         assert_eq!(v["device"]["push"]["token"], "T1");
         assert_eq!(v["approval"]["id"], json!(r.id));
-        assert_eq!(v["sign"]["format"], "keep-approval-v1");
+        assert_eq!(v["sign"]["format"], "merion-approval-v1");
         assert_eq!(v["sign"]["challenge"].as_str().unwrap().len(), 32);
         // The message never carries the planned action (request details) or any secret.
         assert!(v["approval"].get("planned_action").is_none());

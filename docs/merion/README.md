@@ -107,7 +107,7 @@ You (phone or laptop)
 
 Merion is a product layer of [Fabric](../../README.md) on the [agent runtime](../../agent-runtime/) and [FluxVM](https://github.com/zyvorai/fluxvm). It is not a second hypervisor and not a separate repository.
 
-The [agent SDK](../../sdk/agent-runtime/README.md#keep-approvals-and-evidence) also exposes Merion's operator
+The [agent SDK](../../sdk/agent-runtime/README.md#merion-approvals-and-evidence) also exposes Merion's operator
 APIs (`keep.approvals.list()` / `decide()` and evidence queries) to your own code. It needs a runtime API token; a
 user token sees only its own sessions and needs the `approve` scope to decide, and an agent's sandbox token cannot
 call these routes. Merion never approves an action on the agent's behalf.

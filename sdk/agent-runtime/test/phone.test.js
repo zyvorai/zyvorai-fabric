@@ -5,33 +5,21 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { PAYLOAD_FORMAT_LEGACY, decisionBody, pickFormat, generateDevice, signDecision, signingPayload, verifyDecision, verifyRelaySignature } from "../src/phone.js";
+import { decisionBody, generateDevice, signDecision, signingPayload, verifyDecision, verifyRelaySignature } from "../src/phone.js";
 
 // The runtime's test suite writes these; both sides must agree on them.
 const vectors = JSON.parse(readFileSync(new URL("../../../docs/merion/mobile/test-vectors.json", import.meta.url), "utf8"));
 const approval = { ...vectors.approval, sign: vectors.sign };
 
-test("the payload matches the runtime's byte for byte, in both formats", () => {
+test("the payload matches the runtime's byte for byte", () => {
   for (const c of vectors.cases) {
-    assert.equal(signingPayload(approval, c.decision, approval.sign, PAYLOAD_FORMAT_LEGACY), c.payload, `${c.alg} ${c.decision}`);
-  }
-  // The host lists merion-approval-v1, so that is what the phone signs by default.
-  for (const c of vectors.cases_merion) {
     assert.equal(signingPayload(approval, c.decision), c.payload, `${c.alg} ${c.decision}`);
+    assert.ok(c.payload.startsWith("merion-approval-v1\n"));
   }
-});
-
-test("an older host that announces only the legacy format gets the legacy payload", () => {
-  const old = { ...vectors.sign };
-  delete old.formats;
-  assert.equal(pickFormat(old), PAYLOAD_FORMAT_LEGACY);
-  assert.equal(pickFormat(vectors.sign), "merion-approval-v1");
-  const c = vectors.cases[0];
-  assert.equal(signingPayload(approval, c.decision, old), c.payload);
 });
 
 test("signatures made by the runtime's test keys verify here", () => {
-  for (const c of [...vectors.cases, ...vectors.cases_merion]) {
+  for (const c of vectors.cases) {
     assert.equal(verifyDecision(c.public_key, c.alg, c.payload, c.signature), true, `${c.alg} ${c.decision}`);
     // and not for the other decision
     const other = c.decision === "approved" ? "denied" : "approved";

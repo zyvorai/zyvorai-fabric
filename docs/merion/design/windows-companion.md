@@ -8,7 +8,7 @@ cannot decide them. So today a Windows-only person cannot use the part of Merion
 
 ## What exists
 
-- The signed decision (`keep-approval-v1`): a P-256 or Ed25519 signature over a readable payload that includes the approval id, the decision, the
+- The signed decision (`merion-approval-v1`): a P-256 or Ed25519 signature over a readable payload that includes the approval id, the decision, the
   action's digest (which covers the host-rendered preview), a challenge and an expiry. Enrolled per user by the operator
   ([mobile/README.md](../mobile/README.md)); verified in `devices.rs`.
 - Signers today: Secure Enclave (Mac, iPhone), a software key file (tests and the terminal approver), a sketch for Android StrongBox.
@@ -22,7 +22,7 @@ presence and, if the authenticator supports it, verification (a fingerprint, fac
 in the runtime:
 - **Enrol:** a WebAuthn credential (ES256 public key, credential id) registered for the user, bound to the host's relying-party id, done by
   the operator or the gateway after a strong login, exactly like a device key today.
-- **Challenge:** the approval's challenge is the SHA-256 of the same `keep-approval-v1` payload, so the authenticator signs over what is
+- **Challenge:** the approval's challenge is the SHA-256 of the same `merion-approval-v1` payload, so the authenticator signs over what is
   displayed; the verification checks the assertion per the spec (the relying-party id hash, the presence and verification flags, the
   challenge in `clientDataJSON`, the origin, the signature over `authenticatorData || SHA-256(clientDataJSON)`), and a signature counter that does not go back.
 - **Where the page runs:** a small approvals page served by the host (or the chat page's proxy) that shows the preview and calls

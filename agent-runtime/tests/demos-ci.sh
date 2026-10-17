@@ -1605,7 +1605,7 @@ want = "sha256=" + hmac.new(b"relay-e2e-secret", r["body"].encode(), hashlib.sha
 assert hmac.compare_digest(r["sig"], want), "relay signature mismatch"
 b = json.loads(r["body"])
 assert b["device"]["id"] == "carol-phone" and b["device"]["push"]["token"] == "PUSH123", b["device"]
-assert b["approval"]["id"] == sys.argv[2] and b["sign"]["format"] == "keep-approval-v1" and len(b["sign"]["challenge"]) == 32
+assert b["approval"]["id"] == sys.argv[2] and b["sign"]["format"] == "merion-approval-v1" and len(b["sign"]["challenge"]) == 32
 assert "planned_action" not in b["approval"] and "relay-e2e-secret" not in r["body"]
 PY
 ok "opening an approval pushes a signed message to carol's device through the relay, with no request details"

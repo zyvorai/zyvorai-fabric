@@ -73,13 +73,13 @@ tried each path against the live runtime: **14 of 14 checks behaved as expected*
 
 | Attempt | Result |
 |---|---|
-| `GET /v1/inbox` announces `format: keep-approval-v1`, `formats: [keep-approval-v1, merion-approval-v1]` | yes |
+| `GET /v1/inbox` announces `format: merion-approval-v1` | yes (the run before the legacy format was removed also listed `formats`) |
 | Decision with a user token and no signature | **403** |
 | Valid signature, but the decision flipped after signing | **403** |
 | Signature from a key that is not enrolled for the user | **403** |
 | The approval after those three | still pending |
 | Valid `merion-approval-v1` approve / deny | **200** / **200** (audit row `format=merion-approval-v1`) |
-| Valid legacy `keep-approval-v1` approve | **200** (audit row `format=keep-approval-v1`) |
+| A signature over the pre-rename `keep-approval-v1` text | refused (unit-tested; not re-run on the lab host) |
 | Replay of an accepted decision | **409** |
 | Operator token, no signature | **200** (the operator is exempt by design) |
 | After cleanup: device removed, user tokens revoked, old token reused | **204**, then **401** |

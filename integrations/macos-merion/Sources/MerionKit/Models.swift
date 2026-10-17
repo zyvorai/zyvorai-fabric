@@ -132,13 +132,6 @@ public struct SignInfo: Codable, Equatable, Hashable, Sendable {
     public var expiresAt: Int
     public var actionSha256: String
     public var algorithms: [String]?
-    /// Every payload format the host verifies. Absent on hosts from before the rename.
-    public var formats: [String]? = nil
-
-    /// `merion-approval-v1` when the host lists it, otherwise the format it announces (the legacy `keep-approval-v1`).
-    public var preferredFormat: String {
-        (formats ?? []).contains("merion-approval-v1") ? "merion-approval-v1" : format
-    }
 }
 
 /// What the host read out of the request an approval is about (recipients, subject, text; docs/merion/connectors/README.md). Rendered by the host,
