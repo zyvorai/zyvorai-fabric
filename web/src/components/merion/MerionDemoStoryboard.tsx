@@ -46,24 +46,24 @@ export default function MerionDemoStoryboard() {
   }, [playing])
 
   return (
-    <div ref={root} className="keep-mkt-storyboard">
-      <div className="keep-mkt-storyboard-inner">
-        <div className="keep-mkt-storyboard-label">PDF brief</div>
-        <div className="keep-mkt-chips">
+    <div ref={root} className="merion-mkt-storyboard">
+      <div className="merion-mkt-storyboard-inner">
+        <div className="merion-mkt-storyboard-label">PDF brief</div>
+        <div className="merion-mkt-chips">
           {CHIPS.map((label, i) => (
             <span
               key={label}
-              className={`keep-mkt-chip${active > i ? ' is-on' : ''}${active === i + 1 ? ' is-pulse' : ''}`}
+              className={`merion-mkt-chip${active > i ? ' is-on' : ''}${active === i + 1 ? ' is-pulse' : ''}`}
             >
               {label}
             </span>
           ))}
         </div>
-        <div className="keep-mkt-connect is-zero">
-          <span className="keep-mkt-connect-label">Outbound connections</span>
-          <span className="keep-mkt-connect-num">0</span>
+        <div className="merion-mkt-connect is-zero">
+          <span className="merion-mkt-connect-label">Outbound connections</span>
+          <span className="merion-mkt-connect-num">0</span>
         </div>
-        <p className="keep-mkt-storyboard-note">
+        <p className="merion-mkt-storyboard-note">
           Counted from Merion’s own audit log and enforced on the host.
         </p>
       </div>

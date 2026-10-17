@@ -1,7 +1,7 @@
 {
-  "_comment": "Single source for Keep marketing copy. Consumed by website/src/pages/keep.tsx and web/src/components/merion/*. Every Muse-side row must be stated in docs/merion/MERION.md; rows with no source are left out.",
+  "_comment": "Single source for Merion marketing copy. Consumed by website/src/pages/merion.tsx and web/src/components/merion/*. Every Muse-side row must be stated in docs/merion/MERION.md; rows with no source are left out.",
   "tagline": "Your agent gets a real computer. You keep the keys.",
-  "lede": "Keep gives an untrusted AI agent its own sealed computer on hardware you control, while you hold the policy, the credentials and the approvals. Open source.",
+  "lede": "Merion gives an untrusted AI agent its own sealed computer on hardware you control, while you hold the policy, the credentials and the approvals. Open source.",
   "values": [
     {
       "title": "You run it",
@@ -48,20 +48,21 @@
     { "title": "Signed policy", "body": "Fail-closed Sentinel loaded from a signed YAML file." },
     { "title": "A real cell", "body": "Firecracker/KVM microVM on FluxVM with its own kernel." },
     { "title": "Approvals on your phone", "body": "Buy, send and delete are approved out of band, never in the chat." },
+    { "title": "Auto-approve, only if you set it", "body": "Off by default. An operator policy can approve a small, in-policy changeset and journal it; anything outside the policy, or needing a phone signature, still waits for a person." },
     { "title": "Cockpit and browser view", "body": "See taint, recent decisions, tabs, screenshots and a read-only screencast." },
     { "title": "One-click use cases", "body": "PDF brief, contract clauses, security questionnaire, meeting actions, log triage, SBOM summary, CSV cleanup." },
     { "title": "Host network pin", "body": "FluxVM TC/eBPF: deny_udp and gateway-only ports, enforced outside the guest." },
     { "title": "Pack and unpack", "body": "Policy, manifest and migration notes leave as files. Secrets stay in the vault." }
   ],
   "compare": [
-    { "label": "Where it runs", "muse": "Meta’s cloud only.", "keep": "Your laptop, mini-PC or FluxVM host." },
-    { "label": "Policy", "muse": "A closed policy engine.", "keep": "A signed merion.policy.yaml you can diff in git." },
-    { "label": "The cell", "muse": "Its own dedicated cloud VM; a separate Sentinel on the same machine, kept apart at the system level.", "keep": "A Firecracker/KVM microVM per cell on FluxVM, with its own kernel; the network policy is applied by the host, outside the guest." },
-    { "label": "Model", "muse": "Tied to Muse Spark.", "keep": "Bring your own model socket." },
-    { "label": "Training", "muse": "Trajectories may train after sanitization.", "keep": "Off by default. Export needs a scoped token." },
-    { "label": "Secrets", "muse": "Surrogates swapped in at egress.", "keep": "The same idea: the vault injects on the host, and the agent never sees a real secret." },
-    { "label": "Browser", "muse": "A measured, accessibility-style appliance.", "keep": "The same idea: the agent sees structure, you see pixels." },
-    { "label": "Honesty", "muse": "A footnote.", "keep": "Up front: measured means software-test until verified hardware." }
+    { "label": "Where it runs", "muse": "Meta’s cloud only.", "merion": "Your laptop, mini-PC or FluxVM host." },
+    { "label": "Policy", "muse": "A closed policy engine.", "merion": "A signed merion.policy.yaml you can diff in git." },
+    { "label": "The cell", "muse": "Its own dedicated cloud VM; a separate Sentinel on the same machine, kept apart at the system level.", "merion": "A Firecracker/KVM microVM per cell on FluxVM, with its own kernel; the network policy is applied by the host, outside the guest." },
+    { "label": "Model", "muse": "Tied to Muse Spark.", "merion": "Bring your own model socket." },
+    { "label": "Training", "muse": "Trajectories may train after sanitization.", "merion": "Off by default. Export needs a scoped token." },
+    { "label": "Secrets", "muse": "Surrogates swapped in at egress.", "merion": "The same idea: the vault injects on the host, and the agent never sees a real secret." },
+    { "label": "Browser", "muse": "A measured, accessibility-style appliance.", "merion": "The same idea: the agent sees structure, you see pixels." },
+    { "label": "Honesty", "muse": "A footnote.", "merion": "Up front: measured means software-test until verified hardware." }
   ],
-  "honesty": "Keep runs on measured VMs today, and its evidence class is software-test. Until it runs on verified confidential hardware with a key only you hold, the host can still see inside the VM, and we will not claim otherwise."
+  "honesty": "Merion runs on measured VMs today, and its evidence class is software-test. Until it runs on verified confidential hardware with a key only you hold, the host can still see inside the VM, and we will not claim otherwise."
 }

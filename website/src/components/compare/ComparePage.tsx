@@ -18,7 +18,7 @@ import type {Cell, Col, Level, TGroup} from '@site/src/components/compare/data';
 import styles from './ComparePage.module.css';
 
 type Tag = 'security' | 'ops' | 'portability';
-type Row = {label: string; muse: Cell; keep: Cell; fabric: Cell; flux: Cell};
+type Row = {label: string; muse: Cell; merion: Cell; fabric: Cell; flux: Cell};
 type Group = {title: string; tag: Tag; rows: Row[]};
 
 const NA_FABRIC = c('Delegates to FluxVM', 'na');
@@ -27,7 +27,7 @@ const UNDOC = c('Not documented publicly', 'na');
 
 /*
  * Muse cells are "as publicly described" — public detail is thin, see the
- * sourcing note on the page. Like the /keep page, only rows stated in
+ * sourcing note on the page. Like the /merion page, only rows stated in
  * docs/merion/MERION.md keep a Muse claim; the rest read "Not documented publicly". Merion/Fabric/FluxVM cells trace to
  * docs/merion/MERION.md, docs/PRODUCT_OVERVIEW.md and fluxvm/README.md.
  */
@@ -39,14 +39,14 @@ const GROUPS: Group[] = [
       {
         label: 'Home',
         muse: c('Meta’s cloud', 'part'),
-        keep: c('Laptop, mini-PC, FluxVM host, or rented SNP/TDX — same API'),
+        merion: c('Laptop, mini-PC, FluxVM host, or rented SNP/TDX — same API'),
         fabric: c('Any Linux host — one ~15 MB Rust daemon'),
         flux: c('One Linux host is enough; grow to multi-host fleets'),
       },
       {
         label: 'Control surface',
         muse: UNDOC,
-        keep: c('merionctl, /app/merion console, vsock admin'),
+        merion: c('merionctl, /app/merion console, vsock admin'),
         fabric: c('780+ REST endpoints, CLI, web console, K8s operator, Terraform'),
         flux: c('REST API + CLI with the same verbs'),
       },
@@ -59,28 +59,35 @@ const GROUPS: Group[] = [
       {
         label: 'Policy',
         muse: c('Closed Sentinel', 'part'),
-        keep: c('Signed merion.policy.yaml — fails closed, diffable in git'),
+        merion: c('Signed merion.policy.yaml — fails closed, diffable in git'),
         fabric: c('3-tier RBAC, audit log, LDAP/OIDC SSO'),
         flux: c('Per-VM security_profile; multi-tenant controls are opt-in', 'part'),
       },
       {
         label: 'Credentials',
         muse: c('Surrogates swapped at egress'),
-        keep: c('Vault — the agent never sees real passwords'),
+        merion: c('Vault — the agent never sees real passwords'),
         fabric: NA,
         flux: NA,
       },
       {
         label: 'Approvals',
         muse: c('Bound to a connector'),
-        keep: c('Phone-only high-risk approvals, bound to a connector'),
+        merion: c('Phone-only high-risk approvals, bound to a connector'),
         fabric: NA,
         flux: NA,
       },
       {
+        label: 'Auto-approve',
+        muse: UNDOC,
+        merion: c('Optional per-agent policy, off by default — in-policy changesets are applied and journaled; a required phone signature always wins'),
+        fabric: NA,
+        flux: c('Measures the changeset the policy checks'),
+      },
+      {
         label: 'Training',
         muse: c('Trajectories may train after sanitization', 'no'),
-        keep: c('Default off — export needs a scoped token'),
+        merion: c('Default off — export needs a scoped token'),
         fabric: NA,
         flux: NA,
       },
@@ -93,21 +100,21 @@ const GROUPS: Group[] = [
       {
         label: 'The cell',
         muse: c('Its own cloud VM; Sentinel on the same machine, kept apart at the system level', 'part'),
-        keep: c('Firecracker / KVM microVM via FluxVM'),
+        merion: c('Firecracker / KVM microVM via FluxVM'),
         fabric: NA_FABRIC,
         flux: c('Firecracker, Cloud Hypervisor, QEMU/KVM or in-tree — one trait'),
       },
       {
         label: 'Guest access',
         muse: UNDOC,
-        keep: c('vsock admin — no SSH to the agent'),
+        merion: c('vsock admin — no SSH to the agent'),
         fabric: NA_FABRIC,
         flux: c('vsock agent: exec, PTY, file copy — no SSH'),
       },
       {
         label: 'Confidential',
         muse: UNDOC,
-        keep: c('measured today (software-test); SNP/TDX gated on a verified run', 'part'),
+        merion: c('measured today (software-test); SNP/TDX gated on a verified run', 'part'),
         fabric: NA,
         flux: c('security_profile field; hardware evidence gated', 'part'),
       },
@@ -120,14 +127,14 @@ const GROUPS: Group[] = [
       {
         label: 'Egress pin',
         muse: UNDOC,
-        keep: c('deny_udp + gateway-only ports; cockpit CONNECT 0'),
+        merion: c('deny_udp + gateway-only ports; cockpit CONNECT 0'),
         fabric: c('Cilium-style network policies, WireGuard mesh'),
         flux: c('TC/eBPF Network Fabric (GA): L3/L4 policy, rate limits, live reconfigure'),
       },
       {
         label: 'Proof',
         muse: UNDOC,
-        keep: c('Audit journal + FluxVM drop_reasons (PacketWolf optional)'),
+        merion: c('Audit journal + FluxVM drop_reasons (PacketWolf optional)'),
         fabric: c('Audit logging'),
         flux: c('drop_reasons from the host pin'),
       },
@@ -140,7 +147,7 @@ const GROUPS: Group[] = [
       {
         label: 'Model',
         muse: c('Tied to Muse Spark', 'no'),
-        keep: c('BYO model socket'),
+        merion: c('BYO model socket'),
         fabric: c('AI Workloads (Beta): OpenAI-compatible gateway', 'part'),
         flux: NA,
       },
@@ -153,21 +160,21 @@ const GROUPS: Group[] = [
       {
         label: 'Leaving',
         muse: UNDOC,
-        keep: c('merionctl pack / unpack onto another FluxVM'),
+        merion: c('merionctl pack / unpack onto another FluxVM'),
         fabric: c('Live migration (disk-copy GA, native preview), VMDK/VDI import'),
         flux: c('qcow2 CoW clones, memory snapshots'),
       },
       {
         label: 'Fleet',
         muse: NA,
-        keep: c('Rides on Fabric + FluxVM'),
+        merion: c('Rides on Fabric + FluxVM'),
         fabric: c('Kubernetes operator, Terraform provider'),
         flux: c('Multi-host fleet; K8s operator verified on real k3s'),
       },
       {
         label: 'License',
         muse: c('Closed', 'no'),
-        keep: c('Apache-2.0'),
+        merion: c('Apache-2.0'),
         fabric: c('Apache-2.0'),
         flux: c('Apache-2.0'),
       },
@@ -345,7 +352,7 @@ const USE_CASES: UseCase[] = [
     flow: ['Mint a scoped export token', 'merionctl pack → policy, agent pin, vault names', 'merionctl unpack onto another FluxVM'],
     guards: ['Export needs X-Merion-Export-Token', 'Vault names only — no raw secrets', 'Training default off'],
     out: 'A portable pack directory',
-    cmd: 'merionctl pack /tmp/keep-pack my-agent',
+    cmd: 'merionctl pack /tmp/merion-pack my-agent',
     href: '/docs/merion/merionctl/',
     cta: 'merionctl',
   },
@@ -487,7 +494,7 @@ function StackScene(): ReactNode {
 
 const MUSE_COLS: Col[] = [
   {key: 'muse', label: 'Muse', sub: 'as publicly described', dim: true},
-  {key: 'keep', label: 'Merion', sub: 'product layer', hl: true},
+  {key: 'merion', label: 'Merion', sub: 'product layer', hl: true},
   {key: 'fabric', label: 'Fabric', sub: 'control plane'},
   {key: 'flux', label: 'FluxVM', sub: 'hypervisor'},
 ];
@@ -495,7 +502,7 @@ const MUSE_COLS: Col[] = [
 const MUSE_GROUPS: (TGroup & {tag: Tag})[] = GROUPS.map((g) => ({
   title: g.title,
   tag: g.tag,
-  rows: g.rows.map((r) => ({label: r.label, cells: [r.muse, r.keep, r.fabric, r.flux]})),
+  rows: g.rows.map((r) => ({label: r.label, cells: [r.muse, r.merion, r.fabric, r.flux]})),
 }));
 
 type TabId = 'stack' | 'fabric' | 'flux';

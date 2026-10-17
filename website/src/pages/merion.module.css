@@ -1,4 +1,4 @@
-/* Keep-only bits. Everything else comes from components/marketing/Shell.module.css. */
+/* Merion-only bits. Everything else comes from components/marketing/Shell.module.css. */
 
 .cardBody {
   margin: 0;
@@ -43,7 +43,7 @@
   font-size: 0.95rem;
 }
 
-.rowKeep {
+.rowMerion {
   color: var(--c-ink);
   font-weight: 500;
 }
