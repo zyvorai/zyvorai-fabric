@@ -22,7 +22,7 @@ import sys
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-HERE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "keep-chat")
+HERE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "merion-chat")
 STATIC = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"), "/app.css": ("app.css", "text/css; charset=utf-8")}
 MAX_BODY = 64 * 1024
 CSP = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"

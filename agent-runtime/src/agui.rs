@@ -262,7 +262,11 @@ fn wants_merion_names(forwarded_props: &Value) -> bool {
 /// `sse`, with a `CUSTOM` event's `keep.` name prefix rewritten to `merion.` when the client opted in.
 fn sse_as(v: &Value, merion: bool) -> Event {
     if merion && v.get("type").and_then(Value::as_str) == Some("CUSTOM") {
-        if let Some(rest) = v.get("name").and_then(Value::as_str).and_then(|n| n.strip_prefix("keep.")) {
+        if let Some(rest) = v
+            .get("name")
+            .and_then(Value::as_str)
+            .and_then(|n| n.strip_prefix("keep."))
+        {
             let mut v = v.clone();
             v["name"] = Value::String(format!("merion.{rest}"));
             return sse(&v);

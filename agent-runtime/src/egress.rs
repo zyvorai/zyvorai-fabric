@@ -1805,7 +1805,8 @@ pub(crate) mod ask_tests {
         let journal =
             serde_json::to_string(&state.store.audit.list(None, 100).await.unwrap()).unwrap();
         assert!(
-            journal.contains("merion.action.performed") && journal.contains("merion.action.replayed")
+            journal.contains("merion.action.performed")
+                && journal.contains("merion.action.replayed")
         );
         assert!(
             !journal.contains("send this once"),
