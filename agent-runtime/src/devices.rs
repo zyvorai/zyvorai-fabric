@@ -782,9 +782,9 @@ mod tests {
             "/../docs/merion/mobile/test-vectors.json"
         );
         let want = build_vectors();
-        if (std::env::var("MERION_WRITE_VECTORS").is_ok_and(|v| v == "1")
-            || std::env::var("KEEP_WRITE_VECTORS").is_ok_and(|v| v == "1"))
-        {
+        let write_vectors = std::env::var("MERION_WRITE_VECTORS").is_ok_and(|v| v == "1")
+            || std::env::var("KEEP_WRITE_VECTORS").is_ok_and(|v| v == "1");
+        if write_vectors {
             std::fs::create_dir_all(std::path::Path::new(path).parent().unwrap()).unwrap();
             std::fs::write(path, serde_json::to_string_pretty(&want).unwrap() + "\n").unwrap();
         }
