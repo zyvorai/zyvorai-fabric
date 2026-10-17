@@ -1,5 +1,5 @@
 ---
-name: keep-debug
+name: merion-debug
 description: Diagnose why a Merion cell was blocked, froze, or made an unexpected connection. Use when a run fails closed, exits 2, shows egress_connects above zero, or an agent is paused with ebpf_deny.
 ---
 
@@ -26,7 +26,7 @@ References: `docs/merion/confine.md`, `docs/merion/merionctl/README.md`, `docs/m
 
 ## The agent needed a host it was denied
 
-Run `merionctl policy suggest <agent>` to see which hosts it asked for and could not reach. Loosening policy is the owner's decision: use the `keep-policy` skill to draft and review the change.
+Run `merionctl policy suggest <agent>` to see which hosts it asked for and could not reach. Loosening policy is the owner's decision: use the `merion-policy` skill to draft and review the change.
 
 ## Rules
 

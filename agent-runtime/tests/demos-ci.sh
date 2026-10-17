@@ -432,7 +432,7 @@ echo "$b" | grep -qF "pageview" && fail "status-page-watch: page script leaked i
 echo "$b" | grep -qF "09:40 UTC" || fail "status-page-watch: times not extracted: $b"
 ok "status-page-watch: html sample ran, script dropped, times extracted, 0 CONNECT"
 
-# keep-watch: the page is fetched on this machine, read by a use case, and a change is the runtime's own diff between two summaries
+# merion-watch: the page is fetched on this machine, read by a use case, and a change is the runtime's own diff between two summaries
 SITE="$WORK/site"; mkdir -p "$SITE"; SITE_PORT=$(free_port)
 printf '<html><body><h1>Status</h1><p>All systems operational</p></body></html>' > "$SITE/index.html"
 (cd "$SITE" && exec python3 -m http.server "$SITE_PORT" --bind 127.0.0.1 >/dev/null 2>&1) &
@@ -440,10 +440,10 @@ PIDS+=($!)
 wait_http "http://127.0.0.1:$SITE_PORT/index.html" || fail "the watch test page did not start"
 WATCH="$ROOT/scripts/merion-watch.sh"; export MERION_WATCH_STATE="$WORK/watch-state"; PAGE="http://127.0.0.1:$SITE_PORT/index.html"
 w() { set +e; out=$("$WATCH" "$PAGE" "$@" 2>&1); rc=$?; set -e; }
-w; [[ $rc == 0 ]] && grep -q "^BASELINE" <<<"$out" || fail "keep-watch first run should record a baseline (rc=$rc): $out"
-w; [[ $rc == 0 ]] && grep -q "^UNCHANGED" <<<"$out" || fail "keep-watch on an unchanged page should say UNCHANGED (rc=$rc): $out"
+w; [[ $rc == 0 ]] && grep -q "^BASELINE" <<<"$out" || fail "merion-watch first run should record a baseline (rc=$rc): $out"
+w; [[ $rc == 0 ]] && grep -q "^UNCHANGED" <<<"$out" || fail "merion-watch on an unchanged page should say UNCHANGED (rc=$rc): $out"
 printf '<html><body><h1>Status</h1><p>Object storage is down since 09:00 UTC</p></body></html>' > "$SITE/index.html"
-w; [[ $rc == 3 ]] && grep -q "^CHANGED" <<<"$out" && grep -q "is down" <<<"$out" || fail "keep-watch should report the change and exit 3 (rc=$rc): $out"
+w; [[ $rc == 3 ]] && grep -q "^CHANGED" <<<"$out" && grep -q "is down" <<<"$out" || fail "merion-watch should report the change and exit 3 (rc=$rc): $out"
 w; [[ $rc == 0 ]] && grep -q "^UNCHANGED" <<<"$out" || fail "the change should be reported once, not every run (rc=$rc): $out"
 w --match "all systems operational"; [[ $rc == 0 ]] || fail "--match with no change should not alert (rc=$rc): $out"
 printf '<html><body><h1>Status</h1><p>The incident is resolved. All systems operational</p></body></html>' > "$SITE/index.html"
@@ -457,7 +457,7 @@ MERION_WATCH_STATE="$WORK/watch-state2" "$WATCH" "http://127.0.0.1:$BAD/x" --max
 [[ $rc1 == 2 && $rc2 == 4 ]] || fail "an unreachable page should exit 2, then 4 after --max-failures (got $rc1, $rc2)"
 "$WATCH" "http://user:pw@example.com/" >/dev/null 2>&1 && fail "a URL with credentials must be refused"
 "$WATCH" "ftp://example.com/" >/dev/null 2>&1 && fail "a non-http URL must be refused"
-ok "keep-watch: baseline, unchanged, a change reported once, --match alerts only on new text, repeated failures escalate, bad URLs refused"
+ok "merion-watch: baseline, unchanged, a change reported once, --match alerts only on new text, repeated failures escalate, bad URLs refused"
 
 # more everyday packs: each sample runs in the stub cell and the summary carries what the pack promises (asserted from the real engine's output)
 b=$(pack_test payslip-text payslip.md)
@@ -815,17 +815,17 @@ assert users == ["What is the total due?", "What is the total due?"], users
 PY
 ok "an AG-UI thread continues after its session ended, sends the stored conversation, keeps it in /v1/threads, and a retried run adds nothing twice"
 
-# keep-chat: the web chat's proxy talks AG-UI to a real runtime and a stub cell, with the agent fixed and no token in the browser's reach
+# merion-chat: the web chat's proxy talks AG-UI to a real runtime and a stub cell, with the agent fixed and no token in the browser's reach
 (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/merion-agents/echo-agent) >"$WORK/echo-agent.out" 2>&1 || fail "echo-agent deploy failed: $(cat "$WORK/echo-agent.out")"
 CHAT_PORT=$(free_port)
 MERION_API="$BASE" MERION_TOKEN="" python3 "$ROOT/scripts/merion-chat.py" --agent echo-agent --port "$CHAT_PORT" >"$WORK/chat.log" 2>&1 &
 PIDS+=($!)
-wait_http "http://127.0.0.1:$CHAT_PORT/" || fail "keep-chat did not start: $(cat "$WORK/chat.log")"
+wait_http "http://127.0.0.1:$CHAT_PORT/" || fail "merion-chat did not start: $(cat "$WORK/chat.log")"
 curl -sN --max-time 60 -X POST "http://127.0.0.1:$CHAT_PORT/agui" -H 'content-type: application/json' \
-  -d '{"threadId":"chat-1","runId":"r1","messages":[{"id":"m","role":"user","content":"hello chat"}],"forwardedProps":{"agent":"some-other-agent"}}' > "$WORK/chat.sse" || fail "keep-chat request failed"
-grep -q "You said: hello chat" "$WORK/chat.sse" && grep -q "RUN_FINISHED" "$WORK/chat.sse" || fail "keep-chat did not stream the echo agent's reply: $(head -c 600 "$WORK/chat.sse")"
-[[ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$CHAT_PORT/v1/agents")" == "404" ]] || fail "keep-chat must not proxy anything but /agui"
-ok "keep-chat: a browser message reaches the echo agent through the proxy (agent fixed server-side) and the reply streams back; other routes are not proxied"
+  -d '{"threadId":"chat-1","runId":"r1","messages":[{"id":"m","role":"user","content":"hello chat"}],"forwardedProps":{"agent":"some-other-agent"}}' > "$WORK/chat.sse" || fail "merion-chat request failed"
+grep -q "You said: hello chat" "$WORK/chat.sse" && grep -q "RUN_FINISHED" "$WORK/chat.sse" || fail "merion-chat did not stream the echo agent's reply: $(head -c 600 "$WORK/chat.sse")"
+[[ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$CHAT_PORT/v1/agents")" == "404" ]] || fail "merion-chat must not proxy anything but /agui"
+ok "merion-chat: a browser message reaches the echo agent through the proxy (agent fixed server-side) and the reply streams back; other routes are not proxied"
 
 echo "demos-ci: goal worker (a goal that runs its own plan)"
 FAILPACK="$WORK/fail-agent"; mkdir -p "$FAILPACK"

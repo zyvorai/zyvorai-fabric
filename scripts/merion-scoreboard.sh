@@ -16,7 +16,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-OUT="${MERION_SCOREBOARD_OUT:-artifacts/keep-scoreboard.json}"
+OUT="${MERION_SCOREBOARD_OUT:-artifacts/merion-scoreboard.json}"
 mkdir -p "$(dirname "$OUT")"
 
 POLICY=$(cat <<'YAML'
@@ -84,7 +84,7 @@ assert r["pack_roundtrip"] is True
 assert r["snp_launch_verified"] is False and r["tdx_launch_verified"] is False
 assert r["operator_can_read"] is True
 assert len(set(r["model_sockets"])) == 2
-print("keep-scoreboard: ok", r["policy_sha256"][:12])
+print("merion-scoreboard: ok", r["policy_sha256"][:12])
 PY
 
 echo "wrote $OUT"

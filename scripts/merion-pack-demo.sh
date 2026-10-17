@@ -233,5 +233,5 @@ fi
 echo "==> goal"
 api GET "/v1/goals/${GOAL_ID}" | python3 -m json.tool
 echo
-echo "PASS keep-pack-demo $PACK (goal=$GOAL_ID artifact=$ART_ID${SESSION_ID:+ session=$SESSION_ID})"
+echo "PASS merion-pack-demo $PACK (goal=$GOAL_ID artifact=$ART_ID${SESSION_ID:+ session=$SESSION_ID})"
 echo "Pack README: examples/merion-agents/$PACK/README.md"
