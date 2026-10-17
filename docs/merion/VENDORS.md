@@ -178,7 +178,7 @@ Merion does not answer these; a vendor entering a regulated market has to. They 
 
 ## Compared with Muse
 
-The comparison in [the overview](README.md#keep-vs-meta-muse) rests on press reports, not an audit of Muse. In short:
+The comparison in [the overview](README.md#merion-vs-meta-muse) rests on press reports, not an audit of Muse. In short:
 Muse is Meta's cloud with Meta's model; Merion is software the vendor runs, on its hardware, with its choice of model
 and its own account system, and it states its limits up front. Where Muse is a finished consumer product, Merion is
 the machinery under one: the vendor still builds the app, the gateway, the operations and the trust programme.

@@ -16,7 +16,7 @@ while you hold the policy, the credentials and the approvals. Open source, Apach
 
 [**Try it in 60 seconds**](#try-it-in-60-seconds) ·
 [How it works](#how-keep-works) ·
-[Merion vs Muse](#keep-vs-meta-muse) ·
+[Merion vs Muse](#merion-vs-meta-muse) ·
 [Docs](MERION.md) ·
 [Website](https://zyvorai.github.io/fabric/merion)
 
@@ -62,7 +62,7 @@ branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.m
 - [Build your own use case](#build-your-own-use-case)
 - [Install it on a host](#install-it-on-a-host)
 - [Security profiles and what we do not claim](#security-profiles-and-what-we-do-not-claim)
-- [Merion vs Meta Muse](#keep-vs-meta-muse)
+- [Merion vs Meta Muse](#merion-vs-meta-muse)
 - [Where everything lives](#where-everything-lives)
 - [FAQ](#faq)
 
