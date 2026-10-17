@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 - 2026-10-17
 
 ### Added
 - **Auto-approve policies for speculate (off by default).** An operator can set a bounded policy per user and agent

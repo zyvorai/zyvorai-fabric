@@ -3,7 +3,7 @@ name: zyvor-merion
 description: Keep agent runtime (zyvor-fabric-agent-runtime) next to FluxVM on Kubernetes nodes
 type: application
 version: 0.1.0
-appVersion: "0.3.0"
+appVersion: "0.4.0"
 keywords:
   - keep
   - agents

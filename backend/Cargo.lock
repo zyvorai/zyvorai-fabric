@@ -152,7 +152,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "api-error"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -377,7 +377,7 @@ dependencies = [
 
 [[package]]
 name = "backup"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -575,7 +575,7 @@ dependencies = [
 
 [[package]]
 name = "certificate-manager"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -708,7 +708,7 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "cloud-init"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
@@ -750,7 +750,7 @@ dependencies = [
 
 [[package]]
 name = "compliance"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -773,7 +773,7 @@ checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
 
 [[package]]
 name = "content-library"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -893,7 +893,7 @@ checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 
 [[package]]
 name = "datacenter"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1050,7 +1050,7 @@ dependencies = [
 
 [[package]]
 name = "distributed-storage"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1063,7 +1063,7 @@ dependencies = [
 
 [[package]]
 name = "dns-policy"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1128,7 +1128,7 @@ dependencies = [
 
 [[package]]
 name = "encryption"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1141,7 +1141,7 @@ dependencies = [
 
 [[package]]
 name = "enterprise-identity"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1182,7 +1182,7 @@ dependencies = [
 
 [[package]]
 name = "fabricctl"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "base64 0.23.1",
@@ -1219,7 +1219,7 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
 name = "fault-tolerance"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1552,7 +1552,7 @@ dependencies = [
 
 [[package]]
 name = "host-agent"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1572,7 +1572,7 @@ dependencies = [
 
 [[package]]
 name = "host-lifecycle"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1882,7 +1882,7 @@ dependencies = [
 
 [[package]]
 name = "input-guard"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "ipnet"
@@ -2063,7 +2063,7 @@ dependencies = [
 
 [[package]]
 name = "k8s-pod-client"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "k8s-openapi",
@@ -2196,7 +2196,7 @@ dependencies = [
 
 [[package]]
 name = "lifecycle-manager"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2269,7 +2269,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "migration"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2345,7 +2345,7 @@ dependencies = [
 
 [[package]]
 name = "nat-gateway"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2375,7 +2375,7 @@ dependencies = [
 
 [[package]]
 name = "net-monitor"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2436,7 +2436,7 @@ dependencies = [
 
 [[package]]
 name = "network-policy"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2449,7 +2449,7 @@ dependencies = [
 
 [[package]]
 name = "networking"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2681,7 +2681,7 @@ dependencies = [
 
 [[package]]
 name = "ova-tools"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2692,7 +2692,7 @@ dependencies = [
 
 [[package]]
 name = "packet-mirror"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2923,7 +2923,7 @@ dependencies = [
 
 [[package]]
 name = "predictive-drs"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2969,7 +2969,7 @@ dependencies = [
 
 [[package]]
 name = "prometheus-exporter"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -3250,7 +3250,7 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "replication"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3307,7 +3307,7 @@ dependencies = [
 
 [[package]]
 name = "resource-pools"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3579,7 +3579,7 @@ dependencies = [
 
 [[package]]
 name = "secrets-manager"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "aes-gcm",
  "anyhow",
@@ -3593,7 +3593,7 @@ dependencies = [
 
 [[package]]
 name = "security"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -3762,7 +3762,7 @@ dependencies = [
 
 [[package]]
 name = "service-lb"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3776,7 +3776,7 @@ dependencies = [
 
 [[package]]
 name = "service-mesh"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3904,7 +3904,7 @@ dependencies = [
 
 [[package]]
 name = "site-recovery"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3967,7 +3967,7 @@ checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 
 [[package]]
 name = "state-store"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "input-guard",
@@ -4497,7 +4497,7 @@ checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
 
 [[package]]
 name = "tpm-support"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "serde",
@@ -4580,7 +4580,7 @@ dependencies = [
 
 [[package]]
 name = "traffic-shaping"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4807,7 +4807,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "vm-firewall"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4820,7 +4820,7 @@ dependencies = [
 
 [[package]]
 name = "vm-model"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "chrono",
  "serde",
@@ -4829,7 +4829,7 @@ dependencies = [
 
 [[package]]
 name = "vnc-proxy"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -4843,7 +4843,7 @@ dependencies = [
 
 [[package]]
 name = "vpn-mesh"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -5380,7 +5380,7 @@ checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
 
 [[package]]
 name = "zyvor-fabric-cgroup"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "serde",
  "thiserror 2.0.21",
@@ -5389,7 +5389,7 @@ dependencies = [
 
 [[package]]
 name = "zyvor-fabric-dnsmasq-manager"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "input-guard",
@@ -5400,7 +5400,7 @@ dependencies = [
 
 [[package]]
 name = "zyvor-fabric-driver-core"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5414,7 +5414,7 @@ dependencies = [
 
 [[package]]
 name = "zyvor-fabric-fluxvm-client"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -5434,7 +5434,7 @@ dependencies = [
 
 [[package]]
 name = "zyvor-fabric-fluxvm-driver"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5452,7 +5452,7 @@ dependencies = [
 
 [[package]]
 name = "zyvor-fabric-lock-manager"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -5521,7 +5521,7 @@ dependencies = [
 
 [[package]]
 name = "zyvor-fabricd"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "api-error",
