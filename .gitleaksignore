@@ -18,7 +18,7 @@ a363604c65393ce9012736c390b747d97437a2dc:agent-runtime/tests/demos-ci.sh:curl-au
 6c69fed36d0be036483296f668e07a377d402755:integrations/macos-merion/Tests/MerionKitTests/SafetyTests.swift:generic-api-key:6
 
 # Placeholders and test fixtures found when the full-history scan moved to the gitleaks CLI. None is a credential:
-# - SafetyTests.swift: the fake key AKIAABCDEFGHIJKLMNOP the test plants to prove the file is refused
+# - SafetyTests.swift: the fake AWS-style key the test plants to prove the file is refused
 # - ApprovalSigner.swift: `P256.Signing.PrivateKey` type names, not key material
 # - l7.rs: a made-up JWT in a unit test; Makefile: an evaluation-only chart value
 # - docs: truncated `eyJhbGciOiJIUzI1NiJ9...` example tokens
@@ -39,3 +39,5 @@ c41ee2f194505de7e51e90886d61501c2f443f00:docs/reference/api/websocket.md:generic
 c41ee2f194505de7e51e90886d61501c2f443f00:docs/tutorials/06-security-hardening.md:generic-api-key:45
 c41ee2f194505de7e51e90886d61501c2f443f00:docs/tutorials/06-security-hardening.md:generic-api-key:55
 f30bb7d96b73af7ac60e4e03a94d87bc867fd16d:agent-runtime/src/l7.rs:jwt:180
+bfa53134cfa403e179cd292817f2266e8e4e1cf9:.gitleaksignore:aws-access-token:21
+943ef4676466d7699c387c04bc62466954346bb2:.gitleaksignore:aws-access-token:21

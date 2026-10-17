@@ -828,7 +828,7 @@ mod tests {
             Err(SignError::BadSignature)
         );
         // The pre-rename and any other format are refused.
-        for other in ["merion-approval-v1", "other-approval-v1"] {
+        for other in ["keep-approval-v1", "other-approval-v1"] {
             let text = signing_payload(&a, ApprovalStatus::Approved, &ch).replacen(
                 PAYLOAD_FORMAT,
                 other,
