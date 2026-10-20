@@ -187,7 +187,7 @@ A 92-page web console and <code>fabricctl</code>, both first-class against the s
 Requires a Linux server with KVM.
 
 ```bash
-git clone https://github.com/zyvorai/zyvorai-fabric.git && cd fabric
+git clone https://github.com/zyvorai/fabric.git && cd fabric
 make build && sudo make install
 sudo zyvor-fabricd                                   # or: sudo systemctl enable --now zyvor-fabricd
 fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096 --tenant acme
