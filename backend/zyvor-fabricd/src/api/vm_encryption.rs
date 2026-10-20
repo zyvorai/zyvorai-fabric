@@ -303,7 +303,7 @@ pub async fn encrypt_vm(
             .to_string();
         let encrypted_path = format!("{}.encrypted", image_path);
         let secret_file = format!("/tmp/zyvor-fabricd-encrypt-{}", Uuid::new_v4().simple());
-        std::fs::write(&secret_file, &key_for_encrypt)
+        encryption::write_private_file(&secret_file, &key_for_encrypt)
             .map_err(|e| format!("Failed to write secret file: {}", e))?;
         let output = std::process::Command::new("qemu-img")
             .args([
