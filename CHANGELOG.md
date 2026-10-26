@@ -3,6 +3,15 @@
 ## Unreleased
 
 ### Added
+- **Run report.** `GET /v1/sessions/{id}/report` says what a session did, what the host actually checked (exit code, every file
+  kept, the applied changeset is the approved one, the service accepted the request), what it did not check, what is still
+  waiting, and what can be undone: nothing to undo, applied with no automatic undo, unknown, or cannot be undone (it left the
+  cell). Built only from approvals, the journal and receipts; an agent's own claims are never counted. Design:
+  `docs/merion/design/run-report.md`.
+- **Model fallback chains.** A use case's `model` step may name an operator-written chain (`fallback_chain`,
+  `ZYVOR_AGENT_MODEL_CHAINS_FILE`); on a connect error, 429 or 5xx the host tries the next endpoint, each one vault-checked and
+  approved by a person on first use, with a circuit breaker and `model.failover` journal rows. `GET /v1/model-usage` sums calls,
+  failures, tokens and latency per endpoint. Design: `docs/merion/design/model-gateway.md`.
 - **Auto-approve policies for speculate (off by default).** An operator can set a bounded policy per user and agent
   (`/v1/users/{id}/changeset-policies/{agent}`); a changeset inside it is approved and applied without a click, journaled with
   the policy id and version. Operator-only writes, per-session hourly cap of 30, and a required phone signature always wins.

@@ -49,6 +49,7 @@ export interface UseCaseSpec {
     instruction: string
     max_input_chars?: number
     max_output_tokens?: number
+    fallback_chain?: string
   }
 }
 

@@ -81,3 +81,30 @@ For a local model on `http://127.0.0.1:8080/v1`, set `"host": "127.0.0.1"` and
 - A model can be steered by text in the document. It has no tools here: its reply becomes text in an
   artifact and nothing else, and that text is sanitised. Treat the summary as a draft.
 - The endpoint sees the text. Merion does not vouch for the provider; pick one you trust with that file.
+
+## Fallback chains (when the endpoint is down)
+
+A pack may add `"fallback_chain": "main"` to its `model` block. The name refers to a chain **the operator wrote** in a file
+(`ZYVOR_AGENT_MODEL_CHAINS_FILE`); a pack can name a chain but cannot define, edit or see one.
+
+```json
+{ "chains": { "main": { "targets": [
+  { "credential": "backup-llm", "base_url": "https://api.other.example/v1", "model": "small-2" }
+] } } }
+```
+
+- Up to 4 fallbacks, tried in order, **only** when the previous endpoint could not be reached, answered 429, or answered 5xx.
+  A 4xx (a bad request) is not retried elsewhere.
+- Each fallback is checked like the first: the vault must allow its host, method, path and port, and its **first use asks a
+  person** (a different endpoint is a different question). A fallback that is refused or denied is skipped; the run then fails
+  with the last error rather than doing anything quietly.
+- After 3 failures in a row an endpoint is skipped for 30 seconds, so a dead provider does not slow every run.
+- A chain that is named but missing, unreadable or invalid **fails the call** before anything is sent.
+- The pack's instruction, caps and framing apply to every endpoint. The journal records each attempt (`model.call` with
+  `target_index`, `latency_ms`, and `prompt_tokens`/`completion_tokens` when the provider reports them) and a `model.failover`
+  row naming the endpoint that answered. Never the text or the key.
+- `GET /v1/model-usage` (operator only) sums the journal per endpoint: calls, failures, tokens, average latency, and how many
+  calls reported no tokens (`tokens_unreported`). It has no cost figure; Merion does not guess prices.
+
+Not covered yet: an agent's `model_socket` (it goes through the egress broker, not this path), a response cache, and per-agent
+spend budgets (the per-user daily call allowance, `ZYVOR_AGENT_USER_MAX_MODEL_CALLS_PER_DAY`, still applies).

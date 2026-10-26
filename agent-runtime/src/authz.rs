@@ -503,6 +503,11 @@ mod tests {
                 UserRoute::Session(sid, Scope::Read),
             ),
             (
+                Method::GET,
+                format!("/v1/sessions/{sid}/report"),
+                UserRoute::Session(sid, Scope::Read),
+            ),
+            (
                 Method::POST,
                 format!("/v1/sessions/{sid}/cancel"),
                 UserRoute::Session(sid, Scope::Run),
@@ -774,6 +779,7 @@ mod tests {
             "/v1/user-tokens",
             "/v1/triggers",
             "/v1/model-grants",
+            "/v1/model-usage",
             "/v1/vault/status",
             "/v1/skills",
             "/v1/schedules",
