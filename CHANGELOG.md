@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **Failover for the agent's `model_socket`.** `model_socket.fallback_chain` names the same operator-written chain; the egress
+  broker retries the agent's chat call against it on a connect error, 429 or 5xx, each attempt through the full policy and vault
+  path. Docs: `docs/merion/MODEL.md`.
 - **Run report.** `GET /v1/sessions/{id}/report` says what a session did, what the host actually checked (exit code, every file
   kept, the applied changeset is the approved one, the service accepted the request), what it did not check, what is still
   waiting, and what can be undone: nothing to undo, applied with no automatic undo, unknown, or cannot be undone (it left the

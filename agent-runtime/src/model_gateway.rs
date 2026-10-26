@@ -69,6 +69,14 @@ impl Target {
 /// The targets of chain `name`, read from the operator's file. A missing file, an unknown chain or a bad entry
 /// is an error: a pack that names a chain does not quietly run without it.
 pub fn targets(file: Option<&Path>, name: &str, base: &ModelSpec) -> Result<Vec<ModelSpec>, String> {
+    chain_targets(file, name)?
+        .iter()
+        .map(|t| t.applied_to(base).map_err(|e| format!("chain '{name}': {e}")))
+        .collect()
+}
+
+/// The raw targets of chain `name`, for the agent's `model_socket` path, which has no `ModelSpec` to apply them to.
+pub fn chain_targets(file: Option<&Path>, name: &str) -> Result<Vec<Target>, String> {
     let path = file.ok_or("this pack names a fallback chain, but the operator configured no chains file")?;
     let text = std::fs::read_to_string(path).map_err(|e| format!("chains file: {e}"))?;
     let parsed: ChainsFile = serde_json::from_str(&text).map_err(|e| format!("chains file: {e}"))?;
@@ -79,11 +87,41 @@ pub fn targets(file: Option<&Path>, name: &str, base: &ModelSpec) -> Result<Vec<
     if chain.targets.is_empty() || chain.targets.len() > MAX_FALLBACKS {
         return Err(format!("chain '{name}' needs 1 to {MAX_FALLBACKS} targets"));
     }
-    chain
-        .targets
-        .iter()
-        .map(|t| t.applied_to(base).map_err(|e| format!("chain '{name}': {e}")))
-        .collect()
+    for t in &chain.targets {
+        let u = url::Url::parse(&t.base_url).map_err(|e| format!("chain '{name}': base_url: {e}"))?;
+        if !matches!(u.scheme(), "http" | "https") || u.host_str().is_none() || u.query().is_some() || u.fragment().is_some() {
+            return Err(format!("chain '{name}': base_url must be an http(s) URL with a host and no query"));
+        }
+        if t.model.is_empty() || t.model.len() > 80 || t.model.chars().any(char::is_control) {
+            return Err(format!("chain '{name}': model must be 1-80 plain characters"));
+        }
+    }
+    Ok(chain.targets.clone())
+}
+
+/// The request to send to `target` in place of `req`, if `req` is the agent's chat call to its own model socket:
+/// a POST of JSON to `<socket base>/chat/completions` with the socket's credential. Anything else is not a model
+/// call and is never redirected. Only the URL, the credential and the JSON `model` change; the messages go unaltered.
+pub fn retarget(
+    req: &crate::model::EgressRequest,
+    socket: &crate::model::ModelSocket,
+    target: &Target,
+) -> Option<crate::model::EgressRequest> {
+    use base64::Engine;
+    let want = format!("{}/chat/completions", socket.base_url.trim_end_matches('/'));
+    if !req.method.eq_ignore_ascii_case("POST") || req.url != want || req.credential != socket.credential {
+        return None;
+    }
+    let raw = base64::engine::general_purpose::STANDARD.decode(req.body_base64.as_deref()?).ok()?;
+    let mut body: Value = serde_json::from_slice(&raw).ok()?;
+    body.as_object_mut()?.insert("model".into(), Value::String(target.model.clone()));
+    Some(crate::model::EgressRequest {
+        url: format!("{}/chat/completions", target.base_url.trim_end_matches('/')),
+        method: req.method.clone(),
+        headers: req.headers.clone(),
+        body_base64: Some(base64::engine::general_purpose::STANDARD.encode(serde_json::to_vec(&body).ok()?)),
+        credential: Some(target.credential.clone()),
+    })
 }
 
 /// Whether a response status means "try the next endpoint": rate limited or a server error. A 4xx is the
@@ -103,7 +141,11 @@ pub fn tokens(body: &[u8]) -> (Option<u64>, Option<u64>) {
 
 /// Identifies an endpoint for the breaker: where it is, which model, and which key.
 pub fn breaker_key(spec: &ModelSpec) -> String {
-    format!("{}|{}|{}", spec.base_url, spec.model, spec.credential)
+    endpoint_key(&spec.base_url, &spec.model, &spec.credential)
+}
+
+pub fn endpoint_key(base_url: &str, model: &str, credential: &str) -> String {
+    format!("{base_url}|{model}|{credential}")
 }
 
 #[derive(Default)]

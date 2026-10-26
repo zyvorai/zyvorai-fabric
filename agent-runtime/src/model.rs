@@ -138,6 +138,11 @@ pub struct ModelSocket {
     /// Vault credential name that holds the API key (surrogate at egress).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub credential: Option<String>,
+    /// Name of an operator-written fallback chain (`ZYVOR_AGENT_MODEL_CHAINS_FILE`). When the endpoint above is down,
+    /// rate limited or answers 5xx, the egress broker retries the chain's endpoints. The pack names the chain; only
+    /// the operator decides where it leads.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_chain: Option<String>,
 }
 
 /// Preferred isolation for the untrusted agent cell.
@@ -252,6 +257,11 @@ impl AgentManifest {
             .is_some_and(|m| m.is_empty() || m.len() > 80 || m.chars().any(char::is_control))
         {
             return Err("model_socket.model must be 1-80 plain characters".into());
+        }
+        if let Some(chain) = &s.fallback_chain {
+            if !crate::model_gateway::valid_chain_name(chain) {
+                return Err("model_socket.fallback_chain must be 1-40 letters, digits, '-' or '_'".into());
+            }
         }
         if let Some(cred) = &s.credential {
             if !self.credentials.iter().any(|c| c == cred) {

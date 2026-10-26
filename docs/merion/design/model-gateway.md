@@ -10,7 +10,9 @@ I built it in the agent runtime instead, because the vault, first-use approvals 
 gateway cannot read Merion's vault, and its endpoints are bound to self-hosted deployments. Consequences: the fabricd gateway is
 unchanged, spend budgets use the existing per-user daily allowance rather than a new per-key budget, and there is no cache.
 
-**Not built:** the agent `model_socket` path (the egress broker, not `model_call.rs`), the response cache, per-agent budgets, a
+**Also built:** failover for the agent `model_socket` path, in the egress broker (see MODEL.md); not counted in `/v1/model-usage`.
+
+**Not built:** the response cache, per-agent budgets, a
 price table and the console page.
 
 ## The problem

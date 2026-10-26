@@ -59,8 +59,8 @@ pub async fn proxy(
     headers: HeaderMap,
     Json(request): Json<EgressRequest>,
 ) -> Response {
-    let target = AuditTarget::from_request(&headers, &request);
-    match proxy_inner(&state, &headers, request, peer).await {
+    let mut target = AuditTarget::from_request(&headers, &request);
+    match proxy_with_chain(&state, &headers, request, peer, &mut target).await {
         Ok(value) => {
             target
                 .record(
@@ -85,6 +85,123 @@ pub async fn proxy(
                     .await;
             }
             (status, Json(json!({"error": message}))).into_response()
+        }
+    }
+}
+
+/// A failover-class outcome: the upstream could not be reached, or answered 429 or 5xx.
+fn failover_outcome(r: &Result<Value, (StatusCode, String)>) -> bool {
+    match r {
+        Ok(v) => v.get("status").and_then(Value::as_u64).is_some_and(|s| crate::model_gateway::failover_status(s as u16)),
+        Err((code, _)) => matches!(*code, StatusCode::BAD_GATEWAY | StatusCode::GATEWAY_TIMEOUT),
+    }
+}
+
+/// Send the request; if it is the agent's chat call to a `model_socket` that names a fallback chain and the endpoint
+/// is down, rate limited or answering 5xx, try the operator's chain. Every attempt goes through the full broker
+/// path (egress policy, vault, audit row), so a chain endpoint the cell may not reach is refused like any other. A
+/// refusal never counts as a reason to fail over to a different place; only an unreachable or failing endpoint does.
+/// `target` is left describing the attempt whose result is returned.
+async fn proxy_with_chain(
+    state: &AppState,
+    headers: &HeaderMap,
+    request: EgressRequest,
+    peer: Option<std::net::SocketAddr>,
+    target: &mut AuditTarget,
+) -> Result<Value, (StatusCode, String)> {
+    let chain = chain_plan(state, headers, &request).await;
+    let Some((socket, targets)) = chain else {
+        return proxy_inner(state, headers, request, peer).await;
+    };
+    let now = std::time::Instant::now;
+    let primary_key = crate::model_gateway::endpoint_key(
+        &socket.base_url,
+        socket.model.as_deref().unwrap_or(""),
+        socket.credential.as_deref().unwrap_or(""),
+    );
+    let mut attempts: Vec<(EgressRequest, Option<String>, String)> = vec![(request.clone(), None, primary_key)];
+    for t in &targets {
+        if let Some(r) = crate::model_gateway::retarget(&request, &socket, t) {
+            let key = crate::model_gateway::endpoint_key(&t.base_url, &t.model, &t.credential);
+            attempts.push((r, Some(t.credential.clone()), key));
+        }
+    }
+    // Skip endpoints whose breaker is open; if all are, still try the pack's own rather than fail unsent.
+    let open: Vec<bool> = attempts.iter().map(|(_, _, k)| crate::model_gateway::is_open(k, now())).collect();
+    if open.iter().all(|o| *o) {
+        return proxy_inner(state, headers, request, peer).await;
+    }
+    let mut last = None;
+    let mut from: Vec<String> = Vec::new();
+    for (index, (req, cred, key)) in attempts.into_iter().enumerate() {
+        if open[index] {
+            continue;
+        }
+        let attempt_target = AuditTarget::from_request(headers, &req);
+        let result = proxy_attempt(state, headers, req, peer, cred.as_deref()).await;
+        let unreachable = failover_outcome(&result);
+        crate::model_gateway::record(&key, !unreachable, now());
+        // A fallback that is refused (policy, vault) is skipped like one that is down; the pack's own endpoint
+        // being refused is final, since another place would be a different decision.
+        let failed = unreachable || (index > 0 && result.is_err());
+        if !failed {
+            if index > 0 && !failed {
+                if let Some(id) = attempt_target.session_id {
+                    let _ = state
+                        .store
+                        .audit
+                        .append(
+                            Some(id),
+                            AuditPhase::Performed,
+                            "model.failover",
+                            attempt_target.host.clone(),
+                            json!({ "from": from, "to": attempt_target.host, "target_index": index, "path": "model_socket" }),
+                        )
+                        .await;
+                }
+            }
+            *target = attempt_target;
+            return result;
+        }
+        // This endpoint failed in a way the next may not: journal it, then go on.
+        let detail = match &result {
+            Ok(v) => json!({ "status": v.get("status"), "target_index": index, "failover": true }),
+            Err((_, m)) => json!({ "reason": m, "target_index": index, "failover": true }),
+        };
+        attempt_target.record(state, AuditPhase::Failed, detail).await;
+        from.push(attempt_target.host.clone().unwrap_or_default());
+        // Report the pack's own endpoint's failure, not a later refusal.
+        if last.is_none() {
+            last = Some((attempt_target, result));
+        }
+    }
+    // Every endpoint that was tried failed: report the first failure.
+    let (t, result) = last.expect("at least one attempt ran");
+    *target = t;
+    result
+}
+
+/// The chain for this request, if it is a chat call to the calling agent's own model socket and that socket names a
+/// chain the operator has defined. A chain that cannot be read means no failover, never a different behaviour:
+/// the request is sent as written and the problem is logged.
+async fn chain_plan(
+    state: &AppState,
+    headers: &HeaderMap,
+    request: &EgressRequest,
+) -> Option<(crate::model::ModelSocket, Vec<crate::model_gateway::Target>)> {
+    let id = uuid::Uuid::parse_str(header(headers, "x-zyvor-session-id").ok()?).ok()?;
+    let session = state.store.get_session(id).await?;
+    let agent = state.store.get_agent_version(&session.agent, &session.agent_version).await.ok()?;
+    let socket = agent.manifest.model_socket?;
+    let name = socket.fallback_chain.clone()?;
+    // Cheap shape check first, so ordinary traffic never reads the chains file.
+    let probe = crate::model_gateway::Target { credential: socket.credential.clone().unwrap_or_default(), base_url: socket.base_url.clone(), model: String::new() };
+    crate::model_gateway::retarget(request, &socket, &probe)?;
+    match crate::model_gateway::chain_targets(state.config.model_chains_file.as_deref(), &name) {
+        Ok(t) => Some((socket, t)),
+        Err(e) => {
+            tracing::warn!(chain = %name, error = %e, "model_socket fallback chain unavailable; sending without failover");
+            None
         }
     }
 }
@@ -140,6 +257,18 @@ pub(crate) async fn proxy_inner(
     headers: &HeaderMap,
     request: EgressRequest,
     peer: Option<std::net::SocketAddr>,
+) -> Result<Value, (StatusCode, String)> {
+    proxy_attempt(state, headers, request, peer, None).await
+}
+
+/// `chain_credential` names a credential the operator's fallback chain uses for this one request. It stands in for the
+/// manifest's grant of that single name; the vault, the egress policy and every other check still apply to it.
+async fn proxy_attempt(
+    state: &AppState,
+    headers: &HeaderMap,
+    request: EgressRequest,
+    peer: Option<std::net::SocketAddr>,
+    chain_credential: Option<&str>,
 ) -> Result<Value, (StatusCode, String)> {
     let session_id = header(headers, "x-zyvor-session-id")?;
     let capability = header(headers, "x-zyvor-egress-capability")?;
@@ -358,7 +487,7 @@ pub(crate) async fn proxy_inner(
     let mut needs_approval: Option<(ApprovalKind, String)> = None;
     let mut preview: Option<crate::preview::Preview> = None;
     if let Some(name) = request.credential.as_deref() {
-        if !agent.manifest.credentials.iter().any(|c| c == name) {
+        if !agent.manifest.credentials.iter().any(|c| c == name) && chain_credential != Some(name) {
             return Err((
                 StatusCode::FORBIDDEN,
                 format!("credential '{name}' is not granted to this agent"),
@@ -2574,6 +2703,119 @@ pub(crate) mod ask_tests {
         assert_eq!(error.0, StatusCode::FORBIDDEN);
         assert!(error.1.contains("egress guard"), "{}", error.1);
         assert_eq!(hits(&counter), 1);
+    }
+
+    /// A stub chat endpoint answering `status`; records each request body it receives.
+    async fn chat_stub(status: u16) -> (u16, Arc<std::sync::Mutex<Vec<String>>>) {
+        let seen: Arc<std::sync::Mutex<Vec<String>>> = Arc::default();
+        let sink = seen.clone();
+        let app = axum::Router::new().route(
+            "/v1/chat/completions",
+            axum::routing::post(move |body: axum::body::Bytes| {
+                let sink = sink.clone();
+                async move {
+                    sink.lock().unwrap().push(String::from_utf8_lossy(&body).into_owned());
+                    (
+                        StatusCode::from_u16(status).unwrap(),
+                        axum::Json(json!({"choices": [{"message": {"content": "hi"}}]})),
+                    )
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        (port, seen)
+    }
+
+    /// A state whose operator wrote chain `main` over `chain_ports` (credential `llm`, kind fabric), and a session
+    /// whose agent's model socket points at `primary` and names that chain (or none).
+    async fn socket_agent(primary: u16, chain_ports: &[u16], named: bool, chain_host: &str) -> (Arc<AppState>, SessionRecord) {
+        let dir = std::env::temp_dir().join(format!("zyvor-sock-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let creds = dir.join("creds.json");
+        std::fs::write(
+            &creds,
+            json!({"llm": {"host": "127.0.0.1", "header": "authorization", "kind": "fabric", "allowed_ports": chain_ports}}).to_string(),
+        )
+        .unwrap();
+        let targets: Vec<Value> = chain_ports
+            .iter()
+            .map(|p| json!({"credential": "llm", "base_url": format!("http://{chain_host}:{p}/v1"), "model": format!("fb-{p}")}))
+            .collect();
+        let chains = dir.join("chains.json");
+        std::fs::write(&chains, json!({"chains": {"main": {"targets": targets}}}).to_string()).unwrap();
+        let (state, session) = state_and_session_cfg(|c| {
+            c.credentials_file = Some(creds);
+            c.model_chains_file = Some(chains);
+        })
+        .await;
+        let session = deploy_local_agent(&state, &session, |m| {
+            m.model_socket = Some(crate::model::ModelSocket {
+                base_url: format!("http://127.0.0.1:{primary}/v1"),
+                model: Some("primary-m".into()),
+                credential: None,
+                fallback_chain: named.then(|| "main".to_string()),
+            });
+        })
+        .await;
+        (state, session)
+    }
+
+    async fn chat(state: &Arc<AppState>, session: &SessionRecord, primary: u16) -> Result<Value, (StatusCode, String)> {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-zyvor-session-id", session.id.to_string().parse().unwrap());
+        headers.insert("x-zyvor-egress-capability", "cap".parse().unwrap());
+        let body = json!({"model": "primary-m", "messages": [{"role": "user", "content": "hello"}]}).to_string();
+        let request = EgressRequest {
+            url: format!("http://127.0.0.1:{primary}/v1/chat/completions"),
+            method: "POST".into(),
+            headers: Default::default(),
+            body_base64: Some(base64::engine::general_purpose::STANDARD.encode(body)),
+            credential: None,
+        };
+        let mut target = AuditTarget::from_request(&headers, &request);
+        proxy_with_chain(state, &headers, request, None, &mut target).await
+    }
+
+    #[tokio::test]
+    async fn a_failing_model_socket_hands_over_to_the_chain_with_only_the_model_changed() {
+        let (p1, seen1) = chat_stub(503).await;
+        let (p2, seen2) = chat_stub(200).await;
+        let (state, session) = socket_agent(p1, &[p2], true, "127.0.0.1").await;
+        let out = chat(&state, &session, p1).await.unwrap();
+        assert_eq!(out["status"], 200);
+        assert_eq!(seen1.lock().unwrap().len(), 1);
+        let sent: Value = serde_json::from_str(&seen2.lock().unwrap()[0]).unwrap();
+        assert_eq!(sent["model"], format!("fb-{p2}"));
+        assert_eq!(sent["messages"][0]["content"], "hello");
+        let rows = state.store.audit.list(Some(session.id), 50).await.unwrap_or_default();
+        assert!(rows.iter().any(|r| r.action == "model.failover" && r.detail["path"] == "model_socket"));
+    }
+
+    #[tokio::test]
+    async fn without_a_named_chain_or_with_a_healthy_primary_nothing_changes() {
+        let (p1, seen1) = chat_stub(503).await;
+        let (p2, seen2) = chat_stub(200).await;
+        let (state, session) = socket_agent(p1, &[p2], false, "127.0.0.1").await;
+        assert_eq!(chat(&state, &session, p1).await.unwrap()["status"], 503);
+        assert!(seen2.lock().unwrap().is_empty());
+        let (good, _) = chat_stub(200).await;
+        let (state, session) = socket_agent(good, &[p2], true, "127.0.0.1").await;
+        assert_eq!(chat(&state, &session, good).await.unwrap()["status"], 200);
+        assert!(seen2.lock().unwrap().is_empty());
+        assert_eq!(seen1.lock().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn a_chain_endpoint_the_cell_may_not_reach_is_refused_and_the_primarys_failure_is_reported() {
+        let (p1, _) = chat_stub(503).await;
+        let (p2, seen2) = chat_stub(200).await;
+        // The chain names `localhost`, but the vault binds credential `llm` to 127.0.0.1 only.
+        let (state, session) = socket_agent(p1, &[p2], true, "localhost").await;
+        let out = chat(&state, &session, p1).await;
+        assert!(seen2.lock().unwrap().is_empty(), "the refused fallback must never be sent");
+        assert!(matches!(&out, Ok(v) if v["status"] == 503), "{out:?}");
     }
 
     #[tokio::test]

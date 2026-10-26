@@ -106,5 +106,16 @@ A pack may add `"fallback_chain": "main"` to its `model` block. The name refers 
 - `GET /v1/model-usage` (operator only) sums the journal per endpoint: calls, failures, tokens, average latency, and how many
   calls reported no tokens (`tokens_unreported`). It has no cost figure; Merion does not guess prices.
 
-Not covered yet: an agent's `model_socket` (it goes through the egress broker, not this path), a response cache, and per-agent
-spend budgets (the per-user daily call allowance, `ZYVOR_AGENT_USER_MAX_MODEL_CALLS_PER_DAY`, still applies).
+### The agent's `model_socket`
+
+A manifest's `model_socket` may also carry `"fallback_chain": "main"`, naming the same operator-written chain. The egress broker
+then retries the agent's `POST <base_url>/chat/completions` against the chain when the socket's endpoint cannot be reached or
+answers 429 or 5xx, changing only the URL, the credential and the JSON `model`. Each attempt takes the full broker path, so the
+cell's egress policy and the vault still decide; a chain endpoint they refuse is skipped, and the chain's credential needs no
+grant in the manifest (the operator's file is the grant, for that one request). The breaker is shared with the use-case path.
+Journal: a `model.failover` row with `"path": "model_socket"`, and an `egress.http` row for each failed attempt. Not counted in
+`GET /v1/model-usage`, which reads `model.call` rows only. Tested against stub endpoints only.
+
+Not covered yet: a response cache and a price table. The per-user daily call allowance
+(`ZYVOR_AGENT_USER_MAX_MODEL_CALLS_PER_DAY`) still applies; per-agent budgets do not exist.
+
