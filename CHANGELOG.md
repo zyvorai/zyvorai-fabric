@@ -3,6 +3,9 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Verify command and snapshot restore for the run report.** `verify_command` runs after an applied changeset and shows as a check.
+  `snapshot_before_apply` snapshots the cell first; an operator can then restore it (`POST /v1/sessions/{id}/changesets/{cs}/restore`,
+  confirmed, latest change only, never for end users). The report shows `undo_available` or `restored_from_snapshot`.
 - `merionctl report <session-id> [--json]` prints the run report as text.
 - **Model reply cache** (`ZYVOR_AGENT_MODEL_CACHE_SECS`, off by default) for the use-case `model` step: per person, in memory, never across
   people, and only while the vault and the first-use approval still allow the endpoint.

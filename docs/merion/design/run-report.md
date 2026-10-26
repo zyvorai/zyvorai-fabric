@@ -5,13 +5,20 @@ Status: **built (JSON endpoint), with differences from the plan below.** `GET /v
 flows against the FluxVM stub; not yet run against a real FluxVM host.
 
 **Differences from the plan:**
-- Step 0 answer: I found no user-reachable restore for applied changes, so the report never says "undo available". Applied changes
-  show `applied_no_automatic_undo`. A snapshot-before-run option is not built.
+- Step 0, corrected: FluxVM does have tagged snapshots and an in-place restore (`POST /v1/vms/{id}/snapshot` and `/restore`, used by the Fabric
+  client). My first answer was wrong because I only read the runtime's own client, which had no restore call. Now built, opt in per agent:
+  `snapshot_before_apply` takes a snapshot just before an approved changeset is applied, and an **operator** can restore it with
+  `POST /v1/sessions/{id}/changesets/{cs}/restore {"confirm": true}`. A restore returns the *whole cell* to that moment (files, memory, the
+  agent process), so it is refused unless the change is the latest applied one, a snapshot exists, and it was not already restored.
+  Users cannot call it. Rollback states: `nothing_to_undo`, `undo_available`, `restored_from_snapshot`, `applied_no_automatic_undo`,
+  `unknown`, `cannot_be_undone`. Tested against a fake FluxVM only; not run on a real cell.
+- The verify command is built: `verify_command` in the manifest runs in the cell after the apply (120 s limit) and appears as a check,
+  "the verify command exited 0", with the command and the last 5 output lines (each cut to 200 characters; output can echo file content, so
+  keep it to a test command). It cannot be set by an agent. A command that cannot run is a failed check, not a missing one.
 - The agent's own claims are not shown at all (not even labelled); the report lists "anything the agent said" under *not checked*.
 - `merionctl report <session-id> [--json]` is built (a plain-text rendering of the same JSON).
 - The console shows a **Run report** card on the session page (served by `GET /api/sessions/{id}/report`).
-- Not built: the PDF section and the verify command.
-- The rollback states are `nothing_to_undo`, `applied_no_automatic_undo`, `unknown` and `cannot_be_undone`.
+- Not built: the PDF section (there is no session PDF generator to extend; the console card can be printed).
 
 ## The problem
 

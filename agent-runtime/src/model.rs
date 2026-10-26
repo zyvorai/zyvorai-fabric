@@ -76,6 +76,15 @@ pub struct AgentManifest {
     /// `idle_hibernate_seconds`. See [`AgentManifest::validate_gpus`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub gpus: Option<u8>,
+    /// A check the host runs in the cell after a changeset is applied (a test command, say). Its exit code and the
+    /// last lines of its output go in the run report. Part of the deployed manifest, so an agent cannot add one at run
+    /// time. See [`AgentManifest::validate_verify_command`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verify_command: Option<String>,
+    /// Take a FluxVM snapshot of the cell just before an approved changeset is applied, so the operator can restore
+    /// the cell to that moment. Off by default: it costs time and disk. See `run_report` for what a restore does.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub snapshot_before_apply: bool,
     /// How long an `ask` request waits for a decision before it is refused.
     /// `None` uses [`DEFAULT_EGRESS_APPROVAL_SECONDS`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -361,6 +370,17 @@ impl AgentManifest {
             ),
             _ => Ok(()),
         }
+    }
+
+    /// Deploy-time checks for `verify_command`: one plain line, so what a person approves with the pack is what runs.
+    pub fn validate_verify_command(&self) -> Result<(), String> {
+        let Some(c) = &self.verify_command else {
+            return Ok(());
+        };
+        if c.trim().is_empty() || c.len() > 500 || c.chars().any(|ch| ch.is_control()) {
+            return Err("verify_command must be one line of 1-500 plain characters".into());
+        }
+        Ok(())
     }
 
     /// Deploy-time checks for `gpus`. FluxVM re-checks the backend, but the combinations that
@@ -1352,6 +1372,8 @@ mod home_volume_tests {
             model_socket: None,
             cell_backend: None,
             gpus: None,
+            verify_command: None,
+            snapshot_before_apply: false,
         }
     }
 

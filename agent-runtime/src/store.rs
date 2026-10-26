@@ -1388,6 +1388,8 @@ mod tests {
                 model_socket: None,
                 cell_backend: None,
                 gpus: None,
+                verify_command: None,
+                snapshot_before_apply: false,
             },
         };
         let record = store.deploy_agent(request).await.unwrap();
@@ -1443,6 +1445,8 @@ mod tests {
                     model_socket: None,
                     cell_backend: None,
                     gpus: None,
+                    verify_command: None,
+                    snapshot_before_apply: false,
                 },
             })
             .await
@@ -1483,6 +1487,8 @@ mod tests {
                     model_socket: None,
                     cell_backend: None,
                     gpus: None,
+                    verify_command: None,
+                    snapshot_before_apply: false,
                 },
             })
             .await

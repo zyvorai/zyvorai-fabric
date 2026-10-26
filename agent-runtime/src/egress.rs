@@ -1476,6 +1476,8 @@ pub(crate) mod ask_tests {
             model_socket: None,
             cell_backend: None,
             gpus: None,
+            verify_command: None,
+            snapshot_before_apply: false,
         }
     }
 

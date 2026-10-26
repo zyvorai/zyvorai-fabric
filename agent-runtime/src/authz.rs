@@ -205,6 +205,8 @@ pub fn user_route(method: &Method, path: &str) -> UserRoute {
         ["v1", "sessions"] if *method == Method::POST => UserRoute::Open(Scope::Run),
         // Recovering a session through the host is an operator action.
         ["v1", "sessions", _, "host-recover", ..] => UserRoute::Denied,
+        // Restoring the cell to a snapshot discards everything it did since: an operator action.
+        ["v1", "sessions", _, "changesets", ..] => UserRoute::Denied,
         ["v1", "sessions", sid, ..] => match id(sid) {
             Some(sid) if read => UserRoute::Session(sid, Scope::Read),
             Some(sid) if write => UserRoute::Session(sid, Scope::Run),
@@ -515,6 +517,11 @@ mod tests {
             (
                 Method::POST,
                 format!("/v1/sessions/{sid}/host-recover"),
+                UserRoute::Denied,
+            ),
+            (
+                Method::POST,
+                format!("/v1/sessions/{sid}/changesets/{aid}/restore"),
                 UserRoute::Denied,
             ),
             (
