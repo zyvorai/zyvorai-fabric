@@ -525,6 +525,10 @@ pub fn public_router(state: Arc<AppState>) -> Router {
         .route("/v1/approvals/{id}", post(decide_approval))
         .route("/v1/sessions/{id}/speculate", post(speculate_session))
         .route(
+            "/v1/sessions/{id}/changesets/{cs}/restore",
+            post(restore_changeset),
+        )
+        .route(
             "/v1/sessions/{id}/grants",
             post(create_session_grant)
                 .get(list_session_grants)
@@ -702,6 +706,9 @@ async fn deploy_agent(
         }
     }
     if let Err(message) = req.manifest.validate_confidential() {
+        return Err(ApiError::bad_request(message));
+    }
+    if let Err(message) = req.manifest.validate_verify_command() {
         return Err(ApiError::bad_request(message));
     }
     if let Err(message) = req.manifest.validate_gpus() {
@@ -4380,6 +4387,9 @@ async fn settle_changeset(
         return Err(ApiError::internal("changeset approval has no changeset_id"));
     };
     let approved = record.status == ApprovalStatus::Approved;
+    if approved {
+        snapshot_before_apply(state, session, record, &changeset_id).await;
+    }
     let outcome = if approved {
         match state
             .fluxvm
@@ -4428,12 +4438,200 @@ async fn settle_changeset(
     {
         tracing::error!(%error, approval_id = %record.id, "failed to write audit entry");
     }
+    if approved && outcome.is_ok() {
+        run_verify_command(state, session, record, &changeset_id.to_string()).await;
+    }
     outcome.map(|_| ()).map_err(|e| {
         ApiError::bad_gateway(format!(
             "your decision is recorded, but FluxVM could not {} the changeset: {e:#}",
             if approved { "apply" } else { "reject" }
         ))
     })
+}
+
+/// For an agent that opted in (`snapshot_before_apply`), save a FluxVM snapshot of the cell just before its changeset is
+/// applied, and journal it as `changeset.snapshot`. A failed snapshot does not stop the apply, which a person already
+/// approved; it is journaled as failed and the report then says there is no undo.
+async fn snapshot_before_apply(
+    state: &AppState,
+    session: &SessionRecord,
+    record: &ApprovalRecord,
+    changeset_id: &Uuid,
+) {
+    let Ok(agent) = state
+        .store
+        .get_agent_version(&session.agent, &session.agent_version)
+        .await
+    else {
+        return;
+    };
+    if !agent.manifest.snapshot_before_apply {
+        return;
+    }
+    let tag = crate::run_report::snapshot_tag(&changeset_id.to_string());
+    let (phase, detail) = match state.fluxvm.snapshot_tag(session.sandbox_id, &tag).await {
+        Ok(()) => (
+            AuditPhase::Performed,
+            json!({ "approval_id": record.id, "changeset_id": changeset_id, "tag": tag }),
+        ),
+        Err(e) => (
+            AuditPhase::Failed,
+            json!({ "approval_id": record.id, "changeset_id": changeset_id, "tag": tag, "error": format!("{e:#}") }),
+        ),
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(record.session_id),
+            phase,
+            "changeset.snapshot".to_string(),
+            record.subject.clone(),
+            detail,
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %record.id, "failed to write snapshot audit entry");
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct RestoreRequest {
+    #[serde(default)]
+    confirm: bool,
+}
+
+/// `POST /v1/sessions/{id}/changesets/{cs}/restore` (operator only): put the cell back to the snapshot taken just before
+/// that changeset was applied. It discards everything the cell did since, so it needs `{"confirm": true}`, and it is
+/// refused unless the report would show `undo_available` for that change (see `run_report::restore_blocker`).
+async fn restore_changeset(
+    State(state): State<Arc<AppState>>,
+    Path((id, cs)): Path<(Uuid, Uuid)>,
+    Json(req): Json<RestoreRequest>,
+) -> ApiResult<Json<Value>> {
+    let session = require_session(&state, id).await?;
+    if !req.confirm {
+        return Err(ApiError::bad_request(
+            "a restore returns the whole cell to just before the change and discards everything since, including the agent's memory; send {\"confirm\": true}",
+        ));
+    }
+    if session.status.is_terminal() {
+        return Err(ApiError::conflict(
+            "the session has ended; there is no running cell to restore",
+        ));
+    }
+    let rows = state
+        .store
+        .audit
+        .list(Some(id), usize::MAX)
+        .await
+        .map_err(ApiError::internal)?;
+    if let Some(why) = crate::run_report::restore_blocker(&rows, &json!(cs.to_string())) {
+        return Err(ApiError::conflict(why));
+    }
+    let tag = crate::run_report::snapshot_tag(&cs.to_string());
+    let outcome = state.fluxvm.restore_tag(session.sandbox_id, &tag).await;
+    let (phase, detail) = match &outcome {
+        Ok(()) => (
+            AuditPhase::Performed,
+            json!({ "changeset_id": cs, "tag": tag }),
+        ),
+        Err(e) => (
+            AuditPhase::Failed,
+            json!({ "changeset_id": cs, "tag": tag, "error": format!("{e:#}") }),
+        ),
+    };
+    let _ = state
+        .store
+        .audit
+        .append(
+            Some(id),
+            phase,
+            "changeset.restore".to_string(),
+            None,
+            detail,
+        )
+        .await;
+    outcome.map_err(|e| {
+        ApiError::bad_gateway(format!("FluxVM could not restore the snapshot: {e:#}"))
+    })?;
+    Ok(Json(
+        json!({ "restored": true, "changeset_id": cs, "snapshot": tag }),
+    ))
+}
+
+/// The last few lines of a command's output, each shortened. Output can echo file content, so this is a short tail for a
+/// person to read in the report, never the whole of it.
+fn output_tail(stdout: &str, stderr: &str) -> Vec<String> {
+    let lines: Vec<&str> = stdout
+        .lines()
+        .chain(stderr.lines())
+        .filter(|l| !l.trim().is_empty())
+        .collect();
+    lines[lines.len().saturating_sub(5)..]
+        .iter()
+        .map(|l| l.chars().take(200).collect())
+        .collect()
+}
+
+/// After a changeset is applied, run the manifest's `verify_command` in the cell and journal the result as
+/// `changeset.verify`, so the run report shows it as a check. The host chose when to run it and the manifest chose
+/// what; the agent chose neither. A command that cannot run is a failed check, never a missing one.
+async fn run_verify_command(
+    state: &AppState,
+    session: &SessionRecord,
+    record: &ApprovalRecord,
+    changeset_id: &str,
+) {
+    let Ok(agent) = state
+        .store
+        .get_agent_version(&session.agent, &session.agent_version)
+        .await
+    else {
+        return;
+    };
+    let Some(command) = agent.manifest.verify_command.as_deref() else {
+        return;
+    };
+    let (phase, detail) = match state
+        .fluxvm
+        .process(session.sandbox_id, command, Some(120))
+        .await
+    {
+        Ok(out) => {
+            let exit = out.get("exit_code").and_then(Value::as_i64);
+            let text = |k: &str| out.get(k).and_then(Value::as_str).unwrap_or("").to_string();
+            (
+                if exit == Some(0) {
+                    AuditPhase::Performed
+                } else {
+                    AuditPhase::Failed
+                },
+                json!({
+                    "approval_id": record.id, "changeset_id": changeset_id, "command": command,
+                    "exit_code": exit, "tail": output_tail(&text("stdout"), &text("stderr")),
+                }),
+            )
+        }
+        Err(e) => (
+            AuditPhase::Failed,
+            json!({ "approval_id": record.id, "changeset_id": changeset_id, "command": command, "error": format!("{e:#}") }),
+        ),
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(record.session_id),
+            phase,
+            "changeset.verify".to_string(),
+            record.subject.clone(),
+            detail,
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %record.id, "failed to write verify audit entry");
+    }
 }
 
 async fn decide_approval(
@@ -4821,6 +5019,8 @@ mod tests {
     struct FakeFlux {
         calls: Arc<std::sync::Mutex<Vec<String>>>,
         fail_apply: bool,
+        /// Exit code the fake guest returns for a `process` call (the verify command).
+        verify_exit: i64,
     }
 
     fn fake_changeset(sandbox: &str, cs: &str, state: &str) -> Value {
@@ -4862,7 +5062,32 @@ mod tests {
                 (StatusCode::OK, Json(fake_changeset(&id, &cs, state)))
             }
         };
+        let record = fake.clone();
+        let process = move |Path(_id): Path<String>| {
+            let record = record.clone();
+            async move {
+                record.calls.lock().unwrap().push("process".into());
+                Json(json!({
+                    "result": "exec", "exit_code": record.verify_exit,
+                    "stdout": "ran 3 tests\n1 failed: parse_dates\n", "stderr": ""
+                }))
+            }
+        };
+        let record = fake.clone();
+        let vm_verb = move |Path((_id, verb)): Path<(String, String)>, Json(body): Json<Value>| {
+            let record = record.clone();
+            async move {
+                record
+                    .calls
+                    .lock()
+                    .unwrap()
+                    .push(format!("{verb}:{}", body["tag"].as_str().unwrap_or("")));
+                Json(json!({}))
+            }
+        };
         let app = Router::new()
+            .route("/v1/sandboxes/{id}/process", post(process))
+            .route("/v1/vms/{id}/{verb}", post(vm_verb))
             .route("/v1/sandboxes/{id}/speculate", post(speculate))
             .route("/v1/sandboxes/{id}/changesets/{cs}/{verb}", post(verb));
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -5114,6 +5339,164 @@ mod tests {
             .await
             .unwrap();
         r
+    }
+
+    /// A running session whose pinned agent version carries `extra` manifest fields.
+    async fn session_with_manifest(state: &Arc<AppState>, extra: Value) -> SessionRecord {
+        let mut m = json!({"template": "t"});
+        m.as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        let manifest: crate::model::AgentManifest = serde_json::from_value(m).unwrap();
+        let deployed = state
+            .store
+            .deploy_agent(crate::model::DeployAgentRequest {
+                name: "a".into(),
+                bundle_base64: base64::Engine::encode(
+                    &base64::engine::general_purpose::STANDARD,
+                    "export default 1",
+                ),
+                manifest,
+            })
+            .await
+            .unwrap();
+        let session = running_session(state, SessionStatus::Running).await;
+        state
+            .store
+            .update_session(session.id, |s| s.agent_version = deployed.version.clone())
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn a_verify_command_runs_after_the_apply_and_a_failing_one_shows_as_failed() {
+        for (exit, expect) in [(0, "passed"), (1, "failed")] {
+            let fake = FakeFlux {
+                verify_exit: exit,
+                ..Default::default()
+            };
+            let url = start_fake_flux(fake.clone()).await;
+            let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+            let session =
+                session_with_manifest(&state, json!({"verify_command": "npm test"})).await;
+            let (approval, _) = speculate_for_test(&state, session.id).await;
+            let _ = decide(&state, approval, ApprovalStatus::Approved)
+                .await
+                .unwrap();
+            let calls = fake.calls.lock().unwrap().clone();
+            assert_eq!(
+                calls.last().map(String::as_str),
+                Some("process"),
+                "{calls:?}"
+            );
+            let r = report_for(&state, session.id).await;
+            let v = r["checked"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|c| c["check"] == "the verify command exited 0")
+                .unwrap_or_else(|| panic!("no verify check in {r}"));
+            assert_eq!(v["result"], expect);
+            assert_eq!(v["command"], "npm test");
+            assert!(v["output_tail"].as_array().unwrap().len() <= 5);
+        }
+        // No verify command in the manifest: no such check, and nothing is run.
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = session_with_manifest(&state, json!({})).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        assert!(!fake.calls.lock().unwrap().contains(&"process".to_string()));
+    }
+
+    #[tokio::test]
+    async fn a_snapshot_taken_before_the_apply_makes_a_confirmed_restore_possible_once() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = session_with_manifest(&state, json!({"snapshot_before_apply": true})).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        let calls = fake.calls.lock().unwrap().clone();
+        let snap = calls
+            .iter()
+            .position(|c| c.starts_with("snapshot:merion-pre-"))
+            .expect("a snapshot");
+        let apply = calls.iter().position(|c| c == "apply").unwrap();
+        assert!(
+            snap < apply,
+            "the snapshot must come before the apply: {calls:?}"
+        );
+
+        let r = report_for(&state, session.id).await;
+        assert_eq!(r["rollback"][0]["state"], "undo_available");
+        let cs = Uuid::parse_str("00000000-0000-0000-0000-00000000c0de").unwrap();
+        let restore = |confirm: bool| {
+            restore_changeset(
+                State(state.clone()),
+                Path((session.id, cs)),
+                Json(RestoreRequest { confirm }),
+            )
+        };
+        assert_eq!(
+            restore(false).await.unwrap_err().status,
+            StatusCode::BAD_REQUEST
+        );
+        assert!(!fake
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|c| c.starts_with("restore:")));
+        let _ = restore(true).await.unwrap();
+        assert!(fake
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|c| c.starts_with("restore:merion-pre-")));
+        assert_eq!(
+            report_for(&state, session.id).await["rollback"][0]["state"],
+            "restored_from_snapshot"
+        );
+        assert_eq!(
+            restore(true).await.unwrap_err().status,
+            StatusCode::CONFLICT,
+            "only once"
+        );
+    }
+
+    #[tokio::test]
+    async fn without_the_opt_in_nothing_is_snapshotted_and_a_restore_is_refused() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = session_with_manifest(&state, json!({})).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        assert!(!fake
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|c| c.starts_with("snapshot:")));
+        let cs = Uuid::parse_str("00000000-0000-0000-0000-00000000c0de").unwrap();
+        let err = restore_changeset(
+            State(state.clone()),
+            Path((session.id, cs)),
+            Json(RestoreRequest { confirm: true }),
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(err.status, StatusCode::CONFLICT);
+        assert!(err.message.contains("no snapshot"), "{}", err.message);
     }
 
     #[tokio::test]

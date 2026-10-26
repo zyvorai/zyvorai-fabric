@@ -535,6 +535,29 @@ impl FluxVm {
         Ok(())
     }
 
+    /// Save a named snapshot of the VM (`POST /v1/vms/{id}/snapshot`, the same call the Fabric client makes).
+    pub async fn snapshot_tag(&self, id: Uuid, tag: &str) -> Result<()> {
+        let response = self
+            .auth(self.http.post(self.url(&format!("/v1/vms/{id}/snapshot"))?))
+            .json(&json!({"tag": tag}))
+            .send()
+            .await?;
+        let _: Value = self.parse(response).await?;
+        Ok(())
+    }
+
+    /// Restore the running VM in place from snapshot `tag` (`POST /v1/vms/{id}/restore`). Everything the cell did after
+    /// the snapshot is gone: files, memory and the agent process.
+    pub async fn restore_tag(&self, id: Uuid, tag: &str) -> Result<()> {
+        let response = self
+            .auth(self.http.post(self.url(&format!("/v1/vms/{id}/restore"))?))
+            .json(&json!({"tag": tag}))
+            .send()
+            .await?;
+        let _: Value = self.parse(response).await?;
+        Ok(())
+    }
+
     pub async fn snapshot(&self, id: Uuid, path: &str) -> Result<()> {
         let response = self
             .auth(

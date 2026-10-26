@@ -46,6 +46,53 @@ fn settled<'a>(audit: &'a [AuditEntry], approval: &ApprovalRecord) -> Option<&'a
     })
 }
 
+/// The tag of the snapshot taken before `changeset_id` was applied. Plain characters only: it goes to FluxVM as is.
+pub fn snapshot_tag(changeset_id: &str) -> String {
+    let id: String = changeset_id
+        .chars()
+        .filter(char::is_ascii_alphanumeric)
+        .take(12)
+        .collect();
+    format!("merion-pre-{id}")
+}
+
+fn row_for<'a>(
+    audit: &'a [AuditEntry],
+    action: &str,
+    changeset_id: &Value,
+) -> Option<&'a AuditEntry> {
+    audit.iter().rev().find(|e| {
+        e.action == action
+            && e.phase == AuditPhase::Performed
+            && e.detail.get("changeset_id") == Some(changeset_id)
+    })
+}
+
+/// Why this changeset cannot be restored now, or `None` when it can. A restore returns the whole cell to the moment
+/// before the change, so it is refused unless the change was applied, a snapshot was taken, nothing was applied
+/// after it (a restore would silently discard that too), and it was not restored already.
+pub fn restore_blocker(audit: &[AuditEntry], changeset_id: &Value) -> Option<&'static str> {
+    let Some(applied) = row_for(audit, "changeset.apply", changeset_id) else {
+        return Some("that change was not applied");
+    };
+    if row_for(audit, "changeset.snapshot", changeset_id).is_none() {
+        return Some("no snapshot was taken before that change");
+    }
+    if row_for(audit, "changeset.restore", changeset_id).is_some() {
+        return Some("that change was already restored");
+    }
+    let later = audit.iter().any(|e| {
+        e.action == "changeset.apply"
+            && e.phase == AuditPhase::Performed
+            && e.seq > applied.seq
+            && e.detail.get("changeset_id") != Some(changeset_id)
+    });
+    if later {
+        return Some("a later change was applied after it, and a restore would discard that too");
+    }
+    None
+}
+
 pub fn build(i: &Inputs<'_>) -> Value {
     let mut did: Vec<Value> = Vec::new();
     let mut checked: Vec<Value> = Vec::new();
@@ -120,12 +167,48 @@ pub fn build(i: &Inputs<'_>) -> Value {
                         "journal changeset.apply",
                         &reference,
                     ));
-                    rollback.push(json!({
-                        "item": format!("{n_files} file change(s) from `{command}`"),
-                        "state": "applied_no_automatic_undo",
-                        "note": "Merion has no restore for applied file changes. Review the files, or restore from a snapshot you took.",
-                        "ref": reference,
-                    }));
+                    // The manifest's verify command, run by the host after the apply. Present only when one was set.
+                    if let Some(v) = i.audit.iter().rev().find(|e| {
+                        e.action == "changeset.verify"
+                            && e.detail.get("changeset_id") == Some(&cs_id)
+                    }) {
+                        let mut c = check(
+                            "the verify command exited 0",
+                            v.phase == AuditPhase::Performed,
+                            "journal changeset.verify",
+                            &reference,
+                        );
+                        c["command"] = v.detail.get("command").cloned().unwrap_or(Value::Null);
+                        c["output_tail"] = v.detail.get("tail").cloned().unwrap_or(Value::Null);
+                        if let Some(e) = v.detail.get("error") {
+                            c["error"] = e.clone();
+                        }
+                        checked.push(c);
+                    }
+                    let item = format!("{n_files} file change(s) from `{command}`");
+                    let has_snapshot = row_for(i.audit, "changeset.snapshot", &cs_id).is_some();
+                    if row_for(i.audit, "changeset.restore", &cs_id).is_some() {
+                        rollback.push(json!({
+                            "item": item, "state": "restored_from_snapshot",
+                            "note": "The cell was restored to the moment before this change. Anything the cell did after it is gone too.",
+                            "ref": reference,
+                        }));
+                    } else if has_snapshot && restore_blocker(i.audit, &cs_id).is_none() {
+                        rollback.push(json!({
+                            "item": item, "state": "undo_available",
+                            "note": format!("An operator can restore the cell to just before this change: POST /v1/sessions/{}/changesets/{}/restore. That also discards everything the cell did since, including the agent's memory.", i.session.id, cs_id.as_str().unwrap_or("")),
+                            "ref": reference,
+                        }));
+                    } else {
+                        let note = if has_snapshot {
+                            "A snapshot was taken, but a restore would also discard a later change. Review the files instead."
+                        } else {
+                            "No snapshot was taken before this change, so Merion cannot restore it. Review the files, or restore from a snapshot you took."
+                        };
+                        rollback.push(json!({
+                            "item": item, "state": "applied_no_automatic_undo", "note": note, "ref": reference,
+                        }));
+                    }
                 } else if failed {
                     let err = row
                         .and_then(|e| e.detail.get("error"))
@@ -553,5 +636,51 @@ mod tests {
         for forbidden in ["stdout", "stderr", "body_sha256", "\"staged\""] {
             assert!(!r.contains(forbidden), "{forbidden} leaked into the report");
         }
+    }
+
+    fn journal(seq: u64, action: &str, phase: AuditPhase, cs: &str) -> AuditEntry {
+        AuditEntry {
+            seq,
+            at: Utc::now(),
+            session_id: None,
+            phase,
+            action: action.into(),
+            subject: None,
+            detail: json!({ "changeset_id": cs }),
+            prev_hash: String::new(),
+            hash: String::new(),
+        }
+    }
+
+    #[test]
+    fn a_restore_is_allowed_only_for_the_latest_applied_change_with_a_snapshot_and_only_once() {
+        use AuditPhase::{Failed, Performed};
+        let (a, b) = (json!("aaa"), json!("bbb"));
+        let one = vec![
+            journal(1, "changeset.snapshot", Performed, "aaa"),
+            journal(2, "changeset.apply", Performed, "aaa"),
+        ];
+        assert_eq!(restore_blocker(&one, &a), None);
+        assert!(restore_blocker(&one, &b).unwrap().contains("not applied"));
+        // A snapshot that failed is no snapshot.
+        let failed = vec![
+            journal(1, "changeset.snapshot", Failed, "aaa"),
+            journal(2, "changeset.apply", Performed, "aaa"),
+        ];
+        assert!(restore_blocker(&failed, &a)
+            .unwrap()
+            .contains("no snapshot"));
+        // A later applied change would be discarded too.
+        let mut two = one.clone();
+        two.push(journal(3, "changeset.apply", Performed, "bbb"));
+        assert!(restore_blocker(&two, &a).unwrap().contains("later change"));
+        // Once restored, not again.
+        let mut done = one.clone();
+        done.push(journal(3, "changeset.restore", Performed, "aaa"));
+        assert!(restore_blocker(&done, &a).unwrap().contains("already"));
+        assert_eq!(
+            snapshot_tag("00000000-0000-0000-0000-00000000c0de"),
+            "merion-pre-000000000000"
+        );
     }
 }
