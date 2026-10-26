@@ -339,6 +339,22 @@ export async function getSessionCockpit(id: string): Promise<MerionCockpit> {
   return apiGet(`/api/sessions/${encodeURIComponent(id)}/cockpit`)
 }
 
+export interface RunReport {
+  session_id: string
+  agent: string
+  status: string
+  generated_at: string
+  did: Array<{ at: string; type: string; summary: string; source: string }>
+  checked: Array<{ check: string; result: 'passed' | 'failed'; source: string }>
+  not_checked: string[]
+  remaining: Array<{ what: string }>
+  rollback: Array<{ item: string; state: string; note?: string }>
+}
+
+export async function getSessionReport(id: string): Promise<RunReport> {
+  return apiGet(`/api/sessions/${encodeURIComponent(id)}/report`)
+}
+
 export async function getSessionBrowserView(id: string): Promise<BrowserView> {
   return apiGet(`/api/sessions/${encodeURIComponent(id)}/browser/view`)
 }

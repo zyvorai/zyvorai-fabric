@@ -22,6 +22,7 @@
 #   merionctl unpack <path>            # restore policy onto an agent
 #   merionctl export-token …           # scoped trajectory export (default: none)
 #   merionctl cockpit <session-id>     # taint + last decisions JSON
+#   merionctl report <session-id> [--json]   # what the run did, what the host checked and did not, what remains, how to roll back
 #   merionctl list                     # the use cases this runtime can run
 #   merionctl run <use-case> <file>...  # run one or a batch (one cell per file); exits 2 on any outbound connection
 #   merionctl trigger list|add-webhook|add-folder|rm|fire …   # start a use case without an upload
@@ -347,6 +348,32 @@ else:
     api POST /v1/vault/user-held/complete -H 'Content-Type: application/json' \
       -d "{\"challenge_id\":$(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$id"),\"nonce\":$(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$nonce")}"
     echo
+    ;;
+
+  report)
+    id="${1:-}"
+    [[ -n "$id" ]] || { echo "usage: merionctl report <session-id> [--json]" >&2; exit 1; }
+    resp=$(api GET "/v1/sessions/${id}/report") || exit 1
+    if [[ "${2:-}" == "--json" ]]; then
+      printf '%s\n' "$resp"
+    else
+      printf '%s' "$resp" | python3 -c '
+import json, sys
+r = json.load(sys.stdin)
+def section(title, items, line):
+    print("\n" + title)
+    if not items:
+        print("  (none)")
+    for i in items:
+        print("  " + line(i))
+print("Run report: agent %s, session %s, status %s" % (r.get("agent"), r.get("session_id"), r.get("status")))
+section("Did", r.get("did", []), lambda i: "%s  %s  [%s]" % (str(i.get("at", ""))[:19], i.get("summary"), i.get("source")))
+section("Checked", r.get("checked", []), lambda i: "%-6s %s  [%s]" % (i.get("result", "").upper(), i.get("check"), i.get("source")))
+section("Not checked", r.get("not_checked", []), lambda i: "- " + i)
+section("Remaining", r.get("remaining", []), lambda i: "- " + str(i.get("what")))
+section("Rollback", r.get("rollback", []), lambda i: "%s: %s%s" % (i.get("item"), i.get("state"), (" (" + i["note"] + ")") if i.get("note") else ""))
+'
+    fi
     ;;
 
   cockpit)

@@ -1,18 +1,20 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import { Shield } from 'lucide-react'
 import {
   BrowserScreenshot,
   BrowserView,
   MerionCockpit,
+  RunReport,
   decideApproval,
   getSession,
   getSessionBrowserScreenshot,
   getSessionBrowserView,
   getSessionCockpit,
+  getSessionReport,
   SessionView,
   speculateSession,
   getChangesetPolicy,
@@ -83,6 +85,20 @@ function ChangesetReview({ planned }: { planned: unknown }) {
   )
 }
 
+function ReportList({ title, empty, children }: { title: string; empty: string; children: ReactNode }) {
+  const items = Children.toArray(children)
+  return (
+    <div>
+      <h3 className="font-medium text-[var(--zf-ink)]">{title}</h3>
+      {items.length === 0 ? (
+        empty ? <p className="text-[var(--zf-muted)]">{empty}</p> : null
+      ) : (
+        <ul className="list-disc pl-5 space-y-1">{items}</ul>
+      )}
+    </div>
+  )
+}
+
 /** One Merion view: goal → current task → evidence → approval → outcome. */
 export default function MerionSession() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -90,6 +106,7 @@ export default function MerionSession() {
   const { t, toggle } = useMerionText()
   const [session, setSession] = useState<SessionView | null>(null)
   const [cockpit, setCockpit] = useState<MerionCockpit | null>(null)
+  const [report, setReport] = useState<RunReport | null>(null)
   const [browser, setBrowser] = useState<BrowserView | null>(null)
   const [shot, setShot] = useState<BrowserScreenshot | null>(null)
   const [casting, setCasting] = useState(false)
@@ -105,6 +122,11 @@ export default function MerionSession() {
       ])
       setSession(s)
       setCockpit(c)
+      try {
+        setReport(await getSessionReport(sessionId))
+      } catch {
+        setReport(null)
+      }
       try {
         const b = await getSessionBrowserView(sessionId)
         setBrowser(b)
@@ -455,6 +477,50 @@ export default function MerionSession() {
             </ul>
           )}
         </Card>
+
+        {report && (
+          <Card className="p-4 space-y-3 text-sm">
+            <h2 className="text-base font-semibold text-[var(--zf-ink)]">Run report</h2>
+            <p className="text-xs text-[var(--zf-muted)]">
+              Built from approvals, the journal and receipts. Nothing the agent said about its own work is counted.
+            </p>
+            <ReportList title="Did" empty="Nothing recorded yet.">
+              {report.did.map((d, i) => (
+                <li key={i}>
+                  {d.summary} <span className="text-[var(--zf-muted)]">· {d.source}</span>
+                </li>
+              ))}
+            </ReportList>
+            <ReportList title="Checked" empty="Nothing was checked.">
+              {report.checked.map((c, i) => (
+                <li key={i}>
+                  <span className={c.result === 'passed' ? 'font-medium' : 'font-medium text-[var(--zf-danger,#b42318)]'}>
+                    {c.result === 'passed' ? 'Passed' : 'Failed'}
+                  </span>{' '}
+                  {c.check} <span className="text-[var(--zf-muted)]">· {c.source}</span>
+                </li>
+              ))}
+            </ReportList>
+            <ReportList title="Not checked" empty="">
+              {report.not_checked.map((n, i) => (
+                <li key={i}>{n}</li>
+              ))}
+            </ReportList>
+            <ReportList title="Remaining" empty="Nothing is waiting.">
+              {report.remaining.map((r, i) => (
+                <li key={i}>{r.what}</li>
+              ))}
+            </ReportList>
+            <ReportList title="Rollback" empty="Nothing to roll back.">
+              {report.rollback.map((r, i) => (
+                <li key={i}>
+                  {r.item}: <code className="font-mono text-xs">{r.state}</code>
+                  {r.note ? <span className="text-[var(--zf-muted)]"> · {r.note}</span> : null}
+                </li>
+              ))}
+            </ReportList>
+          </Card>
+        )}
 
         <Card className="p-4 space-y-2 text-sm">
           <div className="flex items-center justify-between gap-2">

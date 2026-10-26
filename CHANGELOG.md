@@ -3,6 +3,7 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- `merionctl report <session-id> [--json]` prints the run report as text.
 - **Model reply cache** (`ZYVOR_AGENT_MODEL_CACHE_SECS`, off by default) for the use-case `model` step: per person, in memory, never across
   people, and only while the vault and the first-use approval still allow the endpoint.
 - **Prices and per-agent budgets for model calls.** `ZYVOR_AGENT_MODEL_PRICES_FILE` adds `cost` to `GET /v1/model-usage` and a rolling
