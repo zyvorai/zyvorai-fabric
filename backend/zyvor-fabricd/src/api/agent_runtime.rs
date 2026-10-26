@@ -490,6 +490,26 @@ pub async fn session_cockpit(
     .await
 }
 
+/// The run report: what the session did, what the host checked and did not, what remains, how to roll back.
+pub async fn session_report(
+    RequireRead(claims): RequireRead,
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> Response {
+    if let Err(resp) = session_owned(&state, &claims, &id).await {
+        return resp;
+    }
+    proxy(
+        &state,
+        Method::GET,
+        &format!("/v1/sessions/{id}/report"),
+        None,
+        None,
+        None,
+    )
+    .await
+}
+
 /// The one-click Keep demos the console can offer (`pdf-brief`, `csv-clean`, ...).
 pub async fn demo_list(
     RequireRead(_claims): RequireRead,

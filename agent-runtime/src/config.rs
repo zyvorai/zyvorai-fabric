@@ -26,6 +26,10 @@ pub struct Config {
     pub credentials_file: Option<PathBuf>,
     /// Operator-written fallback chains for the model step (see `model_gateway.rs`).
     pub model_chains_file: Option<PathBuf>,
+    /// Operator-written prices and per-agent budgets for model calls (see `model_gateway::Prices`).
+    pub model_prices_file: Option<PathBuf>,
+    /// Seconds a use-case model reply may be reused for the same user, agent, endpoint and text. Off unless set.
+    pub model_cache_secs: Option<u64>,
     /// JSON policy mapping an agent `skill_scope` to the skill scopes it may mount.
     pub skill_scopes_file: Option<PathBuf>,
     /// Reviewer model for `egress_mode: "sentinel"`. Absent means sentinel
@@ -110,6 +114,11 @@ impl Config {
             api_token,
             credentials_file: env_opt("ZYVOR_AGENT_CREDENTIALS_FILE").map(PathBuf::from),
             model_chains_file: env_opt("ZYVOR_AGENT_MODEL_CHAINS_FILE").map(PathBuf::from),
+            model_prices_file: env_opt("ZYVOR_AGENT_MODEL_PRICES_FILE").map(PathBuf::from),
+            model_cache_secs: env_opt("ZYVOR_AGENT_MODEL_CACHE_SECS")
+                .and_then(|v| v.trim().parse::<u64>().ok())
+                .filter(|n| *n > 0)
+                .map(|n| n.min(86_400)),
             skill_scopes_file: env_opt("ZYVOR_AGENT_SKILL_SCOPES_FILE").map(PathBuf::from),
             sentinel: sentinel_from_env()?,
             guard: guard_from_env()?,

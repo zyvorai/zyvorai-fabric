@@ -116,6 +116,8 @@ pub struct AppState {
     pub vault_unwrap_required: bool,
     /// Active unwrap lease end (None = locked when required).
     pub vault_unlocked_until: Mutex<Option<DateTime<Utc>>>,
+    /// Recent use-case model replies (`ZYVOR_AGENT_MODEL_CACHE_SECS`), in memory only. See `model_call`.
+    pub model_cache: Mutex<HashMap<String, (std::time::Instant, model_call::ModelOutcome)>>,
     /// Serializes the idempotency/quota reservation section of session creation,
     /// one lock per agent name so a slow or hung FluxVM call for one agent can
     /// never block session creation for every other agent on the process.
@@ -173,6 +175,7 @@ impl AppState {
             user_held_challenges,
             vault_unwrap_required: unwrap_tokens::unwrap_required_from_env(),
             vault_unlocked_until: Mutex::new(None),
+            model_cache: Mutex::new(HashMap::new()),
             session_create_locks: Mutex::new(HashMap::new()),
             warm_pool_reconcile_lock: tokio::sync::Mutex::new(()),
             session_locks: Mutex::new(HashMap::new()),

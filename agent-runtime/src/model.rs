@@ -260,7 +260,9 @@ impl AgentManifest {
         }
         if let Some(chain) = &s.fallback_chain {
             if !crate::model_gateway::valid_chain_name(chain) {
-                return Err("model_socket.fallback_chain must be 1-40 letters, digits, '-' or '_'".into());
+                return Err(
+                    "model_socket.fallback_chain must be 1-40 letters, digits, '-' or '_'".into(),
+                );
             }
         }
         if let Some(cred) = &s.credential {

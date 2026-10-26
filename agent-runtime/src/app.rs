@@ -5110,7 +5110,9 @@ mod tests {
     }
 
     async fn report_for(state: &Arc<AppState>, session: Uuid) -> Value {
-        let Json(r) = session_report(State(state.clone()), Path(session)).await.unwrap();
+        let Json(r) = session_report(State(state.clone()), Path(session))
+            .await
+            .unwrap();
         r
     }
 
@@ -5124,12 +5126,21 @@ mod tests {
         let (approval, _) = speculate_for_test(&state, session.id).await;
         let pending = report_for(&state, session.id).await;
         assert!(pending["did"].as_array().unwrap().is_empty());
-        assert!(pending["remaining"][0]["what"].as_str().unwrap().contains("waiting for a decision"));
-        let _ = decide(&state, approval, ApprovalStatus::Approved).await.unwrap();
+        assert!(pending["remaining"][0]["what"]
+            .as_str()
+            .unwrap()
+            .contains("waiting for a decision"));
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
         let r = report_for(&state, session.id).await;
         assert_eq!(r["did"][0]["type"], "changeset_applied");
         assert_eq!(r["rollback"][0]["state"], "applied_no_automatic_undo");
-        assert!(r["checked"].as_array().unwrap().iter().all(|c| c["result"] == "passed"));
+        assert!(r["checked"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["result"] == "passed"));
 
         // Denied: nothing to undo.
         let fake = FakeFlux::default();
@@ -5137,13 +5148,18 @@ mod tests {
         let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
         let session = running_session(&state, SessionStatus::Running).await;
         let (approval, _) = speculate_for_test(&state, session.id).await;
-        let _ = decide(&state, approval, ApprovalStatus::Denied).await.unwrap();
+        let _ = decide(&state, approval, ApprovalStatus::Denied)
+            .await
+            .unwrap();
         let r = report_for(&state, session.id).await;
         assert_eq!(r["did"][0]["type"], "changeset_not_applied");
         assert_eq!(r["rollback"][0]["state"], "nothing_to_undo");
 
         // Approved but FluxVM could not apply: reported as failed and unknown, not as applied.
-        let fake = FakeFlux { fail_apply: true, ..Default::default() };
+        let fake = FakeFlux {
+            fail_apply: true,
+            ..Default::default()
+        };
         let url = start_fake_flux(fake.clone()).await;
         let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
         let session = running_session(&state, SessionStatus::Running).await;

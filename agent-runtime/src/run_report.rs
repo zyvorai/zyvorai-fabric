@@ -52,7 +52,11 @@ pub fn build(i: &Inputs<'_>) -> Value {
     let mut rollback: Vec<Value> = Vec::new();
     let mut remaining: Vec<Value> = Vec::new();
 
-    for a in i.approvals.iter().filter(|a| a.kind == ApprovalKind::Changeset) {
+    for a in i
+        .approvals
+        .iter()
+        .filter(|a| a.kind == ApprovalKind::Changeset)
+    {
         let plan = a.planned_action.clone().unwrap_or(Value::Null);
         let cs_id = plan.get("changeset_id").cloned().unwrap_or(Value::Null);
         let command = plan.get("command").and_then(Value::as_str).unwrap_or("");
@@ -61,7 +65,10 @@ pub fn build(i: &Inputs<'_>) -> Value {
             .iter()
             .map(|k| count(&changes[*k]))
             .sum::<usize>();
-        let by_policy = a.comment.as_deref().is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX));
+        let by_policy = a
+            .comment
+            .as_deref()
+            .is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX));
         let row = settled(i.audit, a);
         let reference = json!({ "approval_id": a.id, "changeset_id": cs_id });
         let at = a.decided_at.unwrap_or(a.created_at);
@@ -73,9 +80,17 @@ pub fn build(i: &Inputs<'_>) -> Value {
                 }));
             }
             ApprovalStatus::Approved => {
-                let applied = row.is_some_and(|e| e.action == "changeset.apply" && e.phase == AuditPhase::Performed);
-                let failed = row.is_some_and(|e| e.action == "changeset.apply" && e.phase == AuditPhase::Failed);
-                let by = if by_policy { "auto-approved by a policy" } else { "approved by a person" };
+                let applied = row.is_some_and(|e| {
+                    e.action == "changeset.apply" && e.phase == AuditPhase::Performed
+                });
+                let failed = row.is_some_and(|e| {
+                    e.action == "changeset.apply" && e.phase == AuditPhase::Failed
+                });
+                let by = if by_policy {
+                    "auto-approved by a policy"
+                } else {
+                    "approved by a person"
+                };
                 if applied {
                     did.push(json!({
                         "at": at, "type": "changeset_applied", "source": "approvals+journal",
@@ -83,13 +98,28 @@ pub fn build(i: &Inputs<'_>) -> Value {
                         "ref": reference,
                     }));
                     let exit = plan.get("exit_code").and_then(Value::as_i64);
-                    checked.push(check("the command exited 0", exit == Some(0), "changeset exit_code", &reference));
+                    checked.push(check(
+                        "the command exited 0",
+                        exit == Some(0),
+                        "changeset exit_code",
+                        &reference,
+                    ));
                     let kept = plan.get("unstaged").map_or(0, count) == 0;
-                    checked.push(check("every changed file was kept", kept, "changeset unstaged", &reference));
+                    checked.push(check(
+                        "every changed file was kept",
+                        kept,
+                        "changeset unstaged",
+                        &reference,
+                    ));
                     let same = row
                         .and_then(|e| e.detail.get("changeset_id"))
                         .is_some_and(|id| *id == cs_id);
-                    checked.push(check("the applied changeset is the one approved", same, "journal changeset.apply", &reference));
+                    checked.push(check(
+                        "the applied changeset is the one approved",
+                        same,
+                        "journal changeset.apply",
+                        &reference,
+                    ));
                     rollback.push(json!({
                         "item": format!("{n_files} file change(s) from `{command}`"),
                         "state": "applied_no_automatic_undo",
@@ -97,7 +127,10 @@ pub fn build(i: &Inputs<'_>) -> Value {
                         "ref": reference,
                     }));
                 } else if failed {
-                    let err = row.and_then(|e| e.detail.get("error")).and_then(Value::as_str).unwrap_or("unknown error");
+                    let err = row
+                        .and_then(|e| e.detail.get("error"))
+                        .and_then(Value::as_str)
+                        .unwrap_or("unknown error");
                     did.push(json!({
                         "at": at, "type": "changeset_apply_failed", "source": "journal",
                         "summary": format!("Approved `{command}` but FluxVM could not apply it: {err}"),
@@ -121,8 +154,14 @@ pub fn build(i: &Inputs<'_>) -> Value {
                 }
             }
             ApprovalStatus::Denied | ApprovalStatus::Expired => {
-                let verb = if a.status == ApprovalStatus::Denied { "rejected" } else { "expired undecided" };
-                let rejected = row.is_some_and(|e| e.action == "changeset.reject" && e.phase == AuditPhase::Performed);
+                let verb = if a.status == ApprovalStatus::Denied {
+                    "rejected"
+                } else {
+                    "expired undecided"
+                };
+                let rejected = row.is_some_and(|e| {
+                    e.action == "changeset.reject" && e.phase == AuditPhase::Performed
+                });
                 let unconfirmed = row.is_some_and(|e| e.phase == AuditPhase::Failed);
                 did.push(json!({
                     "at": at, "type": "changeset_not_applied", "source": "approvals",
@@ -166,9 +205,16 @@ pub fn build(i: &Inputs<'_>) -> Value {
         }));
     }
 
-    let calls: Vec<&AuditEntry> = i.audit.iter().filter(|e| e.action == "model.call" && e.phase != AuditPhase::Planned).collect();
+    let calls: Vec<&AuditEntry> = i
+        .audit
+        .iter()
+        .filter(|e| e.action == "model.call" && e.phase != AuditPhase::Planned)
+        .collect();
     if !calls.is_empty() {
-        let failed = calls.iter().filter(|e| e.phase == AuditPhase::Failed).count();
+        let failed = calls
+            .iter()
+            .filter(|e| e.phase == AuditPhase::Failed)
+            .count();
         did.push(json!({
             "at": calls[0].at, "type": "model_calls", "source": "journal",
             "summary": format!("{} model call(s), {failed} failed (no text is recorded)", calls.len()),
@@ -176,7 +222,11 @@ pub fn build(i: &Inputs<'_>) -> Value {
         }));
     }
 
-    for a in i.approvals.iter().filter(|a| a.kind != ApprovalKind::Changeset && a.status == ApprovalStatus::Pending) {
+    for a in i
+        .approvals
+        .iter()
+        .filter(|a| a.kind != ApprovalKind::Changeset && a.status == ApprovalStatus::Pending)
+    {
         remaining.push(json!({ "what": format!("waiting for a decision: {}", a.prompt), "ref": { "approval_id": a.id } }));
     }
     if i.session.status == crate::model::SessionStatus::Running {
@@ -239,7 +289,13 @@ mod tests {
         }
     }
 
-    fn approval(sid: Uuid, status: ApprovalStatus, exit: i64, unstaged: Value, comment: Option<&str>) -> ApprovalRecord {
+    fn approval(
+        sid: Uuid,
+        status: ApprovalStatus,
+        exit: i64,
+        unstaged: Value,
+        comment: Option<&str>,
+    ) -> ApprovalRecord {
         ApprovalRecord {
             id: Uuid::new_v4(),
             session_id: sid,
@@ -267,37 +323,83 @@ mod tests {
             d.extend(e.clone());
         }
         AuditEntry {
-            seq: 1, at: Utc::now(), session_id: Some(a.session_id), phase, action: action.into(),
-            subject: None, detail, prev_hash: String::new(), hash: String::new(),
+            seq: 1,
+            at: Utc::now(),
+            session_id: Some(a.session_id),
+            phase,
+            action: action.into(),
+            subject: None,
+            detail,
+            prev_hash: String::new(),
+            hash: String::new(),
         }
     }
 
-    fn report(s: &SessionRecord, approvals: &[ApprovalRecord], audit: &[AuditEntry], receipts: &[Receipt]) -> Value {
-        build(&Inputs { session: s, approvals, audit, receipts })
+    fn report(
+        s: &SessionRecord,
+        approvals: &[ApprovalRecord],
+        audit: &[AuditEntry],
+        receipts: &[Receipt],
+    ) -> Value {
+        build(&Inputs {
+            session: s,
+            approvals,
+            audit,
+            receipts,
+        })
     }
 
     fn by_result<'a>(r: &'a Value, name: &str) -> Option<&'a str> {
-        r["checked"].as_array()?.iter().find(|c| c["check"] == name)?["result"].as_str()
+        r["checked"]
+            .as_array()?
+            .iter()
+            .find(|c| c["check"] == name)?["result"]
+            .as_str()
     }
 
     #[test]
     fn an_applied_change_is_checked_only_on_measured_facts_and_has_no_automatic_undo() {
         let s = session();
         let a = approval(s.id, ApprovalStatus::Approved, 0, json!([]), None);
-        let r = report(&s, &[a.clone()], &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))], &[]);
+        let r = report(
+            &s,
+            &[a.clone()],
+            &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))],
+            &[],
+        );
         assert_eq!(by_result(&r, "the command exited 0"), Some("passed"));
         assert_eq!(by_result(&r, "every changed file was kept"), Some("passed"));
-        assert_eq!(by_result(&r, "the applied changeset is the one approved"), Some("passed"));
+        assert_eq!(
+            by_result(&r, "the applied changeset is the one approved"),
+            Some("passed")
+        );
         assert_eq!(r["rollback"][0]["state"], "applied_no_automatic_undo");
-        assert!(r["did"][0]["summary"].as_str().unwrap().contains("approved by a person"));
-        assert_eq!(r["not_checked"].as_array().unwrap().len(), NOT_OBSERVED.len());
+        assert!(r["did"][0]["summary"]
+            .as_str()
+            .unwrap()
+            .contains("approved by a person"));
+        assert_eq!(
+            r["not_checked"].as_array().unwrap().len(),
+            NOT_OBSERVED.len()
+        );
     }
 
     #[test]
     fn a_failing_exit_code_or_an_unkept_file_shows_as_failed_not_omitted() {
         let s = session();
-        let a = approval(s.id, ApprovalStatus::Approved, 2, json!(["/work/big"]), None);
-        let r = report(&s, &[a.clone()], &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))], &[]);
+        let a = approval(
+            s.id,
+            ApprovalStatus::Approved,
+            2,
+            json!(["/work/big"]),
+            None,
+        );
+        let r = report(
+            &s,
+            &[a.clone()],
+            &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))],
+            &[],
+        );
         assert_eq!(by_result(&r, "the command exited 0"), Some("failed"));
         assert_eq!(by_result(&r, "every changed file was kept"), Some("failed"));
     }
@@ -306,27 +408,69 @@ mod tests {
     fn an_applied_row_for_a_different_changeset_does_not_count_as_the_one_approved() {
         let s = session();
         let a = approval(s.id, ApprovalStatus::Approved, 0, json!([]), None);
-        let other = row(&a, "changeset.apply", AuditPhase::Performed, json!({ "changeset_id": Uuid::new_v4() }));
+        let other = row(
+            &a,
+            "changeset.apply",
+            AuditPhase::Performed,
+            json!({ "changeset_id": Uuid::new_v4() }),
+        );
         let r = report(&s, &[a], &[other], &[]);
-        assert_eq!(by_result(&r, "the applied changeset is the one approved"), Some("failed"));
+        assert_eq!(
+            by_result(&r, "the applied changeset is the one approved"),
+            Some("failed")
+        );
     }
 
     #[test]
     fn a_policy_approval_is_labelled_as_one() {
         let s = session();
-        let a = approval(s.id, ApprovalStatus::Approved, 0, json!([]), Some("auto-approved by policy docs v3"));
-        let r = report(&s, std::slice::from_ref(&a), &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))], &[]);
-        assert!(r["did"][0]["summary"].as_str().unwrap().contains("auto-approved by a policy"));
+        let a = approval(
+            s.id,
+            ApprovalStatus::Approved,
+            0,
+            json!([]),
+            Some("auto-approved by policy docs v3"),
+        );
+        let r = report(
+            &s,
+            std::slice::from_ref(&a),
+            &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))],
+            &[],
+        );
+        assert!(r["did"][0]["summary"]
+            .as_str()
+            .unwrap()
+            .contains("auto-approved by a policy"));
     }
 
     #[test]
     fn a_rejected_change_has_nothing_to_undo_unless_the_rejection_failed() {
         let s = session();
         let a = approval(s.id, ApprovalStatus::Denied, 0, json!([]), None);
-        let ok = report(&s, &[a.clone()], &[row(&a, "changeset.reject", AuditPhase::Performed, json!({}))], &[]);
+        let ok = report(
+            &s,
+            &[a.clone()],
+            &[row(
+                &a,
+                "changeset.reject",
+                AuditPhase::Performed,
+                json!({}),
+            )],
+            &[],
+        );
         assert_eq!(ok["rollback"][0]["state"], "nothing_to_undo");
         assert!(ok["checked"].as_array().unwrap().is_empty());
-        let bad = report(&s, &[a.clone()], &[row(&a, "changeset.reject", AuditPhase::Failed, json!({ "error": "x" }))], &[]);
+        let bad = report(
+            &s,
+            &[a.clone()],
+            &[row(
+                &a,
+                "changeset.reject",
+                AuditPhase::Failed,
+                json!({ "error": "x" }),
+            )],
+            &[],
+        );
         assert_eq!(bad["rollback"][0]["state"], "unknown");
     }
 
@@ -336,7 +480,10 @@ mod tests {
         let a = approval(s.id, ApprovalStatus::Approved, 0, json!([]), None);
         let r = report(&s, &[a], &[], &[]);
         assert_eq!(r["rollback"][0]["state"], "unknown");
-        assert!(r["remaining"][0]["what"].as_str().unwrap().contains("no apply was recorded"));
+        assert!(r["remaining"][0]["what"]
+            .as_str()
+            .unwrap()
+            .contains("no apply was recorded"));
         assert!(r["checked"].as_array().unwrap().is_empty());
     }
 
@@ -346,19 +493,39 @@ mod tests {
         let a = approval(s.id, ApprovalStatus::Pending, 0, json!([]), None);
         let r = report(&s, &[a], &[], &[]);
         assert!(r["did"].as_array().unwrap().is_empty());
-        assert!(r["remaining"][0]["what"].as_str().unwrap().contains("waiting for a decision"));
+        assert!(r["remaining"][0]["what"]
+            .as_str()
+            .unwrap()
+            .contains("waiting for a decision"));
     }
 
     #[test]
     fn an_outbound_action_is_checked_by_status_and_can_never_be_undone() {
         let s = session();
         let receipt = Receipt {
-            id: Uuid::new_v4(), at: Utc::now(), user_id: None, session_id: s.id, agent: "mail".into(),
-            credential: None, method: "POST".into(), url: "https://mail.example/send".into(), body_bytes: 3,
-            body_sha256: "ab".into(), approval_id: None, idempotency_key: None, status: 502, fingerprint: String::new(),
+            id: Uuid::new_v4(),
+            at: Utc::now(),
+            user_id: None,
+            session_id: s.id,
+            agent: "mail".into(),
+            credential: None,
+            method: "POST".into(),
+            url: "https://mail.example/send".into(),
+            body_bytes: 3,
+            body_sha256: "ab".into(),
+            approval_id: None,
+            idempotency_key: None,
+            status: 502,
+            fingerprint: String::new(),
         };
         let r = report(&s, &[], &[], &[receipt]);
-        assert_eq!(by_result(&r, "POST https://mail.example/send was accepted by the service"), Some("failed"));
+        assert_eq!(
+            by_result(
+                &r,
+                "POST https://mail.example/send was accepted by the service"
+            ),
+            Some("failed")
+        );
         assert_eq!(r["rollback"][0]["state"], "cannot_be_undone");
     }
 
@@ -376,7 +543,13 @@ mod tests {
     fn the_report_carries_no_file_contents_or_bodies() {
         let s = session();
         let a = approval(s.id, ApprovalStatus::Approved, 0, json!([]), None);
-        let r = report(&s, &[a.clone()], &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))], &[]).to_string();
+        let r = report(
+            &s,
+            &[a.clone()],
+            &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))],
+            &[],
+        )
+        .to_string();
         for forbidden in ["stdout", "stderr", "body_sha256", "\"staged\""] {
             assert!(!r.contains(forbidden), "{forbidden} leaked into the report");
         }

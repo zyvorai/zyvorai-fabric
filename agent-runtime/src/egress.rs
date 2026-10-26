@@ -92,7 +92,10 @@ pub async fn proxy(
 /// A failover-class outcome: the upstream could not be reached, or answered 429 or 5xx.
 fn failover_outcome(r: &Result<Value, (StatusCode, String)>) -> bool {
     match r {
-        Ok(v) => v.get("status").and_then(Value::as_u64).is_some_and(|s| crate::model_gateway::failover_status(s as u16)),
+        Ok(v) => v
+            .get("status")
+            .and_then(Value::as_u64)
+            .is_some_and(|s| crate::model_gateway::failover_status(s as u16)),
         Err((code, _)) => matches!(*code, StatusCode::BAD_GATEWAY | StatusCode::GATEWAY_TIMEOUT),
     }
 }
@@ -109,9 +112,27 @@ async fn proxy_with_chain(
     peer: Option<std::net::SocketAddr>,
     target: &mut AuditTarget,
 ) -> Result<Value, (StatusCode, String)> {
-    let chain = chain_plan(state, headers, &request).await;
-    let Some((socket, targets)) = chain else {
+    let Some((agent, socket)) = socket_call(state, headers, &request).await else {
         return proxy_inner(state, headers, request, peer).await;
+    };
+    // The operator's budget for this agent, over both model paths, before anything is sent.
+    if let Err(why) = crate::model_call::check_agent_budget(state, &agent).await {
+        return Err((StatusCode::TOO_MANY_REQUESTS, why));
+    }
+    let targets = match socket.fallback_chain.as_deref() {
+        // A chain that cannot be read means no failover, never a different behaviour: the request is sent as
+        // written and the problem is logged.
+        Some(name) => match crate::model_gateway::chain_targets(
+            state.config.model_chains_file.as_deref(),
+            name,
+        ) {
+            Ok(t) => t,
+            Err(e) => {
+                tracing::warn!(chain = %name, error = %e, "model_socket fallback chain unavailable; sending without failover");
+                Vec::new()
+            }
+        },
+        None => Vec::new(),
     };
     let now = std::time::Instant::now;
     let primary_key = crate::model_gateway::endpoint_key(
@@ -119,7 +140,8 @@ async fn proxy_with_chain(
         socket.model.as_deref().unwrap_or(""),
         socket.credential.as_deref().unwrap_or(""),
     );
-    let mut attempts: Vec<(EgressRequest, Option<String>, String)> = vec![(request.clone(), None, primary_key)];
+    let mut attempts: Vec<(EgressRequest, Option<String>, String)> =
+        vec![(request.clone(), None, primary_key)];
     for t in &targets {
         if let Some(r) = crate::model_gateway::retarget(&request, &socket, t) {
             let key = crate::model_gateway::endpoint_key(&t.base_url, &t.model, &t.credential);
@@ -127,9 +149,12 @@ async fn proxy_with_chain(
         }
     }
     // Skip endpoints whose breaker is open; if all are, still try the pack's own rather than fail unsent.
-    let open: Vec<bool> = attempts.iter().map(|(_, _, k)| crate::model_gateway::is_open(k, now())).collect();
+    let mut open: Vec<bool> = attempts
+        .iter()
+        .map(|(_, _, k)| crate::model_gateway::is_open(k, now()))
+        .collect();
     if open.iter().all(|o| *o) {
-        return proxy_inner(state, headers, request, peer).await;
+        open[0] = false;
     }
     let mut last = None;
     let mut from: Vec<String> = Vec::new();
@@ -138,14 +163,17 @@ async fn proxy_with_chain(
             continue;
         }
         let attempt_target = AuditTarget::from_request(headers, &req);
+        let started = std::time::Instant::now();
+        let used = req.clone();
         let result = proxy_attempt(state, headers, req, peer, cred.as_deref()).await;
+        journal_model_call(state, &attempt_target, &used, &result, started.elapsed()).await;
         let unreachable = failover_outcome(&result);
         crate::model_gateway::record(&key, !unreachable, now());
         // A fallback that is refused (policy, vault) is skipped like one that is down; the pack's own endpoint
         // being refused is final, since another place would be a different decision.
         let failed = unreachable || (index > 0 && result.is_err());
         if !failed {
-            if index > 0 && !failed {
+            if index > 0 {
                 if let Some(id) = attempt_target.session_id {
                     let _ = state
                         .store
@@ -168,7 +196,9 @@ async fn proxy_with_chain(
             Ok(v) => json!({ "status": v.get("status"), "target_index": index, "failover": true }),
             Err((_, m)) => json!({ "reason": m, "target_index": index, "failover": true }),
         };
-        attempt_target.record(state, AuditPhase::Failed, detail).await;
+        attempt_target
+            .record(state, AuditPhase::Failed, detail)
+            .await;
         from.push(attempt_target.host.clone().unwrap_or_default());
         // Report the pack's own endpoint's failure, not a later refusal.
         if last.is_none() {
@@ -181,29 +211,84 @@ async fn proxy_with_chain(
     result
 }
 
-/// The chain for this request, if it is a chat call to the calling agent's own model socket and that socket names a
-/// chain the operator has defined. A chain that cannot be read means no failover, never a different behaviour:
-/// the request is sent as written and the problem is logged.
-async fn chain_plan(
+/// A `model.call` row for one attempt at the agent's model socket, the same shape the use-case step writes, so usage,
+/// cost and budgets see both paths. Tokens are read from the reply when the provider reports them; the text is never kept.
+async fn journal_model_call(
+    state: &AppState,
+    at: &AuditTarget,
+    req: &EgressRequest,
+    result: &Result<Value, (StatusCode, String)>,
+    took: std::time::Duration,
+) {
+    let model = req
+        .body_base64
+        .as_deref()
+        .and_then(|b| base64::engine::general_purpose::STANDARD.decode(b).ok())
+        .and_then(|raw| serde_json::from_slice::<Value>(&raw).ok())
+        .and_then(|v| v.get("model").and_then(Value::as_str).map(str::to_string));
+    let mut detail = json!({
+        "host": at.host, "model": model, "path": "model_socket", "latency_ms": took.as_millis() as u64,
+    });
+    let ok = match result {
+        Ok(v) => {
+            let status = v.get("status").and_then(Value::as_u64).unwrap_or(0);
+            detail["status"] = json!(status);
+            if let Some(body) = v
+                .get("body_base64")
+                .and_then(Value::as_str)
+                .and_then(|b| base64::engine::general_purpose::STANDARD.decode(b).ok())
+            {
+                let (p, c) = crate::model_gateway::tokens(&body);
+                detail["prompt_tokens"] = json!(p);
+                detail["completion_tokens"] = json!(c);
+            }
+            (200..300).contains(&status)
+        }
+        Err((code, _)) => {
+            detail["status"] = json!(code.as_u16());
+            false
+        }
+    };
+    let _ = state
+        .store
+        .audit
+        .append(
+            at.session_id,
+            if ok {
+                AuditPhase::Performed
+            } else {
+                AuditPhase::Failed
+            },
+            "model.call",
+            at.host.clone(),
+            detail,
+        )
+        .await;
+}
+
+/// The calling agent and its `model_socket`, if this request is that agent's chat call to its own socket:
+/// a POST of JSON to `<base_url>/chat/completions` with the socket's credential. Anything else is not a model call.
+async fn socket_call(
     state: &AppState,
     headers: &HeaderMap,
     request: &EgressRequest,
-) -> Option<(crate::model::ModelSocket, Vec<crate::model_gateway::Target>)> {
+) -> Option<(String, crate::model::ModelSocket)> {
     let id = uuid::Uuid::parse_str(header(headers, "x-zyvor-session-id").ok()?).ok()?;
     let session = state.store.get_session(id).await?;
-    let agent = state.store.get_agent_version(&session.agent, &session.agent_version).await.ok()?;
+    let agent = state
+        .store
+        .get_agent_version(&session.agent, &session.agent_version)
+        .await
+        .ok()?;
     let socket = agent.manifest.model_socket?;
-    let name = socket.fallback_chain.clone()?;
-    // Cheap shape check first, so ordinary traffic never reads the chains file.
-    let probe = crate::model_gateway::Target { credential: socket.credential.clone().unwrap_or_default(), base_url: socket.base_url.clone(), model: String::new() };
+    // Cheap shape check, so ordinary traffic does no further work.
+    let probe = crate::model_gateway::Target {
+        credential: socket.credential.clone().unwrap_or_default(),
+        base_url: socket.base_url.clone(),
+        model: String::new(),
+    };
     crate::model_gateway::retarget(request, &socket, &probe)?;
-    match crate::model_gateway::chain_targets(state.config.model_chains_file.as_deref(), &name) {
-        Ok(t) => Some((socket, t)),
-        Err(e) => {
-            tracing::warn!(chain = %name, error = %e, "model_socket fallback chain unavailable; sending without failover");
-            None
-        }
-    }
+    Some((session.agent, socket))
 }
 
 /// What an egress call is about, captured before the request is consumed.
@@ -1292,6 +1377,8 @@ pub(crate) mod ask_tests {
             api_token: None,
             credentials_file: None,
             model_chains_file: None,
+            model_prices_file: None,
+            model_cache_secs: None,
             skill_scopes_file: None,
             sentinel: None,
             guard: None,
@@ -2715,10 +2802,12 @@ pub(crate) mod ask_tests {
             axum::routing::post(move |body: axum::body::Bytes| {
                 let sink = sink.clone();
                 async move {
-                    sink.lock().unwrap().push(String::from_utf8_lossy(&body).into_owned());
+                    sink.lock()
+                        .unwrap()
+                        .push(String::from_utf8_lossy(&body).into_owned());
                     (
                         StatusCode::from_u16(status).unwrap(),
-                        axum::Json(json!({"choices": [{"message": {"content": "hi"}}]})),
+                        axum::Json(json!({"choices": [{"message": {"content": "hi"}}], "usage": {"prompt_tokens": 1000000, "completion_tokens": 500000}})),
                     )
                 }
             }),
@@ -2731,7 +2820,13 @@ pub(crate) mod ask_tests {
 
     /// A state whose operator wrote chain `main` over `chain_ports` (credential `llm`, kind fabric), and a session
     /// whose agent's model socket points at `primary` and names that chain (or none).
-    async fn socket_agent(primary: u16, chain_ports: &[u16], named: bool, chain_host: &str) -> (Arc<AppState>, SessionRecord) {
+    async fn socket_agent(
+        primary: u16,
+        chain_ports: &[u16],
+        named: bool,
+        chain_host: &str,
+        prices: Option<Value>,
+    ) -> (Arc<AppState>, SessionRecord) {
         let dir = std::env::temp_dir().join(format!("zyvor-sock-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         let creds = dir.join("creds.json");
@@ -2745,10 +2840,20 @@ pub(crate) mod ask_tests {
             .map(|p| json!({"credential": "llm", "base_url": format!("http://{chain_host}:{p}/v1"), "model": format!("fb-{p}")}))
             .collect();
         let chains = dir.join("chains.json");
-        std::fs::write(&chains, json!({"chains": {"main": {"targets": targets}}}).to_string()).unwrap();
+        std::fs::write(
+            &chains,
+            json!({"chains": {"main": {"targets": targets}}}).to_string(),
+        )
+        .unwrap();
+        let prices_file = prices.map(|p| {
+            let f = dir.join("prices.json");
+            std::fs::write(&f, p.to_string()).unwrap();
+            f
+        });
         let (state, session) = state_and_session_cfg(|c| {
             c.credentials_file = Some(creds);
             c.model_chains_file = Some(chains);
+            c.model_prices_file = prices_file;
         })
         .await;
         let session = deploy_local_agent(&state, &session, |m| {
@@ -2763,11 +2868,20 @@ pub(crate) mod ask_tests {
         (state, session)
     }
 
-    async fn chat(state: &Arc<AppState>, session: &SessionRecord, primary: u16) -> Result<Value, (StatusCode, String)> {
+    async fn chat(
+        state: &Arc<AppState>,
+        session: &SessionRecord,
+        primary: u16,
+    ) -> Result<Value, (StatusCode, String)> {
         let mut headers = HeaderMap::new();
-        headers.insert("x-zyvor-session-id", session.id.to_string().parse().unwrap());
+        headers.insert(
+            "x-zyvor-session-id",
+            session.id.to_string().parse().unwrap(),
+        );
         headers.insert("x-zyvor-egress-capability", "cap".parse().unwrap());
-        let body = json!({"model": "primary-m", "messages": [{"role": "user", "content": "hello"}]}).to_string();
+        let body =
+            json!({"model": "primary-m", "messages": [{"role": "user", "content": "hello"}]})
+                .to_string();
         let request = EgressRequest {
             url: format!("http://127.0.0.1:{primary}/v1/chat/completions"),
             method: "POST".into(),
@@ -2783,39 +2897,89 @@ pub(crate) mod ask_tests {
     async fn a_failing_model_socket_hands_over_to_the_chain_with_only_the_model_changed() {
         let (p1, seen1) = chat_stub(503).await;
         let (p2, seen2) = chat_stub(200).await;
-        let (state, session) = socket_agent(p1, &[p2], true, "127.0.0.1").await;
+        let (state, session) = socket_agent(p1, &[p2], true, "127.0.0.1", None).await;
         let out = chat(&state, &session, p1).await.unwrap();
         assert_eq!(out["status"], 200);
         assert_eq!(seen1.lock().unwrap().len(), 1);
         let sent: Value = serde_json::from_str(&seen2.lock().unwrap()[0]).unwrap();
         assert_eq!(sent["model"], format!("fb-{p2}"));
         assert_eq!(sent["messages"][0]["content"], "hello");
-        let rows = state.store.audit.list(Some(session.id), 50).await.unwrap_or_default();
-        assert!(rows.iter().any(|r| r.action == "model.failover" && r.detail["path"] == "model_socket"));
+        let rows = state
+            .store
+            .audit
+            .list(Some(session.id), 50)
+            .await
+            .unwrap_or_default();
+        assert!(rows
+            .iter()
+            .any(|r| r.action == "model.failover" && r.detail["path"] == "model_socket"));
+    }
+
+    #[tokio::test]
+    async fn socket_calls_are_journaled_with_tokens_and_priced_in_the_usage_summary() {
+        let (p1, _) = chat_stub(200).await;
+        let prices = json!({"currency": "USD", "prices": {"primary-m": {"input_per_mtok": 2.0, "output_per_mtok": 4.0}}});
+        let (state, session) = socket_agent(p1, &[], false, "127.0.0.1", Some(prices)).await;
+        chat(&state, &session, p1).await.unwrap();
+        let rows = state.store.audit.list(Some(session.id), 50).await.unwrap();
+        let row = rows
+            .iter()
+            .find(|r| r.action == "model.call")
+            .expect("a model.call row");
+        assert_eq!(row.detail["prompt_tokens"], 1_000_000);
+        assert_eq!(row.detail["path"], "model_socket");
+        let p =
+            crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref()).unwrap();
+        let s = crate::model_gateway::summarize(&rows, p.as_ref());
+        assert!(
+            (s["items"][0]["cost"].as_f64().unwrap() - 4.0).abs() < 1e-9,
+            "{s}"
+        );
+    }
+
+    #[tokio::test]
+    async fn an_agent_over_its_budget_is_refused_before_anything_is_sent() {
+        let (p1, seen) = chat_stub(200).await;
+        let prices = json!({"budgets": {"a": {"max_calls_per_day": 2}}});
+        let (state, session) = socket_agent(p1, &[], false, "127.0.0.1", Some(prices)).await;
+        chat(&state, &session, p1).await.unwrap();
+        chat(&state, &session, p1).await.unwrap();
+        let err = chat(&state, &session, p1).await.unwrap_err();
+        assert_eq!(err.0, StatusCode::TOO_MANY_REQUESTS);
+        assert!(err.1.contains("budget reached"), "{}", err.1);
+        assert_eq!(
+            seen.lock().unwrap().len(),
+            2,
+            "the refused call must never be sent"
+        );
     }
 
     #[tokio::test]
     async fn without_a_named_chain_or_with_a_healthy_primary_nothing_changes() {
         let (p1, seen1) = chat_stub(503).await;
         let (p2, seen2) = chat_stub(200).await;
-        let (state, session) = socket_agent(p1, &[p2], false, "127.0.0.1").await;
+        let (state, session) = socket_agent(p1, &[p2], false, "127.0.0.1", None).await;
         assert_eq!(chat(&state, &session, p1).await.unwrap()["status"], 503);
         assert!(seen2.lock().unwrap().is_empty());
         let (good, _) = chat_stub(200).await;
-        let (state, session) = socket_agent(good, &[p2], true, "127.0.0.1").await;
+        let (state, session) = socket_agent(good, &[p2], true, "127.0.0.1", None).await;
         assert_eq!(chat(&state, &session, good).await.unwrap()["status"], 200);
         assert!(seen2.lock().unwrap().is_empty());
         assert_eq!(seen1.lock().unwrap().len(), 1);
     }
 
     #[tokio::test]
-    async fn a_chain_endpoint_the_cell_may_not_reach_is_refused_and_the_primarys_failure_is_reported() {
+    async fn a_chain_endpoint_the_cell_may_not_reach_is_refused_and_the_primarys_failure_is_reported(
+    ) {
         let (p1, _) = chat_stub(503).await;
         let (p2, seen2) = chat_stub(200).await;
         // The chain names `localhost`, but the vault binds credential `llm` to 127.0.0.1 only.
-        let (state, session) = socket_agent(p1, &[p2], true, "localhost").await;
+        let (state, session) = socket_agent(p1, &[p2], true, "localhost", None).await;
         let out = chat(&state, &session, p1).await;
-        assert!(seen2.lock().unwrap().is_empty(), "the refused fallback must never be sent");
+        assert!(
+            seen2.lock().unwrap().is_empty(),
+            "the refused fallback must never be sent"
+        );
         assert!(matches!(&out, Ok(v) if v["status"] == 503), "{out:?}");
     }
 

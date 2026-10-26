@@ -14,6 +14,7 @@ merionctl pack   /tmp/keep-pack my-agent
 merionctl unpack /tmp/keep-pack my-agent
 merionctl export-token 'trajectory:read:7d' 3600
 merionctl cockpit <session-uuid>
+merionctl report <session-uuid> [--json]   # did / checked / not checked / remaining / rollback
 ```
 
 Run a use case and look back at what it produced:

@@ -8,7 +8,9 @@ flows against the FluxVM stub; not yet run against a real FluxVM host.
 - Step 0 answer: I found no user-reachable restore for applied changes, so the report never says "undo available". Applied changes
   show `applied_no_automatic_undo`. A snapshot-before-run option is not built.
 - The agent's own claims are not shown at all (not even labelled); the report lists "anything the agent said" under *not checked*.
-- Not built: `merionctl report`, the console tab, the PDF section and the verify command.
+- `merionctl report <session-id> [--json]` is built (a plain-text rendering of the same JSON).
+- The console shows a **Run report** card on the session page (served by `GET /api/sessions/{id}/report`).
+- Not built: the PDF section and the verify command.
 - The rollback states are `nothing_to_undo`, `applied_no_automatic_undo`, `unknown` and `cannot_be_undone`.
 
 ## The problem

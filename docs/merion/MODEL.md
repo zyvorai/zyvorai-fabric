@@ -113,9 +113,35 @@ then retries the agent's `POST <base_url>/chat/completions` against the chain wh
 answers 429 or 5xx, changing only the URL, the credential and the JSON `model`. Each attempt takes the full broker path, so the
 cell's egress policy and the vault still decide; a chain endpoint they refuse is skipped, and the chain's credential needs no
 grant in the manifest (the operator's file is the grant, for that one request). The breaker is shared with the use-case path.
-Journal: a `model.failover` row with `"path": "model_socket"`, and an `egress.http` row for each failed attempt. Not counted in
-`GET /v1/model-usage`, which reads `model.call` rows only. Tested against stub endpoints only.
+Journal: a `model.failover` row with `"path": "model_socket"`, and an `egress.http` row for each failed attempt. Counted in
+`GET /v1/model-usage` (see below). Tested against stub endpoints only.
 
-Not covered yet: a response cache and a price table. The per-user daily call allowance
+### Prices and budgets
+
+`ZYVOR_AGENT_MODEL_PRICES_FILE` is an operator-written JSON file. Merion ships no prices.
+
+```json
+{ "currency": "USD",
+  "prices": { "small-2": { "input_per_mtok": 0.5, "output_per_mtok": 1.5 } },
+  "default_budget": { "max_calls_per_day": 500 },
+  "budgets": { "mail-agent": { "max_calls_per_day": 100, "max_cost_per_day": 2.0 } } }
+```
+
+- `GET /v1/model-usage` then adds `cost` and `calls_unpriced` per endpoint. Cost covers only calls that reported tokens on a model
+  with a price; the rest are counted as unpriced, never as free.
+- A **budget** is a rolling 24 hours per agent, over both the use-case `model` step and the agent's `model_socket`. Over it, the
+  call is refused with 429 before anything is sent. Only calls that succeeded count. `max_cost_per_day` counts only priced calls
+  with reported tokens. A prices file that cannot be read refuses the call rather than lifting the limit.
+- The `model_socket` path now writes the same `model.call` rows as the use-case step (host, model, tokens, latency, status).
+
+### Response cache
+
+`ZYVOR_AGENT_MODEL_CACHE_SECS=<n>` (at most 86400) lets a use-case `model` step reuse its last reply for the same person, agent,
+use case, endpoint and exact text for `n` seconds. In memory only, 256 entries, gone on restart. A call with no signed-in user is
+never cached, and nobody is served another person's reply. A hit sends nothing, writes a `model.cache_hit` row (not a
+`model.call`, so it counts toward no allowance or budget) and is served only while the vault still allows the endpoint and the
+first-use approval still stands. The agent's `model_socket` path is not cached.
+
+Not covered yet: the console page. The per-user daily call allowance
 (`ZYVOR_AGENT_USER_MAX_MODEL_CALLS_PER_DAY`) still applies; per-agent budgets do not exist.
 
