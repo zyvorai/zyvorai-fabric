@@ -134,6 +134,14 @@ Journal: a `model.failover` row with `"path": "model_socket"`, and an `egress.ht
   with reported tokens. A prices file that cannot be read refuses the call rather than lifting the limit.
 - The `model_socket` path now writes the same `model.call` rows as the use-case step (host, model, tokens, latency, status).
 
-Not covered yet: a response cache. The per-user daily call allowance
+### Response cache
+
+`ZYVOR_AGENT_MODEL_CACHE_SECS=<n>` (at most 86400) lets a use-case `model` step reuse its last reply for the same person, agent,
+use case, endpoint and exact text for `n` seconds. In memory only, 256 entries, gone on restart. A call with no signed-in user is
+never cached, and nobody is served another person's reply. A hit sends nothing, writes a `model.cache_hit` row (not a
+`model.call`, so it counts toward no allowance or budget) and is served only while the vault still allows the endpoint and the
+first-use approval still stands. The agent's `model_socket` path is not cached.
+
+Not covered yet: the console page. The per-user daily call allowance
 (`ZYVOR_AGENT_USER_MAX_MODEL_CALLS_PER_DAY`) still applies; per-agent budgets do not exist.
 

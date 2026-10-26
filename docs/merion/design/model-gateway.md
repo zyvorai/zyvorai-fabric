@@ -12,7 +12,9 @@ unchanged, spend budgets use the existing per-user daily allowance rather than a
 
 **Also built:** failover for the agent `model_socket` path, in the egress broker (see MODEL.md); counted in `/v1/model-usage`. **Also built:** an operator price table and per-agent daily budgets (calls and cost) over both paths.
 
-**Not built:** the response cache and the console page.
+**Also built:** a per-person in-memory reply cache for the use-case step (`ZYVOR_AGENT_MODEL_CACHE_SECS`).
+
+**Not built:** the console page; a cache for the `model_socket` path.
 
 ## The problem
 

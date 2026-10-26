@@ -1378,6 +1378,7 @@ pub(crate) mod ask_tests {
             credentials_file: None,
             model_chains_file: None,
             model_prices_file: None,
+            model_cache_secs: None,
             skill_scopes_file: None,
             sentinel: None,
             guard: None,

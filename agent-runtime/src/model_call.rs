@@ -258,6 +258,11 @@ pub(crate) async fn call(
     spec: &ModelSpec,
     text: &str,
 ) -> Result<ModelOutcome, ApiError> {
+    let cache_key = cache_key(state, session, use_case, spec, text);
+    if let Some(hit) = cache_lookup(state, &cache_key, use_case, spec).await {
+        audit_cache_hit(state, session, use_case, &hit).await;
+        return Ok(hit);
+    }
     // A user's daily model-call allowance, when the operator set one.
     if let Some(user) = session.user_id.as_deref() {
         crate::usage::check_model_quota(state, user, crate::usage::Limits::from_env()).await?;
@@ -286,6 +291,7 @@ pub(crate) async fn call(
                 if index > 0 {
                     audit_failover(state, session, use_case, &skipped, &out).await;
                 }
+                cache_store(state, cache_key, &out);
                 return Ok(out);
             }
             Err(f) => {
@@ -304,6 +310,109 @@ pub(crate) async fn call(
         }
     }
     Err(last.unwrap_or_else(|| ApiError::bad_gateway("no model endpoint was available")))
+}
+
+const CACHE_MAX_ENTRIES: usize = 256;
+
+/// The cache key: who asked, which agent and use case, where it goes and exactly what is sent. A different person, text,
+/// model, instruction or endpoint never shares an entry. `None` when the cache is off or the call has no user: a reply
+/// is never reused across people, so an anonymous call is never cached.
+fn cache_key(
+    state: &AppState,
+    session: &SessionRecord,
+    use_case: &str,
+    spec: &ModelSpec,
+    text: &str,
+) -> Option<String> {
+    state.config.model_cache_secs?;
+    let user = session.user_id.as_deref()?;
+    let mut h = Sha256::new();
+    for part in [user, &session.agent, use_case, &grant_key(use_case, spec)] {
+        h.update(part.as_bytes());
+        h.update([0]);
+    }
+    h.update(request_body(spec, text));
+    Some(hex::encode(h.finalize()))
+}
+
+/// A fresh entry, served only while the endpoint is still reachable by the vault and still approved: a revoked grant or
+/// credential stops the cache too.
+async fn cache_lookup(
+    state: &AppState,
+    key: &Option<String>,
+    use_case: &str,
+    spec: &ModelSpec,
+) -> Option<ModelOutcome> {
+    let key = key.as_ref()?;
+    let ttl = std::time::Duration::from_secs(state.config.model_cache_secs?);
+    let hit = {
+        let mut cache = state.model_cache.lock().unwrap_or_else(|e| e.into_inner());
+        match cache.get(key) {
+            Some((at, out)) if at.elapsed() < ttl => Some(out.clone()),
+            Some(_) => {
+                cache.remove(key);
+                None
+            }
+            None => None,
+        }
+    }?;
+    if authorize(state, spec).await.is_err()
+        || !state
+            .store
+            .has_model_grant(&grant_key(use_case, spec))
+            .await
+    {
+        return None;
+    }
+    Some(hit)
+}
+
+fn cache_store(state: &AppState, key: Option<String>, out: &ModelOutcome) {
+    let (Some(key), Some(ttl)) = (key, state.config.model_cache_secs) else {
+        return;
+    };
+    let ttl = std::time::Duration::from_secs(ttl);
+    let mut cache = state.model_cache.lock().unwrap_or_else(|e| e.into_inner());
+    cache.retain(|_, (at, _)| at.elapsed() < ttl);
+    if cache.len() >= CACHE_MAX_ENTRIES {
+        if let Some(oldest) = cache
+            .iter()
+            .min_by_key(|(_, (at, _))| *at)
+            .map(|(k, _)| k.clone())
+        {
+            cache.remove(&oldest);
+        }
+    }
+    cache.insert(
+        key,
+        (
+            std::time::Instant::now(),
+            ModelOutcome {
+                approved_now: false,
+                ..out.clone()
+            },
+        ),
+    );
+}
+
+/// A cache hit is not a call: it has its own row, sends nothing, and counts toward no allowance or budget.
+async fn audit_cache_hit(
+    state: &AppState,
+    session: &SessionRecord,
+    use_case: &str,
+    out: &ModelOutcome,
+) {
+    let _ = state
+        .store
+        .audit
+        .append(
+            Some(session.id),
+            AuditPhase::Performed,
+            "model.cache_hit",
+            Some(use_case.to_string()),
+            json!({ "host": out.host, "model": out.model, "response_bytes": out.response_bytes }),
+        )
+        .await;
 }
 
 /// Refuse a model call when the operator's budget for `agent` is used up (`ZYVOR_AGENT_MODEL_PRICES_FILE`). No file or
@@ -1011,6 +1120,106 @@ mod tests {
             seen2.lock().unwrap().len() as u32,
             crate::model_gateway::FAILURE_THRESHOLD + 1
         );
+    }
+
+    async fn cached_state(port: u16) -> (Arc<AppState>, SessionRecord) {
+        let var = format!("ZY_TEST_MODEL_KEY_{}", Uuid::new_v4().simple());
+        std::env::set_var(&var, "sk-test-123");
+        let file = std::env::temp_dir().join(format!("zyvor-creds-{}.json", Uuid::new_v4()));
+        std::fs::write(
+            &file,
+            json!({"llm": {"host": "127.0.0.1", "header": "authorization", "env": var, "prefix": "Bearer ",
+                "allowed_ports": [port], "allowed_methods": ["POST"], "path_prefixes": ["/v1/chat/completions"]}})
+            .to_string(),
+        )
+        .unwrap();
+        state_and_session_cfg(|c| {
+            c.credentials_file = Some(file);
+            c.model_cache_secs = Some(60);
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn a_repeat_for_the_same_user_is_served_from_the_cache_and_costs_nothing() {
+        let (port, seen) = stub(200, "summary").await;
+        let (state, mut session) = cached_state(port).await;
+        session.user_id = Some("ana".into());
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        let first = call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        op.abort();
+        let again = call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        assert_eq!(
+            (first.text.as_str(), again.text.as_str()),
+            ("summary", "summary")
+        );
+        assert_eq!(
+            seen.lock().unwrap().len(),
+            1,
+            "the second call must not reach the provider"
+        );
+        let rows = state.store.audit.list(Some(session.id), 100).await.unwrap();
+        assert_eq!(
+            rows.iter()
+                .filter(|r| r.action == "model.cache_hit")
+                .count(),
+            1
+        );
+        assert_eq!(
+            rows.iter()
+                .filter(|r| r.action == "model.call" && r.phase == AuditPhase::Performed)
+                .count(),
+            1,
+            "a hit is not a call"
+        );
+        // Other text, and another person, are never served someone else's reply.
+        call(&state, &session, "uc", &spec(port), "OTHER")
+            .await
+            .unwrap();
+        let mut bob = session.clone();
+        bob.user_id = Some("bob".into());
+        call(&state, &bob, "uc", &spec(port), "DOC").await.unwrap();
+        assert_eq!(seen.lock().unwrap().len(), 3);
+        // A revoked approval stops the cache too.
+        let key = grant_key("uc", &spec(port));
+        assert!(state.store.revoke_model_grant(&key).await.unwrap());
+        let op = operator_all(state.clone(), ApprovalStatus::Denied);
+        assert!(call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .is_err());
+        op.abort();
+        assert_eq!(seen.lock().unwrap().len(), 3);
+    }
+
+    #[tokio::test]
+    async fn without_a_user_or_without_the_setting_nothing_is_cached() {
+        let (port, seen) = stub(200, "x").await;
+        let (state, session) = cached_state(port).await; // no user on the session
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        op.abort();
+        assert_eq!(seen.lock().unwrap().len(), 2);
+        let (port, seen) = stub(200, "x").await;
+        let (state, mut session) = state_for(port).await; // cache not configured
+        session.user_id = Some("ana".into());
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        op.abort();
+        assert_eq!(seen.lock().unwrap().len(), 2);
     }
 
     #[tokio::test]
