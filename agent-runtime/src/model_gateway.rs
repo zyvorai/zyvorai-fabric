@@ -213,10 +213,114 @@ pub fn record(key: &str, ok: bool, now: Instant) {
     }
 }
 
-/// Per endpoint: calls, failures, tokens and latency, from the journal's `model.call` rows. Tokens the provider did
-/// not report are not counted, and `tokens_unreported` says how many calls had none, so a total is never mistaken
-/// for a complete one. There is no cost here: prices are the operator's to supply and Merion does not guess them.
-pub fn summarize(rows: &[crate::audit::AuditEntry]) -> Value {
+/// Operator-written prices and budgets (`ZYVOR_AGENT_MODEL_PRICES_FILE`). Merion ships no prices: a model with no entry
+/// here has no cost figure, and its calls are counted as unpriced rather than free.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Prices {
+    /// Free text shown next to costs, such as "USD". Never used to convert anything.
+    #[serde(default)]
+    pub currency: String,
+    /// Per model id, cost per million tokens.
+    #[serde(default)]
+    pub prices: BTreeMap<String, Price>,
+    /// Applied to an agent with no entry of its own.
+    #[serde(default)]
+    pub default_budget: Option<Budget>,
+    #[serde(default)]
+    pub budgets: BTreeMap<String, Budget>,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Price {
+    pub input_per_mtok: f64,
+    pub output_per_mtok: f64,
+}
+
+/// A rolling 24-hour allowance for one agent's model calls, over both the use-case step and the `model_socket`.
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct Budget {
+    #[serde(default)]
+    pub max_calls_per_day: Option<u64>,
+    /// Counts only calls that reported tokens for a model with a price; the rest are not guessed.
+    #[serde(default)]
+    pub max_cost_per_day: Option<f64>,
+}
+
+impl Prices {
+    pub fn load(file: Option<&Path>) -> Result<Option<Prices>, String> {
+        let Some(path) = file else { return Ok(None) };
+        let text = std::fs::read_to_string(path).map_err(|e| format!("prices file: {e}"))?;
+        let p: Prices = serde_json::from_str(&text).map_err(|e| format!("prices file: {e}"))?;
+        let bad = |x: f64| !x.is_finite() || x < 0.0;
+        if p.prices
+            .values()
+            .any(|v| bad(v.input_per_mtok) || bad(v.output_per_mtok))
+            || p.budgets
+                .values()
+                .chain(p.default_budget.iter())
+                .any(|b| b.max_cost_per_day.is_some_and(bad))
+        {
+            return Err("prices file: prices and budgets must be finite and not negative".into());
+        }
+        Ok(Some(p))
+    }
+
+    pub fn budget_for(&self, agent: &str) -> Option<Budget> {
+        self.budgets.get(agent).copied().or(self.default_budget)
+    }
+
+    fn cost(&self, model: &str, prompt: u64, completion: u64) -> Option<f64> {
+        let p = self.prices.get(model)?;
+        Some(
+            (prompt as f64 * p.input_per_mtok + completion as f64 * p.output_per_mtok)
+                / 1_000_000.0,
+        )
+    }
+}
+
+/// The cost of one journaled `model.call` row: known only with a price for its model and reported tokens.
+fn call_cost(prices: Option<&Prices>, r: &crate::audit::AuditEntry) -> Option<f64> {
+    let n = |k: &str| r.detail.get(k).and_then(Value::as_u64);
+    let model = r.detail.get("model").and_then(Value::as_str)?;
+    prices?.cost(model, n("prompt_tokens")?, n("completion_tokens")?)
+}
+
+/// Refuse a model call when `agent` is at its budget. `rows` are the journal rows of the agent's sessions. Calls that
+/// failed before reaching a provider are not counted; only `Performed` rows are.
+pub fn over_budget(
+    prices: &Prices,
+    agent: &str,
+    rows: &[crate::audit::AuditEntry],
+    since: chrono::DateTime<chrono::Utc>,
+) -> Option<String> {
+    use crate::audit::AuditPhase;
+    let b = prices.budget_for(agent)?;
+    let mine: Vec<_> = rows
+        .iter()
+        .filter(|r| r.action == "model.call" && r.phase == AuditPhase::Performed && r.at >= since)
+        .collect();
+    if let Some(max) = b.max_calls_per_day.filter(|m| mine.len() as u64 >= *m) {
+        return Some(format!(
+            "model budget reached for agent '{agent}': {} of {max} calls in the last 24 hours",
+            mine.len()
+        ));
+    }
+    if let Some(max) = b.max_cost_per_day {
+        let spent: f64 = mine.iter().filter_map(|r| call_cost(Some(prices), r)).sum();
+        if spent >= max {
+            return Some(format!("model budget reached for agent '{agent}': {spent:.4} of {max} {} in the last 24 hours", prices.currency).replace("  ", " "));
+        }
+    }
+    None
+}
+
+/// Per endpoint: calls, failures, tokens, latency and, with a price table, cost. Tokens the provider did not report are
+/// not counted, and `tokens_unreported` says how many calls had none, so a total is never mistaken for a complete one.
+/// `cost` covers only calls with reported tokens on a priced model; `calls_unpriced` counts the rest.
+pub fn summarize(rows: &[crate::audit::AuditEntry], prices: Option<&Prices>) -> Value {
     use crate::audit::AuditPhase;
     #[derive(Default)]
     struct Row {
@@ -227,6 +331,8 @@ pub fn summarize(rows: &[crate::audit::AuditEntry]) -> Value {
         unreported: u64,
         latency_sum: u64,
         latency_n: u64,
+        cost: f64,
+        unpriced: u64,
     }
     let mut by: BTreeMap<(String, String), Row> = BTreeMap::new();
     let mut failovers = 0u64;
@@ -259,22 +365,36 @@ pub fn summarize(rows: &[crate::audit::AuditEntry]) -> Value {
             }
             _ => e.unreported += 1,
         }
+        match call_cost(prices, r) {
+            Some(c) => e.cost += c,
+            None => e.unpriced += 1,
+        }
         if let Some(ms) = n("latency_ms") {
             e.latency_sum += ms;
             e.latency_n += 1;
         }
     }
+    let priced = prices.is_some();
     let items: Vec<Value> = by
         .into_iter()
         .map(|((host, model), e)| {
-            serde_json::json!({
+            let mut v = serde_json::json!({
                 "host": host, "model": model, "calls": e.calls, "failed": e.failed,
                 "prompt_tokens": e.prompt, "completion_tokens": e.completion, "tokens_unreported": e.unreported,
                 "avg_latency_ms": e.latency_sum.checked_div(e.latency_n),
-            })
+            });
+            if priced {
+                v["cost"] = serde_json::json!(e.cost);
+                v["calls_unpriced"] = serde_json::json!(e.unpriced);
+            }
+            v
         })
         .collect();
-    serde_json::json!({ "items": items, "failovers": failovers })
+    let mut out = serde_json::json!({ "items": items, "failovers": failovers });
+    if let Some(p) = prices {
+        out["currency"] = serde_json::json!(p.currency);
+    }
+    out
 }
 
 #[cfg(test)]
@@ -326,7 +446,7 @@ mod tests {
             row("model.failover", Performed, serde_json::json!({})),
             row("changeset.apply", Performed, serde_json::json!({})),
         ];
-        let s = summarize(&rows);
+        let s = summarize(&rows, None);
         assert_eq!(s["failovers"], 1);
         let a = &s["items"][0];
         assert_eq!(
@@ -474,5 +594,114 @@ mod tests {
         for bad in ["", "a b", "../x", &"a".repeat(41), "a/b"] {
             assert!(!valid_chain_name(bad), "{bad}");
         }
+    }
+
+    fn prices(json: Value) -> Prices {
+        let f = std::env::temp_dir().join(format!("zyvor-prices-{}.json", uuid::Uuid::new_v4()));
+        std::fs::write(&f, json.to_string()).unwrap();
+        Prices::load(Some(&f)).unwrap().unwrap()
+    }
+
+    fn call(
+        model: &str,
+        tokens: Option<(u64, u64)>,
+        phase: crate::audit::AuditPhase,
+    ) -> crate::audit::AuditEntry {
+        row(
+            "model.call",
+            phase,
+            serde_json::json!({"host":"h","model":model,"prompt_tokens":tokens.map(|t| t.0),"completion_tokens":tokens.map(|t| t.1)}),
+        )
+    }
+
+    #[test]
+    fn cost_needs_a_price_and_reported_tokens_and_the_rest_is_counted_not_guessed() {
+        use crate::audit::AuditPhase::Performed;
+        let p = prices(
+            serde_json::json!({"currency":"USD","prices":{"m":{"input_per_mtok":2.0,"output_per_mtok":10.0}}}),
+        );
+        let rows = vec![
+            call("m", Some((1_000_000, 100_000)), Performed),
+            call("m", None, Performed),
+            call("other", Some((5, 5)), Performed),
+        ];
+        let by_model = |v: &Value, m: &str| {
+            v["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|i| i["model"] == m)
+                .unwrap()
+                .clone()
+        };
+        let s = summarize(&rows, Some(&p));
+        assert_eq!(s["currency"], "USD");
+        assert!((by_model(&s, "m")["cost"].as_f64().unwrap() - 3.0).abs() < 1e-9);
+        assert_eq!(by_model(&s, "m")["calls_unpriced"], 1);
+        assert_eq!(by_model(&s, "other")["calls_unpriced"], 1);
+        assert!(
+            summarize(&rows, None)["items"][0].get("cost").is_none(),
+            "no price file, no cost figure"
+        );
+    }
+
+    #[test]
+    fn a_budget_stops_an_agent_by_calls_or_by_cost_and_only_counts_what_was_performed() {
+        use crate::audit::AuditPhase::{Failed, Performed};
+        let p = prices(serde_json::json!({
+            "currency":"USD",
+            "prices":{"m":{"input_per_mtok":1.0,"output_per_mtok":1.0}},
+            "default_budget":{"max_calls_per_day":3},
+            "budgets":{"spender":{"max_cost_per_day":1.5}}
+        }));
+        let since = chrono::Utc::now() - chrono::Duration::hours(24);
+        let two = vec![
+            call("m", None, Performed),
+            call("m", None, Performed),
+            call("m", None, Failed),
+        ];
+        assert!(
+            over_budget(&p, "any", &two, since).is_none(),
+            "a failed call is not spent"
+        );
+        let three = vec![
+            call("m", None, Performed),
+            call("m", None, Performed),
+            call("m", None, Performed),
+        ];
+        assert!(over_budget(&p, "any", &three, since)
+            .unwrap()
+            .contains("3 of 3 calls"));
+        let spend = vec![call("m", Some((1_000_000, 1_000_000)), Performed)];
+        assert!(over_budget(&p, "spender", &spend, since)
+            .unwrap()
+            .contains("budget reached"));
+        assert!(over_budget(
+            &p,
+            "spender",
+            &[call("m", Some((100, 100)), Performed)],
+            since
+        )
+        .is_none());
+        let old = chrono::Utc::now() + chrono::Duration::hours(1);
+        assert!(
+            over_budget(&p, "any", &three, old).is_none(),
+            "calls older than the window do not count"
+        );
+    }
+
+    #[test]
+    fn a_prices_file_with_a_negative_or_unknown_field_is_refused() {
+        for bad in [
+            serde_json::json!({"prices":{"m":{"input_per_mtok":-1.0,"output_per_mtok":1.0}}}),
+            serde_json::json!({"budgets":{"a":{"max_cost_per_day":-5.0}}}),
+            serde_json::json!({"surprise":1}),
+        ] {
+            let f =
+                std::env::temp_dir().join(format!("zyvor-prices-{}.json", uuid::Uuid::new_v4()));
+            std::fs::write(&f, bad.to_string()).unwrap();
+            assert!(Prices::load(Some(&f)).is_err(), "{bad}");
+        }
+        assert!(Prices::load(None).unwrap().is_none());
     }
 }

@@ -262,6 +262,9 @@ pub(crate) async fn call(
     if let Some(user) = session.user_id.as_deref() {
         crate::usage::check_model_quota(state, user, crate::usage::Limits::from_env()).await?;
     }
+    check_agent_budget(state, &session.agent)
+        .await
+        .map_err(ApiError::too_many)?;
     let targets = plan(state, spec)?;
     let mut last: Option<ApiError> = None;
     let mut skipped: Vec<String> = Vec::new();
@@ -301,6 +304,38 @@ pub(crate) async fn call(
         }
     }
     Err(last.unwrap_or_else(|| ApiError::bad_gateway("no model endpoint was available")))
+}
+
+/// Refuse a model call when the operator's budget for `agent` is used up (`ZYVOR_AGENT_MODEL_PRICES_FILE`). No file or
+/// no budget for the agent means no limit. A file that cannot be read refuses rather than lifting the limit.
+pub(crate) async fn check_agent_budget(state: &AppState, agent: &str) -> Result<(), String> {
+    let Some(prices) =
+        crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())?
+    else {
+        return Ok(());
+    };
+    if prices.budget_for(agent).is_none() {
+        return Ok(());
+    }
+    let ids: Vec<_> = state
+        .store
+        .list_sessions()
+        .await
+        .into_iter()
+        .filter(|s| s.agent == agent)
+        .map(|s| s.id)
+        .collect();
+    let since = chrono::Utc::now() - chrono::Duration::hours(24);
+    let rows = state
+        .store
+        .audit
+        .list_for_sessions(&ids.into_iter().collect(), usize::MAX)
+        .await
+        .map_err(|e| e.to_string())?;
+    match crate::model_gateway::over_budget(&prices, agent, &rows, since) {
+        Some(why) => Err(why),
+        None => Ok(()),
+    }
 }
 
 async fn audit_failover(
@@ -544,7 +579,12 @@ pub(crate) async fn usage(State(state): State<Arc<AppState>>) -> Result<Json<Val
         .list(None, usize::MAX)
         .await
         .map_err(ApiError::internal)?;
-    Ok(Json(crate::model_gateway::summarize(&rows)))
+    let prices = crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())
+        .map_err(ApiError::internal)?;
+    Ok(Json(crate::model_gateway::summarize(
+        &rows,
+        prices.as_ref(),
+    )))
 }
 
 pub(crate) async fn list_grants(State(state): State<Arc<AppState>>) -> Json<Value> {
