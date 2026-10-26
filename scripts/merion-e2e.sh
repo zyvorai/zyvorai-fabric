@@ -381,6 +381,16 @@ else
   OPS=$(python3 -c 'import json,sys;print(",".join(json.loads(l)["op"] for l in open(sys.argv[1])))' "$W/sandboxes/changeset.jsonl")
   check_eq "denied changeset was rejected, never applied" "speculate,approve,apply,speculate,reject,speculate,reject" "$OPS"
 
+  echo "==> run report (host records only)"
+  RPT=$(curl -sf "${AUTH[@]}" "$API/v1/sessions/$SID/report")
+  rpt() { printf '%s' "$RPT" | python3 -c 'import json,sys;d=json.load(sys.stdin);print(eval(sys.argv[1]))' "$1"; }
+  check_eq "report: one change applied" 1 "$(rpt 'sum(1 for x in d["did"] if x["type"]=="changeset_applied")')"
+  check_eq "report: the rejected and denied ones were not applied" 2 "$(rpt 'sum(1 for x in d["did"] if x["type"]=="changeset_not_applied")')"
+  check_eq "report: the applied change has no automatic undo" 1 "$(rpt 'sum(1 for x in d["rollback"] if x["state"]=="applied_no_automatic_undo")')"
+  check_eq "report: unapplied changes have nothing to undo" 2 "$(rpt 'sum(1 for x in d["rollback"] if x["state"]=="nothing_to_undo")')"
+  check_eq "report: every check shown passed" "True" "$(rpt 'all(c["result"]=="passed" for c in d["checked"]) and len(d["checked"])==3')"
+  check "report: says what was not checked" "does not run tests" "$RPT"
+
   echo "==> auto-approve policy (operator-set; stage two)"
   ASID=$(curl -sf "${AUTH[@]}" -d '{"agent":"keep-desk","input":{},"user_id":"autouser"}' "$API/v1/sessions" | json_get id)
   for _ in $(seq 1 60); do
@@ -394,6 +404,7 @@ else
   check "no policy: approval is pending" '"status":"pending"' "$(body)"
   PEND=$(body | json_get approval.id)
   UTOK=$(curl -sf "${AUTH[@]}" -d '{"user_id":"autouser"}' "$API/v1/user-tokens" | json_get token)
+  check_eq "report: a user cannot read a session that is not theirs (404, not 403, so existence is not revealed)" 404 "$(http_code -H "Authorization: Bearer $UTOK" "$API/v1/sessions/$SID/report")"
   check_eq "a user token cannot set a policy" 403 "$(http_code -H "Authorization: Bearer $UTOK" -H 'Content-Type: application/json' -X PUT "$API/v1/users/autouser/changeset-policies/keep-desk" -d "$POL")"
   check_eq "a user can read their own policies" 200 "$(http_code -H "Authorization: Bearer $UTOK" "$API/v1/users/autouser/changeset-policies")"
   check_eq "a bad policy is refused" 400 "$(http_code "${AUTH[@]}" -X PUT "$API/v1/users/autouser/changeset-policies/keep-desk" -d '{"id":"x","paths":["relative"]}')"

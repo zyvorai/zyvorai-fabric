@@ -17,6 +17,8 @@ build, and the decisions only you can make, with my recommendation for each. Not
 | [Agent-proposed tools](agent-tools.md) | How can an agent add a capability to itself without adding authority to itself? |
 | [A Windows companion](windows-companion.md) | What would a Windows client be, and what must it never do? |
 | [Credential sources](credential-sources.md) | Can a secret come from Vault or a mounted file instead of the process environment, without weakening any check? |
+| [Model gateway](model-gateway.md) | Can agents get provider failover, a cache, and per-key spend and budgets without a key ever reaching a cell? |
+| [Run report](run-report.md) | Can a finished run say what was checked, what was not, and how to roll back, without sounding more certain than the evidence? |
 
 How to read a note: **Decisions for you** at the end of each is the part to answer. Answer in a line ("1: yes, 2: A, 3: not now") and I will
 turn the answers into a build plan. Anything you leave open stays open.

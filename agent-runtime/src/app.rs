@@ -498,6 +498,7 @@ pub fn public_router(state: Arc<AppState>) -> Router {
                 .delete(crate::connections::delete_connection),
         )
         .route("/v1/whoami", get(whoami))
+        .route("/v1/model-usage", get(crate::model_call::usage))
         .route("/v1/model-grants", get(crate::model_call::list_grants))
         .route(
             "/v1/model-grants/{key}",
@@ -548,6 +549,7 @@ pub fn public_router(state: Arc<AppState>) -> Router {
             get(list_binary_pins).delete(clear_binary_pins),
         )
         .route("/v1/sessions/{id}/cockpit", get(session_cockpit))
+        .route("/v1/sessions/{id}/report", get(session_report))
         .route("/v1/export-tokens", post(mint_export_token))
         .route("/v1/vault/status", get(vault_status))
         .route("/v1/vault/unwrap-tokens", post(mint_unwrap_token))
@@ -2686,6 +2688,31 @@ async fn put_agent_policy(
 }
 
 /// Keep cockpit: taint paint + last Sentinel/audit decisions for a session.
+/// `GET /v1/sessions/{id}/report`: what the session did, what the host checked and did not, what remains, and
+/// what can be undone (docs/merion/design/run-report.md). Built from host records only.
+async fn session_report(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Value>> {
+    let session = require_session(&state, id).await?;
+    let mut approvals = state.store.approvals_of_session(id).await;
+    approvals.sort_by_key(|a| a.created_at);
+    let audit = state
+        .store
+        .audit
+        .list(Some(id), usize::MAX)
+        .await
+        .map_err(ApiError::internal)?;
+    let mut receipts = state.store.receipts.list(None, usize::MAX).await;
+    receipts.retain(|r| r.session_id == id);
+    Ok(Json(crate::run_report::build(&crate::run_report::Inputs {
+        session: &session,
+        approvals: &approvals,
+        audit: &audit,
+        receipts: &receipts,
+    })))
+}
+
 async fn session_cockpit(
     State(state): State<Arc<AppState>>,
     Path(id): Path<Uuid>,
@@ -4199,7 +4226,7 @@ async fn broker_destinations(state: &AppState, session: &SessionRecord) -> Optio
 }
 
 /// The start of the comment an automatic approval carries, so it is never mistaken for a person's.
-const AUTO_APPROVED_PREFIX: &str = "auto-approved by policy";
+use crate::run_report::AUTO_APPROVED_PREFIX;
 
 /// `GET /v1/users/{id}/changeset-policies`: the operator, or the user for their own id.
 async fn list_changeset_policies(
@@ -5080,6 +5107,52 @@ mod tests {
             .unwrap();
         assert_eq!(done.status, ApprovalStatus::Denied);
         assert_eq!(*fake.calls.lock().unwrap(), ["speculate", "reject"]);
+    }
+
+    async fn report_for(state: &Arc<AppState>, session: Uuid) -> Value {
+        let Json(r) = session_report(State(state.clone()), Path(session)).await.unwrap();
+        r
+    }
+
+    #[tokio::test]
+    async fn the_report_follows_a_real_approve_deny_and_failed_apply() {
+        // Applied: checked on measured facts, no automatic undo.
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let pending = report_for(&state, session.id).await;
+        assert!(pending["did"].as_array().unwrap().is_empty());
+        assert!(pending["remaining"][0]["what"].as_str().unwrap().contains("waiting for a decision"));
+        let _ = decide(&state, approval, ApprovalStatus::Approved).await.unwrap();
+        let r = report_for(&state, session.id).await;
+        assert_eq!(r["did"][0]["type"], "changeset_applied");
+        assert_eq!(r["rollback"][0]["state"], "applied_no_automatic_undo");
+        assert!(r["checked"].as_array().unwrap().iter().all(|c| c["result"] == "passed"));
+
+        // Denied: nothing to undo.
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Denied).await.unwrap();
+        let r = report_for(&state, session.id).await;
+        assert_eq!(r["did"][0]["type"], "changeset_not_applied");
+        assert_eq!(r["rollback"][0]["state"], "nothing_to_undo");
+
+        // Approved but FluxVM could not apply: reported as failed and unknown, not as applied.
+        let fake = FakeFlux { fail_apply: true, ..Default::default() };
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved).await;
+        let r = report_for(&state, session.id).await;
+        assert_eq!(r["did"][0]["type"], "changeset_apply_failed");
+        assert_eq!(r["rollback"][0]["state"], "unknown");
+        assert!(r["checked"].as_array().unwrap().is_empty());
     }
 
     #[tokio::test]

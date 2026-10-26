@@ -970,6 +970,7 @@ pub(crate) mod tests {
             fluxvm_token: None,
             api_token: None,
             credentials_file: None,
+            model_chains_file: None,
             skill_scopes_file: None,
             sentinel: None,
             guard: None,

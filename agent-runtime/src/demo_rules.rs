@@ -206,9 +206,18 @@ pub struct ModelSpec {
     /// Upper bound on the reply (50..=4000 tokens, default 800).
     #[serde(default)]
     pub max_output_tokens: Option<u32>,
+    /// Name of an operator-written chain of further endpoints to try when this one is down, rate-limited or
+    /// answers 5xx. The pack only names it; the endpoints, and whether the chain exists at all, are the operator's.
+    #[serde(default)]
+    pub fallback_chain: Option<String>,
 }
 
 impl ModelSpec {
+    /// The same checks the pack loader applies to a `model` block.
+    pub fn check(&self) -> Result<(), String> {
+        self.validate()
+    }
+
     pub fn input_cap(&self) -> usize {
         self.max_input_chars.unwrap_or(24_000)
     }
@@ -295,6 +304,13 @@ impl ModelSpec {
             .is_some_and(|n| !(50..=4000).contains(&n))
         {
             return Err("model.max_output_tokens must be 50..=4000".into());
+        }
+        if self
+            .fallback_chain
+            .as_deref()
+            .is_some_and(|c| !crate::model_gateway::valid_chain_name(c))
+        {
+            return Err("model.fallback_chain must be 1-40 letters, digits, '-' or '_'".into());
         }
         Ok(())
     }
