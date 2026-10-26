@@ -47,7 +47,9 @@ struct ChainsFile {
 pub fn valid_chain_name(name: &str) -> bool {
     !name.is_empty()
         && name.len() <= 40
-        && name.bytes().all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
+        && name
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
 }
 
 impl Target {
@@ -68,18 +70,27 @@ impl Target {
 
 /// The targets of chain `name`, read from the operator's file. A missing file, an unknown chain or a bad entry
 /// is an error: a pack that names a chain does not quietly run without it.
-pub fn targets(file: Option<&Path>, name: &str, base: &ModelSpec) -> Result<Vec<ModelSpec>, String> {
+pub fn targets(
+    file: Option<&Path>,
+    name: &str,
+    base: &ModelSpec,
+) -> Result<Vec<ModelSpec>, String> {
     chain_targets(file, name)?
         .iter()
-        .map(|t| t.applied_to(base).map_err(|e| format!("chain '{name}': {e}")))
+        .map(|t| {
+            t.applied_to(base)
+                .map_err(|e| format!("chain '{name}': {e}"))
+        })
         .collect()
 }
 
 /// The raw targets of chain `name`, for the agent's `model_socket` path, which has no `ModelSpec` to apply them to.
 pub fn chain_targets(file: Option<&Path>, name: &str) -> Result<Vec<Target>, String> {
-    let path = file.ok_or("this pack names a fallback chain, but the operator configured no chains file")?;
+    let path =
+        file.ok_or("this pack names a fallback chain, but the operator configured no chains file")?;
     let text = std::fs::read_to_string(path).map_err(|e| format!("chains file: {e}"))?;
-    let parsed: ChainsFile = serde_json::from_str(&text).map_err(|e| format!("chains file: {e}"))?;
+    let parsed: ChainsFile =
+        serde_json::from_str(&text).map_err(|e| format!("chains file: {e}"))?;
     let chain = parsed
         .chains
         .get(name)
@@ -88,12 +99,21 @@ pub fn chain_targets(file: Option<&Path>, name: &str) -> Result<Vec<Target>, Str
         return Err(format!("chain '{name}' needs 1 to {MAX_FALLBACKS} targets"));
     }
     for t in &chain.targets {
-        let u = url::Url::parse(&t.base_url).map_err(|e| format!("chain '{name}': base_url: {e}"))?;
-        if !matches!(u.scheme(), "http" | "https") || u.host_str().is_none() || u.query().is_some() || u.fragment().is_some() {
-            return Err(format!("chain '{name}': base_url must be an http(s) URL with a host and no query"));
+        let u =
+            url::Url::parse(&t.base_url).map_err(|e| format!("chain '{name}': base_url: {e}"))?;
+        if !matches!(u.scheme(), "http" | "https")
+            || u.host_str().is_none()
+            || u.query().is_some()
+            || u.fragment().is_some()
+        {
+            return Err(format!(
+                "chain '{name}': base_url must be an http(s) URL with a host and no query"
+            ));
         }
         if t.model.is_empty() || t.model.len() > 80 || t.model.chars().any(char::is_control) {
-            return Err(format!("chain '{name}': model must be 1-80 plain characters"));
+            return Err(format!(
+                "chain '{name}': model must be 1-80 plain characters"
+            ));
         }
     }
     Ok(chain.targets.clone())
@@ -109,17 +129,25 @@ pub fn retarget(
 ) -> Option<crate::model::EgressRequest> {
     use base64::Engine;
     let want = format!("{}/chat/completions", socket.base_url.trim_end_matches('/'));
-    if !req.method.eq_ignore_ascii_case("POST") || req.url != want || req.credential != socket.credential {
+    if !req.method.eq_ignore_ascii_case("POST")
+        || req.url != want
+        || req.credential != socket.credential
+    {
         return None;
     }
-    let raw = base64::engine::general_purpose::STANDARD.decode(req.body_base64.as_deref()?).ok()?;
+    let raw = base64::engine::general_purpose::STANDARD
+        .decode(req.body_base64.as_deref()?)
+        .ok()?;
     let mut body: Value = serde_json::from_slice(&raw).ok()?;
-    body.as_object_mut()?.insert("model".into(), Value::String(target.model.clone()));
+    body.as_object_mut()?
+        .insert("model".into(), Value::String(target.model.clone()));
     Some(crate::model::EgressRequest {
         url: format!("{}/chat/completions", target.base_url.trim_end_matches('/')),
         method: req.method.clone(),
         headers: req.headers.clone(),
-        body_base64: Some(base64::engine::general_purpose::STANDARD.encode(serde_json::to_vec(&body).ok()?)),
+        body_base64: Some(
+            base64::engine::general_purpose::STANDARD.encode(serde_json::to_vec(&body).ok()?),
+        ),
         credential: Some(target.credential.clone()),
     })
 }
@@ -135,7 +163,11 @@ pub fn tokens(body: &[u8]) -> (Option<u64>, Option<u64>) {
     let Ok(v) = serde_json::from_slice::<Value>(body) else {
         return (None, None);
     };
-    let n = |k: &str| v.get("usage").and_then(|u| u.get(k)).and_then(Value::as_u64);
+    let n = |k: &str| {
+        v.get("usage")
+            .and_then(|u| u.get(k))
+            .and_then(Value::as_u64)
+    };
     (n("prompt_tokens"), n("completion_tokens"))
 }
 
@@ -162,7 +194,9 @@ fn breakers() -> &'static Mutex<HashMap<String, Breaker>> {
 /// True while the endpoint's breaker is open.
 pub fn is_open(key: &str, now: Instant) -> bool {
     let map = breakers().lock().unwrap_or_else(|e| e.into_inner());
-    map.get(key).and_then(|b| b.open_until).is_some_and(|t| t > now)
+    map.get(key)
+        .and_then(|b| b.open_until)
+        .is_some_and(|t| t > now)
 }
 
 /// Record a call's outcome. Only failover-class failures count; a success closes the breaker.
@@ -204,7 +238,13 @@ pub fn summarize(rows: &[crate::audit::AuditEntry]) -> Value {
         if r.action != "model.call" || r.phase == AuditPhase::Planned {
             continue;
         }
-        let text = |k: &str| r.detail.get(k).and_then(Value::as_str).unwrap_or("?").to_string();
+        let text = |k: &str| {
+            r.detail
+                .get(k)
+                .and_then(Value::as_str)
+                .unwrap_or("?")
+                .to_string()
+        };
         let e = by.entry((text("host"), text("model"))).or_default();
         e.calls += 1;
         if r.phase == AuditPhase::Failed {
@@ -241,10 +281,21 @@ pub fn summarize(rows: &[crate::audit::AuditEntry]) -> Value {
 mod tests {
     use super::*;
 
-    fn row(action: &str, phase: crate::audit::AuditPhase, detail: Value) -> crate::audit::AuditEntry {
+    fn row(
+        action: &str,
+        phase: crate::audit::AuditPhase,
+        detail: Value,
+    ) -> crate::audit::AuditEntry {
         crate::audit::AuditEntry {
-            seq: 0, at: chrono::Utc::now(), session_id: None, phase, action: action.into(), subject: None,
-            detail, prev_hash: String::new(), hash: String::new(),
+            seq: 0,
+            at: chrono::Utc::now(),
+            session_id: None,
+            phase,
+            action: action.into(),
+            subject: None,
+            detail,
+            prev_hash: String::new(),
+            hash: String::new(),
         }
     }
 
@@ -252,25 +303,54 @@ mod tests {
     fn usage_is_summed_per_endpoint_and_never_invents_tokens() {
         use crate::audit::AuditPhase::{Failed, Performed};
         let ok = |p: Option<u64>, c: Option<u64>, ms: u64| {
-            row("model.call", Performed, serde_json::json!({"host":"a","model":"m","prompt_tokens":p,"completion_tokens":c,"latency_ms":ms}))
+            row(
+                "model.call",
+                Performed,
+                serde_json::json!({"host":"a","model":"m","prompt_tokens":p,"completion_tokens":c,"latency_ms":ms}),
+            )
         };
         let rows = vec![
             ok(Some(10), Some(5), 100),
             ok(Some(20), Some(5), 300),
             ok(None, None, 200),
-            row("model.call", Failed, serde_json::json!({"host":"a","model":"m"})),
-            row("model.call", Performed, serde_json::json!({"host":"b","model":"n"})),
+            row(
+                "model.call",
+                Failed,
+                serde_json::json!({"host":"a","model":"m"}),
+            ),
+            row(
+                "model.call",
+                Performed,
+                serde_json::json!({"host":"b","model":"n"}),
+            ),
             row("model.failover", Performed, serde_json::json!({})),
             row("changeset.apply", Performed, serde_json::json!({})),
         ];
         let s = summarize(&rows);
         assert_eq!(s["failovers"], 1);
         let a = &s["items"][0];
-        assert_eq!((a["host"].as_str(), a["calls"].as_u64(), a["failed"].as_u64()), (Some("a"), Some(4), Some(1)));
-        assert_eq!((a["prompt_tokens"].as_u64(), a["completion_tokens"].as_u64()), (Some(30), Some(10)));
-        assert_eq!(a["tokens_unreported"], 1, "a call with no usage is counted as unreported, not as zero");
+        assert_eq!(
+            (
+                a["host"].as_str(),
+                a["calls"].as_u64(),
+                a["failed"].as_u64()
+            ),
+            (Some("a"), Some(4), Some(1))
+        );
+        assert_eq!(
+            (a["prompt_tokens"].as_u64(), a["completion_tokens"].as_u64()),
+            (Some(30), Some(10))
+        );
+        assert_eq!(
+            a["tokens_unreported"], 1,
+            "a call with no usage is counted as unreported, not as zero"
+        );
         assert_eq!(a["avg_latency_ms"], 200);
-        assert_eq!(s["items"][1]["avg_latency_ms"], Value::Null, "no latency recorded means null, not 0");
+        assert_eq!(
+            s["items"][1]["avg_latency_ms"],
+            Value::Null,
+            "no latency recorded means null, not 0"
+        );
         assert_eq!(s["items"].as_array().unwrap().len(), 2);
     }
 
@@ -294,23 +374,33 @@ mod tests {
 
     #[test]
     fn a_chain_swaps_in_each_endpoint_and_keeps_the_packs_instruction() {
-        let f = file(r#"{"chains":{"main":{"targets":[
+        let f = file(
+            r#"{"chains":{"main":{"targets":[
             {"credential":"b","base_url":"https://b.example/v1","model":"m2"},
-            {"credential":"c","base_url":"http://127.0.0.1:9/v1","model":"m3"}]}}}"#);
+            {"credential":"c","base_url":"http://127.0.0.1:9/v1","model":"m3"}]}}}"#,
+        );
         let t = targets(Some(&f), "main", &base()).unwrap();
         assert_eq!(t.len(), 2);
         assert_eq!(t[0].credential, "b");
         assert_eq!(t[1].base_url, "http://127.0.0.1:9/v1");
-        assert!(t.iter().all(|s| s.instruction == "Summarise." && s.fallback_chain.is_none()));
+        assert!(t
+            .iter()
+            .all(|s| s.instruction == "Summarise." && s.fallback_chain.is_none()));
     }
 
     #[test]
     fn every_misconfiguration_is_an_error_not_a_silent_skip() {
-        assert!(targets(None, "main", &base()).unwrap_err().contains("no chains file"));
+        assert!(targets(None, "main", &base())
+            .unwrap_err()
+            .contains("no chains file"));
         let missing = std::env::temp_dir().join("no-such-chains.json");
         assert!(targets(Some(&missing), "main", &base()).is_err());
-        let f = file(r#"{"chains":{"other":{"targets":[{"credential":"b","base_url":"https://b.example/v1","model":"m"}]}}}"#);
-        assert!(targets(Some(&f), "main", &base()).unwrap_err().contains("no fallback chain named"));
+        let f = file(
+            r#"{"chains":{"other":{"targets":[{"credential":"b","base_url":"https://b.example/v1","model":"m"}]}}}"#,
+        );
+        assert!(targets(Some(&f), "main", &base())
+            .unwrap_err()
+            .contains("no fallback chain named"));
         for bad in [
             r#"{"chains":{"main":{"targets":[]}}}"#,
             r#"{"chains":{"main":{"targets":[{"credential":"b","base_url":"http://evil.example/v1","model":"m"}]}}}"#,
@@ -322,10 +412,17 @@ mod tests {
             assert!(targets(Some(&file(bad)), "main", &base()).is_err(), "{bad}");
         }
         let six: Vec<String> = (0..=MAX_FALLBACKS)
-            .map(|i| format!(r#"{{"credential":"b","base_url":"https://b.example/v1","model":"m{i}"}}"#))
+            .map(|i| {
+                format!(r#"{{"credential":"b","base_url":"https://b.example/v1","model":"m{i}"}}"#)
+            })
             .collect();
-        let f = file(&format!(r#"{{"chains":{{"main":{{"targets":[{}]}}}}}}"#, six.join(",")));
-        assert!(targets(Some(&f), "main", &base()).unwrap_err().contains("1 to"));
+        let f = file(&format!(
+            r#"{{"chains":{{"main":{{"targets":[{}]}}}}}}"#,
+            six.join(",")
+        ));
+        assert!(targets(Some(&f), "main", &base())
+            .unwrap_err()
+            .contains("1 to"));
     }
 
     #[test]
@@ -348,7 +445,10 @@ mod tests {
         assert!(!is_open(&key, t0), "below the threshold it stays closed");
         record(&key, false, t0);
         assert!(is_open(&key, t0));
-        assert!(!is_open(&key, t0 + OPEN_FOR + Duration::from_secs(1)), "it closes by itself");
+        assert!(
+            !is_open(&key, t0 + OPEN_FOR + Duration::from_secs(1)),
+            "it closes by itself"
+        );
         record(&key, false, t0);
         record(&key, true, t0);
         assert!(!is_open(&key, t0), "a success resets it");
@@ -360,7 +460,10 @@ mod tests {
 
     #[test]
     fn tokens_are_unknown_not_zero_when_the_provider_gives_none() {
-        assert_eq!(tokens(br#"{"usage":{"prompt_tokens":12,"completion_tokens":5}}"#), (Some(12), Some(5)));
+        assert_eq!(
+            tokens(br#"{"usage":{"prompt_tokens":12,"completion_tokens":5}}"#),
+            (Some(12), Some(5))
+        );
         assert_eq!(tokens(br#"{"choices":[]}"#), (None, None));
         assert_eq!(tokens(b"not json"), (None, None));
     }

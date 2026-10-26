@@ -231,8 +231,9 @@ async fn authorize(state: &AppState, spec: &ModelSpec) -> Result<Authorized, Api
 fn plan(state: &AppState, spec: &ModelSpec) -> Result<Vec<ModelSpec>, ApiError> {
     let mut all = vec![spec.clone()];
     if let Some(name) = &spec.fallback_chain {
-        let more = crate::model_gateway::targets(state.config.model_chains_file.as_deref(), name, spec)
-            .map_err(ApiError::bad_request)?;
+        let more =
+            crate::model_gateway::targets(state.config.model_chains_file.as_deref(), name, spec)
+                .map_err(ApiError::bad_request)?;
         all.extend(more);
     }
     Ok(all)
@@ -269,7 +270,10 @@ pub(crate) async fn call(
         if crate::model_gateway::is_open(&key, std::time::Instant::now()) {
             skipped.push(target.host());
             last.get_or_insert_with(|| {
-                ApiError::bad_gateway(format!("model endpoint {} is failing; skipped for now", target.host()))
+                ApiError::bad_gateway(format!(
+                    "model endpoint {} is failing; skipped for now",
+                    target.host()
+                ))
             });
             continue;
         }
@@ -299,7 +303,13 @@ pub(crate) async fn call(
     Err(last.unwrap_or_else(|| ApiError::bad_gateway("no model endpoint was available")))
 }
 
-async fn audit_failover(state: &AppState, session: &SessionRecord, use_case: &str, from: &[String], out: &ModelOutcome) {
+async fn audit_failover(
+    state: &AppState,
+    session: &SessionRecord,
+    use_case: &str,
+    from: &[String],
+    out: &ModelOutcome,
+) {
     let _ = state
         .store
         .audit
@@ -528,7 +538,12 @@ async fn call_one(
 
 /// `GET /v1/model-usage`: calls, failures, tokens and latency per endpoint, from the journal (operator only).
 pub(crate) async fn usage(State(state): State<Arc<AppState>>) -> Result<Json<Value>, ApiError> {
-    let rows = state.store.audit.list(None, usize::MAX).await.map_err(ApiError::internal)?;
+    let rows = state
+        .store
+        .audit
+        .list(None, usize::MAX)
+        .await
+        .map_err(ApiError::internal)?;
     Ok(Json(crate::model_gateway::summarize(&rows)))
 }
 
@@ -730,7 +745,10 @@ mod tests {
     }
 
     /// A state whose vault holds credential `llm` for several local ports, and whose operator wrote one chain.
-    async fn state_with_chain(ports: &[u16], chain_ports: &[u16]) -> (Arc<AppState>, SessionRecord) {
+    async fn state_with_chain(
+        ports: &[u16],
+        chain_ports: &[u16],
+    ) -> (Arc<AppState>, SessionRecord) {
         let var = format!("ZY_TEST_MODEL_KEY_{}", Uuid::new_v4().simple());
         std::env::set_var(&var, "sk-test-123");
         let creds = std::env::temp_dir().join(format!("zyvor-creds-{}.json", Uuid::new_v4()));
@@ -749,7 +767,11 @@ mod tests {
             .map(|p| json!({"credential": "llm", "base_url": format!("http://127.0.0.1:{p}/v1"), "model": format!("fb-{p}")}))
             .collect();
         let chains = std::env::temp_dir().join(format!("zyvor-chains-{}.json", Uuid::new_v4()));
-        std::fs::write(&chains, json!({"chains": {"main": {"targets": targets}}}).to_string()).unwrap();
+        std::fs::write(
+            &chains,
+            json!({"chains": {"main": {"targets": targets}}}).to_string(),
+        )
+        .unwrap();
         state_and_session_cfg(|c| {
             c.credentials_file = Some(creds);
             c.model_chains_file = Some(chains);
@@ -758,7 +780,10 @@ mod tests {
     }
 
     fn chained(port: u16) -> ModelSpec {
-        ModelSpec { fallback_chain: Some("main".into()), ..spec(port) }
+        ModelSpec {
+            fallback_chain: Some("main".into()),
+            ..spec(port)
+        }
     }
 
     /// Decide every approval that appears, the way an operator would.
@@ -767,7 +792,10 @@ mod tests {
             for _ in 0..200 {
                 for a in state.store.list_approvals().await {
                     if a.status == ApprovalStatus::Pending {
-                        let _ = state.store.transition_approval(a.id, decision, None, None).await;
+                        let _ = state
+                            .store
+                            .transition_approval(a.id, decision, None, None)
+                            .await;
                     }
                 }
                 tokio::time::sleep(std::time::Duration::from_millis(25)).await;
@@ -782,7 +810,9 @@ mod tests {
         let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
         let op = operator_all(state.clone(), ApprovalStatus::Approved);
 
-        let out = call(&state, &session, "uc", &chained(p1), "DOC").await.unwrap();
+        let out = call(&state, &session, "uc", &chained(p1), "DOC")
+            .await
+            .unwrap();
         op.abort();
         assert_eq!(out.text, "from the fallback");
         assert_eq!(out.target_index, 1);
@@ -791,7 +821,10 @@ mod tests {
         {
             let second = seen2.lock().unwrap();
             assert_eq!(second.len(), 1);
-            assert_eq!(second[0].0, "Bearer sk-test-123", "the fallback gets its key from the vault too");
+            assert_eq!(
+                second[0].0, "Bearer sk-test-123",
+                "the fallback gets its key from the vault too"
+            );
             assert!(second[0].1.contains("DOC"));
         }
 
@@ -803,7 +836,10 @@ mod tests {
         assert_eq!(calls[1].phase, AuditPhase::Performed);
         assert_eq!(calls[1].detail["target_index"], 1);
         assert!(calls[1].detail["latency_ms"].is_u64());
-        let failover = rows.iter().find(|r| r.action == "model.failover").expect("a failover row");
+        let failover = rows
+            .iter()
+            .find(|r| r.action == "model.failover")
+            .expect("a failover row");
         assert_eq!(failover.detail["to"], "127.0.0.1");
         assert_eq!(failover.detail["target_index"], 1);
         let all = serde_json::to_string(&rows).unwrap();
@@ -818,7 +854,9 @@ mod tests {
         let (p2, seen2) = stub(200, "x").await;
         let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
         let op = operator_all(state.clone(), ApprovalStatus::Approved);
-        let err = call(&state, &session, "uc", &chained(p1), "t").await.unwrap_err();
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
         op.abort();
         assert!(err.message().contains("HTTP 400"), "{}", err.message());
         assert!(seen2.lock().unwrap().is_empty());
@@ -830,10 +868,15 @@ mod tests {
         let (p2, seen2) = stub(500, "boom").await;
         let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
         let op = operator_all(state.clone(), ApprovalStatus::Approved);
-        let err = call(&state, &session, "uc", &chained(p1), "t").await.unwrap_err();
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
         op.abort();
         assert!(err.message().contains("HTTP 500"), "{}", err.message());
-        assert_eq!((seen1.lock().unwrap().len(), seen2.lock().unwrap().len()), (1, 1));
+        assert_eq!(
+            (seen1.lock().unwrap().len(), seen2.lock().unwrap().len()),
+            (1, 1)
+        );
     }
 
     #[tokio::test]
@@ -849,14 +892,20 @@ mod tests {
                 for a in st.store.list_approvals().await {
                     if a.status == ApprovalStatus::Pending {
                         n += 1;
-                        let d = if n == 1 { ApprovalStatus::Approved } else { ApprovalStatus::Denied };
+                        let d = if n == 1 {
+                            ApprovalStatus::Approved
+                        } else {
+                            ApprovalStatus::Denied
+                        };
                         let _ = st.store.transition_approval(a.id, d, None, None).await;
                     }
                 }
                 tokio::time::sleep(std::time::Duration::from_millis(25)).await;
             }
         });
-        let err = call(&state, &session, "uc", &chained(p1), "t").await.unwrap_err();
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
         op.abort();
         assert!(err.message().contains("denied"), "{}", err.message());
         assert!(seen2.lock().unwrap().is_empty());
@@ -869,7 +918,9 @@ mod tests {
         // The vault allows only the primary's port; the chain names p2.
         let (state, session) = state_with_chain(&[p1], &[p2]).await;
         let op = operator_all(state.clone(), ApprovalStatus::Approved);
-        let err = call(&state, &session, "uc", &chained(p1), "t").await.unwrap_err();
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
         op.abort();
         assert!(err.message().contains("vault"), "{}", err.message());
         assert!(seen2.lock().unwrap().is_empty());
@@ -879,8 +930,14 @@ mod tests {
     async fn a_named_chain_that_cannot_be_read_stops_the_call_before_anything_is_sent() {
         let (p1, seen1) = stub(200, "x").await;
         let (state, session) = state_for(p1).await; // no chains file configured
-        let err = call(&state, &session, "uc", &chained(p1), "t").await.unwrap_err();
-        assert!(err.message().contains("no chains file"), "{}", err.message());
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
+        assert!(
+            err.message().contains("no chains file"),
+            "{}",
+            err.message()
+        );
         assert!(seen1.lock().unwrap().is_empty());
         assert!(preflight(&state, &chained(p1)).await.is_err());
     }
@@ -892,10 +949,17 @@ mod tests {
         let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
         let op = operator_all(state.clone(), ApprovalStatus::Approved);
         for _ in 0..crate::model_gateway::FAILURE_THRESHOLD {
-            call(&state, &session, "uc", &chained(p1), "t").await.unwrap();
+            call(&state, &session, "uc", &chained(p1), "t")
+                .await
+                .unwrap();
         }
-        assert_eq!(seen1.lock().unwrap().len() as u32, crate::model_gateway::FAILURE_THRESHOLD);
-        let out = call(&state, &session, "uc", &chained(p1), "t").await.unwrap();
+        assert_eq!(
+            seen1.lock().unwrap().len() as u32,
+            crate::model_gateway::FAILURE_THRESHOLD
+        );
+        let out = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap();
         op.abort();
         assert_eq!(out.target_index, 1);
         assert_eq!(
@@ -903,7 +967,10 @@ mod tests {
             crate::model_gateway::FAILURE_THRESHOLD,
             "the open breaker kept the failing endpoint from being called again"
         );
-        assert_eq!(seen2.lock().unwrap().len() as u32, crate::model_gateway::FAILURE_THRESHOLD + 1);
+        assert_eq!(
+            seen2.lock().unwrap().len() as u32,
+            crate::model_gateway::FAILURE_THRESHOLD + 1
+        );
     }
 
     #[tokio::test]
@@ -911,7 +978,9 @@ mod tests {
         let (p1, _) = stub(503, "x").await;
         let (state, session) = state_for(p1).await;
         let op = operator_all(state.clone(), ApprovalStatus::Approved);
-        let err = call(&state, &session, "uc", &spec(p1), "t").await.unwrap_err();
+        let err = call(&state, &session, "uc", &spec(p1), "t")
+            .await
+            .unwrap_err();
         op.abort();
         assert!(err.message().contains("HTTP 503"), "{}", err.message());
     }
