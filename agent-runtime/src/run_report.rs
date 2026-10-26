@@ -363,7 +363,7 @@ mod tests {
         let a = approval(s.id, ApprovalStatus::Approved, 0, json!([]), None);
         let r = report(
             &s,
-            &[a.clone()],
+            std::slice::from_ref(&a),
             &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))],
             &[],
         );
@@ -396,7 +396,7 @@ mod tests {
         );
         let r = report(
             &s,
-            &[a.clone()],
+            std::slice::from_ref(&a),
             &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))],
             &[],
         );
@@ -449,7 +449,7 @@ mod tests {
         let a = approval(s.id, ApprovalStatus::Denied, 0, json!([]), None);
         let ok = report(
             &s,
-            &[a.clone()],
+            std::slice::from_ref(&a),
             &[row(
                 &a,
                 "changeset.reject",
@@ -462,7 +462,7 @@ mod tests {
         assert!(ok["checked"].as_array().unwrap().is_empty());
         let bad = report(
             &s,
-            &[a.clone()],
+            std::slice::from_ref(&a),
             &[row(
                 &a,
                 "changeset.reject",
@@ -545,7 +545,7 @@ mod tests {
         let a = approval(s.id, ApprovalStatus::Approved, 0, json!([]), None);
         let r = report(
             &s,
-            &[a.clone()],
+            std::slice::from_ref(&a),
             &[row(&a, "changeset.apply", AuditPhase::Performed, json!({}))],
             &[],
         )
