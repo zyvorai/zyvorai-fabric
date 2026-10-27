@@ -537,3 +537,12 @@ export async function createTrigger(body: {
 export async function deleteTrigger(id: string): Promise<void> {
   return apiDelete(`/api/triggers/${encodeURIComponent(id)}`)
 }
+
+/** The signed, masked recording of a session. A 404 means the host has recording off. */
+export async function getSessionRecording(id: string): Promise<import('../lib/recording').SignedRecording> {
+  return apiGet(`/api/sessions/${encodeURIComponent(id)}/recording`)
+}
+
+export async function verifyRecording(signed: unknown): Promise<{ valid: boolean; signer?: string; reason?: string }> {
+  return apiPost('/api/recordings/verify', signed)
+}

@@ -1,0 +1,42 @@
+# UX plan: making the console and site feel like apple.com
+
+**Status:** plan, not built. The [UX pass](ux-pass.md) shipped the shared motion, focus and skip-link rules. This plan is what comes next, in order, and what would tell us each step worked.
+
+## Where we are (measured, not guessed)
+
+- About 98 console page entries; **86 files use `PageHeader`**, so one change there reaches most page titles.
+- Page titles are mostly 20px `h2`s of mixed weight; the shared rule already forces weight 600.
+- **1,453 hardcoded colour utilities** (`bg-[#…]`, `text-[#…]`, `border-[#…]`) and 91 files using `bg-white` or `text-[#1d1d1f]`. Dark mode works because `main.css` redirects them, which hides the debt and breaks on any colour that is not on the redirect list.
+- 83 text sizes of 10-11px.
+- Confirmation uses the app's own dialog hook (not browser dialogs), so no gap there.
+- **Not known:** how the signed-in pages actually look. They need a backend sign-in, and nothing here was seen at phone width.
+
+## Steps
+
+**0. See it first (enabler).** Add a dev-only mock API so the console renders every page with no backend, then take light, dark and 390px screenshots of the 20 busiest pages as a baseline. Without this, every later step is blind. Done when `npm run dev:mock` opens the dashboard signed in.
+
+**1. One page header.** Make `PageHeader` the display title: 28-32px, weight 600, tight tracking, a one-line muted subtitle, actions on the right that wrap on a phone. Move the pages that do not use it (about a dozen). One component change, 86+ pages. Done when every page's `h1` comes from it.
+
+**2. Tokens, not hex.** A codemod maps the 1,453 utilities onto the `--zf-*` tokens, then the dark-mode redirect block is deleted. Done when a grep for `[#` in `pages/` and `components/` is empty and dark mode looks the same in the baseline screenshots.
+
+**3. Type floor.** Nothing under 12px for readable text (the 83 small sizes become 12px, kept only for kbd chips). Done when the baseline shows no text a person has to squint at.
+
+**4. Dashboard as a product page.** Four large numbers (VMs, running, alerts, storage) with a sparkline each, one primary action, and the command palette promoted as the way in. Done when the first screen has one clear next action.
+
+**5. Motion that means something.** Route changes use the View Transitions API where the browser has it; loading shows a skeleton shaped like the page (11 pages do today) instead of a spinner; lists animate in and out. All of it stays off under reduced motion.
+
+**6. Phone width.** Tables become cards under 640px, the sidebar becomes a bottom sheet, tap targets are 44px. Done when no page scrolls sideways at 390px.
+
+**7. Accessibility gate in CI.** axe on the baseline pages (no serious or critical), visible focus, labelled controls, contrast checked in both themes.
+
+**8. The site.** A docs landing in the same style as the home page, search that opens with `/`, a "last updated" line, and the same checks (phone width, axe, Lighthouse accessibility and performance of at least 95).
+
+## How we'll know
+
+Screenshot diffs of the baseline pages on every change, axe clean, Lighthouse scores for the site, and a short human review of the dashboard, a list page, a detail page and the sign-in page in both themes.
+
+## Risks
+
+- A token codemod can change a colour by a shade; the screenshots exist to catch that.
+- Restyling `PageHeader` changes 86 pages at once, so it ships alone.
+- Every step above step 0 is unverified until step 0 exists.

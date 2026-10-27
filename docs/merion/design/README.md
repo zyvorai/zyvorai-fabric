@@ -28,6 +28,7 @@ build, and the decisions only you can make, with my recommendation for each. Not
 | [Model budgets](model-budgets.md) | Can an operator cap an agent's model calls and cost per day, per run and per goal, failing closed? |
 | [Run webhooks](run-webhooks.md) | Can a run's end reach another system as a signed event that carries no content? |
 | [UX pass](ux-pass.md) | What shared motion, focus and heading rules do the console and the site follow? |
+| [UX plan](ux-plan.md) | What comes after the shared pass to make the console and site feel like apple.com, in order, and how we will know? |
 
 How to read a note: **Decisions for you** at the end of each is the part to answer. Answer in a line ("1: yes, 2: A, 3: not now") and I will
 turn the answers into a build plan. Anything you leave open stays open.

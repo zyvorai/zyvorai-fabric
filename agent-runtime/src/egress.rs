@@ -3136,6 +3136,15 @@ pub(crate) mod ask_tests {
         let err = chat(&state, &first, p2).await.unwrap_err();
         assert!(err.1.contains("this goal"), "{}", err.1);
         assert_eq!(seen2.lock().unwrap().len(), 2);
+        let rows = state.store.audit.list(Some(first.id), 100).await.unwrap();
+        let refused = rows
+            .iter()
+            .find(|r| r.action == "model.budget_refused")
+            .expect("a refusal row");
+        assert!(refused.detail["reason"]
+            .as_str()
+            .unwrap()
+            .contains("this goal"));
     }
 
     #[tokio::test]

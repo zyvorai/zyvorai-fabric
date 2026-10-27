@@ -510,6 +510,43 @@ pub async fn session_report(
     .await
 }
 
+/// The signed, masked recording of a session (404 from the runtime when recording is off). Only the session's owner can ask.
+pub async fn session_recording(
+    RequireRead(claims): RequireRead,
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> Response {
+    if let Err(resp) = session_owned(&state, &claims, &id).await {
+        return resp;
+    }
+    proxy(
+        &state,
+        Method::GET,
+        &format!("/v1/sessions/{id}/recording"),
+        None,
+        None,
+        None,
+    )
+    .await
+}
+
+/// Check a signed recording's digest and signature. Holds no secret and reads no session.
+pub async fn recording_verify(
+    RequireRead(_claims): RequireRead,
+    State(state): State<Arc<AppState>>,
+    Json(body): Json<Value>,
+) -> Response {
+    proxy(
+        &state,
+        Method::POST,
+        "/v1/recordings/verify",
+        None,
+        Some(body),
+        None,
+    )
+    .await
+}
+
 /// The one-click Keep demos the console can offer (`pdf-brief`, `csv-clean`, ...).
 pub async fn demo_list(
     RequireRead(_claims): RequireRead,
