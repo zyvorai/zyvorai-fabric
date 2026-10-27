@@ -177,7 +177,7 @@ export default function AccessControl() {
             <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Role</label>
               <div className="flex gap-2">
                 {['admin', 'operator', 'viewer'].map(r => (
-                  <button key={r} onClick={() => setNewRole(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors capitalize ${newRole === r ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'text-[var(--zf-muted)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>{r}</button>
+                  <button key={r} onClick={() => setNewRole(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors capitalize ${newRole === r ? 'bg-[var(--zf-link-fill)] text-white border-[var(--zf-link)]' : 'text-[var(--zf-muted)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>{r}</button>
                 ))}
               </div>
             </div>

@@ -146,7 +146,7 @@ export default function ResourcePools() {
             <div className="flex items-center gap-2 text-sm">
               <span className="text-[var(--zf-muted)]">CPU</span>
               <div className="w-20 bg-[var(--zf-surface)] rounded-full h-2">
-                <div className={`h-2 rounded-full ${cpuPct > 80 ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link)]'}`}
+                <div className={`h-2 rounded-full ${cpuPct > 80 ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link-fill)]'}`}
                   style={{ width: `${Math.min(cpuPct, 100)}%` }} />
               </div>
             </div>

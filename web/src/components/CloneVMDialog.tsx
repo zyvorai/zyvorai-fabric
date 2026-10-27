@@ -135,7 +135,7 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
           <button
             onClick={handleClone}
             disabled={isCloning}
-            className="px-4 py-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white rounded-lg transition disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white rounded-lg transition disabled:opacity-50 flex items-center gap-2"
           >
             {isCloning ? (
               <>

@@ -137,7 +137,7 @@ export default function SecurityDashboard() {
       <div className="zf-panel-muted overflow-hidden">
         <div className="px-5 py-4 border-b border-[var(--zf-hairline)] flex items-center justify-between">
           <h3 className="text-base font-semibold text-[var(--zf-ink)]">Security Alerts</h3>
-          <span className="text-xs font-medium text-[var(--zf-muted)] bg-[var(--zf-hairline)] px-2.5 py-1 rounded-full">
+          <span className="text-xs font-medium text-[var(--zf-secondary)] bg-[var(--zf-hairline)] px-2.5 py-1 rounded-full">
             {alerts.length} alerts
           </span>
         </div>
@@ -195,7 +195,7 @@ export default function SecurityDashboard() {
         <div className="zf-panel-muted overflow-hidden">
           <div className="px-5 py-4 border-b border-[var(--zf-hairline)] flex items-center justify-between">
             <h3 className="text-base font-semibold text-[var(--zf-ink)]">Listening Ports</h3>
-            <span className="text-xs font-medium text-[var(--zf-muted)] bg-[var(--zf-hairline)] px-2.5 py-1 rounded-full">
+            <span className="text-xs font-medium text-[var(--zf-secondary)] bg-[var(--zf-hairline)] px-2.5 py-1 rounded-full">
               {listeningPorts.length} ports
             </span>
           </div>

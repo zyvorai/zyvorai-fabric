@@ -12,7 +12,7 @@ import { usePageLoader } from '../hooks/usePageLoader'
 interface ResourceMetric { label: string; used: number; total: number; unit: string; trend: number; projected_full?: string }
 
 function usagePercent(used: number, total: number): number { return total > 0 ? Math.min(100, (used / total) * 100) : 0 }
-function barColor(pct: number): string { if (pct > 90) return 'bg-red-500'; if (pct > 75) return 'bg-amber-500'; if (pct > 50) return 'bg-[var(--zf-link)]'; return 'bg-emerald-500' }
+function barColor(pct: number): string { if (pct > 90) return 'bg-red-500'; if (pct > 75) return 'bg-amber-500'; if (pct > 50) return 'bg-[var(--zf-link-fill)]'; return 'bg-emerald-500' }
 function trendColor(trend: number): string { if (trend > 5) return 'text-red-600'; if (trend > 0) return 'text-amber-600'; if (trend < 0) return 'text-emerald-600'; return 'text-[var(--zf-muted)]' }
 function fmtVal(val: number, unit: string): string {
   if (unit === 'GB' && val >= 1024) return `${(val / 1024).toFixed(1)} TB`

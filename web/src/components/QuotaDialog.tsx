@@ -260,7 +260,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                 {formData.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-[var(--zf-link)] rounded-full text-sm font-medium"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-[var(--zf-link-fill)] rounded-full text-sm font-medium"
                   >
                     {tag}
                     <button
@@ -289,7 +289,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                 type="button"
                 onClick={handleAddTag}
                 disabled={!tagInput.trim()}
-                className="px-4 py-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add Tag
               </button>
@@ -325,7 +325,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg transition disabled:opacity-50"
+              className="px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg transition disabled:opacity-50"
             >
               {submitting
                 ? (mode === 'create' ? 'Creating...' : 'Saving...')

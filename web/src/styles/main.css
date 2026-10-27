@@ -13,6 +13,9 @@
   --zf-hairline: #d2d2d7;
   --zf-link: #0066cc;
   --zf-link-hover: #0077ed;
+  --zf-link-fill: #0066cc; /* solid button fill: white text passes 4.5:1 in both themes */
+  --zf-link-fill-hover: #0077ed;
+  --zf-success-text: #0d7a4a; /* success as text: 4.5:1 on the canvas */
   --zf-accent: #1d1d1f;
   --zf-success: #34c759;
   --zf-danger: #ff3b30;
@@ -45,6 +48,9 @@
   --zf-hairline: #38383a;
   --zf-link: #2997ff;
   --zf-link-hover: #6cb6ff;
+  --zf-link-fill: #0071e3;
+  --zf-link-fill-hover: #0066cc;
+  --zf-success-text: #32d74b;
   --zf-accent: #f5f5f7;
   --zf-success: #32d74b;
   --zf-danger: #ff453a;
@@ -743,11 +749,11 @@ a:hover {
   cursor: not-allowed;
 }
 .zf-btn-primary {
-  background: var(--zf-link);
+  background: var(--zf-link-fill);
   color: #fff;
 }
 .zf-btn-primary:hover:not(:disabled) {
-  background: var(--zf-link-hover);
+  background: var(--zf-link-fill-hover);
   color: #fff;
 }
 .zf-btn-secondary {
@@ -1019,7 +1025,7 @@ textarea.zf-terminal-input {
   background: rgba(10, 132, 255, 0.4);
 }
 .zf-terminal-empty {
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: rgba(255, 255, 255, 0.62) !important;
 }
 .zf-terminal-input,
 textarea.zf-terminal-input {
@@ -1366,7 +1372,7 @@ html:not([data-theme='dark']) {
      blanket `.text-white { color: var(--zf-ink) !important }` rule above. Found
      live: an empty-looking active tab pill on the Certificates page. */
   [class*="bg-[var(--zf-ink)]"].text-white,
-  [class*="bg-[var(--zf-link)]"].text-white,
+  [class*="bg-[var(--zf-link-fill)]"].text-white,
   [class*="bg-[var(--zf-danger)]"].text-white,
   [class*="bg-[var(--zf-success)]"].text-white,
   [class*="bg-[var(--zf-warning)]"].text-white,
@@ -1936,4 +1942,9 @@ html:not([data-theme='dark']) {
   .console-sidebar.is-sheet {
     animation: none;
   }
+}
+
+/* solid link-blue fills always carry white text, in both themes */
+[class~='bg-[var(--zf-link-fill)]'] {
+  color: #fff !important;
 }

@@ -88,7 +88,7 @@ function PoliciesTabContent({ policies, identities, onDelete, onAdopt, onAdoptId
             <RefreshCw className="w-4 h-4" /> Sync
           </button>}
           {view === 'policies' && !readOnly && (
-            <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
+            <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
               <Plus className="w-4 h-4" /> Add Policy
             </button>
           )}
@@ -364,7 +364,7 @@ export function CreatePolicyModal({ onClose, onCreated }: { onClose: () => void;
           )}
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Policy'}
         </button>
       </div>
@@ -492,7 +492,7 @@ export function EditPolicyModal({ id, onClose, onUpdated }: { id: string; onClos
           )}
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>

@@ -169,7 +169,7 @@ export default function CloudInitTab({ vm }: { vm: VM }) {
         <button
           type="submit"
           disabled={!canWrite || saving}
-          className="flex items-center gap-2 px-4 py-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
         >
           {saving && <Loader2 className="w-4 h-4 animate-spin" />}
           Generate and attach ISO

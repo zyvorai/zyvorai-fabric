@@ -26,7 +26,7 @@ interface SystemInfoData {
 function usageBarColor(pct: number): string {
   if (pct > 90) return 'bg-red-500'
   if (pct > 70) return 'bg-amber-500'
-  return 'bg-[var(--zf-link)]'
+  return 'bg-[var(--zf-link-fill)]'
 }
 
 function healthTextColor(score: number): string {

@@ -251,7 +251,7 @@ export default function VMDetails() {
                 <Icon className="w-3.5 h-3.5 shrink-0" />
                 {tab.label}
                 {isActive && (
-                  <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-[var(--zf-link)] rounded-full" />
+                  <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-[var(--zf-link-fill)] rounded-full" />
                 )}
               </button>
             )
@@ -1226,7 +1226,7 @@ function LogsTab({ vm }: { vm: VM }) {
               autoRefresh ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30' : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-[var(--zf-link)] animate-pulse' : 'bg-[var(--zf-hairline)]'}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-[var(--zf-link-fill)] animate-pulse' : 'bg-[var(--zf-hairline)]'}`} />
             Live
           </button>
           <button

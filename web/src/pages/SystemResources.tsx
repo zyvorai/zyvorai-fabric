@@ -334,7 +334,7 @@ function NumaTopologyView({ topology }: { topology: NumaTopology | null }) {
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-[var(--zf-hairline)] rounded-full h-2 overflow-hidden">
                   <div
-                    className="h-full bg-[var(--zf-link)]"
+                    className="h-full bg-[var(--zf-link-fill)]"
                     style={{
                       width: `${
                         ((node.memory_total_mb - node.memory_free_mb) / node.memory_total_mb) *
@@ -459,7 +459,7 @@ function MemoryView({
               <div className="flex-1 bg-[var(--zf-hairline)] h-3 overflow-hidden">
                 <div
                   className={`h-full ${
-                    usagePercent > 90 ? 'bg-[var(--zf-danger)]' : usagePercent > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link)]'
+                    usagePercent > 90 ? 'bg-[var(--zf-danger)]' : usagePercent > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'
                   }`}
                   style={{ width: `${usagePercent}%` }}
                 />

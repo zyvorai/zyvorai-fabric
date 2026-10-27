@@ -68,7 +68,7 @@ export default function Console() {
             onClick={() => setMode('terminal')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               mode === 'terminal'
-                ? 'bg-[var(--zf-link)] text-white'
+                ? 'bg-[var(--zf-link-fill)] text-white'
                 : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >
@@ -79,7 +79,7 @@ export default function Console() {
             onClick={() => setMode('vnc')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               mode === 'vnc'
-                ? 'bg-[var(--zf-link)] text-white'
+                ? 'bg-[var(--zf-link-fill)] text-white'
                 : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >

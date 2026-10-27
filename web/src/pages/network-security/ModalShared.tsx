@@ -51,7 +51,7 @@ export function LabelSelectorInput({
         <button
           type="button"
           onClick={handleAdd}
-          className="flex items-center gap-1 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white px-3 py-2 rounded-lg transition text-sm"
+          className="flex items-center gap-1 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white px-3 py-2 rounded-lg transition text-sm"
         >
           <Plus className="w-3.5 h-3.5" /> Add
         </button>

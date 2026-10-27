@@ -661,7 +661,7 @@ function CreateRuleModal({ channels, onClose, onCreated }: { channels: Notificat
           <div className="flex flex-wrap gap-2">
             {RULE_EVENT_TYPES.map((et) => (
               <button type="button" key={et} onClick={() => toggle(eventTypes, et, setEventTypes)}
-                className={`px-2.5 py-1 rounded text-xs font-mono transition border ${eventTypes.includes(et) ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
+                className={`px-2.5 py-1 rounded text-xs font-mono transition border ${eventTypes.includes(et) ? 'bg-[var(--zf-link-fill)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
                 {et}
               </button>
             ))}
@@ -672,7 +672,7 @@ function CreateRuleModal({ channels, onClose, onCreated }: { channels: Notificat
           <div className="flex gap-2">
             {RULE_SEVERITIES.map((sev) => (
               <button type="button" key={sev} onClick={() => toggle(severityLevels, sev, setSeverityLevels)}
-                className={`px-3 py-1.5 rounded text-sm capitalize transition border ${severityLevels.includes(sev) ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
+                className={`px-3 py-1.5 rounded text-sm capitalize transition border ${severityLevels.includes(sev) ? 'bg-[var(--zf-link-fill)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
                 {sev}
               </button>
             ))}
@@ -686,7 +686,7 @@ function CreateRuleModal({ channels, onClose, onCreated }: { channels: Notificat
             <div className="flex flex-wrap gap-2">
               {channels.map((ch) => (
                 <button type="button" key={ch.id} onClick={() => toggle(selectedChannels, ch.id, setSelectedChannels)}
-                  className={`px-3 py-1.5 rounded text-sm transition border ${selectedChannels.includes(ch.id) ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
+                  className={`px-3 py-1.5 rounded text-sm transition border ${selectedChannels.includes(ch.id) ? 'bg-[var(--zf-link-fill)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
                   {ch.name}
                 </button>
               ))}

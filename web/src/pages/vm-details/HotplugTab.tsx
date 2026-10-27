@@ -240,7 +240,7 @@ function ActionButton({
   const cls =
     variant === 'danger'
       ? 'bg-red-600/80 hover:bg-red-600 text-white'
-      : 'bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white'
+      : 'bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white'
   return (
     <button
       type="button"

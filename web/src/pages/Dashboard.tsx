@@ -1,9 +1,9 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { listVMs, getMetrics, VM, VMMetrics } from '../api/vm'
-import { Activity, Server, Cpu, HardDrive, TrendingUp, ArrowUpRight, Power, Plus } from 'lucide-react'
+import { Server, HardDrive, TrendingUp, ArrowUpRight, Plus, Search } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useWebSocketContext } from '../contexts/WebSocketContext'
 import { useToastContext } from '../contexts/ToastContext'
@@ -16,7 +16,9 @@ import { toastFailure } from '../utils/toastError'
 import { hintsForError } from '../utils/daemonHints'
 import { GettingStarted } from '../components/GettingStarted'
 import { FabricGraphic } from '../components/FabricGraphic'
-import { RadialGauge } from '../components/RadialGauge'
+import { StatTile } from '../components/StatTile'
+import { apiFetch } from '../api/client'
+import { listStoragePools } from '../api/storage'
 import { useCountUp } from '../hooks/useCountUp'
 import { usePlatformInfo } from '../contexts/PlatformInfoContext'
 import type { SubsystemPhase } from '../api/capabilities'
@@ -73,6 +75,10 @@ export default function Dashboard() {
   const { subscribe, vmUpdates } = useWebSocketContext()
   const toast = useToastContext()
   const { capabilities, loading: capsLoading } = usePlatformInfo()
+  const [alerts, setAlerts] = useState({ total: 0, critical: 0 })
+  const [storagePct, setStoragePct] = useState<number | null>(null)
+  // Trend lines cover this visit only (one sample per 10s, last 30): there is no history API behind them.
+  const [samples, setSamples] = useState<{ vms: number; running: number; alerts: number; storage: number }[]>([])
 
   const loadVMs = useCallback(async () => {
     try {
@@ -119,6 +125,32 @@ export default function Dashboard() {
     } catch (err) { toastFailure(toast, 'Failed to load metrics', err) }
   }, [toast])
 
+  const loadAlertsAndStorage = useCallback(async () => {
+    try {
+      const res = await apiFetch('/api/system/alerts')
+      if (res.ok) {
+        const data = await res.json()
+        const list: { severity?: string }[] = Array.isArray(data) ? data : data.alerts ?? []
+        setAlerts({ total: list.length, critical: list.filter((a) => a.severity === 'critical').length })
+      }
+    } catch { /* the tile keeps its last value */ }
+    try {
+      const pools = await listStoragePools()
+      const capacity = pools.reduce((a, p) => a + p.capacity, 0)
+      const free = pools.reduce((a, p) => a + p.available, 0)
+      setStoragePct(capacity > 0 ? Math.round(((capacity - free) / capacity) * 100) : null)
+    } catch { /* the tile keeps its last value */ }
+  }, [])
+
+  const latest = useRef({ vms: 0, running: 0, alerts: 0, storage: 0 })
+  useEffect(() => {
+    loadAlertsAndStorage()
+    const sample = () => setSamples((prev) => [...prev.slice(-29), { ...latest.current }])
+    const first = setTimeout(sample, 1500)
+    const i = setInterval(() => { loadAlertsAndStorage(); sample() }, 10000)
+    return () => { clearTimeout(first); clearInterval(i) }
+  }, [loadAlertsAndStorage])
+
   useEffect(() => { loadVMs(); loadMetrics(); const i = setInterval(loadMetrics, 10000); return () => clearInterval(i) }, [loadVMs, loadMetrics])
   useEffect(() => { const unsub = subscribe((msg) => { if (['vm_state_changed', 'vm_created', 'vm_deleted'].includes(msg.type)) loadVMs() }); return unsub }, [subscribe, loadVMs])
   useEffect(() => { if (vmUpdates.size > 0) setVMs((prev) => prev.map((vm) => { const u = vmUpdates.get(vm.name); return u ? { ...vm, ...u } : vm })) }, [vmUpdates])
@@ -133,10 +165,12 @@ export default function Dashboard() {
   }
   const fleetHealthPct = stats.total > 0 ? (stats.running / stats.total) * 100 : 0
 
+  latest.current = { vms: stats.total, running: stats.running, alerts: alerts.total, storage: storagePct ?? 0 }
   const totalCount = useCountUp(stats.total)
   const runningCount = useCountUp(stats.running)
-  const stoppedCount = useCountUp(stats.stopped)
-  const memCount = useCountUp(Math.round(stats.totalMem >= 1024 ? stats.totalMem / 1024 : stats.totalMem))
+  const alertCount = useCountUp(alerts.total)
+  const storageCount = useCountUp(storagePct ?? 0)
+  const memLabel = `${Math.round(stats.totalMem >= 1024 ? stats.totalMem / 1024 : stats.totalMem)} ${stats.totalMem >= 1024 ? 'GB' : 'MB'}`
 
   if (loading) return <SkeletonDashboard />
 
@@ -165,24 +199,20 @@ export default function Dashboard() {
                 ? 'Your infrastructure control plane is ready — spin up the first VM to get going.'
                 : `Watching ${stats.total} VM${stats.total === 1 ? '' : 's'} across your fabric. ${stats.running} running right now.`}
             </p>
-            <div className="flex items-center gap-3 mt-4">
-              <Link to="/app/create" className="zf-btn zf-btn-primary">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-5">
+              <Link to="/app/create" className="zf-btn zf-btn-primary justify-center">
                 <Plus className="w-4 h-4" /> Create VM
               </Link>
-              <button onClick={loadVMs} className="zf-btn zf-btn-ghost">
-                Refresh
+              <button
+                type="button"
+                onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+                className="zf-btn zf-btn-ghost justify-between sm:min-w-[18rem] text-[var(--zf-muted)]"
+              >
+                <span className="inline-flex items-center gap-2"><Search className="w-4 h-4" /> Search or jump to…</span>
+                <kbd className="text-[10px] ml-3 text-[var(--zf-muted)]">⌘K</kbd>
               </button>
             </div>
           </div>
-          {stats.total > 0 && (
-            <div className="shrink-0 flex items-center gap-3 self-center">
-              <RadialGauge
-                percent={fleetHealthPct}
-                color={fleetHealthPct >= 70 ? 'var(--zf-success)' : fleetHealthPct >= 30 ? 'var(--zf-warning)' : 'var(--zf-danger)'}
-                label="fleet up"
-              />
-            </div>
-          )}
         </div>
       </div>
 
@@ -203,121 +233,41 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {(
-          [
-            {
-              title: 'VM driver',
-              subtitle: 'VM registration and lifecycle',
-              status: capabilities?.vm_driver,
-            },
-            {
-              title: 'Storage',
-              subtitle: 'Pools and disk images',
-              status: capabilities?.storage,
-            },
-            {
-              title: 'Network security',
-              subtitle: 'Firewall, DNS, VPN policies',
-              status: capabilities?.network_security,
-            },
-            {
-              title: 'VM dataplane',
-              subtitle: 'FluxVM eBPF edge (Network Fabric)',
-              status: capabilities?.vm_dataplane,
-            },
-            {
-              title: 'Authentication',
-              subtitle: 'JWT and user database',
-              status: capabilities?.auth,
-            },
-            {
-              title: 'Events',
-              subtitle: 'Live SSE broadcast',
-              status: capabilities?.events,
-            },
-          ] as const
-        ).map(({ title, subtitle, status }) => {
-          const phase = subsystemPhaseStyle(status?.phase)
-          return (
-            <div
-              key={title}
-              className="rounded-[12px] border border-[var(--zf-hairline)] bg-[var(--zf-canvas)] p-4"
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[var(--zf-link)]">
-                {title}
-              </p>
-              <p className="mt-2">
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${phase.pill}`}
-                >
-                  {capsLoading && !capabilities ? '…' : phase.label}
-                </span>
-              </p>
-              <p className="text-[14px] text-[var(--zf-secondary)] mt-2 leading-snug tracking-[-0.016em]">
-                {status?.detail || subtitle}
-              </p>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Stat Cards - matching hypersdk exactly */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total VMs */}
-        <div className="stat-card-blue rounded-xl border border-[var(--zf-hairline)] p-5 transition-all hover:scale-[1.02]">
-          <div className="flex items-center justify-between mb-3">
-            <div className="icon-tile icon-tile-md">
-              <Server className="h-5 w-5 text-[var(--zf-ink)]" />
-            </div>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--zf-canvas)] text-[var(--zf-muted)]">total</span>
-          </div>
-          <div className="text-2xl font-bold text-[var(--zf-ink)] tabular-nums">{totalCount}</div>
-          <div className="text-[13px] text-[var(--zf-secondary)] mt-1">Total VMs</div>
-        </div>
-
-        {/* Running */}
-        <div className="stat-card-green rounded-xl border border-[var(--zf-hairline)] p-5 transition-all hover:scale-[1.02]">
-          <div className="flex items-center justify-between mb-3">
-            <div className="icon-tile icon-tile-md">
-              <Activity className="h-5 w-5 text-[var(--zf-ink)]" />
-            </div>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
-              {stats.total > 0 ? `${Math.round((stats.running / stats.total) * 100)}%` : '0%'}
-            </span>
-          </div>
-          <div className="text-2xl font-bold text-[var(--zf-ink)] tabular-nums">{runningCount}</div>
-          <div className="text-[13px] text-[var(--zf-secondary)] mt-1">Running</div>
-        </div>
-
-        {/* Stopped */}
-        <div className="stat-card-red rounded-xl border border-[var(--zf-hairline)] p-5 transition-all hover:scale-[1.02]">
-          <div className="flex items-center justify-between mb-3">
-            <div className="icon-tile icon-tile-md">
-              <Power className="h-5 w-5 text-[var(--zf-ink)]" />
-            </div>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-700">stopped</span>
-          </div>
-          <div className="text-2xl font-bold text-[var(--zf-ink)] tabular-nums">{stoppedCount}</div>
-          <div className="text-[13px] text-[var(--zf-secondary)] mt-1">Stopped</div>
-        </div>
-
-        {/* Resources */}
-        <div className="stat-card-purple rounded-xl border border-[var(--zf-hairline)] p-5 transition-all hover:scale-[1.02]">
-          <div className="flex items-center justify-between mb-3">
-            <div className="icon-tile icon-tile-md">
-              <Cpu className="h-5 w-5 text-[var(--zf-ink)]" />
-            </div>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--zf-canvas)] text-[var(--zf-muted)]">
-              {stats.totalCPU} vCPU
-            </span>
-          </div>
-          <div className="text-2xl font-bold text-[var(--zf-ink)] tabular-nums">
-            {memCount}
-            <span className="text-sm text-[var(--zf-muted)] font-medium ml-1">{stats.totalMem >= 1024 ? 'GB' : 'MB'}</span>
-          </div>
-          <div className="text-[13px] text-[var(--zf-secondary)] mt-1">Total Memory</div>
-        </div>
+      {/* The four numbers that matter, each a link to its page */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatTile
+          label="Virtual machines"
+          value={totalCount}
+          detail={`${stats.stopped} stopped · ${memLabel} memory`}
+          to="/app/vms"
+          history={samples.map((x) => x.vms)}
+        />
+        <StatTile
+          label="Running"
+          value={runningCount}
+          detail={stats.total > 0 ? `${Math.round(fleetHealthPct)}% of the fleet` : 'Nothing running yet'}
+          to="/app/vms"
+          history={samples.map((x) => x.running)}
+          tone="var(--zf-success-text)"
+        />
+        <StatTile
+          label="Alerts"
+          value={alertCount}
+          detail={alerts.total === 0 ? 'All clear' : alerts.critical > 0 ? `${alerts.critical} critical` : 'None critical'}
+          to="/app/alerts"
+          history={samples.map((x) => x.alerts)}
+          tone={alerts.critical > 0 ? 'var(--zf-danger)' : 'var(--zf-link)'}
+        />
+        <StatTile
+          label="Storage used"
+          value={storagePct === null ? '–' : <>{storageCount}<span className="text-[22px] font-medium text-[var(--zf-muted)] ml-0.5">%</span></>}
+          detail={storagePct === null ? 'No storage pools' : 'Across all pools'}
+          to="/app/storage"
+          history={samples.map((x) => x.storage)}
+          min={0}
+          max={100}
+          tone={storagePct !== null && storagePct > 85 ? 'var(--zf-danger)' : 'var(--zf-link)'}
+        />
       </div>
 
       {/* Charts */}
@@ -329,7 +279,7 @@ export default function Dashboard() {
               <TrendingUp className="w-4 h-4 text-[var(--zf-ink)]" />
             </div>
             <h3 className="text-base font-semibold text-[var(--zf-ink)]">CPU Usage</h3>
-            <span className={`ml-auto text-lg font-semibold tabular-nums ${latestCpu > 80 ? 'text-red-600' : latestCpu > 50 ? 'text-amber-600' : 'text-[var(--zf-link)]'}`}>
+            <span className={`ml-auto text-lg font-semibold tabular-nums ${latestCpu > 80 ? 'text-red-600' : latestCpu > 50 ? 'text-amber-700' : 'text-[var(--zf-link)]'}`}>
               {metricsHistory.length > 0 ? `${latestCpu}%` : '--'}
             </span>
           </div>
@@ -357,7 +307,7 @@ export default function Dashboard() {
               <HardDrive className="w-4 h-4 text-[var(--zf-ink)]" />
             </div>
             <h3 className="text-base font-semibold text-[var(--zf-ink)]">Memory Usage</h3>
-            <span className={`ml-auto text-lg font-semibold tabular-nums ${latestMem > 80 ? 'text-red-600' : latestMem > 50 ? 'text-amber-600' : 'text-emerald-600'}`}>
+            <span className={`ml-auto text-lg font-semibold tabular-nums ${latestMem > 80 ? 'text-red-600' : latestMem > 50 ? 'text-amber-700' : 'text-[var(--zf-success-text)]'}`}>
               {metricsHistory.length > 0 ? `${latestMem}%` : '--'}
             </span>
           </div>
@@ -426,6 +376,68 @@ export default function Dashboard() {
         </div>
       </div>
       )}
+
+      {/* Subsystem health, below the fold */}
+      <h2 className="text-[17px] font-semibold text-[var(--zf-ink)] pt-2">System status</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {(
+          [
+            {
+              title: 'VM driver',
+              subtitle: 'VM registration and lifecycle',
+              status: capabilities?.vm_driver,
+            },
+            {
+              title: 'Storage',
+              subtitle: 'Pools and disk images',
+              status: capabilities?.storage,
+            },
+            {
+              title: 'Network security',
+              subtitle: 'Firewall, DNS, VPN policies',
+              status: capabilities?.network_security,
+            },
+            {
+              title: 'VM dataplane',
+              subtitle: 'FluxVM eBPF edge (Network Fabric)',
+              status: capabilities?.vm_dataplane,
+            },
+            {
+              title: 'Authentication',
+              subtitle: 'JWT and user database',
+              status: capabilities?.auth,
+            },
+            {
+              title: 'Events',
+              subtitle: 'Live SSE broadcast',
+              status: capabilities?.events,
+            },
+          ] as const
+        ).map(({ title, subtitle, status }) => {
+          const phase = subsystemPhaseStyle(status?.phase)
+          return (
+            <div
+              key={title}
+              className="rounded-[12px] border border-[var(--zf-hairline)] bg-[var(--zf-canvas)] p-4"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[var(--zf-link)]">
+                {title}
+              </p>
+              <p className="mt-2">
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${phase.pill}`}
+                >
+                  {capsLoading && !capabilities ? '…' : phase.label}
+                </span>
+              </p>
+              <p className="text-[14px] text-[var(--zf-secondary)] mt-2 leading-snug tracking-[-0.016em]">
+                {status?.detail || subtitle}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+
     </div>
   )
 }

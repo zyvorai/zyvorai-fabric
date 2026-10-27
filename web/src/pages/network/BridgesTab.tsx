@@ -40,7 +40,7 @@ function BridgesTabContent({ bridges, dhcpServers, onDelete, onAdopt, onCreate, 
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Network Bridges</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create Bridge
         </button>}
       </div>
@@ -141,7 +141,7 @@ export function CreateBridgeModal({ onClose, onCreated }: { onClose: () => void;
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="1500" type="number" />
         <CheckboxField label="Enable STP (Spanning Tree Protocol)" checked={stp} onChange={setStp} />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Bridge'}
         </button>
       </div>
@@ -191,7 +191,7 @@ export function EditBridgeModal({ bridge, onClose, onUpdated }: { bridge: Bridge
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="1500" type="number" />
         <CheckboxField label="Enable STP (Spanning Tree Protocol)" checked={stp} onChange={setStp} />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
@@ -308,7 +308,7 @@ export function DhcpServerModal({ bridge, existing, onClose, onCreated, onDelete
               Cancel
             </button>
           )}
-          <button onClick={handleSubmit} disabled={submitting} className="flex-1 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
             {submitting ? 'Saving...' : existing ? 'Save Changes' : 'Start DHCP Server'}
           </button>
         </div>

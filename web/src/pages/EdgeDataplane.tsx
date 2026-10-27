@@ -366,7 +366,7 @@ export default function EdgeDataplane() {
           >
             {t.label}
             {tab === t.id && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--zf-link)] rounded-full" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--zf-link-fill)] rounded-full" />
             )}
           </button>
         ))}
@@ -498,7 +498,7 @@ export default function EdgeDataplane() {
                 type="button"
                 disabled={busy}
                 onClick={() => void applyService()}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[var(--zf-link)] text-white"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[var(--zf-link-fill)] text-white"
               >
                 <Plus className="w-3.5 h-3.5" /> Apply Maglev service
               </button>
@@ -593,7 +593,7 @@ export default function EdgeDataplane() {
                 type="button"
                 disabled={busy}
                 onClick={() => void createGroup()}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[var(--zf-link)] text-white"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[var(--zf-link-fill)] text-white"
               >
                 <Plus className="w-3.5 h-3.5" /> Save group
               </button>
@@ -659,7 +659,7 @@ export default function EdgeDataplane() {
                 type="button"
                 disabled={busy}
                 onClick={() => void applyCnp()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[var(--zf-link)] text-white"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[var(--zf-link-fill)] text-white"
               >
                 Apply CNP
               </button>

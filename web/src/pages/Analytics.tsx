@@ -103,7 +103,7 @@ export default function Analytics() {
   const getUtilizationColor = (value: number): string => {
     if (value >= 90) return 'bg-red-500'
     if (value >= 75) return 'bg-amber-500'
-    if (value >= 50) return 'bg-[var(--zf-link)]'
+    if (value >= 50) return 'bg-[var(--zf-link-fill)]'
     return 'bg-emerald-500'
   }
 

@@ -61,7 +61,7 @@ function stateBadge(state: string): { label: string; classes: string } {
 function cpuBarColor(cpu: number): string {
   if (cpu >= 80) return 'bg-[var(--zf-danger)]'
   if (cpu >= 50) return 'bg-[var(--zf-warning)]'
-  if (cpu >= 20) return 'bg-[var(--zf-link)]'
+  if (cpu >= 20) return 'bg-[var(--zf-link-fill)]'
   return 'bg-[var(--zf-success)]'
 }
 

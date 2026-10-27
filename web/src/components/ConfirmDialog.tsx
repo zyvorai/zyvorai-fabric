@@ -37,7 +37,7 @@ export default function ConfirmDialog({
   const confirmColors = {
     danger: 'bg-red-600 hover:bg-red-500 text-white',
     warning: 'bg-yellow-600 hover:bg-yellow-500 text-[var(--zf-ink)]',
-    info: 'bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white',
+    info: 'bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white',
   }[variant]
 
   const iconBg = {

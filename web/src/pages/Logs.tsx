@@ -134,6 +134,7 @@ export default function Logs() {
           {/* Level Filter */}
           <div>
             <select
+              aria-label="Log level"
               value={levelFilter}
               onChange={(e) => setLevelFilter(e.target.value)}
               className="input-field"
@@ -158,6 +159,8 @@ export default function Logs() {
             <button
               onClick={clearLogs}
               className="zf-btn zf-btn-danger"
+              aria-label="Clear logs"
+              title="Clear logs"
             >
               <Trash2 className="w-4 h-4" />
             </button>

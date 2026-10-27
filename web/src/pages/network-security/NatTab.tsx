@@ -53,7 +53,7 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
           {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync
           </button>}
-          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
             <Plus className="w-4 h-4" /> Add {view === 'rules' ? 'Rule' : view === 'pools' ? 'Pool' : 'Gateway'}
           </button>}
         </div>
@@ -258,7 +258,7 @@ export function CreateNatRuleModal({ onClose, onCreated }: { onClose: () => void
           <InputField label="Translate Port" value={translatePort} onChange={setTranslatePort} placeholder="8080" type="number" />
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create NAT Rule'}
         </button>
       </div>
@@ -299,7 +299,7 @@ export function CreateNatPoolModal({ onClose, onCreated }: { onClose: () => void
         <InputField label="IP Ranges (comma-separated)" value={ipRanges} onChange={setIpRanges} placeholder="203.0.113.10-203.0.113.20" />
         <InputField label="Port Range" value={portRange} onChange={setPortRange} placeholder="1024-65535" />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Pool'}
         </button>
       </div>
@@ -346,7 +346,7 @@ export function CreateNatGatewayModal({ onClose, onCreated }: { onClose: () => v
         <InputField label="Subnet" value={subnet} onChange={setSubnet} placeholder="10.0.0.0/24" />
         <InputField label="Outbound Interface" value={outboundInterface} onChange={setOutboundInterface} placeholder="eth0" />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Gateway'}
         </button>
       </div>
@@ -458,7 +458,7 @@ export function EditNatRuleModal({ id, onClose, onUpdated }: { id: string; onClo
           <InputField label="Translate Port" value={translatePort} onChange={setTranslatePort} placeholder="8080" type="number" />
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>

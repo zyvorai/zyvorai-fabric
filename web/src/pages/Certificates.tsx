@@ -124,7 +124,7 @@ export default function Certificates() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-surface)] rounded-lg p-1 overflow-x-auto">
         {(['dashboard', 'cas', 'certs', 'csrs', 'attestation', 'baselines'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`px-4 py-2 rounded text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab === 'cas' ? 'CAs' : tab === 'certs' ? 'Certificates' : tab === 'csrs' ? 'Requests' :
              tab === 'attestation' ? 'Attestation' : tab === 'baselines' ? 'Security Baselines' : 'Dashboard'}
           </button>

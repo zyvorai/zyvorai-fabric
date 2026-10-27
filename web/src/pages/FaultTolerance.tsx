@@ -146,7 +146,7 @@ export default function FaultTolerance() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-surface)] rounded-lg p-1">
         {(['vms', 'compatibility', 'events', 'metrics'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab === 'vms' ? 'Protected VMs' : tab === 'compatibility' ? 'Compatibility Check' : tab}
           </button>
         ))}

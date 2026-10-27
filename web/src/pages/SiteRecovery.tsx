@@ -112,7 +112,7 @@ export default function SiteRecovery() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['dashboard', 'plans', 'executions'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab === 'executions' ? 'Execution History' : tab === 'plans' ? 'Recovery Plans' : 'DR Dashboard'}
           </button>
         ))}
@@ -265,7 +265,7 @@ export default function SiteRecovery() {
                       <span>{exec.progress_pct}%</span>
                     </div>
                     <div className="w-full bg-[var(--zf-surface)] rounded-full h-2">
-                      <div className="h-2 rounded-full bg-[var(--zf-link)]" style={{ width: `${exec.progress_pct}%` }} />
+                      <div className="h-2 rounded-full bg-[var(--zf-link-fill)]" style={{ width: `${exec.progress_pct}%` }} />
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-2">

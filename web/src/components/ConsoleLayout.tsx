@@ -130,7 +130,7 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
         >
           {mobileNav ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </button>
-        <Link to="/app" className="console-brand" aria-label="Zyvor Fabric">
+        <Link to="/app" className="console-brand">
           <ZyvorLockup markClassName="w-6 h-6" />
           <span className="text-[var(--zf-muted)] font-medium">Fabric</span>
         </Link>

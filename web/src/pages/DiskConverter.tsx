@@ -225,7 +225,7 @@ export default function DiskConverter() {
               <span className="text-xs text-[var(--zf-muted)] font-mono">{job.id.substring(0, 12)}</span>
             </div>
             <div className="bg-[var(--zf-hairline)] rounded-full h-2 mb-2">
-              <div className={`rounded-full h-full transition-all duration-500 ${jobDone ? 'bg-[var(--zf-success)]' : jobFailed ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link)]'}`} style={{ width: `${job.progress}%` }} />
+              <div className={`rounded-full h-full transition-all duration-500 ${jobDone ? 'bg-[var(--zf-success)]' : jobFailed ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link-fill)]'}`} style={{ width: `${job.progress}%` }} />
             </div>
             <div className="flex items-center justify-between text-xs text-[var(--zf-muted)]">
               <span>{job.progress}%</span>

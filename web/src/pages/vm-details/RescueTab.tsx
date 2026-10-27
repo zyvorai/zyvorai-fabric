@@ -84,7 +84,7 @@ export default function RescueTab({ vm }: { vm: VM }) {
           <button
             onClick={() => run('inject-key', () => rescueVM(vm.name, { operation: 'inject-ssh-key', user: sshUser, key: sshKey }), 'SSH key injected')}
             disabled={disabled || !sshUser || !sshKey || busy !== null}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
           >
             {busy === 'inject-key' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             Inject Key
@@ -114,7 +114,7 @@ export default function RescueTab({ vm }: { vm: VM }) {
           <button
             onClick={() => run('hostname', () => rescueVM(vm.name, { operation: 'set-hostname', hostname }), 'Hostname set')}
             disabled={disabled || !hostname || busy !== null}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
           >
             {busy === 'hostname' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             Apply
@@ -142,7 +142,7 @@ export default function RescueTab({ vm }: { vm: VM }) {
         <button
           onClick={() => run('reset-pw', () => rescueVM(vm.name, { operation: 'reset-password', user: pwUser, password }), 'Password reset')}
           disabled={disabled || !pwUser || !password || busy !== null}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
         >
           {busy === 'reset-pw' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           Reset Password
@@ -170,7 +170,7 @@ export default function RescueTab({ vm }: { vm: VM }) {
             network: allowNetwork,
           }), 'Packages installed')}
           disabled={disabled || !packages.trim() || busy !== null}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
         >
           {busy === 'install-pkgs' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           Install

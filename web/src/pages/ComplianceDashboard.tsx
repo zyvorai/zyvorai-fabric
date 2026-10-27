@@ -185,7 +185,7 @@ export default function ComplianceDashboard() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {categories.map(cat => (
           <button key={cat} onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap capitalize ${selectedCategory === cat ? 'bg-[var(--zf-link)] text-white border border-[var(--zf-link)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)] bg-[var(--zf-surface)] border border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap capitalize ${selectedCategory === cat ? 'bg-[var(--zf-link-fill)] text-white border border-[var(--zf-link)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)] bg-[var(--zf-surface)] border border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>
             {cat}
           </button>
         ))}

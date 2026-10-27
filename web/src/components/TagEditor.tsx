@@ -17,7 +17,7 @@ const TAG_COLORS: Record<string, string> = {
   production: 'bg-red-600',
   staging: 'bg-yellow-600',
   development: 'bg-green-600',
-  testing: 'bg-[var(--zf-link)]',
+  testing: 'bg-[var(--zf-link-fill)]',
   web: 'bg-purple-600',
   database: 'bg-pink-600',
   backend: 'bg-indigo-600',
@@ -136,7 +136,7 @@ export default function TagEditor({ vmName, currentTags, onClose, onSuccess }: T
               <button
                 onClick={handleAddTag}
                 disabled={!newTag.trim() || tags.includes(newTag.trim())}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4" />
                 Add
@@ -174,7 +174,7 @@ export default function TagEditor({ vmName, currentTags, onClose, onSuccess }: T
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg transition disabled:opacity-50"
+            className="px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg transition disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Tags'}
           </button>

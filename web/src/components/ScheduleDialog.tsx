@@ -233,7 +233,7 @@ export default function ScheduleDialog({ mode, schedule, onClose, onSuccess }: S
                       onClick={() => toggleDay(day.value)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                         isSelected
-                          ? 'bg-[var(--zf-link)] text-white'
+                          ? 'bg-[var(--zf-link-fill)] text-white'
                           : 'bg-[var(--zf-surface)] text-[var(--zf-ink)] hover:bg-[var(--zf-hairline)]'
                       }`}
                     >
@@ -312,7 +312,7 @@ export default function ScheduleDialog({ mode, schedule, onClose, onSuccess }: S
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg transition disabled:opacity-50"
+              className="px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg transition disabled:opacity-50"
             >
               {submitting
                 ? (mode === 'create' ? 'Creating...' : 'Saving...')

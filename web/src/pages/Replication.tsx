@@ -101,7 +101,7 @@ export default function Replication() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['dashboard', 'sites', 'configs', 'violations'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'hover:bg-white/[0.03]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'hover:bg-white/[0.03]'}`}>
             {tab === 'configs' ? 'Replications' : tab === 'violations' ? 'RPO Violations' : tab}
           </button>
         ))}
@@ -235,7 +235,7 @@ export default function Replication() {
                       {rep.sync_progress_pct !== undefined && rep.sync_progress_pct !== null ? (
                         <div className="flex items-center gap-2">
                           <div className="w-20 bg-[var(--zf-surface)] rounded-full h-2">
-                            <div className="h-2 rounded-full bg-[var(--zf-link)]" style={{ width: `${rep.sync_progress_pct}%` }} />
+                            <div className="h-2 rounded-full bg-[var(--zf-link-fill)]" style={{ width: `${rep.sync_progress_pct}%` }} />
                           </div>
                           <span className="text-xs text-[var(--zf-muted)]">{rep.sync_progress_pct}%</span>
                         </div>

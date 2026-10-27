@@ -165,7 +165,7 @@ export default function DRS() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['balance', 'recommendations', 'rules', 'placement'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab}
           </button>
         ))}
@@ -202,7 +202,7 @@ export default function DRS() {
                       <span>{host.cpu_usage_pct.toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-[var(--zf-surface)] rounded-full h-4">
-                      <div className={`h-4 rounded-full text-xs text-center leading-4 text-white ${host.cpu_usage_pct > 80 ? 'bg-[var(--zf-danger)]' : host.cpu_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link)]'}`}
+                      <div className={`h-4 rounded-full text-xs text-center leading-4 text-white ${host.cpu_usage_pct > 80 ? 'bg-[var(--zf-danger)]' : host.cpu_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'}`}
                         style={{ width: `${Math.min(host.cpu_usage_pct, 100)}%` }}>
                         {host.cpu_usage_pct > 20 ? `${host.cpu_usage_pct.toFixed(0)}%` : ''}
                       </div>

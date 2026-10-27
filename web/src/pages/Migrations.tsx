@@ -368,7 +368,7 @@ function MigrationCard({
 
       <div className="w-full bg-[var(--zf-canvas)] rounded-full h-2 mb-2">
         <div
-          className="bg-[var(--zf-link)] h-2 rounded-full transition-all duration-500"
+          className="bg-[var(--zf-link-fill)] h-2 rounded-full transition-all duration-500"
           style={{ width: `${migration.progress_percent}%` }}
         />
       </div>
@@ -415,7 +415,7 @@ function NativeMigrationCard({
       </div>
       <div className="w-full bg-[var(--zf-canvas)] rounded-full h-2 mb-2">
         <div
-          className="bg-[var(--zf-link)] h-2 rounded-full transition-all duration-500"
+          className="bg-[var(--zf-link-fill)] h-2 rounded-full transition-all duration-500"
           style={{ width: `${status.progress_percent}%` }}
         />
       </div>

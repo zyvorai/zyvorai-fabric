@@ -24,6 +24,7 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/**'],
+    // the .mjs files are standalone Node tooling (screenshots, a11y gate, mock API)
+    ignores: ['dist/**', '*.mjs', 'mock-api.ts'],
   }
 )

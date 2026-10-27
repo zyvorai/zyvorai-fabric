@@ -369,7 +369,7 @@ export default function DataplanePanel({ vmName }: { vmName: string }) {
               <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-500" />
             )}
             {tab === t.id && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--zf-link)] rounded-full" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--zf-link-fill)] rounded-full" />
             )}
           </button>
         ))}
@@ -749,7 +749,7 @@ export default function DataplanePanel({ vmName }: { vmName: string }) {
                 type="button"
                 disabled={saving || (!dirty && !showJson)}
                 onClick={() => void savePolicy()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[var(--zf-link)] text-white disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[var(--zf-link-fill)] text-white disabled:opacity-40"
               >
                 {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                 Save policy

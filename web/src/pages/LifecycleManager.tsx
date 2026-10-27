@@ -151,7 +151,7 @@ export default function LifecycleManager() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['baselines', 'compliance', 'remediation', 'updates'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-ink)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-ink)] hover:bg-black/[0.04]'}`}>
             {tab === 'updates' ? 'Rolling Updates' : tab === 'compliance' ? 'Compliance Scans' : tab}
           </button>
         ))}
@@ -289,7 +289,7 @@ export default function LifecycleManager() {
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <div className="w-24 bg-[var(--zf-hairline)] rounded-full h-2">
-                        <div className="h-2 rounded-full bg-[var(--zf-link)]" style={{ width: `${task.progress}%` }} />
+                        <div className="h-2 rounded-full bg-[var(--zf-link-fill)]" style={{ width: `${task.progress}%` }} />
                       </div>
                       <span className="text-xs text-[var(--zf-muted)]">{task.progress}%</span>
                     </div>
@@ -356,7 +356,7 @@ export default function LifecycleManager() {
                   <span>{updatePct.toFixed(0)}%</span>
                 </div>
                 <div className="w-full bg-[var(--zf-hairline)] rounded-full h-3">
-                  <div className={`h-3 rounded-full ${update.status === 'completed' ? 'bg-[var(--zf-success)]' : 'bg-[var(--zf-link)]'}`}
+                  <div className={`h-3 rounded-full ${update.status === 'completed' ? 'bg-[var(--zf-success)]' : 'bg-[var(--zf-link-fill)]'}`}
                     style={{ width: `${updatePct}%` }} />
                 </div>
               </div>

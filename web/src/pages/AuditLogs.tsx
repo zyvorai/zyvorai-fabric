@@ -129,7 +129,7 @@ export default function AuditLogs() {
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                 showFilters
-                  ? 'bg-[var(--zf-link)] text-white'
+                  ? 'bg-[var(--zf-link-fill)] text-white'
                   : 'bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
               }`}
             >

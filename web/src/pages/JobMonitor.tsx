@@ -151,7 +151,7 @@ export default function JobMonitor() {
                     <Icon className={`w-3.5 h-3.5 ${job.status === 'running' ? 'animate-spin' : ''}`} /> {job.status}
                   </span>
                 </div>
-                <div className="bg-[var(--zf-hairline)] rounded-full h-1.5 mb-2"><div className={`h-full rounded-full transition-all ${job.status === 'completed' ? 'bg-[var(--zf-success)]' : job.status === 'failed' ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link)]'}`} style={{ width: `${job.progress}%` }} /></div>
+                <div className="bg-[var(--zf-hairline)] rounded-full h-1.5 mb-2"><div className={`h-full rounded-full transition-all ${job.status === 'completed' ? 'bg-[var(--zf-success)]' : job.status === 'failed' ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link-fill)]'}`} style={{ width: `${job.progress}%` }} /></div>
                 <div className="text-xs text-[var(--zf-muted)]">{job.progress}% {job.current_step && `— ${job.current_step}`}</div>
               </div>
             )
@@ -175,7 +175,7 @@ export default function JobMonitor() {
                   {PIPELINE_STAGES.map((stage, idx) => {
                     let cls = 'bg-[var(--zf-hairline)] text-[var(--zf-muted)]'
                     if (idx < stageIndex) cls = 'bg-[var(--zf-success)] text-white'
-                    else if (idx === stageIndex) cls = selected.status === 'failed' ? 'bg-[var(--zf-danger)] text-white' : 'bg-[var(--zf-link)] text-white animate-pulse'
+                    else if (idx === stageIndex) cls = selected.status === 'failed' ? 'bg-[var(--zf-danger)] text-white' : 'bg-[var(--zf-link-fill)] text-white animate-pulse'
                     return (
                       <Fragment key={stage}>
                         {idx > 0 && <div className={`h-0.5 w-6 ${idx <= stageIndex ? 'bg-[var(--zf-success)]' : 'bg-[var(--zf-hairline)]'}`} />}

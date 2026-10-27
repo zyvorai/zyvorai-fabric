@@ -27,6 +27,7 @@ export default function Breadcrumb() {
     <nav className="mb-6 flex items-center gap-1.5 text-sm flex-wrap">
       <Link
         to="/app"
+        aria-label="Dashboard"
         className="text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition flex items-center gap-1"
       >
         <Home className="w-3.5 h-3.5" />

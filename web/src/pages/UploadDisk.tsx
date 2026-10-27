@@ -126,7 +126,7 @@ export default function UploadDisk() {
             <button onClick={handleCancel} className="p-1 text-[var(--zf-muted)] hover:text-[var(--zf-danger)] transition-colors"><X className="w-4 h-4" /></button>
           </div>
           <div className="bg-[var(--zf-hairline)] rounded-full h-3 mb-2">
-            <div className="bg-[var(--zf-link)] h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+            <div className="bg-[var(--zf-link-fill)] h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
           <div className="flex justify-between text-xs text-[var(--zf-muted)]">
             <span>{formatBytes(uploaded)} / {formatBytes(total)} ({progress}%)</span>

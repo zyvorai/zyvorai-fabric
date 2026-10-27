@@ -148,7 +148,7 @@ export default function DistributedStorage() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['pools', 'policies', 'migrations', 'clusters'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab === 'clusters' ? 'Datastore Clusters' : tab}
           </button>
         ))}
@@ -190,7 +190,7 @@ export default function DistributedStorage() {
                       <span>Total: {formatGB(pool.total_capacity_gb)}</span>
                     </div>
                     <div className="w-full bg-[var(--zf-surface)] rounded-full h-3">
-                      <div className={`h-3 rounded-full ${usedPct > 90 ? 'bg-[var(--zf-danger)]' : usedPct > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link)]'}`}
+                      <div className={`h-3 rounded-full ${usedPct > 90 ? 'bg-[var(--zf-danger)]' : usedPct > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'}`}
                         style={{ width: `${Math.min(usedPct, 100)}%` }} />
                     </div>
                     <div className="text-right text-xs text-[var(--zf-muted)] mt-1">
@@ -296,7 +296,7 @@ export default function DistributedStorage() {
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <div className="w-24 bg-[var(--zf-surface)] rounded-full h-2">
-                        <div className="h-2 rounded-full bg-[var(--zf-link)]" style={{ width: `${mig.progress_pct}%` }} />
+                        <div className="h-2 rounded-full bg-[var(--zf-link-fill)]" style={{ width: `${mig.progress_pct}%` }} />
                       </div>
                       <span className="text-xs text-[var(--zf-muted)]">{mig.progress_pct}%</span>
                     </div>
@@ -566,7 +566,7 @@ function ModalForm({ title, fields, onClose, onSubmit }: {
                             ...v,
                             [f.name]: isSel ? selected.filter(x => x !== o) : [...selected, o],
                           }))}
-                          className={`px-2.5 py-1 rounded text-xs transition ${isSel ? 'bg-[var(--zf-link)] text-white' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border border-[var(--zf-hairline)]'}`}>
+                          className={`px-2.5 py-1 rounded text-xs transition ${isSel ? 'bg-[var(--zf-link-fill)] text-white' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border border-[var(--zf-hairline)]'}`}>
                           {f.optionLabels?.[o] ?? o}
                         </button>
                       )

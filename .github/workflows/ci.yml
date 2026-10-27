@@ -104,6 +104,13 @@ jobs:
       - name: Build
         run: cd web && npm run build
 
+      # axe-core on 20 console pages x light/dark x desktop/phone, plus visible focus (ux-plan step 7)
+      - name: Accessibility gate
+        run: |
+          cd web
+          npx puppeteer browsers install chrome
+          CI=1 npm run a11y
+
   website:
     runs-on: ubuntu-latest
     steps:

@@ -360,7 +360,7 @@ export default function CreateVM() {
                         }`}
                       >
                         {selected && (
-                          <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--zf-link)] flex items-center justify-center">
+                          <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--zf-link-fill)] flex items-center justify-center">
                             <Check className="w-2.5 h-2.5 text-[var(--zf-ink)]" />
                           </div>
                         )}
@@ -977,7 +977,7 @@ function GoldenImageModal({ onClose, onCreated }: { onClose: () => void; onCreat
                 <div>
                   <div className="h-1.5 rounded-full bg-[var(--zf-surface)] overflow-hidden">
                     <div
-                      className="h-full bg-[var(--zf-link)] transition-all duration-500"
+                      className="h-full bg-[var(--zf-link-fill)] transition-all duration-500"
                       style={{ width: `${Math.max(5, progress)}%` }}
                     />
                   </div>
@@ -1142,7 +1142,7 @@ function DownloadImageModal({ existingImages, onClose, onDownloaded }: {
                     }`}
                   >
                     {isSelected && (
-                      <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--zf-link)] flex items-center justify-center">
+                      <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--zf-link-fill)] flex items-center justify-center">
                         <Check className="w-2.5 h-2.5 text-[var(--zf-ink)]" />
                       </div>
                     )}
