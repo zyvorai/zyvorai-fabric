@@ -24,4 +24,4 @@ view across **separate daemons** (for example one per site). Console: **Federati
 ## Not done
 
 Cross-cluster live migration, shared sign-in, configuration sync, persistent token storage, DNS-rebinding protection for peer
-names (a name that resolves to a link-local address is not caught; only literal addresses are), and a check against two real daemons.
+names (a name that resolves to a link-local address is not caught; only literal addresses are), and a check against two real daemons. The 5 Rust tests use stub peers on loopback.
