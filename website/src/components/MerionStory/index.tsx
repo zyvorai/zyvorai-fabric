@@ -85,7 +85,7 @@ const BEATS: Beat[] = [
       <div className={styles.split}>
         <div className={styles.panel}>
           <p className={styles.tag}>Agent sees</p>
-          <pre className={styles.code}>{`heading "Vendor SOW"
+          <pre tabIndex={0} className={styles.code}>{`heading "Vendor SOW"
   @e1 button "Download PDF"
   @e2 textbox "Notes"`}</pre>
         </div>

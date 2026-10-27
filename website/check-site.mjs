@@ -25,6 +25,8 @@ const server = createServer((req, res) => {
   res.end(readFileSync(file))
 }).listen(PORT)
 
+// Docusaurus namespaces its theme key (e.g. theme-371); read it from the built page so light mode really is light
+const THEME_KEY = /localStorage\.getItem\("(theme[^"]*)"\)/.exec(readFileSync('build/index.html', 'utf8'))?.[1] ?? 'theme'
 const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 const browser = await puppeteer.launch({ args: process.env.CI ? ['--no-sandbox'] : [] })
 const failures = []
@@ -33,10 +35,12 @@ for (const theme of THEMES) {
   for (const [size, [width, height]] of Object.entries(SIZES)) {
     const page = await browser.newPage()
     await page.setViewport({ width, height })
-    await page.evaluateOnNewDocument((t) => localStorage.setItem('theme', t), theme)
+    await page.evaluateOnNewDocument((k, t) => localStorage.setItem(k, t), THEME_KEY, theme)
     for (const path of PAGES) {
       await page.goto(`http://localhost:${PORT}${BASE}${path}`, { waitUntil: 'networkidle0', timeout: 60000 })
       const where = `${path} ${theme} ${size}`
+      const actual = await page.evaluate(() => document.documentElement.getAttribute('data-theme'))
+      if (actual !== theme) failures.push(`${where}: page rendered in ${actual} theme, not ${theme}`)
       if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) failures.push(`${where}: scrolls sideways`)
       await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' })
       await page.evaluate(axeSource)
@@ -45,7 +49,11 @@ for (const theme of THEMES) {
         axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'], resultTypes: ['violations'] }),
       )
       for (const v of violations.filter((x) => x.impact === 'serious' || x.impact === 'critical'))
-        for (const n of v.nodes.slice(0, 3)) failures.push(`${where}: axe ${v.id}: ${n.target.join(' ')}`)
+        for (const n of v.nodes.slice(0, 3)) {
+          const d = v.id === 'color-contrast' ? n.any[0]?.data : null
+          const ratio = d ? ` {${d.fgColor} on ${d.bgColor} = ${d.contrastRatio}}` : ''
+          failures.push(`${where}: axe ${v.id}: ${n.target.join(' ')}${ratio}`)
+        }
     }
     await page.close()
   }

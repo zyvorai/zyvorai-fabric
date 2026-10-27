@@ -34,8 +34,8 @@
 }
 
 .on {
-  background: var(--c-accent);
-  border-color: var(--c-accent);
+  background: var(--c-fill);
+  border-color: var(--c-fill);
   color: #fff;
 }
 
@@ -71,7 +71,7 @@
   padding: 0.55rem 0.9rem;
   border-bottom: 1px solid #2c2c2e;
   font-size: 0.75rem;
-  color: #6e6e73;
+  color: #98989d;
 }
 
 .termBar button {

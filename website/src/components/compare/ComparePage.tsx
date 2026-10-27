@@ -730,7 +730,7 @@ function UseCases(): ReactNode {
             <li key={g}>{g}</li>
           ))}
         </ul>
-        <pre className={styles.ucCmd}>
+        <pre tabIndex={0} className={styles.ucCmd}>
           <code>{uc.cmd}</code>
         </pre>
         <p className={styles.ucOut}>

@@ -14,13 +14,14 @@
    apple-glass.css (--primary: #0071e3 light / #0a84ff dark).
    Shared across the whole Zyvor docs-site family. */
 :root {
-  --ifm-color-primary: #0071e3;
-  --ifm-color-primary-dark: #0064cc;
-  --ifm-color-primary-darker: #005bbf;
-  --ifm-color-primary-darkest: #004a99;
-  --ifm-color-primary-light: #1a7fe6;
-  --ifm-color-primary-lighter: #338ce9;
-  --ifm-color-primary-lightest: #66a8ef;
+  /* #0066cc, not #0071e3: 5.6:1 on white and on the light-blue active-menu tint, so links pass WCAG AA */
+  --ifm-color-primary: #0066cc;
+  --ifm-color-primary-dark: #005bb8;
+  --ifm-color-primary-darker: #0055ad;
+  --ifm-color-primary-darkest: #00448f;
+  --ifm-color-primary-light: #0a72dd;
+  --ifm-color-primary-lighter: #1a7fe6;
+  --ifm-color-primary-lightest: #4a9aea;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 
@@ -37,13 +38,15 @@
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #0a84ff;
-  --ifm-color-primary-dark: #0074e6;
-  --ifm-color-primary-darker: #0068cc;
-  --ifm-color-primary-darkest: #0055a8;
-  --ifm-color-primary-light: #3399ff;
-  --ifm-color-primary-lighter: #52a6ff;
-  --ifm-color-primary-lightest: #85c0ff;
+  /* links on the dark surfaces (#262628 and up) need 4.5:1; #4da3ff gives 5.7:1. Solid buttons keep a darker blue below. */
+  --ifm-color-primary: #4da3ff;
+  --ifm-color-primary-dark: #3395ff;
+  --ifm-color-primary-darker: #2a8eff;
+  --ifm-color-primary-darkest: #0a84ff;
+  --ifm-color-primary-light: #66b0ff;
+  --ifm-color-primary-lighter: #7dbcff;
+  --ifm-color-primary-lightest: #a6d1ff;
+  --ifm-button-background-color: #0071e3;
   --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
 }
 
@@ -350,4 +353,37 @@ h3 {
   .table-of-contents__link {
     transition: none;
   }
+}
+
+/* Links inside running text are underlined: colour alone is not enough to tell them from the text around them
+   (WCAG link-in-text-block). Plain Markdown anchors carry no class (or an empty one); the marketing notes and card bodies are named. */
+main a:not([class]),
+main a[class=''],
+[class*='note'] a,
+[class*='cardBody'] a,
+[class*='tabNote'] a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+/* a filled primary button keeps white text, so its fill stays a dark blue in both themes */
+.button--primary {
+  --ifm-button-background-color: #0066cc;
+  --ifm-button-border-color: #0066cc;
+  --ifm-button-color: #fff;
+}
+[data-theme='dark'] .button--primary {
+  --ifm-button-background-color: #0071e3;
+  --ifm-button-border-color: #0071e3;
+}
+
+/* the current breadcrumb is plain text, not a coloured link on a tinted pill */
+.breadcrumbs__item--active .breadcrumbs__link {
+  background: transparent;
+  color: var(--ifm-font-color-base);
+}
+
+/* prism's github theme paints JSON keys teal, 2.6:1 on the code background */
+[data-theme='light'] .token.property {
+  color: #0a6b68;
 }

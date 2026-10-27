@@ -34,6 +34,9 @@
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
     "@types/react": "^19.3.0",
+    "axe-core": "^4.14.0",
+    "lighthouse": "^13.5.0",
+    "puppeteer": "^25.16.0",
     "typescript": "~7.0.2"
   },
   "browserslist": {
