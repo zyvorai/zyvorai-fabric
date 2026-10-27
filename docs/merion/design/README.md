@@ -20,6 +20,7 @@ build, and the decisions only you can make, with my recommendation for each. Not
 | [Model gateway](model-gateway.md) | Can agents get provider failover, a cache, and per-key spend and budgets without a key ever reaching a cell? |
 | [Chat approvals](chatops-approvals.md) | Can Slack and Teams tell you about an approval, and let you decide it, without weakening the phone signature? |
 | [Run report](run-report.md) | Can a finished run say what was checked, what was not, and how to roll back, without sounding more certain than the evidence? |
+| [OTLP export](otlp-export.md) | Can the journal reach an OpenTelemetry collector without sending anything the SIEM export would not? |
 
 How to read a note: **Decisions for you** at the end of each is the part to answer. Answer in a line ("1: yes, 2: A, 3: not now") and I will
 turn the answers into a build plan. Anything you leave open stays open.
