@@ -4129,6 +4129,8 @@ async fn auto_decide_changeset(
         Err("a phone signature is required, so a person decides".to_string())
     } else if session.status != SessionStatus::Running {
         Err("the session is not running".to_string())
+    } else if policy.expired(Utc::now()) {
+        Err("the timed grant has expired, so a person decides".to_string())
     } else if recent >= MAX_AUTO_PER_HOUR {
         Err(format!(
             "{MAX_AUTO_PER_HOUR} auto-approvals in the last hour, so a person decides"

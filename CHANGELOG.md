@@ -3,6 +3,9 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Timed auto-approve grants.** A changeset policy can carry `ttl_minutes` (1 to 1440); the runtime turns it into
+  `expires_at`, and after that the policy approves nothing and a person decides. Clients cannot set `expires_at`. A
+  policy without `ttl_minutes` behaves as before. Tested with unit tests only. Design: `docs/merion/design/auto-approve-changesets.md`.
 - **Merion for Android (`integrations/android-merion`).** `merionkit` is a plain-JVM library for the `merion-approval-v1` protocol:
   the exact signed text, P-256 signing and verifying, and an API client; its tests read the runtime's own
   `docs/merion/mobile/test-vectors.json`. `app` is a small Compose app with an Android Keystore key (StrongBox when present, a

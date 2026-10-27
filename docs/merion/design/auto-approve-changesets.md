@@ -19,6 +19,11 @@ and is independent.
 - CLI: `merionctl changeset-policy list|show|set|rm`.
 - Console: an "Auto-approve" panel on the session page for admins (read, turn on, replace, turn off), through admin-only
   fabricd routes `GET/PUT/DELETE /api/users/{user}/changeset-policies/{agent}`. Not shown to non-admins.
+- **Timed grants.** Put `ttl_minutes` (1 to 1440) in the policy body and the runtime stores `expires_at` (now plus
+  that). After it, the policy approves nothing and the refusal row says `the timed grant has expired, so a person
+  decides`. The request cannot set `expires_at` itself, so a client clock cannot stretch a grant. The policy stays
+  readable until the operator removes it (`DELETE` revokes at once, as before). A policy with no `ttl_minutes` still
+  has no expiry. A required phone signature still wins, and the agent cannot write a policy.
 - Not built: a tenant-wide ceiling and a distinct `decided_by` field
   (the comment prefix is the marker for now).
 - **Live finding (2026-10-16, lab host) and the fix:** on a real FluxVM cell, speculation reported

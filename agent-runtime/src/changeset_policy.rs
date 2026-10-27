@@ -41,7 +41,18 @@ pub struct ChangesetPolicy {
     pub deny_globs: Vec<String>,
     #[serde(default)]
     pub require_exit_code: i32,
+    /// Ask for a grant that lapses: minutes from now, 1 to `MAX_TTL_MINUTES`. Consumed by `parse`, which turns it
+    /// into `expires_at`; it is never stored.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ttl_minutes: Option<u32>,
+    /// When the grant lapses. Set by `parse` from `ttl_minutes`, never taken from the request. After it the
+    /// policy approves nothing and a person decides; the operator can still read it and remove it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<chrono::DateTime<chrono::Utc>>,
 }
+
+/// The longest a timed grant can run (one day). A standing policy with no expiry is still possible.
+pub const MAX_TTL_MINUTES: u32 = 24 * 60;
 
 /// A policy an operator set for one user's agent (stage two). Stored in `changeset_policies.json`;
 /// `policy.version` is assigned by the store (previous + 1), never taken from the request.
@@ -94,7 +105,22 @@ impl ChangesetPolicy {
         if p.kinds.is_empty() || p.kinds.iter().any(|k| !KINDS.contains(&k.as_str())) {
             return Err("kinds may only list added, modified, deleted".into());
         }
+        if p.expires_at.is_some() {
+            return Err("expires_at is set by the runtime; use ttl_minutes".into());
+        }
+        let mut p = p;
+        if let Some(minutes) = p.ttl_minutes.take() {
+            if minutes == 0 || minutes > MAX_TTL_MINUTES {
+                return Err(format!("ttl_minutes must be 1 to {MAX_TTL_MINUTES}"));
+            }
+            p.expires_at = Some(chrono::Utc::now() + chrono::Duration::minutes(i64::from(minutes)));
+        }
         Ok(p)
+    }
+
+    /// True once a timed grant has lapsed. A policy with no `expires_at` never lapses.
+    pub fn expired(&self, now: chrono::DateTime<chrono::Utc>) -> bool {
+        self.expires_at.is_some_and(|t| now >= t)
     }
 }
 
@@ -254,6 +280,38 @@ mod tests {
     fn policy() -> ChangesetPolicy {
         ChangesetPolicy::parse(r#"{"id":"notes","paths":["/work"],"max_bytes":100}"#).unwrap()
     }
+    #[test]
+    fn ttl_becomes_an_expiry_and_lapses() {
+        let p = ChangesetPolicy::parse(r#"{"id":"n","paths":["/work"],"ttl_minutes":30}"#).unwrap();
+        assert_eq!(p.ttl_minutes, None);
+        let at = p.expires_at.expect("expiry set");
+        let now = chrono::Utc::now();
+        assert!(
+            at > now + chrono::Duration::minutes(29) && at < now + chrono::Duration::minutes(31)
+        );
+        assert!(!p.expired(now));
+        assert!(p.expired(at));
+        assert!(p.expired(at + chrono::Duration::seconds(1)));
+        assert!(
+            !policy().expired(now + chrono::Duration::days(3650)),
+            "no expiry never lapses"
+        );
+    }
+
+    #[test]
+    fn ttl_bounds_and_client_expiry_are_refused() {
+        for bad in [0, MAX_TTL_MINUTES + 1] {
+            let text = format!(r#"{{"id":"n","paths":["/work"],"ttl_minutes":{bad}}}"#);
+            assert!(ChangesetPolicy::parse(&text).is_err(), "ttl {bad}");
+        }
+        let edge = format!(r#"{{"id":"n","paths":["/work"],"ttl_minutes":{MAX_TTL_MINUTES}}}"#);
+        assert!(ChangesetPolicy::parse(&edge).is_ok());
+        let own = r#"{"id":"n","paths":["/work"],"expires_at":"2099-01-01T00:00:00Z"}"#;
+        assert!(ChangesetPolicy::parse(own)
+            .unwrap_err()
+            .contains("ttl_minutes"));
+    }
+
     fn ok_changes() -> Value {
         json!({"added":["/work/a.txt"],"modified":[],"deleted":[],"unchanged":3})
     }
