@@ -3,6 +3,12 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Federation: one inventory across several Fabric daemons.** An admin registers peer daemons (`/api/federation/peers`);
+  `GET /api/federation/overview` returns each peer's hosts and VM total, asked in parallel with a short timeout and per-peer
+  isolation (a down peer, a refused token or a redirect shows in its own row). Host maintenance on a peer is forwarded with the
+  caller's own bearer token, so the peer's RBAC decides; no stored admin credential. New **Federation** page in the console. Peer
+  read tokens are held in memory (re-set after a restart). The web tests and 5 Rust tests passed (Rust on Linux, 2026-10-27); no real second daemon was used yet. Docs: `docs/federation.md`.
+
 - **Slack and Teams approval messages.** Set `ZYVOR_AGENT_SLACK_WEBHOOK` and/or `ZYVOR_AGENT_TEAMS_WEBHOOK` (and optionally
   `ZYVOR_AGENT_CONSOLE_URL` for a link) and each new approval is posted there with its kind, subject, agent and id, never the
   agent's prompt or the request preview. Slack gets Allow and Deny buttons only when `ZYVOR_AGENT_SLACK_SIGNING_SECRET` and

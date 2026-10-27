@@ -1558,6 +1558,24 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         // ========================================================================
         // Enterprise feature routes (vSphere feature parity)
         // ========================================================================
+        // Federation: one inventory across several daemons
+        .route(
+            "/federation/peers",
+            get(api::federation::list_peers).post(api::federation::register_peer),
+        )
+        .route(
+            "/federation/peers/{id}",
+            delete(api::federation::delete_peer),
+        )
+        .route(
+            "/federation/peers/{id}/token",
+            put(api::federation::set_peer_token),
+        )
+        .route(
+            "/federation/peers/{id}/hosts/{host_id}/maintenance/{action}",
+            post(api::federation::peer_host_maintenance),
+        )
+        .route("/federation/overview", get(api::federation::overview))
         // Datacenter routes
         .route(
             "/datacenters",
