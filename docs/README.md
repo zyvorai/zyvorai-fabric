@@ -26,6 +26,8 @@ Private cloud control plane driving VM lifecycle over FluxVM's REST API — no l
 | **Host maintenance evacuation** | [host-lifecycle.md](host-lifecycle.md) |
 | **Container Groups** (FluxVM Secure Containers workloads) | [container-groups.md](container-groups.md) |
 | **Agent Runtime** (sandboxed sessions, harness, schedules, session CI) | [agent-runtime/README.md](../agent-runtime/README.md) |
+| **Merion approvals and telemetry** (Slack/Teams, OpenTelemetry, Android) | [chatops-approvals](merion/design/chatops-approvals.md) · [otlp-export](merion/design/otlp-export.md) · [Android app](../integrations/android-merion/README.md) |
+| **Federation** (one view across Fabric daemons) | [federation.md](federation.md) |
 | User page index | [user/PAGE_INDEX.md](user/PAGE_INDEX.md) |
 | Full documentation catalog | [index.md](index.md) |
 

@@ -15,6 +15,14 @@ import {CtaBand, HeroShell, HonestyBand, Page, Section, useHashScroll} from '../
 import shell from '../components/marketing/Shell.module.css';
 import styles from './merion.module.css';
 
+/** New in this release. Plain claims only; the footnote says what ran against fakes. */
+const NEW_FEATURES: [string, string][] = [
+  ['Approve from Slack or Teams', 'Each request arrives with the host-rendered preview and its digest. Buttons appear only when no phone signature is required; otherwise it is a link to your phone.'],
+  ['Watch it in your own tools', 'Send the audit trail to any OpenTelemetry collector over OTLP/HTTP. An allowlist keeps file contents, previews and credentials out.'],
+  ['One view, every cluster', 'Register peer Fabric daemons and see hosts, VMs and health together. A host that is down never breaks the list.'],
+  ['Approve from Android', 'A native app signs with a hardware-backed key behind your fingerprint. Same signature format as iPhone.'],
+];
+
 const COMPARE_ROWS = ['Where it runs', 'Policy', 'The cell', 'Model'];
 
 /** The install tabs in marketing.json, shaped for the homepage's terminal component. */
@@ -73,6 +81,27 @@ export default function MerionPage(): ReactNode {
             lede="A sealed cell, keys you hold, approvals only you can give, and a counter that proves it."
             wide>
             <MerionStory />
+          </Section>
+
+          <Section
+            id="new"
+            eyebrow="New"
+            title="Approvals wherever you already are."
+            lede="Your team’s chat, your observability stack, every cluster in one place, and your Android phone.">
+            <ul className={styles.features}>
+              {NEW_FEATURES.map(([t, b], i) => (
+                <li key={t}>
+                  <Reveal delay={(i % 4) * 80} className={shell.tile}>
+                    <b>{t}</b>
+                    <span>{b}</span>
+                  </Reveal>
+                </li>
+              ))}
+            </ul>
+            <p className={styles.cardBody} style={{marginTop: '1rem'}}>
+              Tested against local fakes, not a live Slack workspace, collector, second daemon or Android device.{' '}
+              <Link to="/docs/merion/design/chatops-approvals">Read the details</Link>.
+            </p>
           </Section>
 
           <Section
