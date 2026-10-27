@@ -3,6 +3,11 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Model-call caps per run and per goal.** In the operator's prices file, an agent budget can now carry `run` and
+  `goal` limits (`max_calls`, `max_cost`) beside the daily ones. A run is one session; a goal is every session started
+  for it (its steps and its planner). A call past the cap is refused with 429 before anything is sent, on both model
+  paths. Off unless the file sets them. Unit tests with a local stub provider. Design:
+  `docs/merion/design/model-budgets.md`.
 - **Delegated versus autonomous, in the journal.** Every `egress.http` row now carries `identity`: `autonomous` (no
   credential), `delegated` (a person's own connection, with `acting_for` naming them) or `service` (a credential the
   operator holds for the whole host). A per-person OAuth credential can set `oauth.audience`, sent as `resource`
