@@ -49,6 +49,7 @@ pub mod proxy;
 pub mod receipts;
 pub mod recording;
 pub mod retention;
+pub mod run_events;
 pub mod run_report;
 pub mod schedules;
 pub mod scoreboard;

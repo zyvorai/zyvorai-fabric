@@ -3,6 +3,11 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Signed run webhook.** With `ZYVOR_AGENT_RUN_WEBHOOK` (https, or http for loopback) and
+  `ZYVOR_AGENT_RUN_WEBHOOK_SECRET` set, one `run.finished` event is POSTed when a session first reaches a final status,
+  signed like the approval webhook (`x-zyvor-signature: sha256=<HMAC-SHA256>`). The body names the run and its status,
+  never the error, input or user. Best effort, two retries, lost if the runtime restarts with one queued. Unit test
+  with a local receiver. Design: `docs/merion/design/run-webhooks.md`.
 - **Model-call caps per run and per goal.** In the operator's prices file, an agent budget can now carry `run` and
   `goal` limits (`max_calls`, `max_cost`) beside the daily ones. A run is one session; a goal is every session started
   for it (its steps and its planner). A call past the cap is refused with 429 before anything is sent, on both model

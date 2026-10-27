@@ -109,6 +109,14 @@ sources, was decided and built; see the table above.)
   the caller retries.
 - A **file named `google-refresh-token.env`** is written where the consent script runs; it is git-ignored now, after a near miss (below).
 
+- **Long-running cells** (pause, resume, idle sleep) already exist: `POST /v1/sessions/{id}/hibernate` snapshots and pauses, `POST /v1/sessions/{id}/resume` wakes, and
+  `idle_hibernate_seconds` sleeps an idle cell. A roadmap item to add them was dropped on 2026-10-27 as a duplicate.
+- **An OpenAI Agents SDK sandbox adapter** is not built. The SDK's sandbox interface is in beta and its method signatures could not be confirmed, and an adapter
+  needs arbitrary command execution in a cell, which Merion does not give an operator on purpose. Revisit when the interface settles and there is a decision on
+  whether a cell may take commands from outside.
+- **Session recording** has no console replay view yet; **on-behalf-of** has no RFC 8693 exchange or sender-constrained tokens; **run webhooks** send only
+  `run.finished` and lose a queued event on restart. See each design page.
+
 ## 6. Deliberately not doing
 
 Approvals inside the agent chat; memory inside a cell; autonomous planning without the person accepting the plan; a suggestion that runs anything by itself;
