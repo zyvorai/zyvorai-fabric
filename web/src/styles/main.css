@@ -1810,3 +1810,130 @@ html:not([data-theme='dark']) {
     transform: none !important;
   }
 }
+
+/* —— Phone width (ux-plan step 6) —— */
+@keyframes zf-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes zf-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* the nav is a bottom sheet under 900px (the sidebar is hidden there) */
+@media (max-width: 900px) {
+  .console-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.4);
+    animation: zf-fade 0.25s var(--zf-ease) both;
+  }
+  .console-sidebar.is-sheet {
+    display: block;
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 41;
+    width: auto;
+    height: auto;
+    max-height: 78vh;
+    padding: 16px 12px calc(24px + env(safe-area-inset-bottom));
+    border: 0;
+    border-top: 1px solid var(--zf-hairline);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.25);
+    animation: zf-sheet-up 0.4s var(--zf-ease) both;
+  }
+  .console-sidebar.is-sheet::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 5px;
+    margin: 0 auto 12px;
+    border-radius: 3px;
+    background: var(--zf-hairline);
+  }
+}
+@media (min-width: 901px) {
+  .console-sheet-backdrop {
+    display: none;
+  }
+}
+
+/* tables become stacked cards; the header row is hidden and each cell carries its own label
+   (useTableLabels sets data-label). A table opts out with data-no-cards. */
+@media (max-width: 639px) {
+  .console-main table:not([data-no-cards]) {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+  .console-main table:not([data-no-cards]) :is(tbody, tr, td, th) {
+    display: block;
+  }
+  .console-main table:not([data-no-cards]) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .console-main table:not([data-no-cards]) tbody tr {
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    border: 1px solid var(--zf-hairline);
+    border-radius: var(--zf-radius);
+    background: var(--zf-surface);
+  }
+  .console-main table:not([data-no-cards]) td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    border: 0;
+    text-align: right;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .console-main table:not([data-no-cards]) td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--zf-muted);
+    text-align: left;
+  }
+}
+
+/* tap targets: 44px on phones and touch screens (inputs also go to 16px so iOS does not zoom) */
+@media (max-width: 639px), (pointer: coarse) {
+  .console-shell :is(.zf-btn, .console-nav-link),
+  .console-main :is(button, [role='button'], [role='tab'], summary):not(.zf-terminal *) {
+    min-height: 44px;
+  }
+  .console-sidebar.is-sheet .console-sidebar-collapse-btn {
+    display: none;
+  }
+  .console-topbar .zf-btn {
+    min-width: 44px;
+    justify-content: center;
+  }
+  .console-main :is(input:not([type='checkbox'], [type='radio'], [type='range']), select) {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .console-sheet-backdrop,
+  .console-sidebar.is-sheet {
+    animation: none;
+  }
+}

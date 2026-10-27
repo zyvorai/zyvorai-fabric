@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-import { ReactNode, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router'
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -15,6 +15,7 @@ import { ZyvorLockup } from './ZyvorMark'
 import ThemeToggle from './ThemeToggle'
 import { useKeyboardShortcut, isInputFocused } from '../hooks/useKeyboardShortcut'
 import { useRecordRecentPage } from '../hooks/useRecordRecentPage'
+import { useTableLabels } from '../hooks/useTableLabels'
 
 function ConsoleShortcuts({
   helpOpen,
@@ -89,6 +90,14 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
     })
   }
   useRecordRecentPage()
+  const mainRef = useRef<HTMLElement>(null)
+  useTableLabels(mainRef)
+  useEffect(() => {
+    if (!mobileNav) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMobileNav(false)
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mobileNav])
 
   const onLogout = () => {
     logout()
@@ -149,8 +158,11 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
       </header>
 
       <div className="console-body">
+        {mobileNav && (
+          <div className="console-sheet-backdrop" onClick={() => setMobileNav(false)} aria-hidden />
+        )}
         <aside
-          className={`console-sidebar ${collapsed ? 'collapsed' : ''} ${mobileNav ? '!block fixed inset-x-0 top-[52px] z-20 h-[calc(100vh-52px)]' : ''}`}
+          className={`console-sidebar ${collapsed ? 'collapsed' : ''} ${mobileNav ? 'is-sheet' : ''}`}
         >
           <button
             type="button"
@@ -189,7 +201,7 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
           })}
         </aside>
 
-        <main id="main-content" className="console-main" role="main">
+        <main id="main-content" ref={mainRef} className="console-main" role="main">
           <Breadcrumb />
           {children}
         </main>
