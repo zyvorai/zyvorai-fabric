@@ -3,6 +3,11 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Federation: one inventory across several Fabric daemons.** An admin registers peer daemons (`/api/federation/peers`);
+  `GET /api/federation/overview` returns each peer's hosts and VM total, asked in parallel with a short timeout and per-peer
+  isolation (a down peer, a refused token or a redirect shows in its own row). Host maintenance on a peer is forwarded with the
+  caller's own bearer token, so the peer's RBAC decides; no stored admin credential. New **Federation** page in the console. Peer
+  read tokens are held in memory (re-set after a restart). Web tests ran; the Rust tests need Linux. Docs: `docs/federation.md`.
 - **Verify command and snapshot restore for the run report.** `verify_command` runs after an applied changeset and shows as a check.
   `snapshot_before_apply` snapshots the cell first; an operator can then restore it (`POST /v1/sessions/{id}/changesets/{cs}/restore`,
   confirmed, latest change only, never for end users). The report shows `undo_available` or `restored_from_snapshot`.

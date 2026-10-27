@@ -48,6 +48,7 @@ pub mod datacenter;
 pub mod distributed_storage;
 pub mod drs;
 pub mod fault_tolerance;
+pub mod federation;
 pub mod lifecycle;
 pub mod network_policy;
 pub mod networkd;

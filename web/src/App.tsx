@@ -46,6 +46,7 @@ const Notifications = lazy(() => import('./pages/Notifications'))
 const StoragePools = lazy(() => import('./pages/StoragePools'))
 const SystemResources = lazy(() => import('./pages/SystemResources'))
 const Datacenters = lazy(() => import('./pages/Datacenters'))
+const Federation = lazy(() => import('./pages/Federation'))
 const ResourcePools = lazy(() => import('./pages/ResourcePools'))
 const WarmPools = lazy(() => import('./pages/WarmPools'))
 const DRS = lazy(() => import('./pages/DRS'))
@@ -165,6 +166,7 @@ function ConsoleRoutes() {
             <Route path="system" element={<SystemResources />} />
             <Route path="settings" element={<Settings />} />
             <Route path="datacenters" element={<Datacenters />} />
+            <Route path="federation" element={<Federation />} />
             <Route path="resource-pools" element={<ResourcePools />} />
             <Route path="vm-pools" element={<WarmPools />} />
             <Route path="drs" element={<DRS />} />
