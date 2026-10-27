@@ -302,6 +302,8 @@ struct AuditTarget {
     method: String,
     host: Option<String>,
     path: String,
+    /// The credential the request names, if any. Only its name is kept; it decides the `identity` of the row.
+    credential: Option<String>,
 }
 
 impl AuditTarget {
@@ -314,6 +316,23 @@ impl AuditTarget {
             method: request.method.to_ascii_uppercase(),
             host: url.as_ref().and_then(|u| u.host_str().map(str::to_string)),
             path: url.map(|u| u.path().to_string()).unwrap_or_default(),
+            credential: request.credential.clone(),
+        }
+    }
+
+    /// Whose authority the request carried: `autonomous` (no credential, the agent's own reach), `delegated` (a person's own
+    /// connection, with `acting_for` naming them) or `service` (a credential the operator holds for the whole host).
+    async fn identity(&self, state: &AppState) -> Value {
+        match self.credential.as_deref() {
+            None => json!({ "identity": "autonomous" }),
+            Some(name) if state.credentials.is_per_person(name) => {
+                let user = match self.session_id {
+                    Some(id) => state.store.get_session(id).await.and_then(|s| s.user_id),
+                    None => None,
+                };
+                json!({ "identity": "delegated", "acting_for": user })
+            }
+            Some(_) => json!({ "identity": "service" }),
         }
     }
 
@@ -321,6 +340,10 @@ impl AuditTarget {
         if let Some(object) = detail.as_object_mut() {
             object.insert("method".into(), json!(self.method));
             object.insert("path".into(), json!(self.path));
+        }
+        let identity = self.identity(state).await;
+        if let (Some(object), Some(extra)) = (detail.as_object_mut(), identity.as_object()) {
+            object.extend(extra.clone());
         }
         if let Err(error) = state
             .store
@@ -2390,6 +2413,79 @@ pub(crate) mod ask_tests {
         let token_port = listener.local_addr().unwrap().port();
         tokio::spawn(async move { axum::serve(listener, token).await.unwrap() });
         (api_port, token_port, ca, seen)
+    }
+
+    #[tokio::test]
+    async fn the_journal_says_whose_authority_a_request_carried_and_the_token_is_asked_for_one_service(
+    ) {
+        std::env::set_var("EG_ID_ID", "cid");
+        std::env::set_var("EG_ID_SECRET", "csecret");
+        std::env::set_var("EG_ID_KEY", "k");
+        let forms = Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
+        let sink = forms.clone();
+        let token = axum::Router::new().route(
+            "/token",
+            axum::routing::post(move |body: String| {
+                let sink = sink.clone();
+                async move {
+                    sink.lock().unwrap().push(body);
+                    axum::Json(json!({"access_token": "at", "expires_in": 3600}))
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        tokio::spawn(async move { axum::serve(listener, token).await.unwrap() });
+        let file = std::env::temp_dir().join(format!("zyvor-cred-{}.json", uuid::Uuid::new_v4()));
+        std::fs::write(
+            &file,
+            json!({
+                "mine": {"host": "127.0.0.1", "header": "authorization", "kind": "oauth-refresh",
+                    "oauth": {"token_url": format!("http://127.0.0.1:{port}/token"), "client_id_env": "EG_ID_ID",
+                              "client_secret_env": "EG_ID_SECRET", "connection": "google", "audience": "https://api.example.com"}},
+                "shared": {"host": "127.0.0.1", "header": "x-api-key", "env": "EG_ID_KEY"},
+            })
+            .to_string(),
+        )
+        .unwrap();
+        let (state, mut session) = state_and_session_cfg(|c| c.credentials_file = Some(file)).await;
+        session.user_id = Some("ana".into());
+        state.store.save_session(session.clone()).await.unwrap();
+        let target = |credential: Option<&str>| AuditTarget {
+            session_id: Some(session.id),
+            method: "GET".into(),
+            host: Some("127.0.0.1".into()),
+            path: "/".into(),
+            credential: credential.map(str::to_string),
+        };
+        assert_eq!(
+            target(None).identity(&state).await,
+            json!({"identity": "autonomous"})
+        );
+        assert_eq!(
+            target(Some("shared")).identity(&state).await,
+            json!({"identity": "service"})
+        );
+        assert_eq!(
+            target(Some("mine")).identity(&state).await,
+            json!({"identity": "delegated", "acting_for": "ana"})
+        );
+        target(Some("mine"))
+            .record(&state, AuditPhase::Performed, json!({}))
+            .await;
+        let rows = state.store.audit.list(Some(session.id), 10).await.unwrap();
+        assert_eq!(rows.last().unwrap().detail["identity"], "delegated");
+
+        state
+            .credentials
+            .ensure_user_token("mine", "ana", Some("rt"), &state.egress_http)
+            .await
+            .unwrap();
+        let form = forms.lock().unwrap().remove(0);
+        assert!(
+            form.contains("resource=https%3A%2F%2Fapi.example.com"),
+            "{form}"
+        );
     }
 
     #[tokio::test]

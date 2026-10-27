@@ -44,6 +44,7 @@ pub(crate) const DETAIL_ALLOWLIST: &[&str] = &[
     "method",
     "host",
     "kind",
+    "identity",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
