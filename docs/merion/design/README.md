@@ -25,6 +25,7 @@ build, and the decisions only you can make, with my recommendation for each. Not
 | [MCP gateway](mcp-gateway.md) | Can an operator register tool servers and limit which tools an agent calls, how often, with a record, without a second policy engine? |
 | [Session recording](session-recording.md) | Can a person replay what a session did from a signed record that leaves out the content? |
 | [On behalf of](on-behalf-of.md) | Can the journal tell a person's delegated action from the agent's own, and can a token be asked for one service? |
+| [Model budgets](model-budgets.md) | Can an operator cap an agent's model calls and cost per day, per run and per goal, failing closed? |
 
 How to read a note: **Decisions for you** at the end of each is the part to answer. Answer in a line ("1: yes, 2: A, 3: not now") and I will
 turn the answers into a build plan. Anything you leave open stays open.

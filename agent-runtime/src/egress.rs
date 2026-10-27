@@ -120,7 +120,10 @@ async fn proxy_with_chain(
         return proxy_inner(state, headers, request, peer).await;
     };
     // The operator's budget for this agent, over both model paths, before anything is sent.
-    if let Err(why) = crate::model_call::check_agent_budget(state, &agent).await {
+    let session = header(headers, "x-zyvor-session-id")
+        .ok()
+        .and_then(|id| uuid::Uuid::parse_str(id).ok());
+    if let Err(why) = crate::model_call::check_agent_budget(state, &agent, session).await {
         return Err((StatusCode::TOO_MANY_REQUESTS, why));
     }
     let targets = match socket.fallback_chain.as_deref() {
@@ -3090,6 +3093,49 @@ pub(crate) mod ask_tests {
             2,
             "the refused call must never be sent"
         );
+    }
+
+    #[tokio::test]
+    async fn a_run_and_a_goal_each_have_their_own_model_call_cap() {
+        // Per run: this session stops at 2 calls, a second session of the same agent is not affected.
+        let (p1, seen) = chat_stub(200).await;
+        let prices = json!({"budgets": {"a": {"run": {"max_calls": 2}}}});
+        let (state, session) = socket_agent(p1, &[], false, "127.0.0.1", Some(prices)).await;
+        chat(&state, &session, p1).await.unwrap();
+        chat(&state, &session, p1).await.unwrap();
+        let err = chat(&state, &session, p1).await.unwrap_err();
+        assert_eq!(err.0, StatusCode::TOO_MANY_REQUESTS);
+        assert!(err.1.contains("this run"), "{}", err.1);
+        assert_eq!(
+            seen.lock().unwrap().len(),
+            2,
+            "the refused call is never sent"
+        );
+        let mut other = session.clone();
+        other.id = uuid::Uuid::new_v4();
+        state.store.save_session(other.clone()).await.unwrap();
+        chat(&state, &other, p1).await.unwrap();
+
+        // Per goal: two sessions of one goal share the cap.
+        let (p2, seen2) = chat_stub(200).await;
+        let prices = json!({"budgets": {"a": {"goal": {"max_calls": 2}}}});
+        let (state, first) = socket_agent(p2, &[], false, "127.0.0.1", Some(prices)).await;
+        let mut second = first.clone();
+        second.id = uuid::Uuid::new_v4();
+        state.store.save_session(second.clone()).await.unwrap();
+        let goal: crate::goals::GoalRecord = serde_json::from_value(json!({
+            "id": uuid::Uuid::new_v4(), "title": "g", "agent": "a", "status": "open",
+            "created_at": chrono::Utc::now(), "updated_at": chrono::Utc::now(),
+            "plan": [{"id": "s1", "title": "one", "session_id": first.id},
+                     {"id": "s2", "title": "two", "session_id": second.id}],
+        }))
+        .unwrap();
+        state.store.save_goal(goal).await.unwrap();
+        chat(&state, &first, p2).await.unwrap();
+        chat(&state, &second, p2).await.unwrap();
+        let err = chat(&state, &first, p2).await.unwrap_err();
+        assert!(err.1.contains("this goal"), "{}", err.1);
+        assert_eq!(seen2.lock().unwrap().len(), 2);
     }
 
     #[tokio::test]

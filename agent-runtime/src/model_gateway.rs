@@ -247,6 +247,23 @@ pub struct Budget {
     /// Counts only calls that reported tokens for a model with a price; the rest are not guessed.
     #[serde(default)]
     pub max_cost_per_day: Option<f64>,
+    /// A cap for one run (one session), counted over its whole life rather than a day.
+    #[serde(default)]
+    pub run: Option<Limit>,
+    /// A cap for one goal: all the sessions started for it (its steps and its planning session) together.
+    #[serde(default)]
+    pub goal: Option<Limit>,
+}
+
+/// A cap on model calls and cost with no time window, for a run or a goal.
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct Limit {
+    #[serde(default)]
+    pub max_calls: Option<u64>,
+    /// Counts only calls that reported tokens for a model with a price; the rest are not guessed.
+    #[serde(default)]
+    pub max_cost: Option<f64>,
 }
 
 impl Prices {
@@ -258,10 +275,13 @@ impl Prices {
         if p.prices
             .values()
             .any(|v| bad(v.input_per_mtok) || bad(v.output_per_mtok))
-            || p.budgets
-                .values()
-                .chain(p.default_budget.iter())
-                .any(|b| b.max_cost_per_day.is_some_and(bad))
+            || p.budgets.values().chain(p.default_budget.iter()).any(|b| {
+                b.max_cost_per_day.is_some_and(bad)
+                    || [b.run, b.goal]
+                        .into_iter()
+                        .flatten()
+                        .any(|l| l.max_cost.is_some_and(bad))
+            })
         {
             return Err("prices file: prices and budgets must be finite and not negative".into());
         }
@@ -312,6 +332,40 @@ pub fn over_budget(
         let spent: f64 = mine.iter().filter_map(|r| call_cost(Some(prices), r)).sum();
         if spent >= max {
             return Some(format!("model budget reached for agent '{agent}': {spent:.4} of {max} {} in the last 24 hours", prices.currency).replace("  ", " "));
+        }
+    }
+    None
+}
+
+/// Refuse a model call when `rows` (the journal rows of one run, or of every session of one goal) already reach `limit`.
+/// `what` names the scope in the message, such as `run` or `goal`.
+pub fn over_limit(
+    prices: &Prices,
+    what: &str,
+    limit: Limit,
+    rows: &[&crate::audit::AuditEntry],
+) -> Option<String> {
+    use crate::audit::AuditPhase;
+    let mine: Vec<_> = rows
+        .iter()
+        .filter(|r| r.action == "model.call" && r.phase == AuditPhase::Performed)
+        .collect();
+    if let Some(max) = limit.max_calls.filter(|m| mine.len() as u64 >= *m) {
+        return Some(format!(
+            "model budget reached for this {what}: {} of {max} calls",
+            mine.len()
+        ));
+    }
+    if let Some(max) = limit.max_cost {
+        let spent: f64 = mine.iter().filter_map(|r| call_cost(Some(prices), r)).sum();
+        if spent >= max {
+            return Some(
+                format!(
+                    "model budget reached for this {what}: {spent:.4} of {max} {}",
+                    prices.currency
+                )
+                .replace("  ", " "),
+            );
         }
     }
     None

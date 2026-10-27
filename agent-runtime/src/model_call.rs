@@ -267,7 +267,7 @@ pub(crate) async fn call(
     if let Some(user) = session.user_id.as_deref() {
         crate::usage::check_model_quota(state, user, crate::usage::Limits::from_env()).await?;
     }
-    check_agent_budget(state, &session.agent)
+    check_agent_budget(state, &session.agent, Some(session.id))
         .await
         .map_err(ApiError::too_many)?;
     let targets = plan(state, spec)?;
@@ -417,16 +417,36 @@ async fn audit_cache_hit(
 
 /// Refuse a model call when the operator's budget for `agent` is used up (`ZYVOR_AGENT_MODEL_PRICES_FILE`). No file or
 /// no budget for the agent means no limit. A file that cannot be read refuses rather than lifting the limit.
-pub(crate) async fn check_agent_budget(state: &AppState, agent: &str) -> Result<(), String> {
+pub(crate) async fn check_agent_budget(
+    state: &AppState,
+    agent: &str,
+    session: Option<uuid::Uuid>,
+) -> Result<(), String> {
     let Some(prices) =
         crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())?
     else {
         return Ok(());
     };
-    if prices.budget_for(agent).is_none() {
+    let Some(budget) = prices.budget_for(agent) else {
         return Ok(());
+    };
+    // Every session of the goal this run belongs to, so one goal's cap spans its steps and its planner.
+    let mut goal_sessions: std::collections::HashSet<uuid::Uuid> = Default::default();
+    if let (Some(limit), Some(id)) = (budget.goal, session) {
+        if limit.max_calls.is_some() || limit.max_cost.is_some() {
+            for g in state.store.list_goals().await {
+                let ids: Vec<_> = [g.session_id, g.planning_session_id]
+                    .into_iter()
+                    .chain(g.plan.iter().map(|s| s.session_id))
+                    .flatten()
+                    .collect();
+                if ids.contains(&id) {
+                    goal_sessions.extend(ids);
+                }
+            }
+        }
     }
-    let ids: Vec<_> = state
+    let mut ids: std::collections::HashSet<uuid::Uuid> = state
         .store
         .list_sessions()
         .await
@@ -434,17 +454,33 @@ pub(crate) async fn check_agent_budget(state: &AppState, agent: &str) -> Result<
         .filter(|s| s.agent == agent)
         .map(|s| s.id)
         .collect();
+    ids.extend(&goal_sessions);
     let since = chrono::Utc::now() - chrono::Duration::hours(24);
     let rows = state
         .store
         .audit
-        .list_for_sessions(&ids.into_iter().collect(), usize::MAX)
+        .list_for_sessions(&ids, usize::MAX)
         .await
         .map_err(|e| e.to_string())?;
-    match crate::model_gateway::over_budget(&prices, agent, &rows, since) {
-        Some(why) => Err(why),
-        None => Ok(()),
+    if let Some(why) = crate::model_gateway::over_budget(&prices, agent, &rows, since) {
+        return Err(why);
     }
+    if let (Some(limit), Some(id)) = (budget.run, session) {
+        let mine: Vec<_> = rows.iter().filter(|r| r.session_id == Some(id)).collect();
+        if let Some(why) = crate::model_gateway::over_limit(&prices, "run", limit, &mine) {
+            return Err(why);
+        }
+    }
+    if let Some(limit) = budget.goal.filter(|_| !goal_sessions.is_empty()) {
+        let mine: Vec<_> = rows
+            .iter()
+            .filter(|r| r.session_id.is_some_and(|s| goal_sessions.contains(&s)))
+            .collect();
+        if let Some(why) = crate::model_gateway::over_limit(&prices, "goal", limit, &mine) {
+            return Err(why);
+        }
+    }
+    Ok(())
 }
 
 async fn audit_failover(
