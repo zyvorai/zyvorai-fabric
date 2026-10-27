@@ -71,6 +71,9 @@ pub struct Config {
     pub memory_proposal_retention_days: Option<u64>,
     /// Delete the event log of sessions that ended this many days ago (`ZYVOR_AGENT_EVENT_RETENTION_DAYS`); `None` keeps it.
     pub event_retention_days: Option<u64>,
+    /// 32-byte Ed25519 seed, hex (`ZYVOR_AGENT_RECORDING_KEY`). Off when unset: no session recording can be exported, because an
+    /// unsigned recording would prove nothing. Held by the host only; the agent never sees it.
+    pub recording_key: Option<[u8; 32]>,
     pub idle_scan_interval_ms: u64,
     pub warm_pool_reconcile_interval_ms: u64,
     pub warm_pool_max_create_per_tick: usize,
@@ -150,6 +153,7 @@ impl Config {
             goal_retry_base_secs: env_parse("ZYVOR_AGENT_GOAL_RETRY_BASE_SECS", "15")?,
             planner_agent: env_opt("ZYVOR_AGENT_PLANNER_AGENT"),
             event_retention_days: env_days("ZYVOR_AGENT_EVENT_RETENTION_DAYS")?,
+            recording_key: recording_key_from_env()?,
             receipt_retention_days: env_days("ZYVOR_AGENT_RECEIPT_RETENTION_DAYS")?,
             memory_proposal_retention_days: env_days("ZYVOR_AGENT_MEMORY_PROPOSAL_RETENTION_DAYS")?,
             suggestion_retention_days: env_days("ZYVOR_AGENT_SUGGESTION_RETENTION_DAYS")?,
@@ -312,4 +316,16 @@ mod tests {
     fn accepts_an_explicit_no_auth_opt_out() {
         assert!(validate_auth(None, Some("1")).is_ok());
     }
+}
+
+/// `ZYVOR_AGENT_RECORDING_KEY`: 64 hex characters. A malformed value is an error, not a silent "off".
+fn recording_key_from_env() -> Result<Option<[u8; 32]>> {
+    let Some(v) = env_opt("ZYVOR_AGENT_RECORDING_KEY").filter(|s| !s.is_empty()) else {
+        return Ok(None);
+    };
+    let bytes = hex::decode(v.trim()).context("ZYVOR_AGENT_RECORDING_KEY must be hex")?;
+    let seed: [u8; 32] = bytes.try_into().map_err(|_| {
+        anyhow::anyhow!("ZYVOR_AGENT_RECORDING_KEY must be 32 bytes (64 hex characters)")
+    })?;
+    Ok(Some(seed))
 }

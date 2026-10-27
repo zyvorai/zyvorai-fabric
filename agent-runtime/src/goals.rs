@@ -998,6 +998,7 @@ pub(crate) mod tests {
             goal_retry_base_secs: 15,
             planner_agent: None,
             event_retention_days: None,
+            recording_key: None,
             idle_scan_interval_ms: 1000,
             warm_pool_reconcile_interval_ms: 2000,
             warm_pool_max_create_per_tick: 2,

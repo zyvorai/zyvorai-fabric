@@ -561,6 +561,8 @@ pub fn public_router(state: Arc<AppState>) -> Router {
         )
         .route("/v1/sessions/{id}/cockpit", get(session_cockpit))
         .route("/v1/sessions/{id}/report", get(session_report))
+        .route("/v1/sessions/{id}/recording", get(session_recording))
+        .route("/v1/recordings/verify", post(verify_recording))
         .route("/v1/export-tokens", post(mint_export_token))
         .route("/v1/vault/status", get(vault_status))
         .route("/v1/vault/unwrap-tokens", post(mint_unwrap_token))
@@ -2730,6 +2732,59 @@ async fn session_report(
         audit: &audit,
         receipts: &receipts,
     })))
+}
+
+/// `GET /v1/sessions/{id}/recording`: the signed, masked, replayable record of a session (docs/merion/design/session-recording.md).
+/// Off (404) unless `ZYVOR_AGENT_RECORDING_KEY` is set. Each export is journaled with counts only.
+async fn session_recording(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Value>> {
+    let Some(seed) = state.config.recording_key else {
+        return Err(ApiError::not_found("session recording is not enabled"));
+    };
+    let session = require_session(&state, id).await?;
+    let mut approvals = state.store.approvals_of_session(id).await;
+    approvals.sort_by_key(|a| a.created_at);
+    let audit = state
+        .store
+        .audit
+        .list(Some(id), usize::MAX)
+        .await
+        .map_err(ApiError::internal)?;
+    let events = state
+        .store
+        .events_after(id, 0)
+        .await
+        .map_err(ApiError::internal)?;
+    let bundle = crate::recording::build(&crate::recording::Inputs {
+        session: &session,
+        audit: &audit,
+        events: &events,
+        approvals: &approvals,
+    });
+    let steps = bundle["steps"].as_array().map_or(0, Vec::len);
+    let _ = state
+        .store
+        .audit
+        .append(
+            Some(id),
+            crate::audit::AuditPhase::Performed,
+            "merion.recording.export",
+            None,
+            json!({ "steps": steps }),
+        )
+        .await;
+    Ok(Json(crate::recording::sign(bundle, &seed)))
+}
+
+/// `POST /v1/recordings/verify`: check a signed recording's digest and signature. Says who signed it; whether to trust
+/// that signer is the caller's call.
+async fn verify_recording(Json(signed): Json<Value>) -> Json<Value> {
+    Json(match crate::recording::verify(&signed) {
+        Ok(signer) => json!({ "valid": true, "signer": signer }),
+        Err(why) => json!({ "valid": false, "reason": why }),
+    })
 }
 
 async fn session_cockpit(
@@ -5513,6 +5568,39 @@ mod tests {
         .unwrap_err();
         assert_eq!(err.status, StatusCode::CONFLICT);
         assert!(err.message.contains("no snapshot"), "{}", err.message);
+    }
+
+    #[tokio::test]
+    async fn the_recording_is_off_without_a_key_and_signed_masked_and_journaled_with_one() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let mut state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let off = session_recording(State(state.clone()), Path(session.id)).await;
+        assert!(off.is_err(), "no key, no recording");
+
+        Arc::get_mut(&mut state).unwrap().config.recording_key = Some([5u8; 32]);
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        let Json(signed) = session_recording(State(state.clone()), Path(session.id))
+            .await
+            .unwrap();
+        let Json(checked) = verify_recording(Json(signed.clone())).await;
+        assert_eq!(checked["valid"], true);
+        let steps = signed["bundle"]["steps"].as_array().unwrap();
+        assert!(steps.iter().any(|s| s["source"] == "approval"));
+        assert!(steps
+            .iter()
+            .all(|s| s.get("prompt").is_none() && s.get("data").is_none()));
+        let rows = state
+            .store
+            .audit
+            .list(Some(session.id), usize::MAX)
+            .await
+            .unwrap();
+        assert!(rows.iter().any(|r| r.action == "merion.recording.export"));
     }
 
     #[tokio::test]
