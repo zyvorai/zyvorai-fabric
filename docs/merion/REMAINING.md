@@ -117,6 +117,10 @@ sources, was decided and built; see the table above.)
 - **Session recording** has no console replay view yet; **on-behalf-of** has no RFC 8693 exchange or sender-constrained tokens; **run webhooks** send only
   `run.finished` and lose a queued event on restart. See each design page.
 
+- **Verified on Linux (2026-10-27):** the runtime's 604 unit tests pass on the `web` host (Linux 6.8, Rust 1.99) at the commit that added the README rows. Five of them read
+  files outside `agent-runtime/` and need `docs/` and `examples/` beside it. These are still tests against fakes and local stub servers: no real MCP server, identity
+  provider, webhook receiver or FluxVM cell was involved, and clippy and `tests/demos-ci.sh` were not run there.
+
 ## 6. Deliberately not doing
 
 Approvals inside the agent chat; memory inside a cell; autonomous planning without the person accepting the plan; a suggestion that runs anything by itself;
