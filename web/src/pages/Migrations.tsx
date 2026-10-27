@@ -255,7 +255,7 @@ export default function Migrations() {
           <div className="bg-[var(--zf-surface)] rounded-lg border border-[var(--zf-hairline)]">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-white">
+                <thead className="bg-[var(--zf-surface)]">
                   <tr>
                     <th className="text-left p-4 font-medium text-[var(--zf-ink)]">VM</th>
                     <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Target Host</th>

@@ -304,8 +304,8 @@ export default function EdgeDataplane() {
   if (loading) {
     return (
       <div className="p-8 text-center">
-        <Loader2 className="w-6 h-6 text-[#6e6e73] mx-auto mb-2 animate-spin" />
-        <p className="text-sm text-[#6e6e73]">Loading edge dataplane…</p>
+        <Loader2 className="w-6 h-6 text-[var(--zf-muted)] mx-auto mb-2 animate-spin" />
+        <p className="text-sm text-[var(--zf-muted)]">Loading edge dataplane…</p>
       </div>
     )
   }
@@ -354,26 +354,26 @@ export default function EdgeDataplane() {
         </p>
       )}
 
-      <div className="flex gap-1 border-b border-[#d2d2d7] overflow-x-auto">
+      <div className="flex gap-1 border-b border-[var(--zf-hairline)] overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
             className={`px-3 py-2 text-sm font-medium relative whitespace-nowrap ${
-              tab === t.id ? 'text-[#0071e3]' : 'text-[#6e6e73] hover:text-[#1d1d1f]'
+              tab === t.id ? 'text-[var(--zf-link)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >
             {t.label}
             {tab === t.id && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0071e3] rounded-full" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--zf-link)] rounded-full" />
             )}
           </button>
         ))}
       </div>
 
       {tab === 'health' && health && (
-        <div className="bg-white rounded-xl border border-[#d2d2d7] p-4 space-y-3">
+        <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] p-4 space-y-3">
           <div className="flex flex-wrap gap-2 text-xs">
             <span
               className={`px-2 py-1 rounded-full border ${
@@ -384,7 +384,7 @@ export default function EdgeDataplane() {
             >
               {health.ok ? 'ok' : 'check notes'}
             </span>
-            <span className="px-2 py-1 rounded-full bg-white border border-[#d2d2d7]">
+            <span className="px-2 py-1 rounded-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)]">
               mode={health.mode}
             </span>
           </div>
@@ -411,12 +411,12 @@ export default function EdgeDataplane() {
       {tab === 'services' && (
         <div className="space-y-4">
           {serviceHostStatus && (
-            <div className="bg-white rounded-xl border border-[#d2d2d7] p-4 text-sm space-y-1">
-              <p className="font-medium text-[#1d1d1f]">
+            <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] p-4 text-sm space-y-1">
+              <p className="font-medium text-[var(--zf-ink)]">
                 Service Fabric schema v{serviceHostStatus.schema_version}
                 {serviceHostStatus.xdp_acceleration ? ' · XDP acceleration on' : ''}
               </p>
-              <p className="text-[#6e6e73]">
+              <p className="text-[var(--zf-muted)]">
                 North-south interfaces:{' '}
                 {serviceHostStatus.north_south_interfaces.length > 0
                   ? serviceHostStatus.north_south_interfaces.join(', ')
@@ -427,7 +427,7 @@ export default function EdgeDataplane() {
                   <button
                     type="button"
                     disabled={busy}
-                    className="text-xs px-2 py-1 rounded border border-[#d2d2d7]"
+                    className="text-xs px-2 py-1 rounded border border-[var(--zf-hairline)]"
                     onClick={() => {
                       setBusy(true)
                       void reconcileDataplaneServicesHealth()
@@ -444,7 +444,7 @@ export default function EdgeDataplane() {
                   <button
                     type="button"
                     disabled={busy}
-                    className="text-xs px-2 py-1 rounded border border-[#d2d2d7]"
+                    className="text-xs px-2 py-1 rounded border border-[var(--zf-hairline)]"
                     onClick={() => {
                       setBusy(true)
                       void gcDataplaneServicesConntrack()
@@ -458,12 +458,12 @@ export default function EdgeDataplane() {
                 </div>
               )}
               {serviceHealth != null && (
-                <pre className="mt-2 max-h-40 overflow-auto text-xs font-mono text-[#6e6e73] bg-[#f5f5f7] p-2 rounded">
+                <pre className="mt-2 max-h-40 overflow-auto text-xs font-mono text-[var(--zf-muted)] bg-[var(--zf-canvas)] p-2 rounded">
                   {JSON.stringify(serviceHealth, null, 2)}
                 </pre>
               )}
               {serviceAds != null && (
-                <pre className="mt-2 max-h-40 overflow-auto text-xs font-mono text-[#6e6e73] bg-[#f5f5f7] p-2 rounded">
+                <pre className="mt-2 max-h-40 overflow-auto text-xs font-mono text-[var(--zf-muted)] bg-[var(--zf-canvas)] p-2 rounded">
                   {JSON.stringify(serviceAds, null, 2)}
                 </pre>
               )}
@@ -474,14 +474,14 @@ export default function EdgeDataplane() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className="text-xs px-2 py-1 rounded border border-[#d2d2d7]"
+                  className="text-xs px-2 py-1 rounded border border-[var(--zf-hairline)]"
                   onClick={() => setServiceJson(SAMPLE_SERVICE)}
                 >
                   East-west sample
                 </button>
                 <button
                   type="button"
-                  className="text-xs px-2 py-1 rounded border border-[#d2d2d7]"
+                  className="text-xs px-2 py-1 rounded border border-[var(--zf-hairline)]"
                   onClick={() => setServiceJson(SAMPLE_SERVICE_NS)}
                 >
                   North-south + drain sample
@@ -498,11 +498,11 @@ export default function EdgeDataplane() {
                 type="button"
                 disabled={busy}
                 onClick={() => void applyService()}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[#0071e3] text-white"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[var(--zf-link)] text-white"
               >
                 <Plus className="w-3.5 h-3.5" /> Apply Maglev service
               </button>
-              <p className="text-xs text-[#6e6e73]">
+              <p className="text-xs text-[var(--zf-muted)]">
                 Service Fabric v5: conntrack affinity, ready/draining/unhealthy backends,
                 optional TCP health checks, VIP advertise intent, EDT pacing,
                 FluxScope sampling, opt-in host-routing, and HA delta journal replication
@@ -511,9 +511,9 @@ export default function EdgeDataplane() {
               </p>
             </div>
           )}
-          <div className="bg-white rounded-xl border border-[#d2d2d7] overflow-hidden">
+          <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-[#f5f5f7] text-[#6e6e73] text-left">
+              <thead className="bg-[var(--zf-canvas)] text-[var(--zf-muted)] text-left">
                 <tr>
                   <th className="px-3 py-2 font-medium">Name</th>
                   <th className="px-3 py-2 font-medium">VIP</th>
@@ -528,14 +528,14 @@ export default function EdgeDataplane() {
               <tbody>
                 {services.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-3 py-4 text-[#6e6e73]">
+                    <td colSpan={8} className="px-3 py-4 text-[var(--zf-muted)]">
                       No Maglev services yet.
                     </td>
                   </tr>
                 )}
                 {services.map((s) => (
-                  <tr key={s.name} className="border-t border-[#d2d2d7]">
-                    <td className="px-3 py-2 font-medium text-[#1d1d1f]">{s.name}</td>
+                  <tr key={s.name} className="border-t border-[var(--zf-hairline)]">
+                    <td className="px-3 py-2 font-medium text-[var(--zf-ink)]">{s.name}</td>
                     <td className="px-3 py-2 font-mono text-xs">{s.vip}</td>
                     <td className="px-3 py-2 font-mono text-xs">{s.port}</td>
                     <td className="px-3 py-2 uppercase text-xs">{s.mode ?? 'nat'}</td>
@@ -571,19 +571,19 @@ export default function EdgeDataplane() {
       {tab === 'groups' && (
         <div className="space-y-4">
           {canWrite && (
-            <div className="bg-white rounded-xl border border-[#d2d2d7] p-4 flex flex-wrap gap-2 items-end">
+            <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] p-4 flex flex-wrap gap-2 items-end">
               <div>
-                <label className="block text-xs text-[#6e6e73] mb-1">Name</label>
+                <label className="block text-xs text-[var(--zf-muted)] mb-1">Name</label>
                 <input
-                  className="bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm"
+                  className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-xs text-[#6e6e73] mb-1">Label</label>
+                <label className="block text-xs text-[var(--zf-muted)] mb-1">Label</label>
                 <input
-                  className="bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm"
+                  className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm"
                   value={groupLabel}
                   onChange={(e) => setGroupLabel(e.target.value)}
                   placeholder="app=web"
@@ -593,15 +593,15 @@ export default function EdgeDataplane() {
                 type="button"
                 disabled={busy}
                 onClick={() => void createGroup()}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[#0071e3] text-white"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[var(--zf-link)] text-white"
               >
                 <Plus className="w-3.5 h-3.5" /> Save group
               </button>
             </div>
           )}
-          <div className="bg-white rounded-xl border border-[#d2d2d7] overflow-hidden">
+          <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-[#f5f5f7] text-[#6e6e73] text-left">
+              <thead className="bg-[var(--zf-canvas)] text-[var(--zf-muted)] text-left">
                 <tr>
                   <th className="px-3 py-2 font-medium">Name</th>
                   <th className="px-3 py-2 font-medium">Identity</th>
@@ -613,14 +613,14 @@ export default function EdgeDataplane() {
               <tbody>
                 {groups.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-3 py-4 text-[#6e6e73]">
+                    <td colSpan={5} className="px-3 py-4 text-[var(--zf-muted)]">
                       No security groups yet.
                     </td>
                   </tr>
                 )}
                 {groups.map((g) => (
-                  <tr key={g.name} className="border-t border-[#d2d2d7]">
-                    <td className="px-3 py-2 font-medium text-[#1d1d1f]">{g.name}</td>
+                  <tr key={g.name} className="border-t border-[var(--zf-hairline)]">
+                    <td className="px-3 py-2 font-medium text-[var(--zf-ink)]">{g.name}</td>
                     <td className="px-3 py-2 font-mono text-xs">{g.identity}</td>
                     <td className="px-3 py-2 font-mono text-xs">{g.labels.join(', ') || '—'}</td>
                     <td className="px-3 py-2">{g.priority}</td>
@@ -659,23 +659,23 @@ export default function EdgeDataplane() {
                 type="button"
                 disabled={busy}
                 onClick={() => void applyCnp()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[#0071e3] text-white"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-[var(--zf-link)] text-white"
               >
                 Apply CNP
               </button>
             </div>
           )}
-          <div className="bg-white rounded-xl border border-[#d2d2d7] p-4 space-y-2">
-            {cnps.length === 0 && <p className="text-sm text-[#6e6e73]">No CNP documents.</p>}
+          <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] p-4 space-y-2">
+            {cnps.length === 0 && <p className="text-sm text-[var(--zf-muted)]">No CNP documents.</p>}
             {cnps.map((raw, i) => {
               const doc = raw as { metadata?: { name?: string } }
               const name = doc.metadata?.name ?? `cnp-${i}`
               return (
                 <div
                   key={name}
-                  className="flex items-center justify-between gap-2 border-b border-[#d2d2d7] last:border-0 py-2"
+                  className="flex items-center justify-between gap-2 border-b border-[var(--zf-hairline)] last:border-0 py-2"
                 >
-                  <span className="text-sm font-medium text-[#1d1d1f]">{name}</span>
+                  <span className="text-sm font-medium text-[var(--zf-ink)]">{name}</span>
                   {canWrite && (
                     <button
                       type="button"
@@ -695,14 +695,14 @@ export default function EdgeDataplane() {
 
       {tab === 'endpoints' && (
         <div className="space-y-2">
-          <p className="text-sm text-[#6e6e73]">
+          <p className="text-sm text-[var(--zf-muted)]">
             FluxVM CiliumEndpoint-*shaped* views. When dataplane mode is{' '}
             <code className="text-xs">cilium</code>, identity may come from the Cilium agent
             (`identity_source=cilium-agent`); otherwise FluxVM hash. Never writes Cilium private maps.
           </p>
-          <div className="bg-white rounded-xl border border-[#d2d2d7] overflow-hidden">
+          <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-[#f5f5f7] text-[#6e6e73] text-left">
+              <thead className="bg-[var(--zf-canvas)] text-[var(--zf-muted)] text-left">
                 <tr>
                   <th className="px-3 py-2 font-medium">Identity</th>
                   <th className="px-3 py-2 font-medium">Source</th>
@@ -715,7 +715,7 @@ export default function EdgeDataplane() {
               <tbody>
                 {endpoints.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-3 py-4 text-[#6e6e73]">
+                    <td colSpan={6} className="px-3 py-4 text-[var(--zf-muted)]">
                       No VM endpoints yet. Attach a guest CIDR dataplane policy on a running VM.
                     </td>
                   </tr>
@@ -726,14 +726,14 @@ export default function EdgeDataplane() {
                     ep.networking?.addressing?.find((a) => a.ipv4)?.ipv4 ?? '—'
                   const src = ep.identity_source ?? 'fluxvm-hash'
                   return (
-                    <tr key={ep.uuid} className="border-t border-[#d2d2d7]">
+                    <tr key={ep.uuid} className="border-t border-[var(--zf-hairline)]">
                       <td className="px-3 py-2 font-mono text-xs">{ep.identity}</td>
                       <td className="px-3 py-2">
                         <span
                           className={`px-2 py-0.5 rounded-full text-xs border ${
                             src === 'cilium-agent'
                               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : 'bg-[#f5f5f7] text-[#6e6e73] border-[#d2d2d7]'
+                              : 'bg-[var(--zf-canvas)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'
                           }`}
                         >
                           {src}
@@ -755,9 +755,9 @@ export default function EdgeDataplane() {
       )}
 
       {tab === 'identities' && (
-        <div className="bg-white rounded-xl border border-[#d2d2d7] overflow-hidden">
+        <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-[#f5f5f7] text-[#6e6e73] text-left">
+            <thead className="bg-[var(--zf-canvas)] text-[var(--zf-muted)] text-left">
               <tr>
                 <th className="px-3 py-2 font-medium">ID</th>
                 <th className="px-3 py-2 font-medium">Name</th>
@@ -767,7 +767,7 @@ export default function EdgeDataplane() {
             </thead>
             <tbody>
               {identities.map((id) => (
-                <tr key={`${id.id}-${id.name}`} className="border-t border-[#d2d2d7]">
+                <tr key={`${id.id}-${id.name}`} className="border-t border-[var(--zf-hairline)]">
                   <td className="px-3 py-2 font-mono text-xs">{id.id}</td>
                   <td className="px-3 py-2">{id.name}</td>
                   <td className="px-3 py-2">{id.reserved ? 'yes' : 'no'}</td>
@@ -790,7 +790,7 @@ export default function EdgeDataplane() {
 
       {tab === 'flows' && (
         <div className="space-y-2">
-          <p className="text-sm text-[#6e6e73]">
+          <p className="text-sm text-[var(--zf-muted)]">
             Hubble-lite packet path from FluxVM (guest → tap → tc/eBPF → uplink → peer). Not Cilium Hubble gRPC.
             Use <strong>Colorful</strong> or <strong>Normal</strong>. External Hubble remains the Open Hubble link when configured.
           </p>
@@ -806,9 +806,9 @@ export default function EdgeDataplane() {
       )}
 
       {tab === 'ipcache' && (
-        <div className="bg-white rounded-xl border border-[#d2d2d7] overflow-hidden">
+        <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-[#f5f5f7] text-[#6e6e73] text-left">
+            <thead className="bg-[var(--zf-canvas)] text-[var(--zf-muted)] text-left">
               <tr>
                 <th className="px-3 py-2 font-medium">IP</th>
                 <th className="px-3 py-2 font-medium">Identity</th>
@@ -818,13 +818,13 @@ export default function EdgeDataplane() {
             <tbody>
               {ipcache.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-3 py-4 text-[#6e6e73]">
+                  <td colSpan={3} className="px-3 py-4 text-[var(--zf-muted)]">
                     No ipcache entries.
                   </td>
                 </tr>
               )}
               {ipcache.map((e) => (
-                <tr key={e.ip} className="border-t border-[#d2d2d7]">
+                <tr key={e.ip} className="border-t border-[var(--zf-hairline)]">
                   <td className="px-3 py-2 font-mono text-xs">{e.ip}</td>
                   <td className="px-3 py-2 font-mono text-xs">{e.identity}</td>
                   <td className="px-3 py-2 font-mono text-xs">{e.vm_id}</td>
@@ -841,8 +841,8 @@ export default function EdgeDataplane() {
 function Cell({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-[#6e6e73]">{label}</p>
-      <p className="font-medium text-[#1d1d1f]">{value}</p>
+      <p className="text-xs text-[var(--zf-muted)]">{label}</p>
+      <p className="font-medium text-[var(--zf-ink)]">{value}</p>
     </div>
   )
 }

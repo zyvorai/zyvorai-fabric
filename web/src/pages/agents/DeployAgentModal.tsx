@@ -249,7 +249,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
             type="button"
             onClick={addCredentialRow}
             disabled={submitting}
-            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Add credential
@@ -285,7 +285,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
             type="button"
             onClick={addEgressHostRow}
             disabled={submitting}
-            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Add egress host

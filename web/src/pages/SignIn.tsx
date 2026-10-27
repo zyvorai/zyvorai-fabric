@@ -273,9 +273,9 @@ export default function SignIn() {
           <span className="inline-flex items-center gap-2">
             <ZyvorLockup
               markClassName="w-9 h-9"
-              wordmarkClassName="text-[1.35rem] text-[#1d1d1f]"
+              wordmarkClassName="text-[1.35rem] text-[var(--zf-ink)]"
             />
-            <span className="text-[1.15rem] font-medium text-[#6e6e73] tracking-[-0.02em] leading-none">
+            <span className="text-[1.15rem] font-medium text-[var(--zf-muted)] tracking-[-0.02em] leading-none">
               Fabric
             </span>
           </span>

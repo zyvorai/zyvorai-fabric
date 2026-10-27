@@ -177,7 +177,7 @@ export default function AccessControl() {
             <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Role</label>
               <div className="flex gap-2">
                 {['admin', 'operator', 'viewer'].map(r => (
-                  <button key={r} onClick={() => setNewRole(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors capitalize ${newRole === r ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'text-[var(--zf-muted)] bg-white border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>{r}</button>
+                  <button key={r} onClick={() => setNewRole(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors capitalize ${newRole === r ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'text-[var(--zf-muted)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>{r}</button>
                 ))}
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function AccessControl() {
                   <td className="px-5 py-3"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${roleBadge(user.role)}`}>{user.role}</span></td>
                   <td className="px-5 py-3">
                     <button onClick={() => handleToggle(user.id, user.enabled)} className="flex items-center gap-1.5" aria-label={`${user.enabled ? 'Disable' : 'Enable'} user ${user.username}`}>
-                      <div className={`relative w-8 h-4 rounded-full transition-colors ${user.enabled ? 'bg-emerald-500' : 'bg-[var(--zf-hairline)]'}`} role="switch" aria-checked={user.enabled}><div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform ${user.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} /></div>
+                      <div className={`relative w-8 h-4 rounded-full transition-colors ${user.enabled ? 'bg-emerald-500' : 'bg-[var(--zf-hairline)]'}`} role="switch" aria-checked={user.enabled}><div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-[var(--zf-surface)] transition-transform ${user.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} /></div>
                       <span className={`text-xs ${user.enabled ? 'text-emerald-700' : 'text-[var(--zf-muted)]'}`}>{user.enabled ? 'Active' : 'Disabled'}</span>
                     </button>
                   </td>

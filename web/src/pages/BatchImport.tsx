@@ -104,7 +104,7 @@ export default function BatchImport() {
       {!previewing ? (
         <div className="space-y-4">
           <div onDragOver={(e) => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={handleFileDrop} onClick={() => fileRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${dragOver ? 'border-[var(--zf-ink)] bg-black/[0.04]' : 'border-[var(--zf-hairline)] hover:border-[var(--zf-muted)] bg-white'}`}>
+            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${dragOver ? 'border-[var(--zf-ink)] bg-black/[0.04]' : 'border-[var(--zf-hairline)] hover:border-[var(--zf-muted)] bg-[var(--zf-surface)]'}`}>
             <Upload className="w-8 h-8 text-[var(--zf-muted)] mx-auto mb-3" />
             <p className="text-sm text-[var(--zf-muted)]">Drag & drop a <span className="text-[var(--zf-ink)] font-medium">.yaml</span> or <span className="text-[var(--zf-ink)] font-medium">.json</span> file, or click to browse</p>
             <input ref={fileRef} type="file" accept=".yaml,.yml,.json" className="hidden" onChange={handleFileSelect} />

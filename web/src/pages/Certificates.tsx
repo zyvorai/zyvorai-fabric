@@ -177,7 +177,7 @@ export default function Certificates() {
               <h3 className="text-lg font-semibold mb-3 text-amber-800">Expiring Within 30 Days</h3>
               <div className="space-y-2">
                 {health.expiring_within_30_days.map(c => (
-                  <div key={c.cert_id} className="flex items-center justify-between p-2 bg-white rounded">
+                  <div key={c.cert_id} className="flex items-center justify-between p-2 bg-[var(--zf-surface)] rounded">
                     <span className="font-mono text-sm">{c.subject}</span>
                     <span className="text-sm text-amber-700">{c.days_remaining} days left</span>
                   </div>
@@ -215,7 +215,7 @@ export default function Certificates() {
                 ) : cas.map(ca => {
                   const days = daysUntil(ca.valid_to)
                   return (
-                    <tr key={ca.id} className="hover:bg-white">
+                    <tr key={ca.id} className="hover:bg-[var(--zf-surface)]">
                       <td className="p-4 font-medium">{ca.name}</td>
                       <td className="p-4 text-sm">{ca.ca_type}</td>
                       <td className="p-4 text-sm font-mono text-[var(--zf-muted)]">{ca.subject}</td>
@@ -264,7 +264,7 @@ export default function Certificates() {
                 ) : certs.map(cert => {
                   const days = daysUntil(cert.valid_to)
                   return (
-                    <tr key={cert.id} className="hover:bg-white">
+                    <tr key={cert.id} className="hover:bg-[var(--zf-surface)]">
                       <td className="p-4 font-mono text-sm">{cert.subject}</td>
                       <td className="p-4 text-sm">{cert.cert_type}</td>
                       <td className="p-4 text-xs font-mono text-[var(--zf-muted)]">{cert.serial_number}</td>
@@ -315,7 +315,7 @@ export default function Certificates() {
               {csrs.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No certificate requests in queue.</td></tr>
               ) : csrs.map(csr => (
-                <tr key={csr.id} className="hover:bg-white">
+                <tr key={csr.id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-mono text-sm">{csr.subject}</td>
                   <td className="p-4 text-sm">{csr.requestor}</td>
                   <td className="p-4 text-sm">{csr.cert_type}</td>
@@ -357,7 +357,7 @@ export default function Certificates() {
               {attestations.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No host attestation data.</td></tr>
               ) : attestations.map(att => (
-                <tr key={att.id} className="hover:bg-white">
+                <tr key={att.id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{att.hostname}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-xs font-medium border ${att.tpm_present ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200'}`}>
@@ -408,7 +408,7 @@ export default function Certificates() {
                 ) : baselines.map(bl => {
                   const checkPct = bl.vm_count > 0 ? (bl.compliant_count / bl.vm_count * 100) : 0
                   return (
-                    <tr key={bl.id} className="hover:bg-white">
+                    <tr key={bl.id} className="hover:bg-[var(--zf-surface)]">
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <Shield className="w-4 h-4 text-[var(--zf-link)]" />

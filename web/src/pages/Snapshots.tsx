@@ -88,7 +88,7 @@ export default function Snapshots() {
               type="text"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-4 py-2"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"
               placeholder="Enter VM name"
             />
           </div>
@@ -138,7 +138,7 @@ export default function Snapshots() {
                 </tr>
               ) : (
                 snapshots.map((snap) => (
-                  <tr key={snap.id} className="border-t border-[var(--zf-hairline)] hover:bg-white">
+                  <tr key={snap.id} className="border-t border-[var(--zf-hairline)] hover:bg-[var(--zf-surface)]">
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <Camera className="w-4 h-4 text-[var(--zf-link)]" />
@@ -247,7 +247,7 @@ function CreateSnapshotDialog({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-4 py-2"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"
               placeholder="my-snapshot"
               required
               disabled={submitting}
@@ -259,7 +259,7 @@ function CreateSnapshotDialog({
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-4 py-2"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"
               placeholder="Optional description"
               disabled={submitting}
             />
@@ -269,7 +269,7 @@ function CreateSnapshotDialog({
             <select
               value={snapshotType}
               onChange={(e) => setSnapshotType(e.target.value as 'Disk' | 'Full')}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-4 py-2"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"
               disabled={submitting}
             >
               <option value="Disk">Disk Only</option>

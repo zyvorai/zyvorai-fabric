@@ -170,7 +170,7 @@ export default function FaultTolerance() {
               {ftVMs.length === 0 ? (
                 <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No FT-protected VMs.</td></tr>
               ) : ftVMs.map(vm => (
-                <tr key={vm.vm_name} className="hover:bg-white">
+                <tr key={vm.vm_name} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{vm.vm_name}</td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{vm.secondary_host_id || 'Not assigned'}</td>
                   <td className="p-4">

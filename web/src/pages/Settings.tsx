@@ -170,7 +170,7 @@ export default function Settings() {
                 type="text"
                 value={settings.daemon_name}
                 onChange={(e) => update('daemon_name', e.target.value)}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
               />
             </div>
             <div>
@@ -178,7 +178,7 @@ export default function Settings() {
               <select
                 value={settings.log_level}
                 onChange={(e) => update('log_level', e.target.value)}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
               >
                 <option value="debug">Debug</option>
                 <option value="info">Info</option>
@@ -195,7 +195,7 @@ export default function Settings() {
                 value={settings.refresh_interval}
                 onChange={(e) => update('refresh_interval', parseInt(e.target.value) || 5)}
                 disabled={!settings.auto_refresh}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)] disabled:opacity-50"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)] disabled:opacity-50"
               />
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function Settings() {
               id="autoRefresh"
               checked={settings.auto_refresh}
               onChange={(e) => update('auto_refresh', e.target.checked)}
-              className="w-4 h-4 text-[var(--zf-ink)] bg-white border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
+              className="w-4 h-4 text-[var(--zf-ink)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
             />
             <label htmlFor="autoRefresh" className="text-sm text-[var(--zf-ink)]">Enable auto-refresh</label>
           </div>
@@ -228,7 +228,7 @@ export default function Settings() {
                 type="text"
                 value={settings.default_bridge}
                 onChange={(e) => update('default_bridge', e.target.value)}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
               />
             </div>
             <div>
@@ -238,7 +238,7 @@ export default function Settings() {
                 value={settings.dns_servers}
                 onChange={(e) => update('dns_servers', e.target.value)}
                 placeholder="Comma-separated"
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
               />
             </div>
           </div>
@@ -248,7 +248,7 @@ export default function Settings() {
               id="enableIPv6"
               checked={settings.enable_ipv6}
               onChange={(e) => update('enable_ipv6', e.target.checked)}
-              className="w-4 h-4 text-[var(--zf-ink)] bg-white border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
+              className="w-4 h-4 text-[var(--zf-ink)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
             />
             <label htmlFor="enableIPv6" className="text-sm text-[var(--zf-ink)]">Enable IPv6 networking</label>
           </div>
@@ -270,7 +270,7 @@ export default function Settings() {
               <select
                 value={settings.default_pool}
                 onChange={(e) => update('default_pool', e.target.value)}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
               >
                 {poolNames.length > 0 ? (
                   poolNames.map(name => (
@@ -286,7 +286,7 @@ export default function Settings() {
               <select
                 value={settings.default_format}
                 onChange={(e) => update('default_format', e.target.value)}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
               >
                 <option value="qcow2">QCOW2</option>
                 <option value="raw">RAW</option>
@@ -300,7 +300,7 @@ export default function Settings() {
               type="number"
               value={settings.snapshot_retention}
               onChange={(e) => update('snapshot_retention', parseInt(e.target.value) || 30)}
-              className="w-full md:w-1/2 bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+              className="w-full md:w-1/2 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -309,7 +309,7 @@ export default function Settings() {
               id="enableCompression"
               checked={settings.enable_compression}
               onChange={(e) => update('enable_compression', e.target.checked)}
-              className="w-4 h-4 text-[var(--zf-ink)] bg-white border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
+              className="w-4 h-4 text-[var(--zf-ink)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
             />
             <label htmlFor="enableCompression" className="text-sm text-[var(--zf-ink)]">Enable disk compression for QCOW2</label>
           </div>
@@ -331,7 +331,7 @@ export default function Settings() {
               type="number"
               value={settings.session_timeout}
               onChange={(e) => update('session_timeout', parseInt(e.target.value) || 3600)}
-              className="w-full md:w-1/2 bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+              className="w-full md:w-1/2 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
             />
           </div>
           <div className="space-y-2">
@@ -346,7 +346,7 @@ export default function Settings() {
                   id={id}
                   checked={settings[field] as boolean}
                   onChange={(e) => update(field, e.target.checked)}
-                  className="w-4 h-4 text-[var(--zf-ink)] bg-white border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
+                  className="w-4 h-4 text-[var(--zf-ink)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
                 />
                 <label htmlFor={id} className="text-sm text-[var(--zf-ink)]">{label}</label>
               </div>
@@ -371,7 +371,7 @@ export default function Settings() {
               value={settings.webhook_url}
               onChange={(e) => update('webhook_url', e.target.value)}
               placeholder="https://hooks.slack.com/..."
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-ink)]"
             />
           </div>
           <div className="space-y-2">
@@ -381,7 +381,7 @@ export default function Settings() {
                 id="emailNotifications"
                 checked={settings.email_notifications}
                 onChange={(e) => update('email_notifications', e.target.checked)}
-                className="w-4 h-4 text-[var(--zf-ink)] bg-white border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
+                className="w-4 h-4 text-[var(--zf-ink)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
               />
               <label htmlFor="emailNotifications" className="text-sm text-[var(--zf-ink)]">Enable email notifications</label>
             </div>
@@ -397,7 +397,7 @@ export default function Settings() {
                     id={id}
                     checked={settings[field] as boolean}
                     onChange={(e) => update(field, e.target.checked)}
-                    className="w-4 h-4 text-[var(--zf-ink)] bg-white border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
+                    className="w-4 h-4 text-[var(--zf-ink)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] rounded focus:ring-[var(--zf-ink)]"
                   />
                   <label htmlFor={id}>{label}</label>
                 </div>

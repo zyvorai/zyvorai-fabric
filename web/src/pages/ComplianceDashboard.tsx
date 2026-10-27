@@ -159,7 +159,7 @@ export default function ComplianceDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
         <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] p-6 flex flex-col items-center justify-center">
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 ${scoreBorder(summary.score)} bg-white`}>
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 ${scoreBorder(summary.score)} bg-[var(--zf-surface)]`}>
             <span className={`text-3xl font-bold ${scoreColor(summary.score)}`}>{summary.score}</span>
           </div>
           <span className="text-xs text-[var(--zf-muted)] mt-2">Compliance Score</span>

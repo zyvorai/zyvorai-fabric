@@ -257,7 +257,7 @@ export default function Backups() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">VM</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">Type</th>
@@ -277,7 +277,7 @@ export default function Backups() {
                   </tr>
                 )}
                 {filteredBackups.map((backup) => (
-                  <tr key={backup.id} className="hover:bg-white">
+                  <tr key={backup.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="px-4 py-3 text-sm font-medium">{backup.vm_name}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-1 rounded text-xs font-medium border text-[var(--zf-muted)] bg-[var(--zf-canvas)] border-[var(--zf-hairline)]">

@@ -143,7 +143,7 @@ export default function Zones() {
                 ) : zones.length === 0 ? (
                   <tr><td colSpan={5} className="p-8 text-center text-[var(--zf-muted)]">No availability zones.</td></tr>
                 ) : zones.map(z => (
-                  <tr key={z.id} className="hover:bg-white">
+                  <tr key={z.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4">
                       <div className="font-medium">{z.name}</div>
                       {z.description && <div className="text-xs text-[var(--zf-muted)]">{z.description}</div>}
@@ -191,7 +191,7 @@ export default function Zones() {
                 ) : spots.length === 0 ? (
                   <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No spot instances.</td></tr>
                 ) : spots.map(s => (
-                  <tr key={s.id} className="hover:bg-white">
+                  <tr key={s.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4 font-medium">{s.vm_name}</td>
                     <td className="p-4 text-sm font-mono">${s.max_price_per_hour.toFixed(2)}</td>
                     <td className="p-4 text-sm capitalize">{s.priority}</td>
@@ -269,15 +269,15 @@ function CreateZoneModal({ onClose, onCreated }: { onClose: () => void; onCreate
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Name</label>
-            <input value={name} onChange={e => setName(e.target.value)} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="us-east-1a" />
+            <input value={name} onChange={e => setName(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="us-east-1a" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
-            <input value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+            <input value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Region</label>
-            <input value={region} onChange={e => setRegion(e.target.value)} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="default" />
+            <input value={region} onChange={e => setRegion(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="default" />
           </div>
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="zf-btn zf-btn-ghost flex-1">Cancel</button>
@@ -328,16 +328,16 @@ function CreateSpotModal({ onClose, onCreated, zones }: { onClose: () => void; o
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">VM Name</label>
-            <input value={vmName} onChange={e => setVmName(e.target.value)} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="my-vm" />
+            <input value={vmName} onChange={e => setVmName(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="my-vm" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1">Max Price/hr ($)</label>
-              <input type="number" min={0.01} step={0.01} value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+              <input type="number" min={0.01} step={0.01} value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Priority</label>
-              <select value={priority} onChange={e => setPriority(e.target.value as 'low' | 'regular')} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+              <select value={priority} onChange={e => setPriority(e.target.value as 'low' | 'regular')} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
                 <option value="low">Low</option>
                 <option value="regular">Regular</option>
               </select>
@@ -346,14 +346,14 @@ function CreateSpotModal({ onClose, onCreated, zones }: { onClose: () => void; o
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1">Zone (optional)</label>
-              <select value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+              <select value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
                 <option value="">Any</option>
                 {zones.map(z => <option key={z.id} value={z.id}>{z.name}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Eviction Policy</label>
-              <select value={evictionPolicy} onChange={e => setEvictionPolicy(e.target.value as 'stop' | 'delete' | 'deallocate')} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+              <select value={evictionPolicy} onChange={e => setEvictionPolicy(e.target.value as 'stop' | 'delete' | 'deallocate')} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
                 <option value="stop">Stop</option>
                 <option value="deallocate">Deallocate</option>
                 <option value="delete">Delete</option>

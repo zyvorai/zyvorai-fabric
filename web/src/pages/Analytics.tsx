@@ -182,7 +182,7 @@ export default function Analytics() {
             <div className="mb-2">
               <p className="text-2xl font-bold">{utilization.cpu_utilization.toFixed(1)}%</p>
             </div>
-            <div className="h-2 bg-white rounded-full overflow-hidden">
+            <div className="h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${getUtilizationColor(utilization.cpu_utilization)}`}
                 style={{ width: `${utilization.cpu_utilization}%` }}
@@ -198,7 +198,7 @@ export default function Analytics() {
             <div className="mb-2">
               <p className="text-2xl font-bold">{utilization.memory_utilization.toFixed(1)}%</p>
             </div>
-            <div className="h-2 bg-white rounded-full overflow-hidden">
+            <div className="h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${getUtilizationColor(utilization.memory_utilization)}`}
                 style={{ width: `${utilization.memory_utilization}%` }}
@@ -214,7 +214,7 @@ export default function Analytics() {
             <div className="mb-2">
               <p className="text-2xl font-bold">{utilization.disk_utilization.toFixed(1)}%</p>
             </div>
-            <div className="h-2 bg-white rounded-full overflow-hidden">
+            <div className="h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${getUtilizationColor(utilization.disk_utilization)}`}
                 style={{ width: `${utilization.disk_utilization}%` }}
@@ -230,7 +230,7 @@ export default function Analytics() {
             <div className="mb-2">
               <p className="text-2xl font-bold">{utilization.network_utilization.toFixed(1)}%</p>
             </div>
-            <div className="h-2 bg-white rounded-full overflow-hidden">
+            <div className="h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${getUtilizationColor(utilization.network_utilization)}`}
                 style={{ width: `${utilization.network_utilization}%` }}
@@ -282,7 +282,7 @@ export default function Analytics() {
               <div key={idx} className="flex items-center justify-between">
                 <span className="text-sm font-medium">{vm.vm_name}</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-white rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[var(--zf-ink)]"
                       style={{ width: `${vm.value}%` }}
@@ -307,7 +307,7 @@ export default function Analytics() {
               <div key={idx} className="flex items-center justify-between">
                 <span className="text-sm font-medium">{vm.vm_name}</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-white rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[var(--zf-ink)]"
                       style={{ width: `${vm.value}%` }}
@@ -332,7 +332,7 @@ export default function Analytics() {
               <div key={idx} className="flex items-center justify-between">
                 <span className="text-sm font-medium">{vm.vm_name}</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-white rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[var(--zf-ink)]"
                       style={{ width: `${Math.min(vm.value, 100)}%` }}

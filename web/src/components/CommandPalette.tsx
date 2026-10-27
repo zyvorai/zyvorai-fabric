@@ -313,22 +313,22 @@ export default function CommandPalette({ onOpenHelp }: CommandPaletteProps) {
       onClick={close}
     >
       <div
-        className="bg-[#f5f5f7] rounded-xl shadow-2xl border border-[#d2d2d7] w-full max-w-xl max-h-[420px] overflow-hidden"
+        className="bg-[var(--zf-canvas)] rounded-xl shadow-2xl border border-[var(--zf-hairline)] w-full max-w-xl max-h-[420px] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#d2d2d7]">
-          <Search className="w-4 h-4 text-[#6e6e73] shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--zf-hairline)]">
+          <Search className="w-4 h-4 text-[var(--zf-muted)] shrink-0" />
           <input
             ref={inputRef}
             type="text"
             placeholder="Search commands, VMs, pages..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-sm text-[#1d1d1f] placeholder-[#6e6e73]"
+            className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--zf-ink)] placeholder-[var(--zf-muted)]"
             autoFocus
           />
-          <kbd className="px-1.5 py-0.5 bg-white border border-[#d2d2d7] rounded text-[10px] text-[#6e6e73] font-mono shrink-0">
+          <kbd className="px-1.5 py-0.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded text-[10px] text-[var(--zf-muted)] font-mono shrink-0">
             ESC
           </kbd>
         </div>
@@ -337,12 +337,12 @@ export default function CommandPalette({ onOpenHelp }: CommandPaletteProps) {
         <div ref={listRef} className="overflow-y-auto max-h-[320px] sidebar-scroll">
           {filteredCommands.length === 0 ? (
             <div className="px-4 py-8 text-center">
-              <p className="text-sm text-[#6e6e73]">No results for "{query}"</p>
+              <p className="text-sm text-[var(--zf-muted)]">No results for "{query}"</p>
             </div>
           ) : (
             Object.entries(groupedCommands).map(([category, cmds]) => (
               <div key={category}>
-                <div className="px-4 py-1.5 text-xs font-semibold text-[#6e6e73] uppercase tracking-wider sticky top-0 bg-white">
+                <div className="px-4 py-1.5 text-xs font-semibold text-[var(--zf-muted)] uppercase tracking-wider sticky top-0 bg-[var(--zf-surface)]">
                   {category}
                 </div>
                 {cmds.map((cmd) => {
@@ -356,21 +356,21 @@ export default function CommandPalette({ onOpenHelp }: CommandPaletteProps) {
                       onClick={() => execute(cmd)}
                       onMouseEnter={() => setSelectedIndex(currentIndex)}
                       className={`w-full flex items-center gap-3 px-4 py-2 text-left transition-colors ${
-                        isSelected ? 'bg-[#0066cc]/10 text-[#1d1d1f]' : 'text-[#6e6e73] hover:text-[#1d1d1f]'
+                        isSelected ? 'bg-[var(--zf-link)]/10 text-[var(--zf-ink)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                       }`}
                     >
                       {cmd.icon && (
-                        <span className={`shrink-0 ${isSelected ? 'text-[#0066cc]' : 'text-[#6e6e73]'}`}>
+                        <span className={`shrink-0 ${isSelected ? 'text-[var(--zf-link)]' : 'text-[var(--zf-muted)]'}`}>
                           {cmd.icon}
                         </span>
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">{cmd.label}</div>
                         {cmd.description && (
-                          <div className="text-xs text-[#6e6e73] truncate">{cmd.description}</div>
+                          <div className="text-xs text-[var(--zf-muted)] truncate">{cmd.description}</div>
                         )}
                       </div>
-                      {isSelected && <ArrowRight className="w-3.5 h-3.5 text-[#0066cc] shrink-0" />}
+                      {isSelected && <ArrowRight className="w-3.5 h-3.5 text-[var(--zf-link)] shrink-0" />}
                     </button>
                   )
                 })}
@@ -380,13 +380,13 @@ export default function CommandPalette({ onOpenHelp }: CommandPaletteProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-[#d2d2d7] text-xs text-[#6e6e73]">
+        <div className="flex items-center gap-4 px-4 py-2 border-t border-[var(--zf-hairline)] text-xs text-[var(--zf-muted)]">
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-white border border-[#d2d2d7] rounded font-mono">↑↓</kbd>
+            <kbd className="px-1 py-0.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded font-mono">↑↓</kbd>
             navigate
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-white border border-[#d2d2d7] rounded font-mono">↵</kbd>
+            <kbd className="px-1 py-0.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded font-mono">↵</kbd>
             select
           </span>
           <span className="ml-auto">{filteredCommands.length} results</span>

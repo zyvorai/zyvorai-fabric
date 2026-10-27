@@ -148,7 +148,7 @@ export default function Webhooks() {
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
               placeholder="https://hooks.example.com/webhook"
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--zf-link)]/30 focus:border-[var(--zf-link)]"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] focus:outline-none focus:ring-2 focus:ring-[var(--zf-link)]/30 focus:border-[var(--zf-link)]"
             />
           </div>
 
@@ -162,7 +162,7 @@ export default function Webhooks() {
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors capitalize ${
                     newType === t
                       ? 'bg-[var(--zf-ink)] text-white border-[var(--zf-ink)]'
-                      : 'text-[var(--zf-muted)] bg-white border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)]'
+                      : 'text-[var(--zf-muted)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)]'
                   }`}
                 >
                   {t}
@@ -180,7 +180,7 @@ export default function Webhooks() {
                     type="checkbox"
                     checked={newEvents.includes(ev)}
                     onChange={() => toggleEvent(ev)}
-                    className="rounded border-[var(--zf-hairline)] bg-white text-[var(--zf-link)] focus:ring-[var(--zf-link)]/30"
+                    className="rounded border-[var(--zf-hairline)] bg-[var(--zf-surface)] text-[var(--zf-link)] focus:ring-[var(--zf-link)]/30"
                   />
                   <span className="text-sm text-[var(--zf-ink)] font-mono">{ev}</span>
                 </label>
@@ -236,7 +236,7 @@ export default function Webhooks() {
                       {wh.type || 'generic'}
                     </span>
                     {wh.events?.map((ev) => (
-                      <span key={ev} className="text-xs px-2 py-0.5 bg-white text-[var(--zf-muted)] rounded font-mono">{ev}</span>
+                      <span key={ev} className="text-xs px-2 py-0.5 bg-[var(--zf-surface)] text-[var(--zf-muted)] rounded font-mono">{ev}</span>
                     ))}
                     <div className="flex items-center gap-1 text-xs">
                       {wh.enabled ? (
@@ -258,7 +258,7 @@ export default function Webhooks() {
                   <button
                     onClick={() => handleTest(wh.id)}
                     disabled={testingId === wh.id}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-white hover:bg-black/[0.04] text-[var(--zf-ink)] rounded-lg transition-colors border border-[var(--zf-hairline)]"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-[var(--zf-surface)] hover:bg-black/[0.04] text-[var(--zf-ink)] rounded-lg transition-colors border border-[var(--zf-hairline)]"
                     title="Test webhook"
                   >
                     {testingId === wh.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}

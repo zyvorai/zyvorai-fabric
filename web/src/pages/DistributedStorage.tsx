@@ -189,7 +189,7 @@ export default function DistributedStorage() {
                       <span>Used: {formatGB(pool.used_capacity_gb)}</span>
                       <span>Total: {formatGB(pool.total_capacity_gb)}</span>
                     </div>
-                    <div className="w-full bg-white rounded-full h-3">
+                    <div className="w-full bg-[var(--zf-surface)] rounded-full h-3">
                       <div className={`h-3 rounded-full ${usedPct > 90 ? 'bg-[var(--zf-danger)]' : usedPct > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link)]'}`}
                         style={{ width: `${Math.min(usedPct, 100)}%` }} />
                     </div>
@@ -230,7 +230,7 @@ export default function DistributedStorage() {
                 {policies.length === 0 ? (
                   <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No storage policies.</td></tr>
                 ) : policies.map(pol => (
-                  <tr key={pol.id} className="hover:bg-white">
+                  <tr key={pol.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4">
                       <div className="font-medium">{pol.name}</div>
                       {pol.description && <div className="text-xs text-[var(--zf-muted)]">{pol.description}</div>}
@@ -289,13 +289,13 @@ export default function DistributedStorage() {
               {migrations.length === 0 ? (
                 <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No storage migrations.</td></tr>
               ) : migrations.map(mig => (
-                <tr key={mig.id} className="hover:bg-white">
+                <tr key={mig.id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{mig.vm_name}</td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{mig.source_pool_name}</td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{mig.target_pool_name}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-24 bg-white rounded-full h-2">
+                      <div className="w-24 bg-[var(--zf-surface)] rounded-full h-2">
                         <div className="h-2 rounded-full bg-[var(--zf-link)]" style={{ width: `${mig.progress_pct}%` }} />
                       </div>
                       <span className="text-xs text-[var(--zf-muted)]">{mig.progress_pct}%</span>
@@ -340,7 +340,7 @@ export default function DistributedStorage() {
                 {dsClusters.length === 0 ? (
                   <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No datastore clusters.</td></tr>
                 ) : dsClusters.map(cl => (
-                  <tr key={cl.id} className="hover:bg-white">
+                  <tr key={cl.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4 font-medium">{cl.name}</td>
                     <td className="p-4 text-sm">{cl.datastore_ids.length}</td>
                     <td className="p-4 text-sm">{cl.storage_drs_enabled ? 'Enabled' : 'Disabled'}</td>
@@ -551,7 +551,7 @@ function ModalForm({ title, fields, onClose, onSubmit }: {
               <label className="block text-sm font-medium mb-1">{f.label}</label>
               {f.type === 'select' ? (
                 <select value={values[f.name]} onChange={e => setValues(v => ({ ...v, [f.name]: e.target.value }))}
-                  className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+                  className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
                   {f.options?.map(o => <option key={o} value={o}>{f.optionLabels?.[o] ?? o}</option>)}
                 </select>
               ) : f.type === 'multiselect' ? (
@@ -566,7 +566,7 @@ function ModalForm({ title, fields, onClose, onSubmit }: {
                             ...v,
                             [f.name]: isSel ? selected.filter(x => x !== o) : [...selected, o],
                           }))}
-                          className={`px-2.5 py-1 rounded text-xs transition ${isSel ? 'bg-[var(--zf-link)] text-white' : 'bg-white text-[var(--zf-muted)] border border-[var(--zf-hairline)]'}`}>
+                          className={`px-2.5 py-1 rounded text-xs transition ${isSel ? 'bg-[var(--zf-link)] text-white' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border border-[var(--zf-hairline)]'}`}>
                           {f.optionLabels?.[o] ?? o}
                         </button>
                       )
@@ -578,7 +578,7 @@ function ModalForm({ title, fields, onClose, onSubmit }: {
               ) : (
                 <input type={f.type} value={values[f.name]}
                   onChange={e => setValues(v => ({ ...v, [f.name]: f.type === 'number' ? Number(e.target.value) : e.target.value }))}
-                  className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required={f.required} />
+                  className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required={f.required} />
               )}
             </div>
           ))}
@@ -626,12 +626,12 @@ function ComplianceCheckModal({ policy, pools, onClose }: {
           <div>
             <label className="block text-sm font-medium mb-1">VM Name</label>
             <input value={vmName} onChange={e => setVmName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="my-vm" />
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="my-vm" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Storage Pool</label>
             <select value={poolId} onChange={e => setPoolId(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               {pools.length === 0 && <option value="">No pools available</option>}
               {pools.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>

@@ -97,21 +97,21 @@ export default function VMDetails() {
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-5 w-24 bg-white rounded" />
+        <div className="h-5 w-24 bg-[var(--zf-surface)] rounded" />
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <div className="h-8 w-48 bg-white rounded" />
-            <div className="h-4 w-32 bg-white rounded" />
+            <div className="h-8 w-48 bg-[var(--zf-surface)] rounded" />
+            <div className="h-4 w-32 bg-[var(--zf-surface)] rounded" />
           </div>
           <div className="flex gap-2">
-            <div className="h-9 w-20 bg-white rounded-lg" />
-            <div className="h-9 w-20 bg-white rounded-lg" />
+            <div className="h-9 w-20 bg-[var(--zf-surface)] rounded-lg" />
+            <div className="h-9 w-20 bg-[var(--zf-surface)] rounded-lg" />
           </div>
         </div>
-        <div className="h-10 bg-white rounded" />
+        <div className="h-10 bg-[var(--zf-surface)] rounded" />
         <div className="grid grid-cols-2 gap-4">
-          <div className="h-48 bg-white rounded-xl" />
-          <div className="h-48 bg-white rounded-xl" />
+          <div className="h-48 bg-[var(--zf-surface)] rounded-xl" />
+          <div className="h-48 bg-[var(--zf-surface)] rounded-xl" />
         </div>
       </div>
     )
@@ -1223,7 +1223,7 @@ function LogsTab({ vm }: { vm: VM }) {
           <button
             onClick={() => setAutoRefresh((v) => !v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              autoRefresh ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30' : 'bg-white border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+              autoRefresh ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30' : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-[var(--zf-link)] animate-pulse' : 'bg-[var(--zf-hairline)]'}`} />

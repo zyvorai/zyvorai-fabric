@@ -114,7 +114,7 @@ export default function SecurityDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
         <div className="stat-card-red rounded-xl border border-[var(--zf-hairline)] p-6 flex flex-col items-center justify-center">
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center bg-white border-4 ${riskBg(riskScore)}`}>
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center bg-[var(--zf-surface)] border-4 ${riskBg(riskScore)}`}>
             <span className={`text-3xl font-bold ${riskColor(riskScore)}`}>{riskScore}</span>
           </div>
           <span className="text-xs text-[var(--zf-muted)] mt-2">Risk Score</span>

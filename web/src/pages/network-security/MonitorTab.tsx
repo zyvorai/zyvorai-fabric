@@ -41,13 +41,13 @@ function MonitorTabContent({ policies, metrics, alerts, onDelete, onAdopt, onEdi
   const handleSyncClick = async () => { await onSync(); refreshStatus() }
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">Network Monitor</h2>
-          <div className="flex bg-white rounded-lg p-0.5">
+          <div className="flex bg-[var(--zf-surface)] rounded-lg p-0.5">
             {(['policies', 'metrics', 'alerts'] as const).map(v => (
-              <button key={v} onClick={() => setView(v)} className={`px-3 py-1 rounded text-sm transition ${view === v ? 'bg-[#e8e8ed] text-[#1d1d1f]' : 'text-[#6e6e73] hover:text-[#1d1d1f]'}`}>
+              <button key={v} onClick={() => setView(v)} className={`px-3 py-1 rounded text-sm transition ${view === v ? 'bg-[var(--zf-canvas-alt)] text-[var(--zf-ink)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'}`}>
                 {v.charAt(0).toUpperCase() + v.slice(1)}
                 {v === 'alerts' && alerts.filter(a => !a.acknowledged).length > 0 && (
                   <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5">{alerts.filter(a => !a.acknowledged).length}</span>
@@ -58,14 +58,14 @@ function MonitorTabContent({ policies, metrics, alerts, onDelete, onAdopt, onEdi
         </div>
         <div className="flex items-center gap-2">
           {status && (
-            <span className="text-xs text-[#6e6e73] bg-white rounded-lg px-3 py-1.5 border border-[#d2d2d7]">
+            <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.active_policies} active &middot; {status.monitored_vms} monitored VMs
             </span>
           )}
-          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-white hover:bg-[#d2d2d7] text-[#1d1d1f] py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync
           </button>}
-          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[#0066cc] hover:bg-[#0077ed] text-white py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
             <Plus className="w-4 h-4" /> Add Policy
           </button>}
         </div>
@@ -73,37 +73,37 @@ function MonitorTabContent({ policies, metrics, alerts, onDelete, onAdopt, onEdi
 
       {view === 'policies' && (
         policies.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No monitor policies configured. Create one to monitor VM network metrics.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No monitor policies configured. Create one to monitor VM network metrics.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Labels</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Thresholds</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Interval</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Status</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Labels</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Thresholds</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Interval</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Status</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {policies.map(p => (
                   <tr key={p.id} className="hover:bg-white/[0.03] transition">
                     <td className="p-4">
                       <div className="font-medium">{p.name}{isHostManaged(p) && <HostBadge />}</div>
-                      {p.description && <div className="text-xs text-[#6e6e73] mt-1">{p.description}</div>}
+                      {p.description && <div className="text-xs text-[var(--zf-muted)] mt-1">{p.description}</div>}
                     </td>
                     <td className="p-4"><LabelTags labels={p.labels ?? p.selector?.match_labels} /></td>
                     <td className="p-4 font-medium text-cyan-400">{p.thresholds.length}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{p.sample_interval_secs ?? p.interval_seconds ?? 10}s</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{p.sample_interval_secs ?? p.interval_seconds ?? 10}s</td>
                     <td className="p-4">
                       <StatusBadge status={p.enabled ? 'active' : 'disabled'} color={p.enabled ? 'green' : 'gray'} />
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-1">
                         {!readOnly && !isHostManaged(p) && onEdit && (
-                          <button onClick={() => onEdit(p.id)} className="p-2 hover:bg-[#d2d2d7] rounded transition" title="Edit">
+                          <button onClick={() => onEdit(p.id)} className="p-2 hover:bg-[var(--zf-hairline)] rounded transition" title="Edit">
                             <Pencil className="w-4 h-4" />
                           </button>
                         )}
@@ -124,39 +124,39 @@ function MonitorTabContent({ policies, metrics, alerts, onDelete, onAdopt, onEdi
 
       {view === 'metrics' && (
         metrics.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No metrics available.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No metrics available.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">VM</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Interface</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">RX</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">TX</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">RX Pkts</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">TX Pkts</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Errors</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Timestamp</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">VM</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Interface</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">RX</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">TX</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">RX Pkts</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">TX Pkts</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Errors</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Timestamp</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {metrics.map((m, i) => (
                   <tr key={i} className="hover:bg-white/[0.03] transition">
                     <td className="p-4 font-medium">{m.vm_name}</td>
-                    <td className="p-4 font-mono text-sm text-[#0066cc]">{m.interface_name}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-link)]">{m.interface_name}</td>
                     <td className="p-4 font-mono text-sm text-emerald-600">{formatBytes(m.rx_bytes)}</td>
                     <td className="p-4 font-mono text-sm text-amber-600">{formatBytes(m.tx_bytes)}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{m.rx_packets}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{m.tx_packets}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{m.rx_packets}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{m.tx_packets}</td>
                     <td className="p-4 font-mono text-sm">
                       {m.rx_errors + m.tx_errors > 0 ? (
                         <span className="text-red-600">{m.rx_errors + m.tx_errors}</span>
                       ) : (
-                        <span className="text-[#6e6e73]">0</span>
+                        <span className="text-[var(--zf-muted)]">0</span>
                       )}
                     </td>
-                    <td className="p-4 text-xs text-[#6e6e73]">{new Date(m.timestamp).toLocaleString()}</td>
+                    <td className="p-4 text-xs text-[var(--zf-muted)]">{new Date(m.timestamp).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -167,35 +167,35 @@ function MonitorTabContent({ policies, metrics, alerts, onDelete, onAdopt, onEdi
 
       {view === 'alerts' && (
         alerts.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No bandwidth alerts.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No bandwidth alerts.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">VM</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Metric</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Value</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Threshold</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Severity</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Time</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">VM</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Metric</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Value</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Threshold</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Severity</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Time</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {alerts.map(a => (
                   <tr key={a.id} className={`hover:bg-white/[0.03] transition ${a.acknowledged ? 'opacity-50' : ''}`}>
                     <td className="p-4 font-medium">{a.vm_name}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{a.metric}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{a.metric}</td>
                     <td className="p-4 font-mono text-sm text-red-600">{a.value}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{a.threshold}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{a.threshold}</td>
                     <td className="p-4">
                       <StatusBadge
                         status={a.severity}
                         color={a.severity === 'critical' ? 'red' : a.severity === 'warning' ? 'yellow' : 'blue'}
                       />
                     </td>
-                    <td className="p-4 text-xs text-[#6e6e73]">{new Date(a.created).toLocaleString()}</td>
+                    <td className="p-4 text-xs text-[var(--zf-muted)]">{new Date(a.created).toLocaleString()}</td>
                     <td className="p-4">
                       {!readOnly && !a.acknowledged && (
                         <button onClick={() => onAcknowledge(a.id)} className="p-2 hover:bg-green-600 rounded transition" title="Acknowledge">
@@ -268,12 +268,12 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Alert on high bandwidth" />
         <LabelSelectorInput labels={labels} onChange={setLabels} />
         <InputField label="Interval (seconds)" value={interval} onChange={setInterval} placeholder="60" type="number" />
-        <div className="border border-[#d2d2d7] rounded-lg p-4 space-y-3">
-          <div className="text-sm font-medium text-[#1d1d1f]">Add Threshold</div>
+        <div className="border border-[var(--zf-hairline)] rounded-lg p-4 space-y-3">
+          <div className="text-sm font-medium text-[var(--zf-ink)]">Add Threshold</div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs text-[#6e6e73] mb-1">Metric</label>
-              <select value={thMetric} onChange={e => setThMetric(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Metric</label>
+              <select value={thMetric} onChange={e => setThMetric(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="bandwidth">Bandwidth</option>
                 <option value="packets">Packets</option>
                 <option value="errors">Errors</option>
@@ -284,8 +284,8 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block text-xs text-[#6e6e73] mb-1">Unit</label>
-              <select value={thUnit} onChange={e => setThUnit(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Unit</label>
+              <select value={thUnit} onChange={e => setThUnit(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="mbps">Mbps</option>
                 <option value="gbps">Gbps</option>
                 <option value="kpps">Kpps</option>
@@ -293,33 +293,33 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#6e6e73] mb-1">Direction</label>
-              <select value={thDirection} onChange={e => setThDirection(e.target.value as MetricDirection)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Direction</label>
+              <select value={thDirection} onChange={e => setThDirection(e.target.value as MetricDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="both">Both</option>
                 <option value="inbound">Inbound</option>
                 <option value="outbound">Outbound</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#6e6e73] mb-1">Severity</label>
-              <select value={thSeverity} onChange={e => setThSeverity(e.target.value as AlertSeverity)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Severity</label>
+              <select value={thSeverity} onChange={e => setThSeverity(e.target.value as AlertSeverity)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="info">Info</option>
                 <option value="warning">Warning</option>
                 <option value="critical">Critical</option>
               </select>
             </div>
           </div>
-          <button type="button" onClick={addThreshold} className="flex items-center gap-1 text-sm text-[#0066cc] hover:text-blue-300 transition">
+          <button type="button" onClick={addThreshold} className="flex items-center gap-1 text-sm text-[var(--zf-link)] hover:text-blue-300 transition">
             <Plus className="w-3.5 h-3.5" /> Add Threshold
           </button>
           {thresholds.length > 0 && (
             <div className="space-y-1 mt-2">
               {thresholds.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs bg-white rounded px-2 py-1">
+                <div key={i} className="flex items-center gap-2 text-xs bg-[var(--zf-surface)] rounded px-2 py-1">
                   <StatusBadge status={t.severity} color={t.severity === 'critical' ? 'red' : t.severity === 'warning' ? 'yellow' : 'blue'} />
-                  <span className="text-[#1d1d1f]">{t.metric}</span>
-                  <span className="text-[#6e6e73]">{t.value} {t.unit}</span>
-                  <span className="text-[#6e6e73]">{t.direction}</span>
+                  <span className="text-[var(--zf-ink)]">{t.metric}</span>
+                  <span className="text-[var(--zf-muted)]">{t.value} {t.unit}</span>
+                  <span className="text-[var(--zf-muted)]">{t.direction}</span>
                   <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -329,7 +329,7 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
           )}
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Monitor Policy'}
         </button>
       </div>
@@ -407,7 +407,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
   if (loading) {
     return (
       <ModalWrapper title="Edit Monitor Policy" onClose={onClose}>
-        <div className="text-[#6e6e73] text-sm">Loading...</div>
+        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
       </ModalWrapper>
     )
   }
@@ -426,12 +426,12 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Alert on high bandwidth" />
         <LabelSelectorInput labels={labels} onChange={setLabels} />
         <InputField label="Interval (seconds)" value={interval} onChange={setInterval} placeholder="60" type="number" />
-        <div className="border border-[#d2d2d7] rounded-lg p-4 space-y-3">
-          <div className="text-sm font-medium text-[#1d1d1f]">Add Threshold</div>
+        <div className="border border-[var(--zf-hairline)] rounded-lg p-4 space-y-3">
+          <div className="text-sm font-medium text-[var(--zf-ink)]">Add Threshold</div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs text-[#6e6e73] mb-1">Metric</label>
-              <select value={thMetric} onChange={e => setThMetric(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Metric</label>
+              <select value={thMetric} onChange={e => setThMetric(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="bandwidth">Bandwidth</option>
                 <option value="packets">Packets</option>
                 <option value="errors">Errors</option>
@@ -442,8 +442,8 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block text-xs text-[#6e6e73] mb-1">Unit</label>
-              <select value={thUnit} onChange={e => setThUnit(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Unit</label>
+              <select value={thUnit} onChange={e => setThUnit(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="mbps">Mbps</option>
                 <option value="gbps">Gbps</option>
                 <option value="kpps">Kpps</option>
@@ -451,33 +451,33 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#6e6e73] mb-1">Direction</label>
-              <select value={thDirection} onChange={e => setThDirection(e.target.value as MetricDirection)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Direction</label>
+              <select value={thDirection} onChange={e => setThDirection(e.target.value as MetricDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="both">Both</option>
                 <option value="inbound">Inbound</option>
                 <option value="outbound">Outbound</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[#6e6e73] mb-1">Severity</label>
-              <select value={thSeverity} onChange={e => setThSeverity(e.target.value as AlertSeverity)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Severity</label>
+              <select value={thSeverity} onChange={e => setThSeverity(e.target.value as AlertSeverity)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="info">Info</option>
                 <option value="warning">Warning</option>
                 <option value="critical">Critical</option>
               </select>
             </div>
           </div>
-          <button type="button" onClick={addThreshold} className="flex items-center gap-1 text-sm text-[#0066cc] hover:text-blue-300 transition">
+          <button type="button" onClick={addThreshold} className="flex items-center gap-1 text-sm text-[var(--zf-link)] hover:text-blue-300 transition">
             <Plus className="w-3.5 h-3.5" /> Add Threshold
           </button>
           {thresholds.length > 0 && (
             <div className="space-y-1 mt-2">
               {thresholds.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs bg-white rounded px-2 py-1">
+                <div key={i} className="flex items-center gap-2 text-xs bg-[var(--zf-surface)] rounded px-2 py-1">
                   <StatusBadge status={t.severity} color={t.severity === 'critical' ? 'red' : t.severity === 'warning' ? 'yellow' : 'blue'} />
-                  <span className="text-[#1d1d1f]">{t.metric}</span>
-                  <span className="text-[#6e6e73]">{t.value} {t.unit}</span>
-                  <span className="text-[#6e6e73]">{t.direction}</span>
+                  <span className="text-[var(--zf-ink)]">{t.metric}</span>
+                  <span className="text-[var(--zf-muted)]">{t.value} {t.unit}</span>
+                  <span className="text-[var(--zf-muted)]">{t.direction}</span>
                   <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -487,7 +487,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
           )}
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>

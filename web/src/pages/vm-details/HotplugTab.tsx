@@ -45,10 +45,10 @@ export default function HotplugTab({ vm }: { vm: VM }) {
 
   if (!running) {
     return (
-      <div className="bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] p-8 text-center">
+      <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-8 text-center">
         <AlertCircle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
-        <p className="text-[#1d1d1f] font-medium mb-1">VM must be running</p>
-        <p className="text-[#6e6e73] text-sm">Start the VM to hotplug CPU, memory, disks, or NICs.</p>
+        <p className="text-[var(--zf-ink)] font-medium mb-1">VM must be running</p>
+        <p className="text-[var(--zf-muted)] text-sm">Start the VM to hotplug CPU, memory, disks, or NICs.</p>
       </div>
     )
   }
@@ -65,7 +65,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
         <Section icon={Cpu} title="CPU">
           <div className="flex gap-2 items-end">
             <div className="flex-1">
-              <label className="block text-xs text-[#6e6e73] mb-1">Target vCPU count</label>
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Target vCPU count</label>
               <input
                 type="number"
                 min={1}
@@ -73,7 +73,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
                 value={cpuCount}
                 onChange={(e) => setCpuCount(parseInt(e.target.value) || 1)}
                 disabled={!canWrite}
-                className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
               />
             </div>
             <ActionButton
@@ -88,7 +88,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
         <Section icon={MemoryStick} title="Memory">
           <div className="flex gap-2 items-end">
             <div className="flex-1">
-              <label className="block text-xs text-[#6e6e73] mb-1">Add memory (MB)</label>
+              <label className="block text-xs text-[var(--zf-muted)] mb-1">Add memory (MB)</label>
               <input
                 type="number"
                 min={128}
@@ -96,7 +96,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
                 value={memMb}
                 onChange={(e) => setMemMb(parseInt(e.target.value) || 128)}
                 disabled={!canWrite}
-                className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
               />
             </div>
             <ActionButton
@@ -116,7 +116,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
               value={diskPath}
               onChange={(e) => setDiskPath(e.target.value)}
               disabled={!canWrite}
-              className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] font-mono disabled:opacity-50"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] font-mono disabled:opacity-50"
             />
             <ActionButton
               disabled={!canWrite || busy !== null || !diskPath.trim()}
@@ -131,7 +131,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
                 value={diskDeviceId}
                 onChange={(e) => setDiskDeviceId(e.target.value)}
                 disabled={!canWrite}
-                className="flex-1 bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] font-mono disabled:opacity-50"
+                className="flex-1 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] font-mono disabled:opacity-50"
               />
               <ActionButton
                 disabled={!canWrite || busy !== null || !diskDeviceId.trim()}
@@ -152,7 +152,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
               value={nicBridge}
               onChange={(e) => setNicBridge(e.target.value)}
               disabled={!canWrite}
-              className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
             />
             <input
               type="text"
@@ -160,7 +160,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
               value={nicUplink}
               onChange={(e) => setNicUplink(e.target.value)}
               disabled={!canWrite}
-              className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
             />
             {nicUplink.trim() && (
               <input
@@ -169,7 +169,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
                 value={nicGuestIps}
                 onChange={(e) => setNicGuestIps(e.target.value)}
                 disabled={!canWrite}
-                className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
               />
             )}
             <ActionButton
@@ -195,7 +195,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
                 value={nicDeviceId}
                 onChange={(e) => setNicDeviceId(e.target.value)}
                 disabled={!canWrite}
-                className="flex-1 bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] font-mono disabled:opacity-50"
+                className="flex-1 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] font-mono disabled:opacity-50"
               />
               <ActionButton
                 disabled={!canWrite || busy !== null || !nicDeviceId.trim()}
@@ -214,9 +214,9 @@ export default function HotplugTab({ vm }: { vm: VM }) {
 
 function Section({ icon: Icon, title, children }: { icon: typeof Cpu; title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] p-5">
-      <h3 className="flex items-center gap-2 text-sm font-medium text-[#1d1d1f] mb-4">
-        <Icon className="w-4 h-4 text-[#0066cc]" />
+    <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5">
+      <h3 className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)] mb-4">
+        <Icon className="w-4 h-4 text-[var(--zf-link)]" />
         {title}
       </h3>
       {children}
@@ -240,7 +240,7 @@ function ActionButton({
   const cls =
     variant === 'danger'
       ? 'bg-red-600/80 hover:bg-red-600 text-white'
-      : 'bg-[#0066cc] hover:bg-[#0077ed] text-white'
+      : 'bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white'
   return (
     <button
       type="button"

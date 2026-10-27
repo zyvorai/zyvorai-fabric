@@ -1370,7 +1370,6 @@ html:not([data-theme='dark']) {
   [class*="bg-[var(--zf-danger)]"].text-white,
   [class*="bg-[var(--zf-success)]"].text-white,
   [class*="bg-[var(--zf-warning)]"].text-white,
-  .bg-\[\#0066cc\],
   .bg-\[\#1d1d1f\],
   .bg-black {
     color: #fff !important;
@@ -1468,49 +1467,6 @@ html:not([data-theme='dark']) {
   border: 1px solid var(--zf-hairline) !important;
   border-radius: var(--zf-radius) !important;
   color: var(--zf-ink) !important;
-}
-
-/* Dark theme: the console's design-token classes (var(--zf-*)) already
-   adapt automatically. These are the ~450 spots across the app that wrote
-   the light palette's literal hex value directly (e.g. `text-[#1d1d1f]`)
-   or `bg-white` instead of the token — redirect those to the dark palette
-   too so nothing is left rendering hardcoded light colors on a dark page. */
-html[data-theme='dark'] {
-  /* `~=` matches a single space-separated class token exactly — unlike the
-     `*=` substring selectors above, this deliberately does NOT also catch
-     Tailwind opacity variants like `bg-[#0066cc]/20` or `bg-white/10`,
-     which are separate token strings and should keep their own (already
-     theme-agnostic, translucent) styling untouched. */
-  [class~="text-[#1d1d1f]"] {
-    color: var(--zf-ink) !important;
-  }
-  [class~="text-[#6e6e73]"] {
-    color: var(--zf-muted) !important;
-  }
-  [class~="border-[#d2d2d7]"] {
-    border-color: var(--zf-hairline) !important;
-  }
-  [class~="bg-[#0066cc]"] {
-    background-color: var(--zf-link) !important;
-  }
-  [class~="text-[#0066cc]"] {
-    color: var(--zf-link) !important;
-  }
-  [class~="bg-[#0077ed]"] {
-    background-color: var(--zf-link-hover) !important;
-  }
-  [class~="bg-[#f5f5f7]"] {
-    background-color: var(--zf-canvas) !important;
-  }
-  [class~="bg-[#e8e8ed]"] {
-    background-color: var(--zf-canvas-alt) !important;
-  }
-  [class~="bg-[#d2d2d7]"] {
-    background-color: var(--zf-hairline) !important;
-  }
-  [class~="bg-white"] {
-    background-color: var(--zf-surface) !important;
-  }
 }
 
 /* Merion marketing: install strip, demo frame, value cards, feature grid */

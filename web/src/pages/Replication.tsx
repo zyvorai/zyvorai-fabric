@@ -177,7 +177,7 @@ export default function Replication() {
                 {sites.length === 0 ? (
                   <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No replication sites.</td></tr>
                 ) : sites.map(site => (
-                  <tr key={site.id} className="hover:bg-white">
+                  <tr key={site.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4 font-medium">{site.name}</td>
                     <td className="p-4 text-sm">{site.site_type}</td>
                     <td className="p-4 text-sm font-mono text-[var(--zf-muted)]">{site.endpoint}</td>
@@ -225,7 +225,7 @@ export default function Replication() {
                 {replications.length === 0 ? (
                   <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No replication configurations.</td></tr>
                 ) : replications.map(rep => (
-                  <tr key={rep.id} className="hover:bg-white">
+                  <tr key={rep.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4 font-medium">{rep.vm_name}</td>
                     <td className="p-4 text-sm">{rep.rpo_minutes} min</td>
                     <td className="p-4">
@@ -234,7 +234,7 @@ export default function Replication() {
                     <td className="p-4">
                       {rep.sync_progress_pct !== undefined && rep.sync_progress_pct !== null ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-20 bg-white rounded-full h-2">
+                          <div className="w-20 bg-[var(--zf-surface)] rounded-full h-2">
                             <div className="h-2 rounded-full bg-[var(--zf-link)]" style={{ width: `${rep.sync_progress_pct}%` }} />
                           </div>
                           <span className="text-xs text-[var(--zf-muted)]">{rep.sync_progress_pct}%</span>
@@ -283,7 +283,7 @@ export default function Replication() {
               {violations.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No RPO violations. All replications are compliant.</td></tr>
               ) : violations.map(v => (
-                <tr key={v.replication_id} className="hover:bg-white">
+                <tr key={v.replication_id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{v.vm_name}</td>
                   <td className="p-4 text-sm">{v.rpo_target_minutes} min</td>
                   <td className="p-4 text-sm text-red-600 font-bold">{v.current_rpo_minutes.toFixed(0)} min</td>
@@ -343,17 +343,17 @@ function CreateSiteModal({ onClose, onCreated }: { onClose: () => void; onCreate
           <div>
             <label className="block text-sm font-medium mb-1">Site Name</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Endpoint</label>
             <input type="text" value={endpoint} onChange={e => setEndpoint(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="https://site.example.com" required />
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="https://site.example.com" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Type</label>
             <select value={siteType} onChange={e => setSiteType(e.target.value as 'primary' | 'secondary' | 'bidirectional')}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               <option value="primary">Primary</option>
               <option value="secondary">Recovery (secondary)</option>
               <option value="bidirectional">Bidirectional</option>
@@ -392,26 +392,26 @@ function CreateConfigModal({ sites, onClose, onCreated }: { sites: ReplicationSi
           <div>
             <label className="block text-sm font-medium mb-1">VM ID</label>
             <input type="text" value={vmId} onChange={e => setVmId(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Source Site</label>
             <select value={sourceSite} onChange={e => setSourceSite(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Target Site</label>
             <select value={targetSite} onChange={e => setTargetSite(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">RPO (minutes)</label>
             <input type="number" value={rpo} onChange={e => setRpo(Number(e.target.value))}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" min={1} required />
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" min={1} required />
           </div>
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>

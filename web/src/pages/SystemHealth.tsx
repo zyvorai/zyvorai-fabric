@@ -120,7 +120,7 @@ export default function SystemHealth() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="zf-panel-muted p-6 flex flex-col items-center justify-center">
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 ${healthBorderColor(score)} bg-white`}>
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 ${healthBorderColor(score)} bg-[var(--zf-surface)]`}>
             <span className={`text-3xl font-bold ${healthTextColor(score)}`}>{score}</span>
           </div>
           <span className="text-xs text-[var(--zf-muted)] mt-2">Health Score</span>
@@ -145,15 +145,15 @@ export default function SystemHealth() {
           <h3 className="text-base font-semibold text-[var(--zf-ink)] mb-4">CPU</h3>
           <Bar pct={cpu?.usage_percent ?? 0} label="Overall Usage" />
           <div className="grid grid-cols-3 gap-3 mt-4">
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-[var(--zf-surface)] rounded-lg p-3">
               <div className="text-xs text-[var(--zf-muted)]">Cores</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{cpu?.core_count ?? '-'}</div>
             </div>
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-[var(--zf-surface)] rounded-lg p-3">
               <div className="text-xs text-[var(--zf-muted)]">Load 1m</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{(cpu?.load_avg_1 ?? 0).toFixed(2)}</div>
             </div>
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-[var(--zf-surface)] rounded-lg p-3">
               <div className="text-xs text-[var(--zf-muted)]">Load 5m</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{(cpu?.load_avg_5 ?? 0).toFixed(2)}</div>
             </div>
@@ -163,7 +163,7 @@ export default function SystemHealth() {
               <span className="text-xs text-[var(--zf-muted)]">Per-Core Usage</span>
               <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mt-2">
                 {cpu?.cores?.map((c: CpuCore, i: number) => (
-                  <div key={i} className="bg-white rounded-lg p-2 text-center">
+                  <div key={i} className="bg-[var(--zf-surface)] rounded-lg p-2 text-center">
                     <div className="text-xs text-[var(--zf-muted)]">C{c.id ?? i}</div>
                     <div className="text-xs font-semibold text-[var(--zf-ink)]">{(c.usage_percent ?? 0).toFixed(0)}%</div>
                   </div>
@@ -178,15 +178,15 @@ export default function SystemHealth() {
           <Bar pct={mem?.usage_percent ?? 0} label="RAM Usage" detail={`${fmtB(mem?.used_bytes ?? 0)} / ${fmtB(mem?.total_bytes ?? 0)}`} />
           <Bar pct={mem?.swap_percent ?? 0} label="Swap Usage" detail={`${fmtB(mem?.swap_used_bytes ?? 0)} / ${fmtB(mem?.swap_total_bytes ?? 0)}`} />
           <div className="grid grid-cols-3 gap-3 mt-4">
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-[var(--zf-surface)] rounded-lg p-3">
               <div className="text-xs text-[var(--zf-muted)]">Total</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{fmtB(mem?.total_bytes ?? 0)}</div>
             </div>
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-[var(--zf-surface)] rounded-lg p-3">
               <div className="text-xs text-[var(--zf-muted)]">Available</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{fmtB(mem?.available_bytes ?? 0)}</div>
             </div>
-            <div className="bg-white rounded-lg p-3">
+            <div className="bg-[var(--zf-surface)] rounded-lg p-3">
               <div className="text-xs text-[var(--zf-muted)]">Cached</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{fmtB(mem?.cached_bytes ?? 0)}</div>
             </div>
@@ -210,7 +210,7 @@ export default function SystemHealth() {
           <h3 className="text-base font-semibold text-[var(--zf-ink)] mb-4">Disk I/O</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {disks.map((dk: DiskInfo, i: number) => (
-              <div key={i} className="bg-white rounded-lg p-3">
+              <div key={i} className="bg-[var(--zf-surface)] rounded-lg p-3">
                 <div className="text-sm font-medium text-[var(--zf-ink)] mb-2">{dk.device}</div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-[var(--zf-muted)]">
                   <div>Reads: {dk.reads_completed?.toLocaleString()}</div>
@@ -231,7 +231,7 @@ export default function SystemHealth() {
         {(net?.interfaces?.length ?? 0) > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
             {net!.interfaces!.filter((iface: NetworkInterface) => iface.rx_bytes > 0 || iface.tx_bytes > 0).slice(0, 12).map((iface: NetworkInterface, i: number) => (
-              <div key={i} className="bg-white rounded-lg p-3">
+              <div key={i} className="bg-[var(--zf-surface)] rounded-lg p-3">
                 <div className="text-sm font-medium text-[var(--zf-link)] mb-1">{iface.name}</div>
                 <div className="flex gap-4 text-xs text-[var(--zf-muted)]">
                   <span>RX: {fmtB(iface.rx_bytes)}</span>

@@ -41,13 +41,13 @@ function FirewallTabContent({ profiles, zones, assignments, onDeleteProfile, onD
   }
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">VM Firewall</h2>
-          <div className="flex bg-white rounded-lg p-0.5">
+          <div className="flex bg-[var(--zf-surface)] rounded-lg p-0.5">
             {(['profiles', 'zones', 'assignments'] as const).map(v => (
-              <button key={v} onClick={() => setView(v)} className={`px-3 py-1 rounded text-sm transition ${view === v ? 'bg-[#e8e8ed] text-[#1d1d1f]' : 'text-[#6e6e73] hover:text-[#1d1d1f]'}`}>
+              <button key={v} onClick={() => setView(v)} className={`px-3 py-1 rounded text-sm transition ${view === v ? 'bg-[var(--zf-canvas-alt)] text-[var(--zf-ink)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'}`}>
                 {v.charAt(0).toUpperCase() + v.slice(1)}
               </button>
             ))}
@@ -55,14 +55,14 @@ function FirewallTabContent({ profiles, zones, assignments, onDeleteProfile, onD
         </div>
         <div className="flex items-center gap-2">
           {status && (
-            <span className="text-xs text-[#6e6e73] bg-white rounded-lg px-3 py-1.5 border border-[#d2d2d7]">
+            <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.active_profiles} active &middot; {status.assigned_vms} assigned VMs
             </span>
           )}
-          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-white hover:bg-[#d2d2d7] text-[#1d1d1f] py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync
           </button>}
-          {!readOnly && <button onClick={handleCreateClick} className="flex items-center gap-2 bg-[#0066cc] hover:bg-[#0077ed] text-white py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={handleCreateClick} className="flex items-center gap-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
             <Plus className="w-4 h-4" /> Add {view === 'profiles' ? 'Profile' : view === 'zones' ? 'Zone' : 'Assignment'}
           </button>}
         </div>
@@ -70,37 +70,37 @@ function FirewallTabContent({ profiles, zones, assignments, onDeleteProfile, onD
 
       {view === 'profiles' && (
         profiles.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No firewall profiles. Create one to define firewall rules for VMs.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No firewall profiles. Create one to define firewall rules for VMs.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Default Action</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Rules</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Status</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Default Action</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Rules</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Status</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {profiles.map(p => (
                   <tr key={p.id} className="hover:bg-white/[0.03] transition">
                     <td className="p-4">
                       <div className="font-medium">{p.name}{isHostManaged(p) && <HostBadge />}</div>
-                      {p.description && <div className="text-xs text-[#6e6e73] mt-1 max-w-md truncate">{p.description}</div>}
+                      {p.description && <div className="text-xs text-[var(--zf-muted)] mt-1 max-w-md truncate">{p.description}</div>}
                     </td>
                     <td className="p-4">
                       <StatusBadge status={p.default_action} color={p.default_action === 'accept' ? 'green' : 'red'} />
                     </td>
                     <td className="p-4 font-mono text-sm">{p.rules.length}</td>
-                    <td className="p-4 text-xs text-[#6e6e73]">
+                    <td className="p-4 text-xs text-[var(--zf-muted)]">
                       {isHostManaged(p) ? 'host nft' : 'managed'}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-1">
                         {!readOnly && !isHostManaged(p) && onEditProfile && (
-                          <button onClick={() => onEditProfile(p.id)} className="p-2 hover:bg-[#d2d2d7] rounded transition" title="Edit">
+                          <button onClick={() => onEditProfile(p.id)} className="p-2 hover:bg-[var(--zf-hairline)] rounded transition" title="Edit">
                             <Pencil className="w-4 h-4" />
                           </button>
                         )}
@@ -121,25 +121,25 @@ function FirewallTabContent({ profiles, zones, assignments, onDeleteProfile, onD
 
       {view === 'zones' && (
         zones.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No firewall zones configured.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No firewall zones configured.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Profile ID</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Profile ID</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {zones.map(z => (
                   <tr key={z.id} className="hover:bg-white/[0.03] transition">
                     <td className="p-4 font-medium">
                       {z.name}{isHostManaged(z) && <HostBadge />}
-                      {z.description && <div className="text-xs text-[#6e6e73] mt-1 max-w-md truncate">{z.description}</div>}
+                      {z.description && <div className="text-xs text-[var(--zf-muted)] mt-1 max-w-md truncate">{z.description}</div>}
                     </td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{z.default_profile_id ?? '-'}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{z.default_profile_id ?? '-'}</td>
                     <td className="p-4">
                       <HostManagedActions readOnly={readOnly}
                         item={{ id: z.id, managed: z.managed }}
@@ -157,24 +157,24 @@ function FirewallTabContent({ profiles, zones, assignments, onDeleteProfile, onD
 
       {view === 'assignments' && (
         assignments.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No VM firewall assignments.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No VM firewall assignments.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">VM Name</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Profile ID</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Zone ID</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">VM Name</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Profile ID</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Zone ID</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {assignments.map(a => (
                   <tr key={a.vm_name} className="hover:bg-white/[0.03] transition">
                     <td className="p-4 font-medium">{a.vm_name}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{a.profile_id}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{a.zone_id ?? '-'}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{a.profile_id}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{a.zone_id ?? '-'}</td>
                     <td className="p-4">
                       {!readOnly && (
                       <button onClick={() => onDeleteAssignment(a.vm_name)} className="p-2 hover:bg-red-600 rounded transition">
@@ -244,41 +244,41 @@ export function CreateFirewallProfileModal({ onClose, onCreated }: { onClose: ()
         <InputField label="Name" value={name} onChange={setName} placeholder="web-profile" />
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Allow web traffic" />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Default Action</label>
-          <select value={defaultAction} onChange={e => setDefaultAction(e.target.value as FirewallAction)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Default Action</label>
+          <select value={defaultAction} onChange={e => setDefaultAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="accept">Accept</option>
             <option value="drop">Drop</option>
             <option value="reject">Reject</option>
             <option value="log">Log</option>
           </select>
         </div>
-        <div className="border border-[#d2d2d7] rounded-lg p-4 space-y-3">
-          <div className="text-sm font-medium text-[#1d1d1f]">Add Rule</div>
+        <div className="border border-[var(--zf-hairline)] rounded-lg p-4 space-y-3">
+          <div className="text-sm font-medium text-[var(--zf-ink)]">Add Rule</div>
           <div className="grid grid-cols-2 gap-2">
             <InputField label="Protocol" value={ruleProto} onChange={setRuleProto} placeholder="tcp" />
             <InputField label="Dest Port" value={rulePort} onChange={setRulePort} placeholder="80" type="number" />
           </div>
           <InputField label="Source CIDR" value={ruleSrc} onChange={setRuleSrc} placeholder="0.0.0.0/0" />
           <div>
-            <label className="block text-xs text-[#6e6e73] mb-1">Action</label>
-            <select value={ruleAction} onChange={e => setRuleAction(e.target.value as FirewallAction)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+            <label className="block text-xs text-[var(--zf-muted)] mb-1">Action</label>
+            <select value={ruleAction} onChange={e => setRuleAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
               <option value="accept">Accept</option>
               <option value="drop">Drop</option>
               <option value="reject">Reject</option>
               <option value="log">Log</option>
             </select>
           </div>
-          <button type="button" onClick={addRule} className="flex items-center gap-1 text-sm text-[#0066cc] hover:text-blue-300 transition">
+          <button type="button" onClick={addRule} className="flex items-center gap-1 text-sm text-[var(--zf-link)] hover:text-blue-300 transition">
             <Plus className="w-3.5 h-3.5" /> Add Rule
           </button>
           {rules.length > 0 && (
             <div className="space-y-1 mt-2">
               {rules.map((r, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs bg-white rounded px-2 py-1">
+                <div key={i} className="flex items-center gap-2 text-xs bg-[var(--zf-surface)] rounded px-2 py-1">
                   <StatusBadge status={r.action} color={r.action === 'accept' ? 'green' : 'red'} />
-                  {r.protocol && <span className="text-[#6e6e73]">{r.protocol}</span>}
-                  {r.dest_port && <span className="text-[#6e6e73]">:{r.dest_port}</span>}
-                  {r.source_cidr && <span className="text-[#6e6e73]">src:{r.source_cidr}</span>}
+                  {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
+                  {r.dest_port && <span className="text-[var(--zf-muted)]">:{r.dest_port}</span>}
+                  {r.source_cidr && <span className="text-[var(--zf-muted)]">src:{r.source_cidr}</span>}
                   <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -288,7 +288,7 @@ export function CreateFirewallProfileModal({ onClose, onCreated }: { onClose: ()
           )}
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Profile'}
         </button>
       </div>
@@ -363,7 +363,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
   if (loading) {
     return (
       <ModalWrapper title="Edit Firewall Profile" onClose={onClose}>
-        <div className="text-[#6e6e73] text-sm">Loading...</div>
+        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
       </ModalWrapper>
     )
   }
@@ -381,41 +381,41 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
         <InputField label="Name" value={name} onChange={setName} placeholder="web-profile" />
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Allow web traffic" />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Default Action</label>
-          <select value={defaultAction} onChange={e => setDefaultAction(e.target.value as FirewallAction)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Default Action</label>
+          <select value={defaultAction} onChange={e => setDefaultAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="accept">Accept</option>
             <option value="drop">Drop</option>
             <option value="reject">Reject</option>
             <option value="log">Log</option>
           </select>
         </div>
-        <div className="border border-[#d2d2d7] rounded-lg p-4 space-y-3">
-          <div className="text-sm font-medium text-[#1d1d1f]">Add Rule</div>
+        <div className="border border-[var(--zf-hairline)] rounded-lg p-4 space-y-3">
+          <div className="text-sm font-medium text-[var(--zf-ink)]">Add Rule</div>
           <div className="grid grid-cols-2 gap-2">
             <InputField label="Protocol" value={ruleProto} onChange={setRuleProto} placeholder="tcp" />
             <InputField label="Dest Port" value={rulePort} onChange={setRulePort} placeholder="80" type="number" />
           </div>
           <InputField label="Source CIDR" value={ruleSrc} onChange={setRuleSrc} placeholder="0.0.0.0/0" />
           <div>
-            <label className="block text-xs text-[#6e6e73] mb-1">Action</label>
-            <select value={ruleAction} onChange={e => setRuleAction(e.target.value as FirewallAction)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] text-sm focus:outline-none focus:border-blue-500">
+            <label className="block text-xs text-[var(--zf-muted)] mb-1">Action</label>
+            <select value={ruleAction} onChange={e => setRuleAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
               <option value="accept">Accept</option>
               <option value="drop">Drop</option>
               <option value="reject">Reject</option>
               <option value="log">Log</option>
             </select>
           </div>
-          <button type="button" onClick={addRule} className="flex items-center gap-1 text-sm text-[#0066cc] hover:text-blue-300 transition">
+          <button type="button" onClick={addRule} className="flex items-center gap-1 text-sm text-[var(--zf-link)] hover:text-blue-300 transition">
             <Plus className="w-3.5 h-3.5" /> Add Rule
           </button>
           {rules.length > 0 && (
             <div className="space-y-1 mt-2">
               {rules.map((r, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs bg-white rounded px-2 py-1">
+                <div key={i} className="flex items-center gap-2 text-xs bg-[var(--zf-surface)] rounded px-2 py-1">
                   <StatusBadge status={r.action} color={r.action === 'accept' ? 'green' : 'red'} />
-                  {r.protocol && <span className="text-[#6e6e73]">{r.protocol}</span>}
-                  {r.dest_port && <span className="text-[#6e6e73]">:{r.dest_port}</span>}
-                  {r.source_cidr && <span className="text-[#6e6e73]">src:{r.source_cidr}</span>}
+                  {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
+                  {r.dest_port && <span className="text-[var(--zf-muted)]">:{r.dest_port}</span>}
+                  {r.source_cidr && <span className="text-[var(--zf-muted)]">src:{r.source_cidr}</span>}
                   <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -425,7 +425,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
           )}
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
@@ -465,8 +465,8 @@ export function CreateFirewallZoneModal({ profiles, onClose, onCreated }: { prof
         <InputField label="Name" value={name} onChange={setName} placeholder="dmz" />
         <InputField label="Description" value={description} onChange={setDescription} placeholder="DMZ zone" />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Default Profile</label>
-          <select value={defaultProfileId} onChange={e => setDefaultProfileId(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Default Profile</label>
+          <select value={defaultProfileId} onChange={e => setDefaultProfileId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="">None</option>
             {profiles.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -474,7 +474,7 @@ export function CreateFirewallZoneModal({ profiles, onClose, onCreated }: { prof
           </select>
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Zone'}
         </button>
       </div>
@@ -513,16 +513,16 @@ export function CreateVMFirewallAssignmentModal({ profiles, zones, onClose, onCr
       <div className="space-y-4">
         <InputField label="VM Name" value={vmName} onChange={setVmName} placeholder="web-server-01" />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Profile</label>
-          <select value={profileId} onChange={e => setProfileId(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Profile</label>
+          <select value={profileId} onChange={e => setProfileId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             {profiles.length === 0 ? <option value="">No profiles — create one first</option> : profiles.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Zone (optional)</label>
-          <select value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Zone (optional)</label>
+          <select value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="">None</option>
             {zones.map(z => (
               <option key={z.id} value={z.id}>{z.name}</option>
@@ -530,7 +530,7 @@ export function CreateVMFirewallAssignmentModal({ profiles, zones, onClose, onCr
           </select>
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting || !profileId} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting || !profileId} className="w-full bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Assigning...' : 'Assign Profile'}
         </button>
       </div>

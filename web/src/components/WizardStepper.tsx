@@ -13,7 +13,7 @@ type Props = {
 /** Horizontal step buttons for multi-step forms (Create VM, Import, etc.). */
 export default function WizardStepper({ steps, current, onStep, trailing }: Props) {
   return (
-    <div className="bg-[#f5f5f7] rounded-xl p-4 border border-[#d2d2d7] flex flex-wrap items-center justify-between gap-3">
+    <div className="bg-[var(--zf-canvas)] rounded-xl p-4 border border-[var(--zf-hairline)] flex flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap gap-2">
         {steps.map((label, i) => (
           <button
@@ -22,10 +22,10 @@ export default function WizardStepper({ steps, current, onStep, trailing }: Prop
             onClick={() => onStep(i)}
             className={`text-xs px-2.5 py-1.5 rounded-lg transition font-medium ${
               i === current
-                ? 'bg-[#0066cc] text-white shadow-sm'
+                ? 'bg-[var(--zf-link)] text-white shadow-sm'
                 : i < current
-                  ? 'bg-[#e8e8ed] text-[#1d1d1f] hover:bg-[#d2d2d7]'
-                  : 'bg-white text-[#6e6e73] hover:bg-black/[0.04]'
+                  ? 'bg-[var(--zf-canvas-alt)] text-[var(--zf-ink)] hover:bg-[var(--zf-hairline)]'
+                  : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] hover:bg-black/[0.04]'
             }`}
           >
             {i + 1}. {label}

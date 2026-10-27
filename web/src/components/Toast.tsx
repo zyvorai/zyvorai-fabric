@@ -45,7 +45,7 @@ export function ToastItem({ toast, onClose }: ToastProps) {
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg animate-slide-in bg-white ${config.bg} ${config.border}`}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg animate-slide-in bg-[var(--zf-surface)] ${config.bg} ${config.border}`}
     >
       <Icon className={`w-4 h-4 shrink-0 ${config.text}`} />
       <span className="flex-1 text-sm text-[var(--zf-ink)] whitespace-pre-wrap break-words">{display}</span>

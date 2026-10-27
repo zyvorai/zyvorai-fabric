@@ -276,7 +276,7 @@ export default function AuditLogs() {
             <div className="flex items-end">
               <button
                 onClick={handleClearFilters}
-                className="w-full px-4 py-2 bg-white hover:bg-[var(--zf-hairline)] rounded-lg transition"
+                className="w-full px-4 py-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] rounded-lg transition"
               >
                 Clear Filters
               </button>
@@ -295,7 +295,7 @@ export default function AuditLogs() {
             </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">
                     Timestamp
@@ -319,7 +319,7 @@ export default function AuditLogs() {
               </thead>
               <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white">
+                  <tr key={log.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="px-4 py-3 text-sm text-[var(--zf-muted)]">
                       <RelativeTime date={log.timestamp} />
                     </td>

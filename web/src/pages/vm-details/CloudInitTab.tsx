@@ -107,44 +107,44 @@ export default function CloudInitTab({ vm }: { vm: VM }) {
         <ErrorBanner title="Could not configure cloud-init" headline={submitError} />
       )}
 
-      <form onSubmit={handleSubmit} className="bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] p-5 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#1d1d1f]">
+      <form onSubmit={handleSubmit} className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5 space-y-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)]">
           <Cloud className="w-4 h-4 text-sky-400" />
           NoCloud datasource
         </div>
 
-        <p className="text-xs text-[#6e6e73] -mt-2">
-          Hostname and, from User data, any <code className="text-[#6e6e73]">ssh_authorized_keys</code>,{' '}
-          <code className="text-[#6e6e73]">packages</code>, <code className="text-[#6e6e73]">runcmd</code>, and{' '}
-          <code className="text-[#6e6e73]">write_files</code> are applied on this VM's next (re)start. Instance ID
+        <p className="text-xs text-[var(--zf-muted)] -mt-2">
+          Hostname and, from User data, any <code className="text-[var(--zf-muted)]">ssh_authorized_keys</code>,{' '}
+          <code className="text-[var(--zf-muted)]">packages</code>, <code className="text-[var(--zf-muted)]">runcmd</code>, and{' '}
+          <code className="text-[var(--zf-muted)]">write_files</code> are applied on this VM's next (re)start. Instance ID
           and Network config below are not currently applied to a live guest.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs text-[#6e6e73] mb-1">Instance ID</label>
+            <label className="block text-xs text-[var(--zf-muted)] mb-1">Instance ID</label>
             <input
               value={instanceId}
               onChange={(e) => setInstanceId(e.target.value)}
               disabled={!canWrite}
-              className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
               required
             />
           </div>
           <div>
-            <label className="block text-xs text-[#6e6e73] mb-1">Hostname</label>
+            <label className="block text-xs text-[var(--zf-muted)] mb-1">Hostname</label>
             <input
               value={hostname}
               onChange={(e) => setHostname(e.target.value)}
               disabled={!canWrite}
-              className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs text-[#6e6e73] mb-1.5">User data (cloud-config YAML)</label>
+          <label className="block text-xs text-[var(--zf-muted)] mb-1.5">User data (cloud-config YAML)</label>
           <TerminalTextarea
             title="user-data — cloud-config"
             value={userData}
@@ -155,7 +155,7 @@ export default function CloudInitTab({ vm }: { vm: VM }) {
         </div>
 
         <div>
-          <label className="block text-xs text-[#6e6e73] mb-1.5">Network config (JSON, optional)</label>
+          <label className="block text-xs text-[var(--zf-muted)] mb-1.5">Network config (JSON, optional)</label>
           <TerminalTextarea
             title="network-config — JSON"
             value={networkConfig}
@@ -169,7 +169,7 @@ export default function CloudInitTab({ vm }: { vm: VM }) {
         <button
           type="submit"
           disabled={!canWrite || saving}
-          className="flex items-center gap-2 px-4 py-2 bg-[#0066cc] hover:bg-[#0077ed] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--zf-link)] hover:bg-[var(--zf-link-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
         >
           {saving && <Loader2 className="w-4 h-4 animate-spin" />}
           Generate and attach ISO
