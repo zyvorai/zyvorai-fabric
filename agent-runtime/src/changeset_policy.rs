@@ -286,11 +286,16 @@ mod tests {
         assert_eq!(p.ttl_minutes, None);
         let at = p.expires_at.expect("expiry set");
         let now = chrono::Utc::now();
-        assert!(at > now + chrono::Duration::minutes(29) && at < now + chrono::Duration::minutes(31));
+        assert!(
+            at > now + chrono::Duration::minutes(29) && at < now + chrono::Duration::minutes(31)
+        );
         assert!(!p.expired(now));
         assert!(p.expired(at));
         assert!(p.expired(at + chrono::Duration::seconds(1)));
-        assert!(!policy().expired(now + chrono::Duration::days(3650)), "no expiry never lapses");
+        assert!(
+            !policy().expired(now + chrono::Duration::days(3650)),
+            "no expiry never lapses"
+        );
     }
 
     #[test]
@@ -302,7 +307,9 @@ mod tests {
         let edge = format!(r#"{{"id":"n","paths":["/work"],"ttl_minutes":{MAX_TTL_MINUTES}}}"#);
         assert!(ChangesetPolicy::parse(&edge).is_ok());
         let own = r#"{"id":"n","paths":["/work"],"expires_at":"2099-01-01T00:00:00Z"}"#;
-        assert!(ChangesetPolicy::parse(own).unwrap_err().contains("ttl_minutes"));
+        assert!(ChangesetPolicy::parse(own)
+            .unwrap_err()
+            .contains("ttl_minutes"));
     }
 
     fn ok_changes() -> Value {
