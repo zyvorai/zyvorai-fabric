@@ -3,6 +3,10 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Merion for Android (`integrations/android-merion`).** `merionkit` is a plain-JVM library for the `merion-approval-v1` protocol:
+  the exact signed text, P-256 signing and verifying, and an API client; its tests read the runtime's own
+  `docs/merion/mobile/test-vectors.json`. `app` is a small Compose app with an Android Keystore key (StrongBox when present, a
+  biometric check per signature). The app module has never been built or run; no push, chat, goals or Done list yet.
 - **Verify command and snapshot restore for the run report.** `verify_command` runs after an applied changeset and shows as a check.
   `snapshot_before_apply` snapshots the cell first; an operator can then restore it (`POST /v1/sessions/{id}/changesets/{cs}/restore`,
   confirmed, latest change only, never for end users). The report shows `undo_available` or `restored_from_snapshot`.

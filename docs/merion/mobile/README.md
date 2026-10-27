@@ -130,7 +130,7 @@ An approval from a credential with a `preview` (see [connectors](../connectors/R
 
 ## Android sketch (P-256 in the Keystore)
 
-Illustrative, not a shipped or tested app:
+Illustrative. A first, unbuilt version of this is in [`integrations/android-merion`](../../../integrations/android-merion/README.md):
 
 ```kotlin
 val spec = KeyGenParameterSpec.Builder("merion-approval", KeyProperties.PURPOSE_SIGN)
