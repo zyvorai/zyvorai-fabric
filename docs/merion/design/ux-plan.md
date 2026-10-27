@@ -1,6 +1,6 @@
 # UX plan: making the console and site feel like apple.com
 
-**Status:** plan, not built. The [UX pass](ux-pass.md) shipped the shared motion, focus and skip-link rules. This plan is what comes next, in order, and what would tell us each step worked.
+**Status:** step 0 (`npm run dev:mock`) and the motion layer of step 5 are built; the rest is still plan. The [UX pass](ux-pass.md) shipped the shared motion, focus and skip-link rules. This plan is what comes next, in order, and what would tell us each step worked.
 
 ## Where we are (measured, not guessed)
 
@@ -11,9 +11,19 @@
 - Confirmation uses the app's own dialog hook (not browser dialogs), so no gap there.
 - **Not known:** how the signed-in pages actually look. They need a backend sign-in, and nothing here was seen at phone width.
 
+## Baseline (taken with `web/baseline-shots.mjs`, images in `docs/ux/baseline/`)
+
+20 pages × light/dark × 1440px/390px = 80 images, rendered from the production build with the mock API (so every list is empty).
+
+- **All 20 pages scroll sideways at 390px.** One shell cause: the topbar (Search, Offline pill, theme, Site, account, sign-out) is wider than the phone and gets clipped. Fixing it is step 6's first job and probably clears most pages at once.
+- **Phone page titles truncate** (Virtual Machines shows as "Virt… Ma…"): `PageHeader` keeps the title and actions on one row and truncates the title. Actions should wrap below it.
+- **Desktop `network` scrolls sideways** in both themes (a wide tab bar or table).
+- Dark mode renders cleanly on all 20 pages; no unreadable text seen in the images checked (dashboard, VMs).
+- Not yet looked at one by one: the other pages' images; empty lists mean tables and cards are not exercised until the mock is seeded.
+
 ## Steps
 
-**0. See it first (enabler).** Add a dev-only mock API so the console renders every page with no backend, then take light, dark and 390px screenshots of the 20 busiest pages as a baseline. Without this, every later step is blind. Done when `npm run dev:mock` opens the dashboard signed in.
+**0. See it first (enabler).** Add a dev-only mock API so the console renders every page with no backend, then take light, dark and 390px screenshots of the 20 busiest pages as a baseline. Without this, every later step is blind. Done when `npm run dev:mock` opens the dashboard signed in. *Built: `web/mock-api.ts`; lists answer `[]`, so pages render empty states until seeded. Baseline taken: see below.*
 
 **1. One page header.** Make `PageHeader` the display title: 28-32px, weight 600, tight tracking, a one-line muted subtitle, actions on the right that wrap on a phone. Move the pages that do not use it (about a dozen). One component change, 86+ pages. Done when every page's `h1` comes from it.
 

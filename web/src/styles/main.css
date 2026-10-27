@@ -1707,3 +1707,140 @@ html[data-theme='dark'] {
     animation: none;
   }
 }
+
+/* —— Apple-style motion (ux-plan step 5) ——
+   Same curve as above. Springy settle for things that appear, short fades for things that leave,
+   and a stagger so lists and card grids arrive in sequence rather than all at once. */
+:root {
+  --zf-spring: cubic-bezier(0.2, 0.9, 0.25, 1.08);
+  --zf-stagger: 40ms;
+}
+
+@keyframes zf-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes zf-backdrop-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+}
+@keyframes zf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* dialogs, palette and help: the backdrop fades and blurs in, the sheet pops up from just below */
+.fixed.inset-0.backdrop-blur-sm {
+  animation: zf-backdrop-in 0.3s var(--zf-ease) both;
+}
+.fixed.inset-0.backdrop-blur-sm > * {
+  animation: zf-pop-in 0.42s var(--zf-spring) both;
+}
+
+/* grids and lists arrive in sequence (first 12 children; later ones appear at once) */
+.console-main :is(.grid, tbody) > * {
+  animation: zf-rise 0.5s var(--zf-ease) both;
+}
+.console-main :is(.grid, tbody) > :nth-child(1) { animation-delay: calc(var(--zf-stagger) * 1); }
+.console-main :is(.grid, tbody) > :nth-child(2) { animation-delay: calc(var(--zf-stagger) * 2); }
+.console-main :is(.grid, tbody) > :nth-child(3) { animation-delay: calc(var(--zf-stagger) * 3); }
+.console-main :is(.grid, tbody) > :nth-child(4) { animation-delay: calc(var(--zf-stagger) * 4); }
+.console-main :is(.grid, tbody) > :nth-child(5) { animation-delay: calc(var(--zf-stagger) * 5); }
+.console-main :is(.grid, tbody) > :nth-child(6) { animation-delay: calc(var(--zf-stagger) * 6); }
+.console-main :is(.grid, tbody) > :nth-child(7) { animation-delay: calc(var(--zf-stagger) * 7); }
+.console-main :is(.grid, tbody) > :nth-child(8) { animation-delay: calc(var(--zf-stagger) * 8); }
+.console-main :is(.grid, tbody) > :nth-child(9) { animation-delay: calc(var(--zf-stagger) * 9); }
+.console-main :is(.grid, tbody) > :nth-child(10) { animation-delay: calc(var(--zf-stagger) * 10); }
+.console-main :is(.grid, tbody) > :nth-child(11) { animation-delay: calc(var(--zf-stagger) * 11); }
+.console-main :is(.grid, tbody) > :nth-child(12) { animation-delay: calc(var(--zf-stagger) * 12); }
+
+/* surfaces lift a little under the pointer (hover devices only) */
+@media (hover: hover) {
+  .zf-panel,
+  .glass-card,
+  [class*='stat-card'] {
+    transition:
+      transform 0.4s var(--zf-ease),
+      box-shadow 0.4s var(--zf-ease);
+  }
+  a.zf-panel:hover,
+  a.glass-card:hover,
+  button.glass-card:hover,
+  [class*='stat-card']:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* route change: cross-fade with a slight lift where the browser supports View Transitions */
+@supports (view-transition-name: none) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+::view-transition-old(root) {
+  animation: 0.18s var(--zf-ease) both zf-vt-out;
+}
+::view-transition-new(root) {
+  animation: 0.32s var(--zf-ease) both zf-vt-in;
+}
+@keyframes zf-vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes zf-vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* skeleton blocks shimmer instead of a spinner */
+.zf-skeleton {
+  border-radius: var(--zf-radius-sm);
+  background: linear-gradient(90deg, rgba(128, 128, 128, 0.12) 25%, rgba(128, 128, 128, 0.22) 50%, rgba(128, 128, 128, 0.12) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* scroll-driven reveal on the marketing site (browsers without animation-timeline just show it) */
+@supports (animation-timeline: view()) {
+  .mkt-reveal {
+    animation: zf-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fixed.inset-0.backdrop-blur-sm,
+  .fixed.inset-0.backdrop-blur-sm > *,
+  .console-main :is(.grid, tbody) > *,
+  .zf-skeleton,
+  .mkt-reveal,
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+  .zf-panel,
+  .glass-card,
+  [class*='stat-card'] {
+    transition: none;
+    transform: none !important;
+  }
+}
