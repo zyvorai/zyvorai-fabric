@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { HardDrive, Trash2, Database, Plus, Link2, Link2Off, Maximize2 } from 'lucide-react'
 import { apiGet } from '../api/client'
@@ -138,7 +139,7 @@ export default function Storage() {
 
 
   if (loading) {
-    return <div className="text-center text-[var(--zf-muted)] py-12">Loading storage data...</div>
+    return <PageLoading />
   }
 
   const totalCapacity = pools.reduce((sum, p) => sum + p.capacity, 0)

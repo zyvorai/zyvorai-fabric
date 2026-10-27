@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { getVM, getMetrics, deleteVM, addPortForward, removePortForward, getVMLogs, VM, VMMetrics, VMLogEntry } from '../api/vm'
@@ -965,10 +966,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
 
   if (loading) {
     return (
-      <div className="zf-panel p-8 text-center">
-        <Loader2 className="w-6 h-6 text-[var(--zf-muted)] mx-auto mb-2 animate-spin" />
-        <p className="text-[var(--zf-muted)] text-sm">Loading snapshots...</p>
-      </div>
+      <PanelLoading label="Loading snapshots" />
     )
   }
 

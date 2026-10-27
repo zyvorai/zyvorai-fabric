@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { TrendingUp, AlertTriangle, Download, Clock, Activity } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
@@ -108,7 +109,7 @@ export default function Analytics() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading analytics...</div>
+    return <PageLoading />
   }
 
   return (

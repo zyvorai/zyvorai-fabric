@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Bell, Plus, Trash2, Power, PowerOff, Send, Mail, MessageSquare, Webhook } from 'lucide-react'
 import {
@@ -136,7 +137,7 @@ export default function Notifications() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading notifications...</div>
+    return <PageLoading />
   }
 
   return (

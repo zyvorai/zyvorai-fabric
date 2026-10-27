@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { Cpu, Server, MemoryStick, HardDrive, Zap } from 'lucide-react'
 import {
@@ -83,7 +84,7 @@ export default function SystemResources() {
     return (
       <div className="p-8 space-y-6">
         <PageHeader title="System Resources" description="Hardware topology and resource allocation" />
-        <div className="text-[var(--zf-muted)]">Loading system resources…</div>
+        <PanelLoading label="Loading system resources" />
       </div>
     )
   }

@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../../components/Skeleton'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   AlertCircle,
@@ -290,14 +291,7 @@ export default function DataplanePanel({ vmName }: { vmName: string }) {
     return `${((stats.dropped_packets / total) * 100).toFixed(1)}%`
   }, [stats])
 
-  if (loading) {
-    return (
-      <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-8 text-center">
-        <Loader2 className="w-6 h-6 text-[var(--zf-muted)] mx-auto mb-2 animate-spin" />
-        <p className="text-sm text-[var(--zf-muted)]">Loading VM edge dataplane…</p>
-      </div>
-    )
-  }
+  if (loading) return <PanelLoading label="Loading VM edge dataplane…" />
 
   if (error) {
     return (

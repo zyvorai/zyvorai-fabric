@@ -1,8 +1,9 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../../components/Skeleton'
 import { useCallback, useEffect, useState } from 'react'
-import { Usb, Cpu, Loader2, RefreshCw } from 'lucide-react'
+import { Usb, Cpu, RefreshCw } from 'lucide-react'
 import type { VM } from '../../api/vm'
 import {
   listUSBDevices,
@@ -99,14 +100,7 @@ export default function DevicesTab({ vm }: { vm: VM }) {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-8 text-center">
-        <Loader2 className="w-6 h-6 text-[var(--zf-muted)] mx-auto mb-2 animate-spin" />
-        <p className="text-[var(--zf-muted)] text-sm">Loading host devices...</p>
-      </div>
-    )
-  }
+  if (loading) return <PanelLoading label="Loading host devices..." />
 
   const gpus = pci.filter((d) => d.class_name.toLowerCase().includes('vga') || d.class_name.toLowerCase().includes('3d'))
   const otherPci = pci.filter((d) => !gpus.includes(d))

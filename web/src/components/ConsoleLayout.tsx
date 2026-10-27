@@ -184,6 +184,7 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
                     <NavLink
                       key={item.path}
                       to={item.path}
+                      viewTransition
                       end={item.path === '/app'}
                       title={collapsed ? item.label : undefined}
                       className={({ isActive }) =>

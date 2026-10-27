@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { GitBranch, Server, ArrowRight } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -66,7 +67,7 @@ export default function ServiceMap() {
   const degradedCount = nodes.filter(n => n.status === 'degraded' || n.status === 'warning').length
   const downCount = nodes.filter(n => n.status === 'down' || n.status === 'error').length
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]"><div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />Loading service map...</div>
+  if (loading) return <PanelLoading label="Loading service map" />
 
   return (
     <div className="space-y-6">

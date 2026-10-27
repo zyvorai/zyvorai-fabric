@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { Users, Plus, Trash2, Loader2, CheckCircle } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -140,10 +141,7 @@ export default function AccessControl() {
       )}
 
       {loading && !loadError ? (
-        <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />
-          Loading users…
-        </div>
+        <PanelLoading label="Loading users" />
       ) : !loadError ? (
         <>
 

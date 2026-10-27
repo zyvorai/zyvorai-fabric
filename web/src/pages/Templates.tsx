@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Plus, Trash2, Copy, Layers, Pencil } from 'lucide-react'
 import {
@@ -72,13 +73,7 @@ export default function Templates() {
     setShowCreateDialog(true)
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--zf-ink)]"></div>
-      </div>
-    )
-  }
+  if (loading) return <PageLoading />
 
   return (
     <div className="space-y-6">

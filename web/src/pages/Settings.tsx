@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Save, RotateCcw, Bell, Globe, Shield, Database, Loader2 } from 'lucide-react'
 import { useToastContext } from '../contexts/ToastContext'
@@ -114,13 +115,7 @@ export default function Settings() {
     setSettings((prev) => ({ ...prev, [field]: value }))
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--zf-ink)]" />
-      </div>
-    )
-  }
+  if (loading) return <PageLoading />
 
   return (
     <div className="space-y-6">

@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { HardDrive, Plus, Play, Square, Trash2, RefreshCw, Server, Folder, AlertCircle, CheckCircle, Database, X } from 'lucide-react'
 import {
@@ -183,7 +184,7 @@ export default function StoragePools() {
   }
 
   if (loading) {
-    return <div className="p-8 text-[var(--zf-muted)]">Loading storage pools...</div>
+    return <PageLoading />
   }
 
   return (

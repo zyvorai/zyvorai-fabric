@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { Database } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -56,7 +57,7 @@ export default function StorageManager() {
   useEffect(() => { fetchPools() }, [fetchPools])
   useEffect(() => { if (selectedPool) fetchVolumes(selectedPool) }, [selectedPool, fetchVolumes])
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]"><div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />Loading storage...</div>
+  if (loading) return <PanelLoading label="Loading storage" />
 
   return (
     <div className="space-y-6">

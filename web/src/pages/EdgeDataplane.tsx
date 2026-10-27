@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useCallback, useEffect, useState } from 'react'
-import { ExternalLink, Loader2, Plus, Trash2 } from 'lucide-react'
+import { ExternalLink, Plus, Trash2 } from 'lucide-react'
 import {
   CiliumEndpointView,
   DataplaneHealth,
@@ -40,6 +40,7 @@ import { formatUserError } from '../utils/apiError'
 import { usePermissions } from '../hooks/usePermissions'
 import SubsystemBanner from '../components/SubsystemBanner'
 import { PageHeader } from '../components/ui'
+import { PageLoading } from '../components/Skeleton'
 import { TerminalTextarea } from '../components/AppleTerminalFrame'
 import { usePlatformInfo } from '../contexts/PlatformInfoContext'
 import PacketFlowPanel from '../components/PacketFlowPanel'
@@ -301,14 +302,7 @@ export default function EdgeDataplane() {
     { id: 'ipcache', label: 'Ipcache' },
   ]
 
-  if (loading) {
-    return (
-      <div className="p-8 text-center">
-        <Loader2 className="w-6 h-6 text-[var(--zf-muted)] mx-auto mb-2 animate-spin" />
-        <p className="text-sm text-[var(--zf-muted)]">Loading edge dataplane…</p>
-      </div>
-    )
-  }
+  if (loading) return <PageLoading />
 
   return (
     <div className="space-y-4 p-4 sm:p-6 max-w-6xl mx-auto">

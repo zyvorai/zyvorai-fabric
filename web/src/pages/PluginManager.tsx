@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { Package, Power, Loader2 } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -86,10 +87,7 @@ export default function PluginManager() {
     return (
       <div className="space-y-6">
         <PageHeader title="Plugin Manager" description="Manage server extensions and integrations" />
-        <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />
-          Loading plugins…
-        </div>
+        <PanelLoading label="Loading plugins" />
       </div>
     )
   }

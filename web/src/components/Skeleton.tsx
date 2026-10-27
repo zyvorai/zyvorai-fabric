@@ -7,7 +7,7 @@ interface SkeletonProps {
 }
 
 function SkeletonBase({ className = '', style }: SkeletonProps) {
-  return <div className={`animate-pulse bg-[var(--zf-hairline)]/80 rounded-lg animate-shimmer ${className}`} style={style} />
+  return <div className={`zf-skeleton ${className}`} style={style} />
 }
 
 export function SkeletonText({ className = '' }: SkeletonProps) {
@@ -61,6 +61,8 @@ export function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: nu
   )
 }
 
+const CHART_BARS = [45, 62, 38, 70, 55, 80, 48, 66, 35, 74]
+
 export function SkeletonChart() {
   return (
     <div className="bg-[var(--zf-canvas)] rounded-xl p-5 border border-[var(--zf-hairline)]">
@@ -73,7 +75,7 @@ export function SkeletonChart() {
           <SkeletonBase
             key={i}
             className="flex-1 rounded-sm"
-            style={{ height: `${15 + Math.random() * 75}%` } as React.CSSProperties}
+            style={{ height: `${CHART_BARS[i % CHART_BARS.length]}%` } as React.CSSProperties}
           />
         ))}
       </div>
@@ -102,5 +104,50 @@ export function SkeletonDashboard() {
         <SkeletonChart />
       </div>
     </div>
+  )
+}
+
+/** Announces a loading region to assistive tech while its children are decorative skeleton blocks. */
+function LoadingRegion({ label, children, className = '' }: { label: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div role="status" aria-busy="true" className={className}>
+      <span className="sr-only">{label}</span>
+      <div aria-hidden>{children}</div>
+    </div>
+  )
+}
+
+/** Stands in for a whole page while its data loads: the title block, a toolbar row, then the content shape
+    (a table for list pages, cards for grids). Matches PageHeader's height so the page does not jump when it arrives. */
+export function PageLoading({ variant = 'table' }: { variant?: 'table' | 'cards' }) {
+  return (
+    <LoadingRegion label="Loading" className="animate-fade-in">
+      <div className="mb-6 sm:mb-8 space-y-3">
+        <SkeletonBase className="h-8 sm:h-9 w-56" />
+        <SkeletonBase className="h-4 w-80 max-w-full" />
+      </div>
+      <div className="flex gap-2 mb-5">
+        <SkeletonBase className="h-9 w-28 rounded-full" />
+        <SkeletonBase className="h-9 w-20 rounded-full" />
+      </div>
+      {variant === 'cards' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : (
+        <SkeletonTable rows={6} cols={4} />
+      )}
+    </LoadingRegion>
+  )
+}
+
+/** Stands in for a panel or tab body inside an already-rendered page. */
+export function PanelLoading({ label = 'Loading' }: { label?: string }) {
+  return (
+    <LoadingRegion label={label}>
+      <SkeletonTable rows={4} cols={3} />
+    </LoadingRegion>
   )
 }

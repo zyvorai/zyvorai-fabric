@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { apiFetch } from '../api/client'
 import ErrorBanner from '../components/ErrorBanner'
@@ -154,10 +155,7 @@ export default function Processes() {
       )}
 
       {loading && !loadError ? (
-        <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-link)] border-t-transparent rounded-full mr-3" />
-          Loading processes…
-        </div>
+        <PanelLoading label="Loading processes" />
       ) : !loadError ? (
         <>
 

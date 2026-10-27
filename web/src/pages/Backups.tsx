@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Save, RotateCcw, Trash2, Plus, HardDrive, Clock, CheckCircle, XCircle, Loader } from 'lucide-react'
 import {
@@ -135,7 +136,7 @@ export default function Backups() {
   const { query, setQuery, filtered: filteredBackups } = useTableFilter(backups, (b) => [b.vm_name, b.backup_type, b.status])
 
   if (loading) {
-    return <div className="text-center py-8">Loading backups...</div>
+    return <PageLoading />
   }
 
   return (

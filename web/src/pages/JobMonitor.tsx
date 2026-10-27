@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useRef, useCallback, Fragment } from 'react'
 import { Clock, CheckCircle, AlertCircle, Loader2, XCircle } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -103,10 +104,7 @@ export default function JobMonitor() {
     return (
       <div className="space-y-6">
         <PageHeader title="Job Monitor" description="Real-time job tracking with live logs" />
-        <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-link)] border-t-transparent rounded-full mr-3" />
-          Loading jobs…
-        </div>
+        <PanelLoading label="Loading jobs" />
       </div>
     )
   }

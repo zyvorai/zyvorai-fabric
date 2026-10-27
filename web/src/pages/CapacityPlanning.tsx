@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { TrendingUp, TrendingDown, Cpu, HardDrive, Database, AlertTriangle } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -70,10 +71,7 @@ export default function CapacityPlanning() {
       />
       <PageLoadBanner title="Could not load capacity data" headline={loadError} onRetry={() => void load()} />
       {loading && !loadError && (
-        <div className="flex items-center justify-center h-32 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />
-          Loading capacity data…
-        </div>
+        <PanelLoading label="Loading capacity data" />
       )}
       {!loadError && (
       <>
