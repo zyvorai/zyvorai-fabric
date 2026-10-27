@@ -4680,6 +4680,7 @@ pub(crate) async fn decide_approval(
         // Decided, or expired, between the read above and now.
         return Err(ApiError::conflict("approval is already decided"));
     };
+    crate::otlp::emit_approval(&record);
     let phase = if record.status == ApprovalStatus::Approved {
         AuditPhase::Approved
     } else {

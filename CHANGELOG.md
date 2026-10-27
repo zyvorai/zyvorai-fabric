@@ -10,6 +10,13 @@
   (`POST /v1/chatops/slack/interact`, Slack signature checked, five-minute window) goes through the normal user-token decision path
   and only for the session's owner. Teams gets a card with a link, no buttons. Tested against fakes, not a real workspace.
   Design: `docs/merion/design/chatops-approvals.md`.
+
+- **OpenTelemetry export (OTLP/HTTP, JSON).** Set `OTEL_EXPORTER_OTLP_ENDPOINT` (https, or http on loopback), and optionally
+  `OTEL_EXPORTER_OTLP_HEADERS` and `OTEL_SERVICE_NAME`; every journal row is sent as an OTLP log record and every decided approval
+  as a span, with one trace id per session. Only an allowlist of scalar fields leaves the host: never the error or output text, the
+  approval prompt, a preview, a request body, or the subject (opt in with `ZYVOR_AGENT_OTLP_INCLUDE_SUBJECT=1`). Delivery is best
+  effort through a bounded queue and never blocks a request. No new dependencies; gRPC and protobuf are not spoken. Tested against a
+  local fake collector, not a real one. Docs: `docs/merion/design/otlp-export.md`.
 - **Verify command and snapshot restore for the run report.** `verify_command` runs after an applied changeset and shows as a check.
   `snapshot_before_apply` snapshots the cell first; an operator can then restore it (`POST /v1/sessions/{id}/changesets/{cs}/restore`,
   confirmed, latest change only, never for end users). The report shows `undo_available` or `restored_from_snapshot`.

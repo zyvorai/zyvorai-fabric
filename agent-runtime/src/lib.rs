@@ -39,6 +39,7 @@ pub mod model_call;
 pub mod model_gateway;
 pub mod notify;
 pub mod ocsf;
+pub mod otlp;
 pub mod policy;
 pub mod policy_lint;
 pub mod pool;
