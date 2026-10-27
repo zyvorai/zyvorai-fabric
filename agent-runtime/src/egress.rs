@@ -848,7 +848,7 @@ async fn proxy_attempt(
         ));
     }
 
-    tracing::info!(session = %id, agent = %session.agent, %host, credential = ?request.credential, status, "agent egress");
+    tracing::info!(session = %session.id, agent = %session.agent, %host, credential = ?request.credential, status, "agent egress");
     // A receipt for what a person approved: recorded when the upstream answered with anything below 500 (a 5xx or a network error may be retried).
     let mut receipt_id = None;
     if gated && status < 500 {

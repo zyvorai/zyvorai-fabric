@@ -263,11 +263,11 @@ pub async fn relay(
 
 // ---- operator routes (public router) ----
 
-pub async fn list_servers(State(state): State<Arc<AppState>>) -> Json<Value> {
+pub(crate) async fn list_servers(State(state): State<Arc<AppState>>) -> Json<Value> {
     Json(json!({ "servers": state.store.list_mcp_servers().await }))
 }
 
-pub async fn get_server(
+pub(crate) async fn get_server(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
 ) -> ApiResult<Json<Value>> {
@@ -279,7 +279,7 @@ pub async fn get_server(
         .ok_or_else(|| ApiError::not_found("no such MCP server"))
 }
 
-pub async fn put_server(
+pub(crate) async fn put_server(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
     body: String,
@@ -305,7 +305,7 @@ pub async fn put_server(
     Ok(Json(json!(server)))
 }
 
-pub async fn delete_server(
+pub(crate) async fn delete_server(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
 ) -> ApiResult<Json<Value>> {
