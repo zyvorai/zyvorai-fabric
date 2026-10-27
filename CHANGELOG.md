@@ -3,6 +3,12 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Delegated versus autonomous, in the journal.** Every `egress.http` row now carries `identity`: `autonomous` (no
+  credential), `delegated` (a person's own connection, with `acting_for` naming them) or `service` (a credential the
+  operator holds for the whole host). A per-person OAuth credential can set `oauth.audience`, sent as `resource`
+  (RFC 8707) so the provider can issue a token for one API. `identity` is also in the OTLP and recording allowlists.
+  Unit tests with a local token server. Not RFC 8693 token exchange or sender-constrained tokens. Design:
+  `docs/merion/design/on-behalf-of.md`.
 - **Session recording.** `GET /v1/sessions/{id}/recording` returns a masked, ordered, Ed25519-signed bundle of a session's
   journal rows, events and approvals; `POST /v1/recordings/verify` checks one. Journal rows keep only the OTLP allowlist
   of scalar fields; event data and approval text are never included (events carry a length and SHA-256). Off unless

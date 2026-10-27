@@ -505,6 +505,10 @@ pub struct OAuthRefresh {
     /// refresh tokens rotate, which per-person connections follow); Google's endpoint does not need it. Empty: send none.
     #[serde(default)]
     pub scope: String,
+    /// The one service this token is for (`resource`, RFC 8707), sent with the refresh request so the provider can issue an access
+    /// token that only that API accepts. Empty: send none. A provider that ignores it issues the token it always did.
+    #[serde(default)]
+    pub audience: String,
     /// Refresh this many seconds before the access token expires. Default 300.
     #[serde(default = "default_refresh_margin")]
     pub refresh_margin_secs: u64,
@@ -569,6 +573,9 @@ async fn mint_access_token(
         form.append_pair("refresh_token", refresh_token);
         if !oauth.scope.trim().is_empty() {
             form.append_pair("scope", oauth.scope.trim());
+        }
+        if !oauth.audience.trim().is_empty() {
+            form.append_pair("resource", oauth.audience.trim());
         }
         form.finish()
     };
