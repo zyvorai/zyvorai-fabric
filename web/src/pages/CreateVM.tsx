@@ -318,7 +318,7 @@ export default function CreateVM() {
                 <label htmlFor="vm-image" className="block text-sm font-medium text-[var(--zf-ink)]">
                   Disk image
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <button
                     type="button"
                     onClick={() => setShowDownloadImage(true)}

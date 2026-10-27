@@ -15,9 +15,8 @@
 
 20 pages × light/dark × 1440px/390px = 80 images, rendered from the production build with the mock API (so every list is empty).
 
-- **All 20 pages scroll sideways at 390px.** One shell cause: the topbar (Search, Offline pill, theme, Site, account, sign-out) is wider than the phone and gets clipped. Fixing it is step 6's first job and probably clears most pages at once.
-- **Phone page titles truncate** (Virtual Machines shows as "Virt… Ma…"): `PageHeader` keeps the title and actions on one row and truncates the title. Actions should wrap below it.
-- **Desktop `network` scrolls sideways** in both themes (a wide tab bar or table).
+- **Fixed:** all 20 pages scrolled sideways at 390px. Cause: `.zf-btn` sets `display`, which beats Tailwind's `hidden`, so the topbar's Search button never hid on phones. It now hides under 640px and the topbar gets tighter gaps. The Network tab bar scrolls inside itself, and the Create VM image links wrap. Re-run: no page scrolls sideways in any of the 80 captures.
+- **Fixed:** phone page titles truncated ("Virt… Ma…"). `PageHeader` now wraps its actions below the title on phones, uses 26px titles there (32px from 640px up) and truncates only on wider screens.
 - Dark mode renders cleanly on all 20 pages; no unreadable text seen in the images checked (dashboard, VMs).
 - Not yet looked at one by one: the other pages' images; empty lists mean tables and cards are not exercised until the mock is seeded.
 

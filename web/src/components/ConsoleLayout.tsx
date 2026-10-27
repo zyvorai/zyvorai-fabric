@@ -128,7 +128,7 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
         <div className="flex-1" />
         <button
           type="button"
-          className="zf-btn zf-btn-ghost zf-btn-sm hidden sm:inline-flex"
+          className="zf-btn zf-btn-ghost zf-btn-sm console-topbar-search"
           onClick={() =>
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
           }

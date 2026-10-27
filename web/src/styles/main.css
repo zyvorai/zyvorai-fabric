@@ -797,6 +797,16 @@ a:hover {
   backdrop-filter: saturate(180%) blur(16px);
   border-bottom: 1px solid var(--zf-hairline);
 }
+/* .zf-btn sets display, which beats Tailwind's `hidden`; hide the search button on phones here */
+@media (max-width: 639px) {
+  .console-topbar {
+    gap: 8px;
+    padding: 0 12px;
+  }
+  .console-topbar-search {
+    display: none;
+  }
+}
 .console-brand {
   display: inline-flex;
   align-items: center;

@@ -24,18 +24,18 @@ export function PageHeader({
   primaryAction,
 }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-4 mb-8 animate-fade-in">
-      <div className="min-w-0">
-        <h1 className="text-[32px] font-semibold tracking-[-0.022em] text-[var(--zf-ink)] truncate">
+    <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 mb-6 sm:mb-8 animate-fade-in">
+      <div className="min-w-0 max-w-full">
+        <h1 className="text-[26px] sm:text-[32px] leading-tight font-semibold tracking-[-0.022em] text-[var(--zf-ink)] sm:truncate">
           {title}
         </h1>
         {description && (
-          <p className="text-[17px] text-[var(--zf-secondary)] mt-1.5 max-w-2xl leading-snug tracking-[-0.022em]">
+          <p className="text-[15px] sm:text-[17px] text-[var(--zf-secondary)] mt-1.5 max-w-2xl leading-snug tracking-[-0.022em]">
             {description}
           </p>
         )}
       </div>
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex flex-wrap items-center gap-2">
         {onRefresh && (
           <button
             type="button"

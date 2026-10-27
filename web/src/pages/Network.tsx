@@ -418,13 +418,13 @@ export default function Network() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-[var(--zf-hairline)]">
-        <div className="flex gap-1">
+      <div className="border-b border-[var(--zf-hairline)] overflow-x-auto">
+        <div className="flex gap-1 w-max min-w-full">
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition ${
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition shrink-0 ${
                 activeTab === t.key
                   ? 'border-[var(--zf-link)] text-[var(--zf-link)]'
                   : 'border-transparent text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
