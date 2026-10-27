@@ -252,7 +252,7 @@ export default function MerionPage(): ReactNode {
                 </Reveal>
               ))}
             </div>
-            <Link className={styles.more} to="/?t=stack#matrix">
+            <Link className={styles.more} to="/compare?t=stack#matrix">
               The full comparison ›
             </Link>
           </Section>
@@ -271,7 +271,7 @@ export default function MerionPage(): ReactNode {
             <Link className="button button--primary button--lg" to="/docs/getting-started/Quick-Start">
               Quick start
             </Link>
-            <Link className="button button--outline button--lg button--secondary" to="/">
+            <Link className="button button--outline button--lg button--secondary" to="/compare">
               Fabric vs the field
             </Link>
           </CtaBand>
