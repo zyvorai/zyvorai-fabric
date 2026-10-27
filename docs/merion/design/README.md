@@ -22,6 +22,7 @@ build, and the decisions only you can make, with my recommendation for each. Not
 | [Run report](run-report.md) | Can a finished run say what was checked, what was not, and how to roll back, without sounding more certain than the evidence? |
 | [OTLP export](otlp-export.md) | Can the journal reach an OpenTelemetry collector without sending anything the SIEM export would not? |
 | [Sequence policy](sequence-policy.md) | Can a policy stop an agent that has already made too many writes in one session? |
+| [MCP gateway](mcp-gateway.md) | Can an operator register tool servers and limit which tools an agent calls, how often, with a record, without a second policy engine? |
 
 How to read a note: **Decisions for you** at the end of each is the part to answer. Answer in a line ("1: yes, 2: A, 3: not now") and I will
 turn the answers into a build plan. Anything you leave open stays open.

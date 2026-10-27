@@ -32,6 +32,7 @@ pub mod goals;
 pub mod guard;
 pub mod l7;
 pub mod mcp;
+pub mod mcp_gateway;
 pub mod memory;
 pub mod mitm;
 pub mod model;

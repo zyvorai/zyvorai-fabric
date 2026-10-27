@@ -3,6 +3,11 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **MCP gateway and registry.** An operator registers tool servers (`PUT /v1/mcp/servers/{name}`: URL, optional vault
+  credential, allowed tools, calls per minute); a cell calls `POST /v1/mcp/{server}` on the broker port. Only listed
+  tools and the core MCP methods are relayed; each call is journaled by name (never arguments) and then goes through
+  the ordinary egress broker, so host rules, DLP, taint, the write limit and approvals still apply. Unit tests and a
+  local stub server; not a real MCP server. Design: `docs/merion/design/mcp-gateway.md`.
 - **Write limit per session.** `sequence.max_writes` in an agent manifest or signed policy holds every brokered write
   past the Nth (any method but GET and HEAD) for a person's decision; the count is kept on the session. Off by default;
   the CONNECT proxy is not counted. Unit tests with a local stub upstream. Design: `docs/merion/design/sequence-policy.md`.

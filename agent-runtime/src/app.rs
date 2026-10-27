@@ -488,6 +488,13 @@ pub fn public_router(state: Arc<AppState>) -> Router {
                 .put(put_changeset_policy)
                 .delete(delete_changeset_policy),
         )
+        .route("/v1/mcp/servers", get(crate::mcp_gateway::list_servers))
+        .route(
+            "/v1/mcp/servers/{name}",
+            get(crate::mcp_gateway::get_server)
+                .put(crate::mcp_gateway::put_server)
+                .delete(crate::mcp_gateway::delete_server),
+        )
         .route("/v1/usage", get(usage_route))
         .route("/v1/inbox", get(inbox))
         .route("/v1/receipts", get(crate::receipts::list_receipts))

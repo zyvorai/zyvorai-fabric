@@ -53,6 +53,8 @@ pub struct Store {
     devices: RwLock<HashMap<String, DeviceRecord>>,
     /// Operator-set auto-approval policies, keyed `user/agent`.
     changeset_policies: RwLock<HashMap<String, crate::changeset_policy::StoredPolicy>>,
+    /// MCP tool servers the operator registered, keyed by name.
+    mcp_servers: RwLock<HashMap<String, crate::mcp_gateway::McpServer>>,
     /// Tamper-evident record of planned, approved, denied and performed actions.
     pub audit: AuditLog,
     /// Immutable, content-addressed skill bundles agents can mount.
@@ -109,6 +111,7 @@ impl Store {
             token_floors: RwLock::new(HashMap::new()),
             devices: RwLock::new(HashMap::new()),
             changeset_policies: RwLock::new(HashMap::new()),
+            mcp_servers: RwLock::new(HashMap::new()),
         };
         store.load().await?;
         Ok(store)
@@ -192,6 +195,14 @@ impl Store {
             .into_iter()
             .map(|p| (format!("{}/{}", p.user_id, p.agent), p))
             .collect();
+        let servers = match fs::read(self.root.join("mcp_servers.json")).await {
+            Ok(raw) => serde_json::from_slice::<Vec<crate::mcp_gateway::McpServer>>(&raw)
+                .context("decoding mcp_servers.json")?,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+            Err(e) => return Err(e.into()),
+        };
+        *self.mcp_servers.write().await =
+            servers.into_iter().map(|s| (s.name.clone(), s)).collect();
         let grants = match fs::read(self.root.join("model_grants.json")).await {
             Ok(raw) => serde_json::from_slice::<Vec<ModelGrant>>(&raw)
                 .context("decoding model_grants.json")?,
@@ -1013,6 +1024,39 @@ impl Store {
         if existed {
             self.persist_vec(
                 "changeset_policies.json",
+                &map.values().cloned().collect::<Vec<_>>(),
+            )
+            .await?;
+        }
+        Ok(existed)
+    }
+
+    pub async fn list_mcp_servers(&self) -> Vec<crate::mcp_gateway::McpServer> {
+        let mut out: Vec<_> = self.mcp_servers.read().await.values().cloned().collect();
+        out.sort_by(|a, b| a.name.cmp(&b.name));
+        out
+    }
+
+    pub async fn get_mcp_server(&self, name: &str) -> Option<crate::mcp_gateway::McpServer> {
+        self.mcp_servers.read().await.get(name).cloned()
+    }
+
+    pub async fn save_mcp_server(&self, server: crate::mcp_gateway::McpServer) -> Result<()> {
+        let mut map = self.mcp_servers.write().await;
+        map.insert(server.name.clone(), server);
+        self.persist_vec(
+            "mcp_servers.json",
+            &map.values().cloned().collect::<Vec<_>>(),
+        )
+        .await
+    }
+
+    pub async fn delete_mcp_server(&self, name: &str) -> Result<bool> {
+        let mut map = self.mcp_servers.write().await;
+        let existed = map.remove(name).is_some();
+        if existed {
+            self.persist_vec(
+                "mcp_servers.json",
                 &map.values().cloned().collect::<Vec<_>>(),
             )
             .await?;
