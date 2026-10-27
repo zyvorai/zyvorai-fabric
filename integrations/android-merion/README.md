@@ -16,6 +16,8 @@ ANDROID_HOME=… gradle :app:assembleDebug   # the app; needs the Android SDK
 
 ## What is checked
 
+The six `merionkit` tests were run on 2026-10-27 in a `gradle:8.10-jdk17` container on a Linux host: 6 passed, 0 failed.
+
 `merionkit`'s tests read the runtime's own `docs/merion/mobile/test-vectors.json`, the file the Swift `MerionKit` tests also use:
 
 - the text built for each vector is byte for byte the text the runtime signed;
@@ -25,7 +27,7 @@ ANDROID_HOME=… gradle :app:assembleDebug   # the app; needs the Android SDK
 
 ## What is not
 
-- **The app module has never been built or run.** No Android SDK, emulator or phone was used. The Keystore key, the
+- **The `app` module has never been built or run.** No Android SDK, emulator or phone was used. The Keystore key, the
   `BiometricPrompt` flow and the screen are written to the documented APIs and nothing more is claimed.
 - Push (FCM) needs a Firebase project and a relay ([push relays](../../docs/merion/mobile/README.md)); today the list is pulled with Refresh.
 - Enrolment is manual: the app shows its public key and an operator enrols it (`POST /v1/users/<you>/devices`).
