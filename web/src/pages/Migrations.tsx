@@ -514,7 +514,7 @@ function StartMigrationDialog({
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">VM</label>
-            <select
+            <select aria-label="VM"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
               className="input-field"
@@ -528,7 +528,7 @@ function StartMigrationDialog({
 
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Migration Type</label>
-            <select
+            <select aria-label="Migration Type"
               value={migrationType}
               onChange={(e) => setMigrationType(e.target.value as MigrationType)}
               className="input-field"
@@ -542,10 +542,8 @@ function StartMigrationDialog({
           {migrationType === 'live' ? (
             <>
               <div>
-                <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">
-                  Target URI
-                </label>
-                <input
+                <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Target URI</label>
+                <input aria-label="Target URI"
                   type="text"
                   value={targetUri}
                   onChange={(e) => setTargetUri(e.target.value)}
@@ -560,7 +558,7 @@ function StartMigrationDialog({
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Mode</label>
-                <select
+                <select aria-label="Mode"
                   value={mode}
                   onChange={(e) => setMode(e.target.value)}
                   className="input-field"
@@ -585,7 +583,7 @@ function StartMigrationDialog({
           ) : (
             <div>
               <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Target Host</label>
-              <input
+              <input aria-label="Target Host"
                 type="text"
                 value={targetHost}
                 onChange={(e) => setTargetHost(e.target.value)}

@@ -83,8 +83,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setShowMenu(!showMenu)}
-                  className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-white/5 transition-colors opacity-0 group-hover:opacity-100"
-                >
+                  className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-white/5 transition-colors opacity-0 group-hover:opacity-100" aria-label="More actions" title="More actions">
                   <MoreVertical className="w-4 h-4" />
                 </button>
                 {showMenu && (

@@ -919,7 +919,7 @@ function GoldenImageModal({ onClose, onCreated }: { onClose: () => void; onCreat
             </div>
           </div>
           {!submitting && (
-            <button type="button" onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]">
+            <button type="button" onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]" aria-label="Close" title="Close">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -943,7 +943,7 @@ function GoldenImageModal({ onClose, onCreated }: { onClose: () => void; onCreat
             <>
               <div>
                 <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Source VM</label>
-                <select
+                <select aria-label="Source VM"
                   value={vmName}
                   onChange={(e) => setVmName(e.target.value)}
                   disabled={submitting}
@@ -959,7 +959,7 @@ function GoldenImageModal({ onClose, onCreated }: { onClose: () => void; onCreat
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Image Name</label>
-                <input
+                <input aria-label="Image Name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -1106,7 +1106,7 @@ function DownloadImageModal({ existingImages, onClose, onDownloaded }: {
             </div>
           </div>
           {!submitting && (
-            <button type="button" onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]">
+            <button type="button" onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]" aria-label="Close" title="Close">
               <X className="w-4 h-4" />
             </button>
           )}

@@ -227,7 +227,7 @@ export function CreateNetfileModal({ onClose, onCreated }: { onClose: () => void
         <InputField label="DNS (comma-separated)" value={dns} onChange={setDns} placeholder="8.8.8.8, 1.1.1.1" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">DHCP</label>
-          <select value={dhcp} onChange={e => setDhcp(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="DHCP" value={dhcp} onChange={e => setDhcp(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="no">no</option>
             <option value="yes">yes</option>
             <option value="ipv4">ipv4</option>

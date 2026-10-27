@@ -148,7 +148,7 @@ export function CreateServiceModal({ onClose, onCreated }: { onClose: () => void
           <InputField label="Port" value={port} onChange={setPort} placeholder="80" type="number" />
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Protocol</label>
-            <select value={protocol} onChange={e => setProtocol(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+            <select aria-label="Protocol" value={protocol} onChange={e => setProtocol(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
               <option value="tcp">TCP</option>
               <option value="udp">UDP</option>
             </select>
@@ -156,7 +156,7 @@ export function CreateServiceModal({ onClose, onCreated }: { onClose: () => void
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Algorithm</label>
-          <select value={algorithm} onChange={e => setAlgorithm(e.target.value as LoadBalancerAlgorithm)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Algorithm" value={algorithm} onChange={e => setAlgorithm(e.target.value as LoadBalancerAlgorithm)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="round_robin">Round Robin</option>
             <option value="random">Random</option>
             <option value="ip_hash">IP Hash</option>
@@ -253,7 +253,7 @@ export function EditServiceModal({ id, onClose, onUpdated }: { id: string; onClo
           <InputField label="Port" value={port} onChange={setPort} placeholder="80" type="number" />
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Protocol</label>
-            <select value={protocol} onChange={e => setProtocol(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+            <select aria-label="Protocol" value={protocol} onChange={e => setProtocol(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
               <option value="tcp">TCP</option>
               <option value="udp">UDP</option>
             </select>
@@ -261,7 +261,7 @@ export function EditServiceModal({ id, onClose, onUpdated }: { id: string; onClo
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Algorithm</label>
-          <select value={algorithm} onChange={e => setAlgorithm(e.target.value as LoadBalancerAlgorithm)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Algorithm" value={algorithm} onChange={e => setAlgorithm(e.target.value as LoadBalancerAlgorithm)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="round_robin">Round Robin</option>
             <option value="random">Random</option>
             <option value="ip_hash">IP Hash</option>

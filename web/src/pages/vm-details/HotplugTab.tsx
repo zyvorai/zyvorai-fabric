@@ -66,7 +66,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
           <div className="flex gap-2 items-end">
             <div className="flex-1">
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Target vCPU count</label>
-              <input
+              <input aria-label="Target vCPU count"
                 type="number"
                 min={1}
                 max={256}
@@ -89,7 +89,7 @@ export default function HotplugTab({ vm }: { vm: VM }) {
           <div className="flex gap-2 items-end">
             <div className="flex-1">
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Add memory (MB)</label>
-              <input
+              <input aria-label="Add memory (MB)"
                 type="number"
                 min={128}
                 step={128}

@@ -123,7 +123,7 @@ export default function CloudInitTab({ vm }: { vm: VM }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">Instance ID</label>
-            <input
+            <input aria-label="Instance ID"
               value={instanceId}
               onChange={(e) => setInstanceId(e.target.value)}
               disabled={!canWrite}
@@ -133,7 +133,7 @@ export default function CloudInitTab({ vm }: { vm: VM }) {
           </div>
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">Hostname</label>
-            <input
+            <input aria-label="Hostname"
               value={hostname}
               onChange={(e) => setHostname(e.target.value)}
               disabled={!canWrite}

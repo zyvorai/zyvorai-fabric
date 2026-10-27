@@ -230,7 +230,7 @@ function AssignFloatingIpModal({
         ) : (
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">VM</label>
-            <select value={vmName} onChange={e => setVmName(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+            <select aria-label="VM" value={vmName} onChange={e => setVmName(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
               {vms.map(vm => (
                 <option key={vm.name} value={vm.name}>{vm.name} ({vm.state})</option>
               ))}

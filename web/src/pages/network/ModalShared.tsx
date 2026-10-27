@@ -13,7 +13,7 @@ export function ModalWrapper({ title, onClose, children }: { title: string; onCl
       <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-6 border-b border-[var(--zf-hairline)]">
           <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} className="p-1 hover:bg-white/[0.03] rounded"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1 hover:bg-white/[0.03] rounded" aria-label="Close" title="Close"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-6">{children}</div>
       </div>
@@ -95,7 +95,7 @@ export function HostManagedActions({
     )
   }
   return (
-    <button onClick={onDelete} className="p-2 hover:bg-red-600 rounded transition" type="button">
+    <button onClick={onDelete} className="p-2 hover:bg-red-600 rounded transition" type="button" aria-label="Delete" title="Delete">
       <Trash2 className="w-4 h-4" />
     </button>
   )

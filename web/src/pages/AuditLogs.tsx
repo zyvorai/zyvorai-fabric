@@ -234,8 +234,7 @@ export default function AuditLogs() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition"
-            >
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition" aria-label="Close" title="Close">
               <X className="w-5 h-5" />
             </button>
           )}
@@ -248,7 +247,7 @@ export default function AuditLogs() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Status</label>
-              <select
+              <select aria-label="Status"
                 value={filters.status || ''}
                 onChange={(e) => setFilters({ ...filters, status: e.target.value as any || undefined })}
                 className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]"
@@ -260,7 +259,7 @@ export default function AuditLogs() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Resource Type</label>
-              <select
+              <select aria-label="Resource Type"
                 value={filters.resource_type || ''}
                 onChange={(e) => setFilters({ ...filters, resource_type: e.target.value || undefined })}
                 className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]"

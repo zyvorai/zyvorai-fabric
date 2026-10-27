@@ -138,7 +138,7 @@ export default function DRS() {
             </div>
             <div>
               <label className="block text-sm text-[var(--zf-muted)] mb-1">Automation Level</label>
-              <select value={config.automation_level}
+              <select aria-label="Automation Level" value={config.automation_level}
                 onChange={e => handleConfigUpdate({ automation_level: e.target.value as DrsConfig['automation_level'] })}
                 className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-1 text-sm">
                 <option value="manual">Manual</option>
@@ -262,10 +262,10 @@ export default function DRS() {
                   <td className="p-4">
                     {rec.status === 'pending' && (
                       <div className="flex gap-2">
-                        <button onClick={() => handleApprove(rec.id)} className="p-1 text-emerald-600 hover:text-emerald-700">
+                        <button onClick={() => handleApprove(rec.id)} className="p-1 text-emerald-600 hover:text-emerald-700" aria-label="Confirm" title="Confirm">
                           <Check className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleReject(rec.id)} className="p-1 text-red-600 hover:text-red-700">
+                        <button onClick={() => handleReject(rec.id)} className="p-1 text-red-600 hover:text-red-700" aria-label="Close" title="Close">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
@@ -313,7 +313,7 @@ export default function DRS() {
                     <td className="p-4 text-sm">{rule.mandatory ? 'Yes' : 'No'}</td>
                     <td className="p-4 text-sm">{rule.enabled ? 'Yes' : 'No'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteRule(rule.id)} className="text-red-600 hover:text-red-800">
+                      <button onClick={() => handleDeleteRule(rule.id)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -364,12 +364,12 @@ function PlacementForm({ result, onTest }: { clusterId: string; result: Placemen
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">VM CPUs (MHz)</label>
-          <input type="number" value={cpus} onChange={e => setCpus(Number(e.target.value))}
+          <input aria-label="VM CPUs (MHz)" type="number" value={cpus} onChange={e => setCpus(Number(e.target.value))}
             className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">VM Memory (MB)</label>
-          <input type="number" value={memory} onChange={e => setMemory(Number(e.target.value))}
+          <input aria-label="VM Memory (MB)" type="number" value={memory} onChange={e => setMemory(Number(e.target.value))}
             className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
         </div>
       </div>
@@ -421,12 +421,12 @@ function CreateRuleModal({ clusterId, onClose, onCreated }: { clusterId: string;
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)}
+            <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Type</label>
-            <select value={ruleType} onChange={e => setRuleType(e.target.value as 'affinity' | 'anti_affinity')}
+            <select aria-label="Type" value={ruleType} onChange={e => setRuleType(e.target.value as 'affinity' | 'anti_affinity')}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               <option value="affinity">Affinity (keep together)</option>
               <option value="anti_affinity">Anti-Affinity (keep apart)</option>
@@ -434,7 +434,7 @@ function CreateRuleModal({ clusterId, onClose, onCreated }: { clusterId: string;
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">VM IDs (comma-separated)</label>
-            <input type="text" value={vmIds} onChange={e => setVmIds(e.target.value)}
+            <input aria-label="VM IDs (comma-separated)" type="text" value={vmIds} onChange={e => setVmIds(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <label className="flex items-center gap-2">

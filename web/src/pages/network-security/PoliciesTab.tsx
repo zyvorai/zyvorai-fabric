@@ -334,7 +334,7 @@ export function CreatePolicyModal({ onClose, onCreated }: { onClose: () => void;
           <div className="text-sm font-medium text-[var(--zf-ink)]">Add Rule (allow)</div>
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">Direction</label>
-            <select value={ruleDir} onChange={e => setRuleDir(e.target.value as PolicyDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+            <select aria-label="Direction" value={ruleDir} onChange={e => setRuleDir(e.target.value as PolicyDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
               <option value="ingress">Ingress</option>
               <option value="egress">Egress</option>
             </select>
@@ -355,7 +355,7 @@ export function CreatePolicyModal({ onClose, onCreated }: { onClose: () => void;
                   {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
                   {r.port && <span className="text-[var(--zf-muted)]">:{r.port}</span>}
                   {r.cidr && <span className="text-[var(--zf-muted)]">{r.cidr}</span>}
-                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -462,7 +462,7 @@ export function EditPolicyModal({ id, onClose, onUpdated }: { id: string; onClos
           <div className="text-sm font-medium text-[var(--zf-ink)]">Add Rule (allow)</div>
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">Direction</label>
-            <select value={ruleDir} onChange={e => setRuleDir(e.target.value as PolicyDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+            <select aria-label="Direction" value={ruleDir} onChange={e => setRuleDir(e.target.value as PolicyDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
               <option value="ingress">Ingress</option>
               <option value="egress">Egress</option>
             </select>
@@ -483,7 +483,7 @@ export function EditPolicyModal({ id, onClose, onUpdated }: { id: string; onClos
                   {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
                   {r.port && <span className="text-[var(--zf-muted)]">:{r.port}</span>}
                   {r.cidr && <span className="text-[var(--zf-muted)]">{r.cidr}</span>}
-                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>

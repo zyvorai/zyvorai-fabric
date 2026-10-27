@@ -273,7 +273,7 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Metric</label>
-              <select value={thMetric} onChange={e => setThMetric(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Metric" value={thMetric} onChange={e => setThMetric(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="bandwidth">Bandwidth</option>
                 <option value="packets">Packets</option>
                 <option value="errors">Errors</option>
@@ -285,7 +285,7 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
           <div className="grid grid-cols-3 gap-2">
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Unit</label>
-              <select value={thUnit} onChange={e => setThUnit(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Unit" value={thUnit} onChange={e => setThUnit(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="mbps">Mbps</option>
                 <option value="gbps">Gbps</option>
                 <option value="kpps">Kpps</option>
@@ -294,7 +294,7 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
             </div>
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Direction</label>
-              <select value={thDirection} onChange={e => setThDirection(e.target.value as MetricDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Direction" value={thDirection} onChange={e => setThDirection(e.target.value as MetricDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="both">Both</option>
                 <option value="inbound">Inbound</option>
                 <option value="outbound">Outbound</option>
@@ -302,7 +302,7 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
             </div>
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Severity</label>
-              <select value={thSeverity} onChange={e => setThSeverity(e.target.value as AlertSeverity)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Severity" value={thSeverity} onChange={e => setThSeverity(e.target.value as AlertSeverity)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="info">Info</option>
                 <option value="warning">Warning</option>
                 <option value="critical">Critical</option>
@@ -320,7 +320,7 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
                   <span className="text-[var(--zf-ink)]">{t.metric}</span>
                   <span className="text-[var(--zf-muted)]">{t.value} {t.unit}</span>
                   <span className="text-[var(--zf-muted)]">{t.direction}</span>
-                  <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -431,7 +431,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Metric</label>
-              <select value={thMetric} onChange={e => setThMetric(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Metric" value={thMetric} onChange={e => setThMetric(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="bandwidth">Bandwidth</option>
                 <option value="packets">Packets</option>
                 <option value="errors">Errors</option>
@@ -443,7 +443,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
           <div className="grid grid-cols-3 gap-2">
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Unit</label>
-              <select value={thUnit} onChange={e => setThUnit(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Unit" value={thUnit} onChange={e => setThUnit(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="mbps">Mbps</option>
                 <option value="gbps">Gbps</option>
                 <option value="kpps">Kpps</option>
@@ -452,7 +452,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
             </div>
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Direction</label>
-              <select value={thDirection} onChange={e => setThDirection(e.target.value as MetricDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Direction" value={thDirection} onChange={e => setThDirection(e.target.value as MetricDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="both">Both</option>
                 <option value="inbound">Inbound</option>
                 <option value="outbound">Outbound</option>
@@ -460,7 +460,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
             </div>
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Severity</label>
-              <select value={thSeverity} onChange={e => setThSeverity(e.target.value as AlertSeverity)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Severity" value={thSeverity} onChange={e => setThSeverity(e.target.value as AlertSeverity)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 <option value="info">Info</option>
                 <option value="warning">Warning</option>
                 <option value="critical">Critical</option>
@@ -478,7 +478,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
                   <span className="text-[var(--zf-ink)]">{t.metric}</span>
                   <span className="text-[var(--zf-muted)]">{t.value} {t.unit}</span>
                   <span className="text-[var(--zf-muted)]">{t.direction}</span>
-                  <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>

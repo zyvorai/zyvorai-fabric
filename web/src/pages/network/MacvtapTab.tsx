@@ -147,7 +147,7 @@ export function CreateMacvtapModal({ onClose, onCreated }: { onClose: () => void
         <InputField label="Parent Interface" value={parent} onChange={setParent} placeholder="eth0" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Mode</label>
-          <select value={mode} onChange={e => setMode(e.target.value as MacvtapMode)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Mode" value={mode} onChange={e => setMode(e.target.value as MacvtapMode)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="bridge">bridge</option>
             <option value="vepa">vepa</option>
             <option value="private">private</option>

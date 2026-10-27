@@ -46,7 +46,6 @@
   --ifm-color-primary-light: #66b0ff;
   --ifm-color-primary-lighter: #7dbcff;
   --ifm-color-primary-lightest: #a6d1ff;
-  --ifm-button-background-color: #0071e3;
   --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
 }
 
@@ -383,7 +382,20 @@ main a[class=''],
   color: var(--ifm-font-color-base);
 }
 
-/* prism's github theme paints JSON keys teal, 2.6:1 on the code background */
-[data-theme='light'] .token.property {
-  color: #0a6b68;
+/* Prism's github theme has several colours under 4.5:1 on the code background (#f6f8fa). Light theme only; Prism sets the
+   colour inline, hence !important. teal 2.6:1, pink 4.3:1, comment grey 2.8:1, sky blue 3.1:1, amber 2.0:1. */
+[data-theme='light'] :is(.token.property, .token.number, .token.boolean, .token.constant, .token.symbol, .token.class-name, .token.builtin) {
+  color: #0a6b68 !important;
+}
+[data-theme='light'] :is(.token.string, .token.attr-value, .token.char, .token.inserted) {
+  color: #b8004e !important;
+}
+[data-theme='light'] :is(.token.comment, .token.prolog, .token.doctype, .token.cdata) {
+  color: #6a6a5f !important;
+}
+[data-theme='light'] :is(.token.selector, .token.atrule) {
+  color: #006f99 !important;
+}
+[data-theme='light'] :is(.token.regex, .token.important, .token.variable) {
+  color: #8a5200 !important;
 }

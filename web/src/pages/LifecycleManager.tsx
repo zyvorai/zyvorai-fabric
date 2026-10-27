@@ -212,7 +212,7 @@ export default function LifecycleManager() {
                           <button onClick={() => handleRunScan(bl.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] p-1" title="Run scan">
                             <Play className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteBaseline(bl.id)} className="text-[var(--zf-danger)] hover:opacity-70 p-1">
+                          <button onClick={() => handleDeleteBaseline(bl.id)} className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label="Delete" title="Delete">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -410,15 +410,15 @@ function CreateBaselineModal({ onClose, onCreated }: { onClose: () => void; onCr
       <h2 className="text-xl font-bold mb-4 text-[var(--zf-ink)]">Create Baseline</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Type</label>
-          <select value={baselineType} onChange={e => setBaselineType(e.target.value as 'patch' | 'upgrade' | 'extension')} className="input-field">
+          <select aria-label="Type" value={baselineType} onChange={e => setBaselineType(e.target.value as 'patch' | 'upgrade' | 'extension')} className="input-field">
             <option value="patch">Patch</option><option value="upgrade">Upgrade</option><option value="extension">Extension</option>
           </select></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Severity</label>
-          <select value={severity} onChange={e => setSeverity(e.target.value as 'critical' | 'important' | 'moderate' | 'low')} className="input-field">
+          <select aria-label="Severity" value={severity} onChange={e => setSeverity(e.target.value as 'critical' | 'important' | 'moderate' | 'low')} className="input-field">
             <option value="critical">Critical</option><option value="important">Important</option><option value="moderate">Moderate</option><option value="low">Low</option>
           </select></div>
         <div className="flex gap-3">
@@ -473,9 +473,9 @@ function CreateRollingUpdateModal({ baselines, hosts, onClose, onCreated }: {
       <h2 className="text-xl font-bold mb-4 text-[var(--zf-ink)]">Create Rolling Update</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. patch-cluster-2026-08" className="input-field" required /></div>
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. patch-cluster-2026-08" className="input-field" required /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Baseline</label>
-          <select value={baselineId} onChange={e => setBaselineId(e.target.value)} className="input-field">
+          <select aria-label="Baseline" value={baselineId} onChange={e => setBaselineId(e.target.value)} className="input-field">
             {baselines.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select></div>
         <div>
@@ -491,9 +491,9 @@ function CreateRollingUpdateModal({ baselines, hosts, onClose, onCreated }: {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Parallel Hosts</label>
-            <input type="number" value={parallelCount} onChange={e => setParallelCount(Math.max(1, Number(e.target.value)))} min={1} className="input-field" /></div>
+            <input aria-label="Parallel Hosts" type="number" value={parallelCount} onChange={e => setParallelCount(Math.max(1, Number(e.target.value)))} min={1} className="input-field" /></div>
           <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Failure Threshold</label>
-            <input type="number" value={failureThreshold} onChange={e => setFailureThreshold(Math.max(0, Number(e.target.value)))} min={0} className="input-field" /></div>
+            <input aria-label="Failure Threshold" type="number" value={failureThreshold} onChange={e => setFailureThreshold(Math.max(0, Number(e.target.value)))} min={0} className="input-field" /></div>
         </div>
         <label className="flex items-center gap-2 text-[var(--zf-ink)]"><input type="checkbox" checked={preCheckEnabled} onChange={e => setPreCheckEnabled(e.target.checked)} /><span className="text-sm">Run pre-checks before each host</span></label>
         <label className="flex items-center gap-2 text-[var(--zf-ink)]"><input type="checkbox" checked={autoRemediate} onChange={e => setAutoRemediate(e.target.checked)} /><span className="text-sm">Auto-remediate on failure</span></label>

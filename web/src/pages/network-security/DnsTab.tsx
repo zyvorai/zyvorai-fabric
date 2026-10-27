@@ -206,7 +206,7 @@ export function CreateDnsZoneModal({ onClose, onCreated }: { onClose: () => void
             <InputField label="Record Name" value={recName} onChange={setRecName} placeholder="web" />
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Type</label>
-              <select value={recType} onChange={e => setRecType(e.target.value as DnsRecordType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Type" value={recType} onChange={e => setRecType(e.target.value as DnsRecordType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 {(['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'SRV', 'PTR'] as DnsRecordType[]).map(t => (
                   <option key={t} value={t}>{t}</option>
                 ))}
@@ -228,7 +228,7 @@ export function CreateDnsZoneModal({ onClose, onCreated }: { onClose: () => void
                   <span className="text-[var(--zf-ink)]">{r.name}</span>
                   <span className="text-[var(--zf-muted)]">{r.value}</span>
                   <span className="text-[var(--zf-muted)]">TTL:{r.ttl}</span>
-                  <button onClick={() => setRecords(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setRecords(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -285,7 +285,7 @@ export function CreateDnsPolicyModal({ zones, onClose, onCreated }: { zones: Dns
         <InputField label="Name" value={name} onChange={setName} placeholder="vm-a-records" />
         <div>
           <label className="block text-xs text-[var(--zf-muted)] mb-1">Zone</label>
-          <select value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+          <select aria-label="Zone" value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
             {zones.length === 0 ? <option value="">No zones — create a zone first</option> : zones.map(z => (
               <option key={z.id} value={z.id}>{z.name}</option>
             ))}
@@ -295,7 +295,7 @@ export function CreateDnsPolicyModal({ zones, onClose, onCreated }: { zones: Dns
         <InputField label="Record Template" value={recordTemplate} onChange={setRecordTemplate} placeholder="{name}.zyvor-fabricd.local" />
         <div>
           <label className="block text-xs text-[var(--zf-muted)] mb-1">Record Type</label>
-          <select value={recordType} onChange={e => setRecordType(e.target.value as DnsRecordType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+          <select aria-label="Record Type" value={recordType} onChange={e => setRecordType(e.target.value as DnsRecordType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
             {(['A', 'CNAME', 'SRV'] as DnsRecordType[]).map(t => (
               <option key={t} value={t}>{t}</option>
             ))}
@@ -399,7 +399,7 @@ export function EditDnsZoneModal({ id, onClose, onUpdated }: { id: string; onClo
             <InputField label="Record Name" value={recName} onChange={setRecName} placeholder="web" />
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Type</label>
-              <select value={recType} onChange={e => setRecType(e.target.value as DnsRecordType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+              <select aria-label="Type" value={recType} onChange={e => setRecType(e.target.value as DnsRecordType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
                 {(['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'SRV', 'PTR'] as DnsRecordType[]).map(t => (
                   <option key={t} value={t}>{t}</option>
                 ))}
@@ -421,7 +421,7 @@ export function EditDnsZoneModal({ id, onClose, onUpdated }: { id: string; onClo
                   <span className="text-[var(--zf-ink)]">{r.name}</span>
                   <span className="text-[var(--zf-muted)]">{r.value}</span>
                   <span className="text-[var(--zf-muted)]">TTL:{r.ttl}</span>
-                  <button onClick={() => setRecords(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setRecords(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -515,7 +515,7 @@ export function EditDnsPolicyModal({ id, zones, onClose, onUpdated }: { id: stri
         <InputField label="Name" value={name} onChange={setName} placeholder="vm-a-records" />
         <div>
           <label className="block text-xs text-[var(--zf-muted)] mb-1">Zone</label>
-          <select value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+          <select aria-label="Zone" value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
             {zones.length === 0 ? <option value="">No zones — create a zone first</option> : zones.map(z => (
               <option key={z.id} value={z.id}>{z.name}</option>
             ))}
@@ -525,7 +525,7 @@ export function EditDnsPolicyModal({ id, zones, onClose, onUpdated }: { id: stri
         <InputField label="Record Template" value={recordTemplate} onChange={setRecordTemplate} placeholder="{name}.zyvor-fabricd.local" />
         <div>
           <label className="block text-xs text-[var(--zf-muted)] mb-1">Record Type</label>
-          <select value={recordType} onChange={e => setRecordType(e.target.value as DnsRecordType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+          <select aria-label="Record Type" value={recordType} onChange={e => setRecordType(e.target.value as DnsRecordType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
             {(['A', 'CNAME', 'SRV'] as DnsRecordType[]).map(t => (
               <option key={t} value={t}>{t}</option>
             ))}

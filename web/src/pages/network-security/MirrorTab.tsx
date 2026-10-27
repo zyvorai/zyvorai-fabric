@@ -164,7 +164,7 @@ export function CreateMirrorModal({ onClose, onCreated }: { onClose: () => void;
         <LabelSelectorInput labels={labels} onChange={setLabels} />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Direction</label>
-          <select value={direction} onChange={e => setDirection(e.target.value as MirrorDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Direction" value={direction} onChange={e => setDirection(e.target.value as MirrorDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="both">Both</option>
             <option value="ingress">Ingress</option>
             <option value="egress">Egress</option>
@@ -282,7 +282,7 @@ export function EditMirrorModal({ id, onClose, onUpdated }: { id: string; onClos
         <LabelSelectorInput labels={labels} onChange={setLabels} />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Direction</label>
-          <select value={direction} onChange={e => setDirection(e.target.value as MirrorDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Direction" value={direction} onChange={e => setDirection(e.target.value as MirrorDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="both">Both</option>
             <option value="ingress">Ingress</option>
             <option value="egress">Egress</option>

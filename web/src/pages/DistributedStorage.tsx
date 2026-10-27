@@ -179,7 +179,7 @@ export default function DistributedStorage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[var(--zf-muted)]">{pool.hosts.length} hosts | RF: {pool.replication_factor}</span>
-                      <button onClick={() => handleDeletePool(pool.id)} className="text-red-600 hover:text-red-800 p-1">
+                      <button onClick={() => handleDeletePool(pool.id)} className="text-red-600 hover:text-red-800 p-1" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -250,7 +250,7 @@ export default function DistributedStorage() {
                         <button onClick={() => setComplianceModalPolicy(pol)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)]" title="Check compliance">
                           <ShieldCheck className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDeletePolicy(pol.id)} className="text-red-600 hover:text-red-800">
+                        <button onClick={() => handleDeletePolicy(pol.id)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -625,12 +625,12 @@ function ComplianceCheckModal({ policy, pools, onClose }: {
         <form onSubmit={handleCheck} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">VM Name</label>
-            <input value={vmName} onChange={e => setVmName(e.target.value)}
+            <input aria-label="VM Name" value={vmName} onChange={e => setVmName(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="my-vm" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Storage Pool</label>
-            <select value={poolId} onChange={e => setPoolId(e.target.value)}
+            <select aria-label="Storage Pool" value={poolId} onChange={e => setPoolId(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               {pools.length === 0 && <option value="">No pools available</option>}
               {pools.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}

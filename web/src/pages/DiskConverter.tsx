@@ -174,14 +174,14 @@ export default function DiskConverter() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1">Target Format</label>
-            <select value={targetFormat} onChange={(e) => { setTargetFormat(e.target.value); setOutputEdited(false) }}
+            <select aria-label="Target Format" value={targetFormat} onChange={(e) => { setTargetFormat(e.target.value); setOutputEdited(false) }}
               className="input-field text-sm">
               {FORMATS.map((f) => (<option key={f} value={f}>{f.toUpperCase()}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1">Output Path</label>
-            <input type="text" value={outputPath} onChange={(e) => { setOutputPath(e.target.value); setOutputEdited(true) }} placeholder="Auto-generated from source"
+            <input aria-label="Output Path" type="text" value={outputPath} onChange={(e) => { setOutputPath(e.target.value); setOutputEdited(true) }} placeholder="Auto-generated from source"
               className="input-field text-sm" />
           </div>
         </div>

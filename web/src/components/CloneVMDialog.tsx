@@ -53,8 +53,7 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/[0.03] rounded transition"
-          >
+            className="p-2 hover:bg-white/[0.03] rounded transition" aria-label="Close" title="Close">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -62,10 +61,8 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
         {/* Content */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">
-              Source VM
-            </label>
-            <input
+            <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Source VM</label>
+            <input aria-label="Source VM"
               type="text"
               value={vmName}
               disabled
@@ -74,10 +71,8 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">
-              New VM Name
-            </label>
-            <input
+            <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">New VM Name</label>
+            <input aria-label="New VM Name"
               type="text"
               value={targetName}
               onChange={(e) => setTargetName(e.target.value)}

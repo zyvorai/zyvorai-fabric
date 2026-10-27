@@ -398,7 +398,7 @@ export default function VMList() {
               className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg py-2 pl-9 pr-8 text-sm text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-[var(--zf-ink)] transition-colors"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors">
+              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors" aria-label="Close" title="Close">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}

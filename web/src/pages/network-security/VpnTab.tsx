@@ -142,7 +142,7 @@ function VpnTabContent({ tunnels, networks, onDeleteTunnel, onDeleteNetwork, onA
                     <td className="p-4"><LabelTags labels={n.labels} /></td>
                     <td className="p-4 font-medium text-cyan-400">{n.tunnel_ids.length}</td>
                     <td className="p-4">
-                      <button onClick={() => onDeleteNetwork(n.id)} className="p-2 hover:bg-red-600 rounded transition">
+                      <button onClick={() => onDeleteNetwork(n.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -236,7 +236,7 @@ export function CreateVpnTunnelModal({ onClose, onCreated }: { onClose: () => vo
                 <div key={i} className="flex items-center gap-2 text-xs bg-[var(--zf-surface)] rounded px-2 py-1">
                   <span className="text-[var(--zf-ink)] truncate">{p.public_key.slice(0, 20)}...</span>
                   {p.endpoint && <span className="text-[var(--zf-muted)]">{p.endpoint}</span>}
-                  <button onClick={() => setPeers(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setPeers(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -290,7 +290,7 @@ export function CreateVpnNetworkModal({ onClose, onCreated }: { onClose: () => v
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Multi-site VPN network" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Topology</label>
-          <select value={topology} onChange={e => setTopology(e.target.value as VpnTopology)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Topology" value={topology} onChange={e => setTopology(e.target.value as VpnTopology)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="full-mesh">Full Mesh</option>
             <option value="hub-spoke">Hub & Spoke</option>
             <option value="point-to-point">Point to Point</option>
@@ -425,7 +425,7 @@ export function EditVpnTunnelModal({ id, onClose, onUpdated }: { id: string; onC
                 <div key={i} className="flex items-center gap-2 text-xs bg-[var(--zf-surface)] rounded px-2 py-1">
                   <span className="text-[var(--zf-ink)] truncate">{p.public_key.slice(0, 20)}...</span>
                   {p.endpoint && <span className="text-[var(--zf-muted)]">{p.endpoint}</span>}
-                  <button onClick={() => setPeers(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setPeers(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>

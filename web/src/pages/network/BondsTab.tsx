@@ -143,7 +143,7 @@ export function CreateBondModal({ onClose, onCreated }: { onClose: () => void; o
         <InputField label="Name" value={name} onChange={setName} placeholder="bond0" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Mode</label>
-          <select value={mode} onChange={e => setMode(e.target.value as BondMode)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Mode" value={mode} onChange={e => setMode(e.target.value as BondMode)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="802.3ad">802.3ad (LACP)</option>
             <option value="active-backup">active-backup</option>
             <option value="balance-rr">balance-rr</option>
@@ -204,7 +204,7 @@ export function EditBondModal({ bond, onClose, onUpdated }: { bond: BondConfig; 
         <InputField label="Name" value={name} onChange={setName} placeholder="bond0" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Mode</label>
-          <select value={mode} onChange={e => setMode(e.target.value as BondMode)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Mode" value={mode} onChange={e => setMode(e.target.value as BondMode)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="802.3ad">802.3ad (LACP)</option>
             <option value="active-backup">active-backup</option>
             <option value="balance-rr">balance-rr</option>

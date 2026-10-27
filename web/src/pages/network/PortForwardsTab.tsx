@@ -229,7 +229,7 @@ export function CreatePortForwardModal({ onClose, onCreated }: { onClose: () => 
         <InputField label="Name" value={name} onChange={setName} placeholder="web-server" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Protocol</label>
-          <select value={protocol} onChange={e => setProtocol(e.target.value as Protocol)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Protocol" value={protocol} onChange={e => setProtocol(e.target.value as Protocol)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
             <option value="both">Both (TCP + UDP)</option>

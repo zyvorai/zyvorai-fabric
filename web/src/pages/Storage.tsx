@@ -362,11 +362,11 @@ function CreateVolumeModal({ pool, onClose, onCreated }: { pool: string; onClose
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input value={name} onChange={e => setName(e.target.value)} className="input-field" placeholder="my-volume" />
+          <input aria-label="Name" value={name} onChange={e => setName(e.target.value)} className="input-field" placeholder="my-volume" />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Size</label>
-          <input value={size} onChange={e => setSize(e.target.value)} className="input-field" placeholder="20GB" />
+          <input aria-label="Size" value={size} onChange={e => setSize(e.target.value)} className="input-field" placeholder="20GB" />
         </div>
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="zf-btn zf-btn-ghost flex-1">Cancel</button>
@@ -407,7 +407,7 @@ function AttachVolumeModal({ volume, onClose, onAttached }: { volume: VolumeRow;
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">VM Name</label>
-          <input value={vmName} onChange={e => setVmName(e.target.value)} className="input-field" placeholder="my-vm" />
+          <input aria-label="VM Name" value={vmName} onChange={e => setVmName(e.target.value)} className="input-field" placeholder="my-vm" />
         </div>
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="zf-btn zf-btn-ghost flex-1">Cancel</button>
@@ -448,7 +448,7 @@ function ResizeVolumeModal({ volume, onClose, onResized }: { volume: VolumeRow; 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">New Size</label>
-          <input value={size} onChange={e => setSize(e.target.value)} className="input-field" placeholder="40GB" />
+          <input aria-label="New Size" value={size} onChange={e => setSize(e.target.value)} className="input-field" placeholder="40GB" />
         </div>
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="zf-btn zf-btn-ghost flex-1">Cancel</button>

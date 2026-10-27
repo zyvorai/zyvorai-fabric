@@ -143,6 +143,10 @@ export default function Dashboard() {
   }, [])
 
   const latest = useRef({ vms: 0, running: 0, alerts: 0, storage: 0 })
+  const alertTotal = alerts.total
+  useEffect(() => {
+    latest.current = { vms: vms.length, running: vms.filter((v) => v.state === 'running').length, alerts: alertTotal, storage: storagePct ?? 0 }
+  }, [vms, alertTotal, storagePct])
   useEffect(() => {
     loadAlertsAndStorage()
     const sample = () => setSamples((prev) => [...prev.slice(-29), { ...latest.current }])
@@ -165,7 +169,6 @@ export default function Dashboard() {
   }
   const fleetHealthPct = stats.total > 0 ? (stats.running / stats.total) * 100 : 0
 
-  latest.current = { vms: stats.total, running: stats.running, alerts: alerts.total, storage: storagePct ?? 0 }
   const totalCount = useCountUp(stats.total)
   const runningCount = useCountUp(stats.running)
   const alertCount = useCountUp(alerts.total)

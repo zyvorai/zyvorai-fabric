@@ -177,7 +177,7 @@ export default function ContentLibrary() {
                   <div className="flex items-center gap-2">
                     <button onClick={() => { setSelectedLibrary(lib.id); setActiveTab('items') }}
                       className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] text-sm">Browse</button>
-                    <button onClick={() => handleDeleteLibrary(lib.id)} className="text-[var(--zf-danger)] hover:opacity-70">
+                    <button onClick={() => handleDeleteLibrary(lib.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -229,7 +229,7 @@ export default function ContentLibrary() {
                     <td className="p-4 text-sm text-[var(--zf-ink)]">{formatBytes(item.size_bytes)}</td>
                     <td className="p-4 text-sm text-[var(--zf-muted)]">{item.updated ? new Date(item.updated).toLocaleDateString() : '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteItem(item.library_id, item.id)} className="text-[var(--zf-danger)] hover:opacity-70">
+                      <button onClick={() => handleDeleteItem(item.library_id, item.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -277,7 +277,7 @@ export default function ContentLibrary() {
                     <td className="p-4 text-sm text-[var(--zf-muted)]">{spec.domain || '-'}</td>
                     <td className="p-4 text-sm font-mono text-[var(--zf-muted)]">{spec.dns_servers?.join(', ') || '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteSpec(spec.id)} className="text-[var(--zf-danger)] hover:opacity-70">
+                      <button onClick={() => handleDeleteSpec(spec.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -326,7 +326,7 @@ export default function ContentLibrary() {
                         <button onClick={() => setComplianceModalProfile(profile)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)]" title="Check host compliance">
                           <ShieldCheck className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDeleteProfile(profile.id)} className="text-[var(--zf-danger)] hover:opacity-70">
+                        <button onClick={() => handleDeleteProfile(profile.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -376,15 +376,15 @@ function CreateLibraryModal({ onClose, onCreated }: { onClose: () => void; onCre
       <h2 className="text-xl font-bold mb-4 text-[var(--zf-ink)]">Create Library</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Type</label>
-          <select value={libraryType} onChange={e => setLibraryType(e.target.value as 'local' | 'subscribed')} className="input-field">
+          <select aria-label="Type" value={libraryType} onChange={e => setLibraryType(e.target.value as 'local' | 'subscribed')} className="input-field">
             <option value="local">Local</option><option value="subscribed">Subscribed</option>
           </select></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Storage Path</label>
-          <input type="text" value={storagePath} onChange={e => setStoragePath(e.target.value)} className="input-field font-mono" required /></div>
+          <input aria-label="Storage Path" type="text" value={storagePath} onChange={e => setStoragePath(e.target.value)} className="input-field font-mono" required /></div>
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
           <button type="submit" className="flex-1 zf-btn zf-btn-primary">Create</button>
@@ -415,17 +415,17 @@ function CreateSpecModal({ onClose, onCreated }: { onClose: () => void; onCreate
       <h2 className="text-xl font-bold mb-4 text-[var(--zf-ink)]">Create Customization Spec</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">OS Type</label>
-          <select value={osType} onChange={e => setOsType(e.target.value as 'linux' | 'windows')} className="input-field">
+          <select aria-label="OS Type" value={osType} onChange={e => setOsType(e.target.value as 'linux' | 'windows')} className="input-field">
             <option value="linux">Linux</option><option value="windows">Windows</option>
           </select></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Hostname Prefix</label>
-          <input type="text" value={hostnamePrefix} onChange={e => setHostnamePrefix(e.target.value)} className="input-field" /></div>
+          <input aria-label="Hostname Prefix" type="text" value={hostnamePrefix} onChange={e => setHostnamePrefix(e.target.value)} className="input-field" /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Domain</label>
-          <input type="text" value={domain} onChange={e => setDomain(e.target.value)} className="input-field" /></div>
+          <input aria-label="Domain" type="text" value={domain} onChange={e => setDomain(e.target.value)} className="input-field" /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">DNS Servers (comma-separated)</label>
-          <input type="text" value={dnsServers} onChange={e => setDnsServers(e.target.value)} className="input-field" placeholder="8.8.8.8, 8.8.4.4" /></div>
+          <input aria-label="DNS Servers (comma-separated)" type="text" value={dnsServers} onChange={e => setDnsServers(e.target.value)} className="input-field" placeholder="8.8.8.8, 8.8.4.4" /></div>
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
           <button type="submit" className="flex-1 zf-btn zf-btn-primary">Create</button>
@@ -451,9 +451,9 @@ function CreateProfileModal({ onClose, onCreated }: { onClose: () => void; onCre
       <h2 className="text-xl font-bold mb-4 text-[var(--zf-ink)]">Create Host Profile</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
         <div><label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
         <div className="flex gap-3">
           <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
           <button type="submit" className="flex-1 zf-btn zf-btn-primary">Create</button>
@@ -501,7 +501,7 @@ function HostComplianceModal({ profile, onClose }: { profile: HostProfile; onClo
       <form onSubmit={handleCheck} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Host ID</label>
-          <input value={hostId} onChange={e => setHostId(e.target.value)}
+          <input aria-label="Host ID" value={hostId} onChange={e => setHostId(e.target.value)}
             className="input-field" placeholder="host-01" />
         </div>
         <div>

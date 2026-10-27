@@ -359,17 +359,17 @@ function EnableFTModal({ onClose, onCreated }: { onClose: () => void; onCreated:
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">VM name</label>
-            <input type="text" value={vmName} onChange={e => setVmName(e.target.value)}
+            <input aria-label="VM name" type="text" value={vmName} onChange={e => setVmName(e.target.value)}
               className="input-field" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Primary host ID</label>
-            <input type="text" value={primaryHostId} onChange={e => setPrimaryHostId(e.target.value)}
+            <input aria-label="Primary host ID" type="text" value={primaryHostId} onChange={e => setPrimaryHostId(e.target.value)}
               className="input-field" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Secondary host ID</label>
-            <input type="text" value={secondaryHostId} onChange={e => setSecondaryHostId(e.target.value)}
+            <input aria-label="Secondary host ID" type="text" value={secondaryHostId} onChange={e => setSecondaryHostId(e.target.value)}
               className="input-field"
               placeholder="Auto-select if empty" />
           </div>

@@ -84,7 +84,7 @@ export default function Snapshots() {
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-2">VM Name</label>
-            <input
+            <input aria-label="VM Name"
               type="text"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
@@ -243,7 +243,7 @@ function CreateSnapshotDialog({
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">Snapshot Name</label>
-            <input
+            <input aria-label="Snapshot Name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -255,7 +255,7 @@ function CreateSnapshotDialog({
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">Description</label>
-            <input
+            <input aria-label="Description"
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -266,7 +266,7 @@ function CreateSnapshotDialog({
           </div>
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Type</label>
-            <select
+            <select aria-label="Type"
               value={snapshotType}
               onChange={(e) => setSnapshotType(e.target.value as 'Disk' | 'Full')}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"

@@ -170,8 +170,8 @@ export default function AccessControl() {
         <div className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-xl p-5 space-y-4">
           <h3 className="text-sm font-semibold text-[var(--zf-ink)]">New User</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Username</label><input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" className="input-field text-sm" /></div>
-            <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Password</label><input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="password" className="input-field text-sm" /></div>
+            <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Username</label><input aria-label="Username" type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" className="input-field text-sm" /></div>
+            <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Password</label><input aria-label="Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="password" className="input-field text-sm" /></div>
             <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Role</label>
               <div className="flex gap-2">
                 {['admin', 'operator', 'viewer'].map(r => (

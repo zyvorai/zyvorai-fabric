@@ -5,6 +5,10 @@
   margin-top: 32px;
 }
 
+.grid4 {
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
 .card {
   display: flex;
   flex-direction: column;

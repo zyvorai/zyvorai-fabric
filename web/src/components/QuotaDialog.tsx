@@ -99,8 +99,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
           </div>
           <button
             onClick={onClose}
-            className="text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition"
-          >
+            className="text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition" aria-label="Close" title="Close">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -266,8 +265,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
-                      className="hover:bg-black/20 rounded-full p-0.5 transition"
-                    >
+                      className="hover:bg-black/20 rounded-full p-0.5 transition" aria-label="Close" title="Close">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </span>

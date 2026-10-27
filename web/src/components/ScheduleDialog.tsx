@@ -128,8 +128,7 @@ export default function ScheduleDialog({ mode, schedule, onClose, onSuccess }: S
           </div>
           <button
             onClick={onClose}
-            className="text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition"
-          >
+            className="text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition" aria-label="Close" title="Close">
             <X className="w-6 h-6" />
           </button>
         </div>

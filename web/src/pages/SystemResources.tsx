@@ -635,7 +635,7 @@ function AllocateHugepagesDialog({
 
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Size</label>
-        <select
+        <select aria-label="Size"
           value={size}
           onChange={(e) => setSize(e.target.value as any)}
           className="input-field"
@@ -647,7 +647,7 @@ function AllocateHugepagesDialog({
 
       <div className="mb-6">
         <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Count</label>
-        <input
+        <input aria-label="Count"
           type="number"
           value={count}
           onChange={(e) => setCount(parseInt(e.target.value) || 0)}

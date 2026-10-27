@@ -141,7 +141,7 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
                     <td className="p-4 font-mono text-sm text-[var(--zf-link)]">{p.ip_ranges.join(', ')}</td>
                     <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{p.port_range ?? '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => onDeletePool(p.id)} className="p-2 hover:bg-red-600 rounded transition">
+                      <button onClick={() => onDeletePool(p.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -178,7 +178,7 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
                       <StatusBadge status={g.enabled ? 'active' : 'disabled'} color={g.enabled ? 'green' : 'gray'} />
                     </td>
                     <td className="p-4">
-                      <button onClick={() => onDeleteGateway(g.id)} className="p-2 hover:bg-red-600 rounded transition">
+                      <button onClick={() => onDeleteGateway(g.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -238,7 +238,7 @@ export function CreateNatRuleModal({ onClose, onCreated }: { onClose: () => void
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Outbound masquerade" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">NAT Type</label>
-          <select value={ruleType} onChange={e => setRuleType(e.target.value as NatRuleType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="NAT Type" value={ruleType} onChange={e => setRuleType(e.target.value as NatRuleType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="masquerade">Masquerade</option>
             <option value="snat">SNAT</option>
             <option value="dnat">DNAT</option>
@@ -438,7 +438,7 @@ export function EditNatRuleModal({ id, onClose, onUpdated }: { id: string; onClo
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Outbound masquerade" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">NAT Type</label>
-          <select value={ruleType} onChange={e => setRuleType(e.target.value as NatRuleType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="NAT Type" value={ruleType} onChange={e => setRuleType(e.target.value as NatRuleType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="masquerade">Masquerade</option>
             <option value="snat">SNAT</option>
             <option value="dnat">DNAT</option>

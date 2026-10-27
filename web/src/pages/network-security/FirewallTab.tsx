@@ -177,7 +177,7 @@ function FirewallTabContent({ profiles, zones, assignments, onDeleteProfile, onD
                     <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{a.zone_id ?? '-'}</td>
                     <td className="p-4">
                       {!readOnly && (
-                      <button onClick={() => onDeleteAssignment(a.vm_name)} className="p-2 hover:bg-red-600 rounded transition">
+                      <button onClick={() => onDeleteAssignment(a.vm_name)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                       )}
@@ -245,7 +245,7 @@ export function CreateFirewallProfileModal({ onClose, onCreated }: { onClose: ()
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Allow web traffic" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Default Action</label>
-          <select value={defaultAction} onChange={e => setDefaultAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Default Action" value={defaultAction} onChange={e => setDefaultAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="accept">Accept</option>
             <option value="drop">Drop</option>
             <option value="reject">Reject</option>
@@ -261,7 +261,7 @@ export function CreateFirewallProfileModal({ onClose, onCreated }: { onClose: ()
           <InputField label="Source CIDR" value={ruleSrc} onChange={setRuleSrc} placeholder="0.0.0.0/0" />
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">Action</label>
-            <select value={ruleAction} onChange={e => setRuleAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+            <select aria-label="Action" value={ruleAction} onChange={e => setRuleAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
               <option value="accept">Accept</option>
               <option value="drop">Drop</option>
               <option value="reject">Reject</option>
@@ -279,7 +279,7 @@ export function CreateFirewallProfileModal({ onClose, onCreated }: { onClose: ()
                   {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
                   {r.dest_port && <span className="text-[var(--zf-muted)]">:{r.dest_port}</span>}
                   {r.source_cidr && <span className="text-[var(--zf-muted)]">src:{r.source_cidr}</span>}
-                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -382,7 +382,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Allow web traffic" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Default Action</label>
-          <select value={defaultAction} onChange={e => setDefaultAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Default Action" value={defaultAction} onChange={e => setDefaultAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="accept">Accept</option>
             <option value="drop">Drop</option>
             <option value="reject">Reject</option>
@@ -398,7 +398,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
           <InputField label="Source CIDR" value={ruleSrc} onChange={setRuleSrc} placeholder="0.0.0.0/0" />
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">Action</label>
-            <select value={ruleAction} onChange={e => setRuleAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
+            <select aria-label="Action" value={ruleAction} onChange={e => setRuleAction(e.target.value as FirewallAction)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] text-sm focus:outline-none focus:border-blue-500">
               <option value="accept">Accept</option>
               <option value="drop">Drop</option>
               <option value="reject">Reject</option>
@@ -416,7 +416,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
                   {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
                   {r.dest_port && <span className="text-[var(--zf-muted)]">:{r.dest_port}</span>}
                   {r.source_cidr && <span className="text-[var(--zf-muted)]">src:{r.source_cidr}</span>}
-                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300">
+                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -466,7 +466,7 @@ export function CreateFirewallZoneModal({ profiles, onClose, onCreated }: { prof
         <InputField label="Description" value={description} onChange={setDescription} placeholder="DMZ zone" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Default Profile</label>
-          <select value={defaultProfileId} onChange={e => setDefaultProfileId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Default Profile" value={defaultProfileId} onChange={e => setDefaultProfileId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="">None</option>
             {profiles.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -514,7 +514,7 @@ export function CreateVMFirewallAssignmentModal({ profiles, zones, onClose, onCr
         <InputField label="VM Name" value={vmName} onChange={setVmName} placeholder="web-server-01" />
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Profile</label>
-          <select value={profileId} onChange={e => setProfileId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Profile" value={profileId} onChange={e => setProfileId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             {profiles.length === 0 ? <option value="">No profiles — create one first</option> : profiles.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
@@ -522,7 +522,7 @@ export function CreateVMFirewallAssignmentModal({ profiles, zones, onClose, onCr
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Zone (optional)</label>
-          <select value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
+          <select aria-label="Zone (optional)" value={zoneId} onChange={e => setZoneId(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="">None</option>
             {zones.map(z => (
               <option key={z.id} value={z.id}>{z.name}</option>

@@ -325,7 +325,7 @@ export default function Certificates() {
                   <td className="p-4">
                     {csr.status === 'pending' && (
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleApproveCSR(csr.id)} className="text-emerald-600 hover:text-emerald-700 p-1">
+                        <button onClick={() => handleApproveCSR(csr.id)} className="text-emerald-600 hover:text-emerald-700 p-1" aria-label="Confirm" title="Confirm">
                           <Check className="w-4 h-4" />
                         </button>
                       </div>
@@ -509,13 +509,13 @@ function CreateCAForm({ onClose, onCreated }: { onClose: () => void; onCreated: 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div><label className="block text-sm font-medium mb-1">Name</label>
-        <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
+        <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
       <div><label className="block text-sm font-medium mb-1">Type</label>
-        <select value={caType} onChange={e => setCaType(e.target.value as 'root' | 'intermediate' | 'external')} className="input-field">
+        <select aria-label="Type" value={caType} onChange={e => setCaType(e.target.value as 'root' | 'intermediate' | 'external')} className="input-field">
           <option value="root">Root</option><option value="intermediate">Intermediate</option><option value="external">External</option>
         </select></div>
       <div><label className="block text-sm font-medium mb-1">Subject</label>
-        <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="input-field" placeholder="CN=My CA, O=My Org" required /></div>
+        <input aria-label="Subject" type="text" value={subject} onChange={e => setSubject(e.target.value)} className="input-field" placeholder="CN=My CA, O=My Org" required /></div>
       <div className="flex gap-3">
         <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
         <button type="submit" className="flex-1 zf-btn zf-btn-primary">Create</button>
@@ -544,9 +544,9 @@ function CreateBaselineForm({ onClose, onCreated }: { onClose: () => void; onCre
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div><label className="block text-sm font-medium mb-1">Name</label>
-        <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
+        <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
       <div><label className="block text-sm font-medium mb-1">Description</label>
-        <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
+        <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
       <div className="flex gap-3">
         <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
         <button type="submit" className="flex-1 zf-btn zf-btn-primary">Create</button>
@@ -576,17 +576,17 @@ function IssueCertificateForm({ cas, onClose, onIssued }: { cas: CertificateAuth
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div><label className="block text-sm font-medium mb-1">Certificate Authority</label>
-        <select value={caId} onChange={e => setCaId(e.target.value)} className="input-field">
+        <select aria-label="Certificate Authority" value={caId} onChange={e => setCaId(e.target.value)} className="input-field">
           {cas.map(ca => <option key={ca.id} value={ca.id}>{ca.name}</option>)}
         </select></div>
       <div><label className="block text-sm font-medium mb-1">Subject</label>
-        <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="input-field" placeholder="CN=vm01.internal" required /></div>
+        <input aria-label="Subject" type="text" value={subject} onChange={e => setSubject(e.target.value)} className="input-field" placeholder="CN=vm01.internal" required /></div>
       <div><label className="block text-sm font-medium mb-1">Type</label>
-        <select value={certType} onChange={e => setCertType(e.target.value as typeof certType)} className="input-field">
+        <select aria-label="Type" value={certType} onChange={e => setCertType(e.target.value as typeof certType)} className="input-field">
           <option value="server">Server</option><option value="client">Client</option><option value="host">Host</option><option value="service">Service</option>
         </select></div>
       <div><label className="block text-sm font-medium mb-1">Validity (days)</label>
-        <input type="number" value={validityDays} onChange={e => setValidityDays(Math.max(1, Number(e.target.value) || 1))} min={1} className="input-field" /></div>
+        <input aria-label="Validity (days)" type="number" value={validityDays} onChange={e => setValidityDays(Math.max(1, Number(e.target.value) || 1))} min={1} className="input-field" /></div>
       <div className="flex gap-3">
         <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
         <button type="submit" disabled={submitting} className="flex-1 zf-btn zf-btn-primary disabled:opacity-50">{submitting ? 'Issuing...' : 'Issue'}</button>
@@ -615,7 +615,7 @@ function ComplianceCheckForm({ baseline, vms, onClose, onChecked }: { baseline: 
   return (
     <div className="space-y-4">
       <div><label className="block text-sm font-medium mb-1">VM</label>
-        <select value={vmName} onChange={e => { setVmName(e.target.value); setResult(null) }} className="input-field">
+        <select aria-label="VM" value={vmName} onChange={e => { setVmName(e.target.value); setResult(null) }} className="input-field">
           {vms.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
         </select></div>
       {result && (

@@ -1011,7 +1011,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Name</label>
-              <input
+              <input aria-label="Name"
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -1021,7 +1021,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
             </div>
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Type</label>
-              <select
+              <select aria-label="Type"
                 value={newType}
                 onChange={(e) => setNewType(e.target.value as 'Disk' | 'Full')}
                 className="input-field py-1.5"
@@ -1046,7 +1046,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
           </div>
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">Description (optional)</label>
-            <input
+            <input aria-label="Description (optional)"
               type="text"
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}

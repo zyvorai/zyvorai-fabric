@@ -73,7 +73,7 @@ export default function Profiles() {
                 <h3 className="text-lg font-bold">{p.name}</h3>
                 <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs border ${categoryColors[p.category] || categoryColors.general}`}>{p.category}</span>
               </div>
-              {!p.builtin && <button onClick={() => handleDelete(p.name)} className="p-1 rounded text-[var(--zf-muted)] hover:bg-red-50 hover:text-red-600 transition-colors"><Trash2 className="w-4 h-4" /></button>}
+              {!p.builtin && <button onClick={() => handleDelete(p.name)} className="p-1 rounded text-[var(--zf-muted)] hover:bg-red-50 hover:text-red-600 transition-colors" aria-label="Delete" title="Delete"><Trash2 className="w-4 h-4" /></button>}
             </div>
             <p className="text-sm text-[var(--zf-muted)] mb-4">{p.description}</p>
             <div className="space-y-2 text-sm">
@@ -127,12 +127,12 @@ function CreateProfileDialog({ onClose, onSuccess }: { onClose: () => void; onSu
       <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)] w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b border-[var(--zf-hairline)]"><h2 className="text-xl font-bold">Create Profile</h2><button onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded"><span className="text-2xl">&times;</span></button></div>
         <div className="p-6 space-y-4">
-          <div><label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Name</label><input value={name} onChange={e => setName(e.target.value)} placeholder="my-profile" className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]" autoFocus /></div>
-          <div><label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Category</label><select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)]"><option value="general">General</option><option value="compute">Compute</option><option value="memory">Memory</option><option value="storage">Storage</option></select></div>
+          <div><label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Name</label><input aria-label="Name" value={name} onChange={e => setName(e.target.value)} placeholder="my-profile" className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]" autoFocus /></div>
+          <div><label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Category</label><select aria-label="Category" value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)]"><option value="general">General</option><option value="compute">Compute</option><option value="memory">Memory</option><option value="storage">Storage</option></select></div>
           <div className="grid grid-cols-3 gap-3">
-            <div><label className="block text-sm text-[var(--zf-ink)] mb-1">CPUs</label><input type="number" value={cpus} onChange={e => setCpus(+e.target.value)} min={1} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-3 text-[var(--zf-ink)]" /></div>
-            <div><label className="block text-sm text-[var(--zf-ink)] mb-1">Memory (MB)</label><input type="number" value={memory} onChange={e => setMemory(+e.target.value)} min={256} step={256} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-3 text-[var(--zf-ink)]" /></div>
-            <div><label className="block text-sm text-[var(--zf-ink)] mb-1">Disk (GB)</label><input type="number" value={disk} onChange={e => setDisk(+e.target.value)} min={1} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-3 text-[var(--zf-ink)]" /></div>
+            <div><label className="block text-sm text-[var(--zf-ink)] mb-1">CPUs</label><input aria-label="CPUs" type="number" value={cpus} onChange={e => setCpus(+e.target.value)} min={1} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-3 text-[var(--zf-ink)]" /></div>
+            <div><label className="block text-sm text-[var(--zf-ink)] mb-1">Memory (MB)</label><input aria-label="Memory (MB)" type="number" value={memory} onChange={e => setMemory(+e.target.value)} min={256} step={256} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-3 text-[var(--zf-ink)]" /></div>
+            <div><label className="block text-sm text-[var(--zf-ink)] mb-1">Disk (GB)</label><input aria-label="Disk (GB)" type="number" value={disk} onChange={e => setDisk(+e.target.value)} min={1} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-3 text-[var(--zf-ink)]" /></div>
           </div>
         </div>
         <div className="flex justify-end gap-2 p-6 border-t border-[var(--zf-hairline)]">

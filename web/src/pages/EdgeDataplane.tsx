@@ -568,7 +568,7 @@ export default function EdgeDataplane() {
             <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] p-4 flex flex-wrap gap-2 items-end">
               <div>
                 <label className="block text-xs text-[var(--zf-muted)] mb-1">Name</label>
-                <input
+                <input aria-label="Name"
                   className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
@@ -576,7 +576,7 @@ export default function EdgeDataplane() {
               </div>
               <div>
                 <label className="block text-xs text-[var(--zf-muted)] mb-1">Label</label>
-                <input
+                <input aria-label="Label"
                   className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm"
                   value={groupLabel}
                   onChange={(e) => setGroupLabel(e.target.value)}
@@ -675,8 +675,7 @@ export default function EdgeDataplane() {
                       type="button"
                       disabled={busy}
                       onClick={() => void removeCnp(name)}
-                      className="text-red-600"
-                    >
+                      className="text-red-600" aria-label="Delete" title="Delete">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}

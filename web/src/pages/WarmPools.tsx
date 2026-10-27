@@ -228,7 +228,7 @@ function CreatePoolModal({ onClose, onCreated }: { onClose: () => void; onCreate
           <h2 className="text-lg font-bold text-[var(--zf-ink)]">Create Warm Pool</h2>
         </div>
         {!submitting && (
-          <button onClick={onClose} className="p-2 hover:bg-black/[0.04] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]">
+          <button onClick={onClose} className="p-2 hover:bg-black/[0.04] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]" aria-label="Close" title="Close">
             <X className="w-4 h-4" />
           </button>
         )}
@@ -239,7 +239,7 @@ function CreatePoolModal({ onClose, onCreated }: { onClose: () => void; onCreate
         )}
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Pool Name</label>
-          <input
+          <input aria-label="Pool Name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -252,7 +252,7 @@ function CreatePoolModal({ onClose, onCreated }: { onClose: () => void; onCreate
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Disk Image</label>
-          <select
+          <select aria-label="Disk Image"
             value={image}
             onChange={(e) => setImage(e.target.value)}
             disabled={submitting}
@@ -267,7 +267,7 @@ function CreatePoolModal({ onClose, onCreated }: { onClose: () => void; onCreate
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Size</label>
-            <input
+            <input aria-label="Size"
               type="number" min={1} max={64} value={size}
               onChange={(e) => setSize(Math.max(1, Math.min(64, parseInt(e.target.value) || 1)))}
               disabled={submitting}
@@ -276,7 +276,7 @@ function CreatePoolModal({ onClose, onCreated }: { onClose: () => void; onCreate
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">vCPUs</label>
-            <input
+            <input aria-label="vCPUs"
               type="number" min={1} max={32} value={cpus}
               onChange={(e) => setCpus(Math.max(1, Math.min(32, parseInt(e.target.value) || 1)))}
               disabled={submitting}
@@ -285,7 +285,7 @@ function CreatePoolModal({ onClose, onCreated }: { onClose: () => void; onCreate
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Memory (MB)</label>
-            <input
+            <input aria-label="Memory (MB)"
               type="number" min={256} step={256} value={memory}
               onChange={(e) => setMemory(Math.max(256, parseInt(e.target.value) || 256))}
               disabled={submitting}
@@ -347,7 +347,7 @@ function ClaimPoolModal({ pool, onClose, onClaimed }: { pool: WarmPool; onClose:
           </div>
         </div>
         {!submitting && (
-          <button onClick={onClose} className="p-2 hover:bg-black/[0.04] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]">
+          <button onClick={onClose} className="p-2 hover:bg-black/[0.04] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]" aria-label="Close" title="Close">
             <X className="w-4 h-4" />
           </button>
         )}
@@ -358,7 +358,7 @@ function ClaimPoolModal({ pool, onClose, onClaimed }: { pool: WarmPool; onClose:
         )}
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">New VM Name</label>
-          <input
+          <input aria-label="New VM Name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}

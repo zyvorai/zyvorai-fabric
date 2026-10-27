@@ -91,7 +91,7 @@ export default function KeyboardShortcutsPanel() {
             </div>
             <h2 className="text-base font-semibold text-[var(--zf-ink)]">Keyboard Shortcuts</h2>
           </div>
-          <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-white/5 transition-colors">
+          <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-white/5 transition-colors" aria-label="Close" title="Close">
             <X className="w-4 h-4" />
           </button>
         </div>

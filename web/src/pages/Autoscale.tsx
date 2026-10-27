@@ -240,7 +240,7 @@ function CreatePolicyDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">VM</label>
-            <select
+            <select aria-label="VM"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"

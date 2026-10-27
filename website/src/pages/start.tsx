@@ -33,9 +33,9 @@ const REFERENCE: Doc[] = [
   ['Glossary', 'The terms Fabric and Merion use.', '/docs/quick-reference/glossary'],
 ];
 
-function Cards({docs}: {docs: Doc[]}): ReactNode {
+function Cards({docs, four}: {docs: Doc[]; four?: boolean}): ReactNode {
   return (
-    <div className={styles.grid}>
+    <div className={four ? `${styles.grid} ${styles.grid4}` : styles.grid}>
       {docs.map(([title, body, to]) => (
         <Link key={to} to={to} className={styles.card}>
           <h3 className={styles.cardTitle}>{title}</h3>
@@ -82,7 +82,7 @@ export default function Start(): ReactNode {
           cueLabel="Jump to getting started"
         />
         <Section id="start" eyebrow="Start here" title="From nothing to a running VM." lede="Four short pages, in this order.">
-          <Cards docs={START} />
+          <Cards docs={START} four />
         </Section>
         <Section eyebrow="Learn" title="Learn it by doing." lede="Step-by-step walkthroughs for the jobs you will actually do." tint>
           <Cards docs={LEARN} />

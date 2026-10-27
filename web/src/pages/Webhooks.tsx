@@ -143,7 +143,7 @@ export default function Webhooks() {
 
           <div>
             <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Webhook URL</label>
-            <input
+            <input aria-label="Webhook URL"
               type="url"
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}

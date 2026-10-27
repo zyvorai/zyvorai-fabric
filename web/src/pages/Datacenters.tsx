@@ -253,8 +253,7 @@ export default function Datacenters() {
                     </button>
                     <button
                       onClick={() => handleDeleteDC(dc.id)}
-                      className="text-[var(--zf-danger)] hover:opacity-70 p-1"
-                    >
+                      className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label="Delete" title="Delete">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -295,8 +294,7 @@ export default function Datacenters() {
                           </button>
                           <button
                             onClick={() => handleDeleteCluster(cl.id)}
-                            className="text-[var(--zf-danger)] hover:opacity-70 p-1"
-                          >
+                            className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label="Delete" title="Delete">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -391,8 +389,7 @@ export default function Datacenters() {
                                       </button>
                                       <button
                                         onClick={() => handleRemoveHost(host.id)}
-                                        className="text-[var(--zf-danger)] hover:opacity-70 p-1"
-                                      >
+                                        className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label="Delete" title="Delete">
                                         <Trash2 className="w-4 h-4" />
                                       </button>
                                     </div>
@@ -503,12 +500,12 @@ function CreateDCModal({ onClose, onCreated }: { onClose: () => void; onCreated:
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)}
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)}
             className="input-field" required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)}
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)}
             className="input-field" />
         </div>
         <div className="flex gap-3">
@@ -539,12 +536,12 @@ function CreateClusterModal({ datacenterId, onClose, onCreated }: { datacenterId
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Cluster Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)}
+          <input aria-label="Cluster Name" type="text" value={name} onChange={e => setName(e.target.value)}
             className="input-field" required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)}
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)}
             className="input-field" />
         </div>
         <div className="flex gap-3">
@@ -577,23 +574,23 @@ function RegisterHostModal({ clusterId, onClose, onCreated }: { clusterId: strin
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Hostname</label>
-          <input type="text" value={hostname} onChange={e => setHostname(e.target.value)}
+          <input aria-label="Hostname" type="text" value={hostname} onChange={e => setHostname(e.target.value)}
             className="input-field" required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">IP Address</label>
-          <input type="text" value={address} onChange={e => setAddress(e.target.value)}
+          <input aria-label="IP Address" type="text" value={address} onChange={e => setAddress(e.target.value)}
             className="input-field" required />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">CPUs</label>
-            <input type="number" value={cpus} onChange={e => setCpus(Number(e.target.value))}
+            <input aria-label="CPUs" type="number" value={cpus} onChange={e => setCpus(Number(e.target.value))}
               className="input-field" min={1} required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Memory (MB)</label>
-            <input type="number" value={memoryMb} onChange={e => setMemoryMb(Number(e.target.value))}
+            <input aria-label="Memory (MB)" type="number" value={memoryMb} onChange={e => setMemoryMb(Number(e.target.value))}
               className="input-field" min={512} required />
           </div>
         </div>
@@ -623,12 +620,12 @@ function EditNameModal({ title, name: initialName, description: initialDescripti
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)}
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)}
             className="input-field" required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)}
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)}
             className="input-field" />
         </div>
         <div className="flex gap-3">

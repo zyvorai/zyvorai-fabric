@@ -183,7 +183,7 @@ export default function Encryption() {
                       </span>
                     </td>
                     <td className="p-4">
-                      <button onClick={() => handleRemoveProvider(prov.id)} className="text-[var(--zf-danger)] hover:opacity-70">
+                      <button onClick={() => handleRemoveProvider(prov.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -352,12 +352,12 @@ function CreateProviderModal({ onClose, onCreated }: { onClose: () => void; onCr
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)}
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)}
             className="input-field" required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Type</label>
-          <select value={providerType} onChange={e => setProviderType(e.target.value)}
+          <select aria-label="Type" value={providerType} onChange={e => setProviderType(e.target.value)}
             className="input-field">
             <option value="kmip">KMIP</option>
             <option value="local">Local (software-based)</option>
@@ -366,7 +366,7 @@ function CreateProviderModal({ onClose, onCreated }: { onClose: () => void; onCr
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Endpoint</label>
-          <input type="text" value={endpoint} onChange={e => setEndpoint(e.target.value)}
+          <input aria-label="Endpoint" type="text" value={endpoint} onChange={e => setEndpoint(e.target.value)}
             className="input-field"
             placeholder="https://kms.example.com:5696" required />
         </div>
@@ -407,24 +407,24 @@ function CreatePolicyModal({ providers, onClose, onCreated }: { providers: KeyPr
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)}
+          <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)}
             className="input-field" required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)}
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)}
             className="input-field" />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Key Provider</label>
-          <select value={keyProviderId} onChange={e => setKeyProviderId(e.target.value)}
+          <select aria-label="Key Provider" value={keyProviderId} onChange={e => setKeyProviderId(e.target.value)}
             className="input-field">
             {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Algorithm</label>
-          <select value={algorithm} onChange={e => setAlgorithm(e.target.value)}
+          <select aria-label="Algorithm" value={algorithm} onChange={e => setAlgorithm(e.target.value)}
             className="input-field">
             <option value="aes256_xts">AES-256-XTS</option>
             <option value="aes256_cbc">AES-256-CBC</option>
@@ -442,7 +442,7 @@ function CreatePolicyModal({ providers, onClose, onCreated }: { providers: KeyPr
         {autoRotate && (
           <div>
             <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Rotation Interval (days)</label>
-            <input type="number" value={rotationDays} onChange={e => setRotationDays(Number(e.target.value))}
+            <input aria-label="Rotation Interval (days)" type="number" value={rotationDays} onChange={e => setRotationDays(Number(e.target.value))}
               className="input-field" min={1} />
           </div>
         )}
@@ -484,14 +484,14 @@ function EncryptVMModal({ vms, policies, onClose, onEncrypted }: { vms: VM[]; po
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">VM</label>
-            <select value={vmName} onChange={e => setVmName(e.target.value)}
+            <select aria-label="VM" value={vmName} onChange={e => setVmName(e.target.value)}
               className="input-field">
               {vms.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Encryption Policy</label>
-            <select value={policyId} onChange={e => setPolicyId(e.target.value)}
+            <select aria-label="Encryption Policy" value={policyId} onChange={e => setPolicyId(e.target.value)}
               className="input-field">
               {policies.map(p => <option key={p.id} value={p.id}>{p.name} ({p.algorithm})</option>)}
             </select>

@@ -380,7 +380,7 @@ function CreateBackupDialog({ vms, onClose, onCreate }: CreateBackupDialogProps)
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Virtual Machine</label>
-            <select
+            <select aria-label="Virtual Machine"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
               className="input-field"
@@ -392,7 +392,7 @@ function CreateBackupDialog({ vms, onClose, onCreate }: CreateBackupDialogProps)
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Backup Type</label>
-            <select
+            <select aria-label="Backup Type"
               value={backupType}
               onChange={(e) => setBackupType(e.target.value as 'full' | 'incremental')}
               className="input-field"
@@ -461,7 +461,7 @@ function RestoreDialog({ backup, onClose, onRestore }: RestoreDialogProps) {
           {createNew && (
             <div>
               <label className="block text-sm font-medium mb-2">New VM Name</label>
-              <input
+              <input aria-label="New VM Name"
                 type="text"
                 value={targetName}
                 onChange={(e) => setTargetName(e.target.value)}

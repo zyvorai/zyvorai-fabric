@@ -1,10 +1,11 @@
 // Docs-site gate (ux-plan step 8): for a set of pages, in both themes, at desktop and phone width:
 // no sideways scroll, no serious/critical axe violation, and Lighthouse accessibility + performance >= 95.
-// Run: npm run build && node check-site.mjs [--no-lighthouse]
+// Run: npm run build && node check-site.mjs [--no-lighthouse | --lighthouse-only]
 import { readFileSync, existsSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { extname, join } from 'node:path'
+import { gzipSync } from 'node:zlib'
 import puppeteer from 'puppeteer'
 
 const BASE = '/zyvorai-fabric' // docusaurus baseUrl
@@ -14,6 +15,7 @@ const SIZES = { desktop: [1440, 900], phone: [390, 844] }
 const THEMES = ['light', 'dark']
 const SCORE_FLOOR = 95
 const lighthouseOn = !process.argv.includes('--no-lighthouse')
+const axeOn = !process.argv.includes('--lighthouse-only')
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.xml': 'application/xml' }
 const server = createServer((req, res) => {
@@ -21,8 +23,15 @@ const server = createServer((req, res) => {
   let file = join('build', path)
   if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html')
   if (!existsSync(file)) file = join('build', '404.html')
-  res.setHeader('Content-Type', TYPES[extname(file)] ?? 'application/octet-stream')
-  res.end(readFileSync(file))
+  const type = TYPES[extname(file)] ?? 'application/octet-stream'
+  res.setHeader('Content-Type', type)
+  // GitHub Pages compresses text and caches for ten minutes; measure the same, not a bare file server
+  res.setHeader('Cache-Control', 'max-age=600')
+  const body = readFileSync(file)
+  if (/text|javascript|json|svg|xml/.test(type) && /gzip/.test(req.headers['accept-encoding'] ?? '')) {
+    res.setHeader('Content-Encoding', 'gzip')
+    res.end(gzipSync(body))
+  } else res.end(body)
 }).listen(PORT)
 
 // Docusaurus namespaces its theme key (e.g. theme-371); read it from the built page so light mode really is light
@@ -31,7 +40,7 @@ const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/
 const browser = await puppeteer.launch({ args: process.env.CI ? ['--no-sandbox'] : [] })
 const failures = []
 
-for (const theme of THEMES) {
+for (const theme of axeOn ? THEMES : []) {
   for (const [size, [width, height]] of Object.entries(SIZES)) {
     const page = await browser.newPage()
     await page.setViewport({ width, height })
@@ -60,21 +69,32 @@ for (const theme of THEMES) {
 }
 
 if (lighthouseOn) {
+  // Lighthouse scores swing with machine load (the same page scored 80 and 96), so each page gets a fresh browser
+  // and the median of three runs.
   const { default: lighthouse } = await import('lighthouse')
+  // the stock desktop config also switches off the mobile network and CPU throttling
+  const { default: desktopConfig } = await import('lighthouse/core/config/desktop-config.js')
+  const median = (xs) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]
+  const lhBrowser = await puppeteer.launch({ args: process.env.CI ? ['--no-sandbox'] : [] })
   for (const path of ['/start', '/docs/getting-started/Quick-Start']) {
     for (const [size, form] of [['desktop', 'desktop'], ['phone', 'mobile']]) {
-      const lhr = (await lighthouse(
-        `http://localhost:${PORT}${BASE}${path}`,
-        { port: Number(new URL(browser.wsEndpoint()).port), onlyCategories: ['accessibility', 'performance'], logLevel: 'error' },
-        form === 'desktop' ? { extends: 'lighthouse:default', settings: { formFactor: 'desktop', screenEmulation: { disabled: true }, throttlingMethod: 'simulate' } } : undefined,
-      )).lhr
-      const a11y = Math.round(lhr.categories.accessibility.score * 100)
-      const perf = Math.round(lhr.categories.performance.score * 100)
-      console.log(`lighthouse ${path} ${size}: accessibility ${a11y}, performance ${perf}`)
-      if (a11y < SCORE_FLOOR) failures.push(`${path} ${size}: lighthouse accessibility ${a11y} < ${SCORE_FLOOR}`)
-      if (perf < SCORE_FLOOR) failures.push(`${path} ${size}: lighthouse performance ${perf} < ${SCORE_FLOOR}`)
+      const a11y = []
+      const perf = []
+      for (let i = 0; i < 3; i++) {
+        const lhr = (await lighthouse(
+          `http://localhost:${PORT}${BASE}${path}`,
+          { port: Number(new URL(lhBrowser.wsEndpoint()).port), onlyCategories: ['accessibility', 'performance'], logLevel: 'error' },
+          form === 'desktop' ? desktopConfig : undefined,
+        )).lhr
+        a11y.push(Math.round(lhr.categories.accessibility.score * 100))
+        perf.push(Math.round(lhr.categories.performance.score * 100))
+      }
+      console.log(`lighthouse ${path} ${size}: accessibility ${median(a11y)}, performance ${median(perf)} (runs: ${perf.join(', ')})`)
+      if (median(a11y) < SCORE_FLOOR) failures.push(`${path} ${size}: lighthouse accessibility ${median(a11y)} < ${SCORE_FLOOR}`)
+      if (median(perf) < SCORE_FLOOR) failures.push(`${path} ${size}: lighthouse performance ${median(perf)} < ${SCORE_FLOOR}`)
     }
   }
+  await lhBrowser.close()
 }
 
 await browser.close()

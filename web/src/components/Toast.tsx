@@ -51,8 +51,7 @@ export function ToastItem({ toast, onClose }: ToastProps) {
       <span className="flex-1 text-sm text-[var(--zf-ink)] whitespace-pre-wrap break-words">{display}</span>
       <button
         onClick={() => onClose(toast.id)}
-        className="shrink-0 p-0.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors"
-      >
+        className="shrink-0 p-0.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors" aria-label="Close" title="Close">
         <X className="w-3.5 h-3.5" />
       </button>
     </div>

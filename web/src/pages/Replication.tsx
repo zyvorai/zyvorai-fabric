@@ -187,7 +187,7 @@ export default function Replication() {
                     <td className="p-4 text-sm">{site.replication_count}</td>
                     <td className="p-4 text-sm text-[var(--zf-muted)]">{site.last_sync ? new Date(site.last_sync).toLocaleString() : '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleRemoveSite(site.id)} className="text-red-600 hover:text-red-800">
+                      <button onClick={() => handleRemoveSite(site.id)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -342,17 +342,17 @@ function CreateSiteModal({ onClose, onCreated }: { onClose: () => void; onCreate
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Site Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)}
+            <input aria-label="Site Name" type="text" value={name} onChange={e => setName(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Endpoint</label>
-            <input type="text" value={endpoint} onChange={e => setEndpoint(e.target.value)}
+            <input aria-label="Endpoint" type="text" value={endpoint} onChange={e => setEndpoint(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="https://site.example.com" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Type</label>
-            <select value={siteType} onChange={e => setSiteType(e.target.value as 'primary' | 'secondary' | 'bidirectional')}
+            <select aria-label="Type" value={siteType} onChange={e => setSiteType(e.target.value as 'primary' | 'secondary' | 'bidirectional')}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               <option value="primary">Primary</option>
               <option value="secondary">Recovery (secondary)</option>
@@ -391,26 +391,26 @@ function CreateConfigModal({ sites, onClose, onCreated }: { sites: ReplicationSi
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">VM ID</label>
-            <input type="text" value={vmId} onChange={e => setVmId(e.target.value)}
+            <input aria-label="VM ID" type="text" value={vmId} onChange={e => setVmId(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Source Site</label>
-            <select value={sourceSite} onChange={e => setSourceSite(e.target.value)}
+            <select aria-label="Source Site" value={sourceSite} onChange={e => setSourceSite(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Target Site</label>
-            <select value={targetSite} onChange={e => setTargetSite(e.target.value)}
+            <select aria-label="Target Site" value={targetSite} onChange={e => setTargetSite(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">RPO (minutes)</label>
-            <input type="number" value={rpo} onChange={e => setRpo(Number(e.target.value))}
+            <input aria-label="RPO (minutes)" type="number" value={rpo} onChange={e => setRpo(Number(e.target.value))}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" min={1} required />
           </div>
           <div className="flex gap-3">

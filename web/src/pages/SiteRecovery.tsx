@@ -227,7 +227,7 @@ export default function SiteRecovery() {
                       <button onClick={() => setShowExecute(plan.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] p-1" title="Execute">
                         <Play className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDeletePlan(plan.id)} className="text-red-600 hover:text-red-800 p-1">
+                      <button onClick={() => handleDeletePlan(plan.id)} className="text-red-600 hover:text-red-800 p-1" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -362,34 +362,34 @@ function CreatePlanModal({ onClose, onCreated }: { onClose: () => void; onCreate
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Plan Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)}
+            <input aria-label="Plan Name" type="text" value={name} onChange={e => setName(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
-            <input type="text" value={description} onChange={e => setDescription(e.target.value)}
+            <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Source Site ID</label>
-              <input type="text" value={sourceSite} onChange={e => setSourceSite(e.target.value)}
+              <input aria-label="Source Site ID" type="text" value={sourceSite} onChange={e => setSourceSite(e.target.value)}
                 className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Target Site ID</label>
-              <input type="text" value={targetSite} onChange={e => setTargetSite(e.target.value)}
+              <input aria-label="Target Site ID" type="text" value={targetSite} onChange={e => setTargetSite(e.target.value)}
                 className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">VM Group Name</label>
-            <input type="text" value={groupName} onChange={e => setGroupName(e.target.value)}
+            <input aria-label="VM Group Name" type="text" value={groupName} onChange={e => setGroupName(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">VM IDs (comma-separated)</label>
-            <input type="text" value={vmIds} onChange={e => setVmIds(e.target.value)}
+            <input aria-label="VM IDs (comma-separated)" type="text" value={vmIds} onChange={e => setVmIds(e.target.value)}
               className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div className="flex gap-3">
