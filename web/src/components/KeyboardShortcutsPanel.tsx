@@ -99,7 +99,7 @@ export default function KeyboardShortcutsPanel() {
         <div className="px-5 py-4 overflow-y-auto max-h-[60vh] sidebar-scroll">
           {categories.map((category) => (
             <div key={category} className="mb-5 last:mb-0">
-              <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#6e6e73] mb-2">{category}</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[#6e6e73] mb-2">{category}</h3>
               <div className="space-y-1">
                 {shortcuts
                   .filter((s) => s.category === category)
@@ -113,7 +113,7 @@ export default function KeyboardShortcutsPanel() {
                               {key}
                             </kbd>
                             {ki < shortcut.keys.length - 1 && (
-                              <span className="text-[10px] text-[#6e6e73]">then</span>
+                              <span className="text-xs text-[#6e6e73]">then</span>
                             )}
                           </span>
                         ))}
@@ -125,7 +125,7 @@ export default function KeyboardShortcutsPanel() {
           ))}
         </div>
 
-        <div className="px-5 py-3 border-t border-[#d2d2d7] text-center text-[11px] text-[#6e6e73]">
+        <div className="px-5 py-3 border-t border-[#d2d2d7] text-center text-xs text-[#6e6e73]">
           Press <kbd className="px-1.5 py-0.5 bg-white border border-[#d2d2d7] rounded font-mono mx-0.5">?</kbd> to toggle
         </div>
       </div>

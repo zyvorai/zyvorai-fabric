@@ -729,7 +729,7 @@ export default function DataplanePanel({ vmName }: { vmName: string }) {
                       updatePolicy({ sample_rate: Math.max(0, parseInt(e.target.value, 10) || 0) })
                     }
                   />
-                  <p className="text-[11px] text-[#6e6e73] mt-1">0 = off; ≥1 enables flow sampling</p>
+                  <p className="text-xs text-[#6e6e73] mt-1">0 = off; ≥1 enables flow sampling</p>
                 </div>
               </div>
             </div>

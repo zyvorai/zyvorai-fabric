@@ -244,7 +244,7 @@ export default function Dashboard() {
               key={title}
               className="rounded-[12px] border border-[var(--zf-hairline)] bg-[var(--zf-canvas)] p-4"
             >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--zf-link)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[var(--zf-link)]">
                 {title}
               </p>
               <p className="mt-2">
@@ -270,7 +270,7 @@ export default function Dashboard() {
             <div className="icon-tile icon-tile-md">
               <Server className="h-5 w-5 text-[var(--zf-ink)]" />
             </div>
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--zf-canvas)] text-[var(--zf-muted)]">total</span>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--zf-canvas)] text-[var(--zf-muted)]">total</span>
           </div>
           <div className="text-2xl font-bold text-[var(--zf-ink)] tabular-nums">{totalCount}</div>
           <div className="text-[13px] text-[var(--zf-secondary)] mt-1">Total VMs</div>
@@ -282,7 +282,7 @@ export default function Dashboard() {
             <div className="icon-tile icon-tile-md">
               <Activity className="h-5 w-5 text-[var(--zf-ink)]" />
             </div>
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
               {stats.total > 0 ? `${Math.round((stats.running / stats.total) * 100)}%` : '0%'}
             </span>
           </div>
@@ -296,7 +296,7 @@ export default function Dashboard() {
             <div className="icon-tile icon-tile-md">
               <Power className="h-5 w-5 text-[var(--zf-ink)]" />
             </div>
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-700">stopped</span>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-700">stopped</span>
           </div>
           <div className="text-2xl font-bold text-[var(--zf-ink)] tabular-nums">{stoppedCount}</div>
           <div className="text-[13px] text-[var(--zf-secondary)] mt-1">Stopped</div>
@@ -308,7 +308,7 @@ export default function Dashboard() {
             <div className="icon-tile icon-tile-md">
               <Cpu className="h-5 w-5 text-[var(--zf-ink)]" />
             </div>
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--zf-canvas)] text-[var(--zf-muted)]">
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--zf-canvas)] text-[var(--zf-muted)]">
               {stats.totalCPU} vCPU
             </span>
           </div>

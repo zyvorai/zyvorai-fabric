@@ -47,7 +47,7 @@ export function RadialGauge({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-lg font-bold text-[#1d1d1f] tabular-nums leading-none">{Math.round(clamped)}%</span>
-        {label && <span className="text-[10px] text-[#6e6e73] mt-1 leading-none">{label}</span>}
+        {label && <span className="text-xs text-[#6e6e73] mt-1 leading-none">{label}</span>}
       </div>
       {sublabel && <span className="sr-only">{sublabel}</span>}
     </div>

@@ -136,7 +136,7 @@ export default function ServiceMap() {
                     <span className={`w-2.5 h-2.5 rounded-full ${statusDot(node.status)}`} />
                     <span className="text-sm font-semibold text-[var(--zf-ink)]">{node.name}</span>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border capitalize ${typeBadge(node.type)}`}>{node.type}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium border capitalize ${typeBadge(node.type)}`}>{node.type}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-[var(--zf-muted)] mb-2">
                   <Server className="w-3.5 h-3.5" /><span>{node.vm}</span>

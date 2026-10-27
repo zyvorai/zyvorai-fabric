@@ -83,13 +83,13 @@ function VMTableRow({ vm, onUpdate, selected, onSelect, canWrite }: { vm: VM; on
             {vm.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${getTagColor(tag)} text-[var(--zf-ink)]/90`}
+                className={`px-1.5 py-0.5 rounded text-xs font-medium ${getTagColor(tag)} text-[var(--zf-ink)]/90`}
               >
                 {tag}
               </span>
             ))}
             {vm.tags.length > 2 && (
-              <span className="text-[11px] text-[var(--zf-muted)]">+{vm.tags.length - 2}</span>
+              <span className="text-xs text-[var(--zf-muted)]">+{vm.tags.length - 2}</span>
             )}
           </div>
         ) : (

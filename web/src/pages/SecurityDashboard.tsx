@@ -147,13 +147,13 @@ export default function SecurityDashboard() {
           <div className="divide-y divide-[var(--zf-hairline)]/30">
             {alerts.map((alert: any, i: number) => (
               <div key={i} className="px-5 py-3 table-row-hover flex items-start gap-3">
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${severityColor(alert.severity)}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${severityColor(alert.severity)}`}>
                   {alert.severity || 'unknown'}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-[var(--zf-ink)]">{alert.message || alert.title || 'No description'}</div>
-                  {alert.source && <div className="text-[10px] text-[var(--zf-muted)] mt-0.5">Source: {alert.source}</div>}
-                  {alert.timestamp && <div className="text-[10px] text-[var(--zf-muted)]">{new Date(alert.timestamp).toLocaleString()}</div>}
+                  {alert.source && <div className="text-xs text-[var(--zf-muted)] mt-0.5">Source: {alert.source}</div>}
+                  {alert.timestamp && <div className="text-xs text-[var(--zf-muted)]">{new Date(alert.timestamp).toLocaleString()}</div>}
                 </div>
               </div>
             ))}

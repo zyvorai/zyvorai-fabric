@@ -82,7 +82,7 @@ export default function BatchMigrationBuilder() {
                 type="button"
                 onClick={handleCopy}
                 title="Copy JSON"
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-white/60 hover:text-white hover:bg-white/10 transition-colors"
               >
                 {copied ? <Check className="w-3 h-3 text-[#28c840]" /> : <Copy className="w-3 h-3" />}
                 {copied ? 'Copied' : 'Copy'}
@@ -91,7 +91,7 @@ export default function BatchMigrationBuilder() {
                 type="button"
                 onClick={handleDownload}
                 title="Download JSON"
-                className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-white/60 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <Download className="w-3 h-3" /> Download
               </button>

@@ -163,7 +163,7 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
           // A black canvas alone is indistinguishable from a dead connection
           // -- the guest's VGA framebuffer stays blank on any image whose
           // console output goes entirely to a serial tty, which is common.
-          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[#6e6e73] text-[11px] pointer-events-none">
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[#6e6e73] text-xs pointer-events-none">
             <Monitor className="w-3 h-3" />
             Live display
           </div>

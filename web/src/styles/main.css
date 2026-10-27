@@ -421,7 +421,7 @@ a:hover {
   max-width: 520px;
 }
 .merion-mkt-storyboard-label {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--zf-secondary);
@@ -511,7 +511,7 @@ a:hover {
     linear-gradient(200deg, #151c26 0%, #0a0e14 100%);
 }
 .merion-mkt-sight-tag {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--keep-mist);
@@ -631,7 +631,7 @@ a:hover {
   grid-template-columns: 8.5rem 1fr 1fr;
   gap: 16px;
   padding: 0 0 10px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -681,14 +681,14 @@ a:hover {
   }
   .merion-mkt-versus-muse::before {
     content: 'Muse · ';
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--zf-secondary);
   }
   .merion-mkt-versus-merion::before {
     content: 'Merion · ';
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--zf-secondary);

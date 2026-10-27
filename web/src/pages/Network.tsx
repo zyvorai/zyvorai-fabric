@@ -395,7 +395,7 @@ export default function Network() {
         <div className="zf-panel px-4 py-3">
           <div className="text-[var(--zf-muted)] text-xs mb-1">Interfaces</div>
           <div className="text-2xl font-bold text-[var(--zf-ink)]">{netfileCounts.total}</div>
-          <div className="text-[10px] text-[var(--zf-muted)] mt-0.5">
+          <div className="text-xs text-[var(--zf-muted)] mt-0.5">
             {netfileCounts.physical} phys · {netfileCounts.container} ctr
           </div>
         </div>

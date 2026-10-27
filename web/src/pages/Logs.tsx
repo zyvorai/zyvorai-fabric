@@ -192,16 +192,16 @@ export default function Logs() {
               key={log.id || index}
               className="flex items-start gap-3 py-1 hover:bg-white/[0.04] rounded px-1 -mx-1"
             >
-              <span className="text-white/30 text-[11px] whitespace-nowrap tabular-nums shrink-0">
+              <span className="text-white/30 text-xs whitespace-nowrap tabular-nums shrink-0">
                 {log.timestamp.length > 19 ? log.timestamp.slice(0, 19).replace('T', ' ') : log.timestamp}
               </span>
               <span
-                className="font-semibold text-[11px] whitespace-nowrap shrink-0 w-14"
+                className="font-semibold text-xs whitespace-nowrap shrink-0 w-14"
                 style={{ color: TERM_LEVEL_COLOR[log.level] || '#f5f5f7' }}
               >
                 {log.level}
               </span>
-              <span className="text-white/40 text-[11px] whitespace-nowrap shrink-0 max-w-[8rem] truncate">
+              <span className="text-white/40 text-xs whitespace-nowrap shrink-0 max-w-[8rem] truncate">
                 [{log.source}]
               </span>
               <span className="flex-1 min-w-0 break-words whitespace-pre-wrap">

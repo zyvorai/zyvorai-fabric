@@ -1152,7 +1152,7 @@ function DownloadImageModal({ existingImages, onClose, onDownloaded }: {
                     <p className="text-sm font-medium text-[var(--zf-ink)] truncate capitalize">{img.distro}</p>
                     <p className="text-xs text-[var(--zf-muted)]">{img.version} · {img.arch}</p>
                     {onDisk && (
-                      <p className="text-[10px] font-medium text-emerald-600 mt-1">Already on disk</p>
+                      <p className="text-xs font-medium text-emerald-600 mt-1">Already on disk</p>
                     )}
                   </button>
                 )

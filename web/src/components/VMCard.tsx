@@ -158,13 +158,13 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               {vm.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className={`px-2 py-0.5 rounded text-[11px] font-medium ${getTagColor(tag)} text-[#1d1d1f]/90`}
+                  className={`px-2 py-0.5 rounded text-xs font-medium ${getTagColor(tag)} text-[#1d1d1f]/90`}
                 >
                   {tag}
                 </span>
               ))}
               {vm.tags.length > 3 && (
-                <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-[#e8e8ed] text-[#6e6e73]">
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-[#e8e8ed] text-[#6e6e73]">
                   +{vm.tags.length - 3}
                 </span>
               )}

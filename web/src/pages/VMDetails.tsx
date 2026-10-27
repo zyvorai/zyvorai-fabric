@@ -163,7 +163,7 @@ export default function VMDetails() {
       <div className="flex items-start justify-between gap-4 min-w-0 flex-wrap">
         <div>
           <div className="flex items-center gap-3 mb-1 flex-wrap">
-            <h1 className="text-2xl font-bold text-[var(--zf-ink)]">{vm.name}</h1>
+            <h1 className="text-[26px] sm:text-[32px] leading-tight font-semibold tracking-[-0.022em] text-[var(--zf-ink)]">{vm.name}</h1>
             <StatusBadge status={vm.state} />
             <CopyButton text={vm.name} label="Copy name" successMessage="VM name copied" />
             <CopyButton
@@ -567,7 +567,7 @@ function DisksTab({ vm }: { vm: VM }) {
               <td className="py-3 px-4 font-mono text-xs text-[var(--zf-muted)] max-w-[300px] truncate">{disk.path}</td>
               <td className="py-3 px-4 text-[var(--zf-muted)]">{disk.size}</td>
               <td className="py-3 px-4">
-                <span className="px-2 py-0.5 text-[11px] font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
+                <span className="px-2 py-0.5 text-xs font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
                   {disk.format.toUpperCase()}
                 </span>
               </td>
@@ -1103,7 +1103,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
                     )}
                   </td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 text-[11px] font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
+                    <span className="px-2 py-0.5 text-xs font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
                       {snap.snapshot_type === 'Disk' ? 'disk-only' : 'full'}
                     </span>
                   </td>

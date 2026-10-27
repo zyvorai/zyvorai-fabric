@@ -59,7 +59,7 @@ export default function Console() {
             {mode === 'terminal' ? <TerminalIcon className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[var(--zf-ink)] truncate">Console: {name}</h1>
+            <h1 className="text-[26px] sm:text-[32px] leading-tight font-semibold tracking-[-0.022em] text-[var(--zf-ink)] truncate">Console: {name}</h1>
             <p className="text-sm text-[var(--zf-muted)] mt-1">Interactive access to this VM</p>
           </div>
         </div>

@@ -52,7 +52,7 @@ function Bar({ pct, label, detail }: { pct: number; label: string; detail?: stri
       <div className="h-2 rounded-full bg-[var(--zf-hairline)]">
         <div className={`h-full rounded-full transition-all duration-500 ${usageBarColor(v)}`} style={{ width: `${v}%` }} />
       </div>
-      {detail && <div className="text-[10px] text-[var(--zf-muted)] mt-0.5">{detail}</div>}
+      {detail && <div className="text-xs text-[var(--zf-muted)] mt-0.5">{detail}</div>}
     </div>
   )
 }
@@ -133,7 +133,7 @@ export default function SystemHealth() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm font-semibold text-[var(--zf-ink)]">Summary</span>
             {health?.bottleneck && health.bottleneck !== 'healthy' && (
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">{health.bottleneck}</span>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">{health.bottleneck}</span>
             )}
           </div>
           <p className="text-sm text-[var(--zf-ink)]">{health?.summary || 'System is healthy'}</p>
@@ -146,15 +146,15 @@ export default function SystemHealth() {
           <Bar pct={cpu?.usage_percent ?? 0} label="Overall Usage" />
           <div className="grid grid-cols-3 gap-3 mt-4">
             <div className="bg-white rounded-lg p-3">
-              <div className="text-[10px] text-[var(--zf-muted)]">Cores</div>
+              <div className="text-xs text-[var(--zf-muted)]">Cores</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{cpu?.core_count ?? '-'}</div>
             </div>
             <div className="bg-white rounded-lg p-3">
-              <div className="text-[10px] text-[var(--zf-muted)]">Load 1m</div>
+              <div className="text-xs text-[var(--zf-muted)]">Load 1m</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{(cpu?.load_avg_1 ?? 0).toFixed(2)}</div>
             </div>
             <div className="bg-white rounded-lg p-3">
-              <div className="text-[10px] text-[var(--zf-muted)]">Load 5m</div>
+              <div className="text-xs text-[var(--zf-muted)]">Load 5m</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{(cpu?.load_avg_5 ?? 0).toFixed(2)}</div>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function SystemHealth() {
               <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mt-2">
                 {cpu?.cores?.map((c: CpuCore, i: number) => (
                   <div key={i} className="bg-white rounded-lg p-2 text-center">
-                    <div className="text-[10px] text-[var(--zf-muted)]">C{c.id ?? i}</div>
+                    <div className="text-xs text-[var(--zf-muted)]">C{c.id ?? i}</div>
                     <div className="text-xs font-semibold text-[var(--zf-ink)]">{(c.usage_percent ?? 0).toFixed(0)}%</div>
                   </div>
                 ))}
@@ -179,15 +179,15 @@ export default function SystemHealth() {
           <Bar pct={mem?.swap_percent ?? 0} label="Swap Usage" detail={`${fmtB(mem?.swap_used_bytes ?? 0)} / ${fmtB(mem?.swap_total_bytes ?? 0)}`} />
           <div className="grid grid-cols-3 gap-3 mt-4">
             <div className="bg-white rounded-lg p-3">
-              <div className="text-[10px] text-[var(--zf-muted)]">Total</div>
+              <div className="text-xs text-[var(--zf-muted)]">Total</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{fmtB(mem?.total_bytes ?? 0)}</div>
             </div>
             <div className="bg-white rounded-lg p-3">
-              <div className="text-[10px] text-[var(--zf-muted)]">Available</div>
+              <div className="text-xs text-[var(--zf-muted)]">Available</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{fmtB(mem?.available_bytes ?? 0)}</div>
             </div>
             <div className="bg-white rounded-lg p-3">
-              <div className="text-[10px] text-[var(--zf-muted)]">Cached</div>
+              <div className="text-xs text-[var(--zf-muted)]">Cached</div>
               <div className="text-sm font-semibold text-[var(--zf-ink)]">{fmtB(mem?.cached_bytes ?? 0)}</div>
             </div>
           </div>
@@ -238,7 +238,7 @@ export default function SystemHealth() {
                   <span>TX: {fmtB(iface.tx_bytes)}</span>
                 </div>
                 {(iface.rx_errors > 0 || iface.tx_errors > 0) && (
-                  <div className="text-[10px] text-red-600 mt-1">Errors: RX {iface.rx_errors} / TX {iface.tx_errors}</div>
+                  <div className="text-xs text-red-600 mt-1">Errors: RX {iface.rx_errors} / TX {iface.tx_errors}</div>
                 )}
               </div>
             ))}
@@ -249,7 +249,7 @@ export default function SystemHealth() {
             <span className="text-xs text-[var(--zf-muted)]">TCP States</span>
             <div className="flex flex-wrap gap-2 mt-1">
               {Object.entries(net!.tcp_states!).map(([state, count]) => (
-                <span key={state} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--zf-hairline)] text-[var(--zf-ink)]">
+                <span key={state} className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--zf-hairline)] text-[var(--zf-ink)]">
                   {state}: {count as number}
                 </span>
               ))}

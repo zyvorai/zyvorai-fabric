@@ -41,7 +41,7 @@ export default function Home() {
           aria-hidden
         >
           <div className="h-full w-full flex flex-col items-center justify-center text-[#f5f5f7] px-8">
-            <div className="text-[11px] tracking-[0.14em] uppercase text-[#a1a1a6] mb-3">Console</div>
+            <div className="text-xs tracking-[0.14em] uppercase text-[#a1a1a6] mb-3">Console</div>
             <div className="text-3xl sm:text-4xl font-semibold tracking-[-0.04em] text-center">
               Fleet. Network. Storage.
             </div>

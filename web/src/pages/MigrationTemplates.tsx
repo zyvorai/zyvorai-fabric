@@ -106,7 +106,7 @@ export default function MigrationTemplates() {
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h3 className="text-sm font-semibold text-[var(--zf-ink)]">{tmpl.name}</h3>
-                  {isBuiltin && <span className="text-[10px] px-1.5 py-0.5 rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">Built-in</span>}
+                  {isBuiltin && <span className="text-xs px-1.5 py-0.5 rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">Built-in</span>}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => handleCopy(tmpl)} title="Copy config" className="p-1.5 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors">{copied === tmpl.id ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}</button>

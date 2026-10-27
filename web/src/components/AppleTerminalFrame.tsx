@@ -50,7 +50,7 @@ export function AppleTerminalFrame({
           {title}
         </span>
         {live && (
-          <span className="zf-terminal-live text-[10px] uppercase tracking-wider shrink-0">Live</span>
+          <span className="zf-terminal-live text-xs uppercase tracking-wider shrink-0">Live</span>
         )}
         {trailing}
       </div>

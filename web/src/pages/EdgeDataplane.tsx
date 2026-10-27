@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { useCallback, useEffect, useState } from 'react'
-import { ExternalLink, Loader2, Plus, RefreshCw, Shield, Trash2 } from 'lucide-react'
+import { ExternalLink, Loader2, Plus, Trash2 } from 'lucide-react'
 import {
   CiliumEndpointView,
   DataplaneHealth,
@@ -39,6 +39,7 @@ import { toastFailure } from '../utils/toastError'
 import { formatUserError } from '../utils/apiError'
 import { usePermissions } from '../hooks/usePermissions'
 import SubsystemBanner from '../components/SubsystemBanner'
+import { PageHeader } from '../components/ui'
 import { TerminalTextarea } from '../components/AppleTerminalFrame'
 import { usePlatformInfo } from '../contexts/PlatformInfoContext'
 import PacketFlowPanel from '../components/PacketFlowPanel'
@@ -312,53 +313,40 @@ export default function EdgeDataplane() {
   return (
     <div className="space-y-4 p-4 sm:p-6 max-w-6xl mx-auto">
       <SubsystemBanner subsystem="vm_dataplane" title="Edge dataplane" />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex items-start gap-2">
-          <Shield className="w-5 h-5 text-[#0071e3] mt-0.5" />
-          <div>
-            <h1 className="text-xl font-semibold text-[#1d1d1f]">Edge Dataplane</h1>
-            <p className="text-sm text-[#6e6e73] max-w-2xl">
-              FluxVM Network Fabric schema v4 — Maglev services, security groups, CNP, CEP
-              endpoints (`identity_source`), identities, Hubble-style packet flow, health, and
-              ipcache. VM edge plane, not Fabric SDN.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {hubbleUrl && (
-            <a
-              href={hubbleUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[#d2d2d7] bg-white text-[#1d1d1f] hover:bg-[#f5f5f7]"
-              title="Opens external Hubble UI (Cilium). VMs are not Cilium endpoints."
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              Open Hubble
-            </a>
-          )}
-          {canWrite && (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void doRefreshDns()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[#d2d2d7] bg-white"
-            >
-              Refresh DNS
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              setLoading(true)
-              void load()
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-[#d2d2d7] bg-white"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Edge Dataplane"
+        description="FluxVM Network Fabric schema v4 — Maglev services, security groups, CNP, CEP endpoints (`identity_source`), identities, Hubble-style packet flow, health, and ipcache. VM edge plane, not Fabric SDN."
+        onRefresh={() => {
+          setLoading(true)
+          void load()
+        }}
+        actions={
+          <>
+            {hubbleUrl && (
+              <a
+                href={hubbleUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="zf-btn zf-btn-ghost zf-btn-sm"
+                title="Opens external Hubble UI (Cilium). VMs are not Cilium endpoints."
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Open Hubble
+              </a>
+            )}
+            {canWrite && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void doRefreshDns()}
+                className="zf-btn zf-btn-ghost zf-btn-sm"
+              >
+                Refresh DNS
+              </button>
+            )}
+          </>
+        }
+      />
 
       {error && (
         <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -470,12 +458,12 @@ export default function EdgeDataplane() {
                 </div>
               )}
               {serviceHealth != null && (
-                <pre className="mt-2 max-h-40 overflow-auto text-[11px] font-mono text-[#6e6e73] bg-[#f5f5f7] p-2 rounded">
+                <pre className="mt-2 max-h-40 overflow-auto text-xs font-mono text-[#6e6e73] bg-[#f5f5f7] p-2 rounded">
                   {JSON.stringify(serviceHealth, null, 2)}
                 </pre>
               )}
               {serviceAds != null && (
-                <pre className="mt-2 max-h-40 overflow-auto text-[11px] font-mono text-[#6e6e73] bg-[#f5f5f7] p-2 rounded">
+                <pre className="mt-2 max-h-40 overflow-auto text-xs font-mono text-[#6e6e73] bg-[#f5f5f7] p-2 rounded">
                   {JSON.stringify(serviceAds, null, 2)}
                 </pre>
               )}

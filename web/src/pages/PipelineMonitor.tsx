@@ -141,7 +141,7 @@ export default function PipelineMonitor() {
                     return (
                       <Fragment key={stage}>
                         {idx > 0 && <div className={lineClasses} />}
-                        <div className={`px-2 py-1 text-[10px] font-semibold rounded uppercase whitespace-nowrap ${circleClasses}`}>{stage}</div>
+                        <div className={`px-2 py-1 text-xs font-semibold rounded uppercase whitespace-nowrap ${circleClasses}`}>{stage}</div>
                       </Fragment>
                     )
                   })}

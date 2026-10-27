@@ -17,6 +17,8 @@
 
 - **Fixed:** all 20 pages scrolled sideways at 390px. Cause: `.zf-btn` sets `display`, which beats Tailwind's `hidden`, so the topbar's Search button never hid on phones. It now hides under 640px and the topbar gets tighter gaps. The Network tab bar scrolls inside itself, and the Create VM image links wrap. Re-run: no page scrolls sideways in any of the 80 captures.
 - **Fixed:** phone page titles truncated ("Virt… Ma…"). `PageHeader` now wraps its actions below the title on phones, uses 26px titles there (32px from 640px up) and truncates only on wider screens.
+- **Fixed (step 3):** 81 of 83 text sizes under 12px are now 12px (plus 5 marketing label sizes in `main.css`); only the two `⌘K` key chips stay small. Baseline re-run: still no sideways scroll.
+- **Step 1:** only 7 page files lacked `PageHeader`. Edge Dataplane now uses it; Console and VM details keep their own header (status, back controls) with the shared title style; Dashboard is the hero; Login, SignIn and NotFound are standalone.
 - Dark mode renders cleanly on all 20 pages; no unreadable text seen in the images checked (dashboard, VMs).
 - Not yet looked at one by one: the other pages' images; empty lists mean tables and cards are not exercised until the mock is seeded.
 

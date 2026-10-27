@@ -342,7 +342,7 @@ export default function CommandPalette({ onOpenHelp }: CommandPaletteProps) {
           ) : (
             Object.entries(groupedCommands).map(([category, cmds]) => (
               <div key={category}>
-                <div className="px-4 py-1.5 text-[10px] font-semibold text-[#6e6e73] uppercase tracking-wider sticky top-0 bg-white">
+                <div className="px-4 py-1.5 text-xs font-semibold text-[#6e6e73] uppercase tracking-wider sticky top-0 bg-white">
                   {category}
                 </div>
                 {cmds.map((cmd) => {
@@ -367,7 +367,7 @@ export default function CommandPalette({ onOpenHelp }: CommandPaletteProps) {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">{cmd.label}</div>
                         {cmd.description && (
-                          <div className="text-[11px] text-[#6e6e73] truncate">{cmd.description}</div>
+                          <div className="text-xs text-[#6e6e73] truncate">{cmd.description}</div>
                         )}
                       </div>
                       {isSelected && <ArrowRight className="w-3.5 h-3.5 text-[#0066cc] shrink-0" />}
@@ -380,7 +380,7 @@ export default function CommandPalette({ onOpenHelp }: CommandPaletteProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-[#d2d2d7] text-[10px] text-[#6e6e73]">
+        <div className="flex items-center gap-4 px-4 py-2 border-t border-[#d2d2d7] text-xs text-[#6e6e73]">
           <span className="flex items-center gap-1">
             <kbd className="px-1 py-0.5 bg-white border border-[#d2d2d7] rounded font-mono">↑↓</kbd>
             navigate

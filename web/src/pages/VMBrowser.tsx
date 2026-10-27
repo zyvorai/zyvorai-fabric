@@ -75,7 +75,7 @@ export default function VMBrowser() {
                 <span className="text-sm font-semibold text-[var(--zf-ink)] truncate">{vm.name}</span>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${stateColor(vm.state)}`}>{vm.state || 'unknown'}</span>
               </div>
-              {vm.image && <div className="text-[10px] text-[var(--zf-muted)] truncate mb-3 font-mono">{vm.image}</div>}
+              {vm.image && <div className="text-xs text-[var(--zf-muted)] truncate mb-3 font-mono">{vm.image}</div>}
               <div className="flex items-center gap-4 text-xs text-[var(--zf-muted)]">
                 <span className="flex items-center gap-1"><Cpu className="h-3 w-3" />{vm.cpus || 0} vCPU</span>
                 <span className="flex items-center gap-1"><HardDrive className="h-3 w-3" />{fmtMem(vm.memory || 0)}</span>
