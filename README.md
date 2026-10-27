@@ -255,6 +255,11 @@ Default ports: **9095** (API and UI) and **7788** (FluxVM on localhost). The ful
 
 | | |
 |---|---|
+| **Timed and counted limits** | Auto-approve grants that expire (`ttl_minutes`), a write limit per session (`sequence.max_writes`), and model-call caps per run and per goal. All off by default. [Grants](docs/merion/design/auto-approve-changesets.md), [writes](docs/merion/design/sequence-policy.md), [budgets](docs/merion/design/model-budgets.md) |
+| **MCP gateway** | Register tool servers; a cell reaches them only through the broker, which allows listed tools, rate limits, journals names (never arguments) and keeps approvals. [Design](docs/merion/design/mcp-gateway.md) |
+| **Signed session recording** | A masked, ordered, Ed25519-signed replay bundle of what a session did; content is left out. [Design](docs/merion/design/session-recording.md) |
+| **Delegated vs autonomous** | Every egress journal row says whether a person's own connection, a host credential or nothing was used. [Design](docs/merion/design/on-behalf-of.md) |
+| **Run webhook** | One signed `run.finished` event per run, with no content. [Design](docs/merion/design/run-webhooks.md) |
 | **Approve from Slack or Teams** | Requests arrive with the host-rendered preview and its digest. Buttons only when no phone signature is required. [Design](docs/merion/design/chatops-approvals.md) |
 | **OpenTelemetry export** | Audit entries as OTLP logs, decided approvals as spans, one trace per session. [Design](docs/merion/design/otlp-export.md) |
 | **One view across daemons** | Peer Fabric hosts, VMs and health in one console page. [Guide](docs/federation.md) |
