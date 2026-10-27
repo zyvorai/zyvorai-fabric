@@ -3,6 +3,13 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Slack and Teams approval messages.** Set `ZYVOR_AGENT_SLACK_WEBHOOK` and/or `ZYVOR_AGENT_TEAMS_WEBHOOK` (and optionally
+  `ZYVOR_AGENT_CONSOLE_URL` for a link) and each new approval is posted there with its kind, subject, agent and id, never the
+  agent's prompt or the request preview. Slack gets Allow and Deny buttons only when `ZYVOR_AGENT_SLACK_SIGNING_SECRET` and
+  `ZYVOR_AGENT_SLACK_USERS` are set and the approval does not need a phone signature; the click
+  (`POST /v1/chatops/slack/interact`, Slack signature checked, five-minute window) goes through the normal user-token decision path
+  and only for the session's owner. Teams gets a card with a link, no buttons. Tested against fakes, not a real workspace.
+  Design: `docs/merion/design/chatops-approvals.md`.
 - **Verify command and snapshot restore for the run report.** `verify_command` runs after an applied changeset and shows as a check.
   `snapshot_before_apply` snapshots the cell first; an operator can then restore it (`POST /v1/sessions/{id}/changesets/{cs}/restore`,
   confirmed, latest change only, never for end users). The report shows `undo_available` or `restored_from_snapshot`.
