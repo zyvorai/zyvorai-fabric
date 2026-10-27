@@ -2,6 +2,12 @@
 
 ## 0.4.0 - 2026-10-17
 
+### Changed
+- **UX pass.** Console: a skip link, one keyboard focus ring, one easing curve for hover and press, and a short page
+  fade-in. Site: the same focus ring, selection tint and easing. Headings balance their lines on both. All motion is
+  off under reduced-motion. Not reviewed page by page; signed-in console pages were not seen. Design:
+  `docs/merion/design/ux-pass.md`.
+
 ### Added
 - **Signed run webhook.** With `ZYVOR_AGENT_RUN_WEBHOOK` (https, or http for loopback) and
   `ZYVOR_AGENT_RUN_WEBHOOK_SECRET` set, one `run.finished` event is POSTed when a session first reaches a final status,

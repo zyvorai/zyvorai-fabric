@@ -310,3 +310,44 @@ h3:hover .hash-link,
 h4:hover .hash-link {
   opacity: 0.6;
 }
+
+/* —— Shared UX pass: focus, selection, even headings, one easing curve (docs/merion/design/ux-pass.md) —— */
+:root {
+  --zv-ease: cubic-bezier(0.28, 0.11, 0.32, 1);
+}
+
+:where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--ifm-color-primary) 28%, transparent);
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+.button,
+.navbar__link,
+.menu__link,
+.table-of-contents__link {
+  transition:
+    background-color 0.24s var(--zv-ease),
+    color 0.24s var(--zv-ease),
+    border-color 0.24s var(--zv-ease),
+    box-shadow 0.24s var(--zv-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .navbar__link,
+  .menu__link,
+  .table-of-contents__link {
+    transition: none;
+  }
+}

@@ -1623,3 +1623,87 @@ html[data-theme='dark'] {
   font-size: 0.95rem;
   line-height: 1.4;
 }
+
+/* —— Motion, focus and skip link (shared pass; see docs/merion/design/ux-pass.md) ——
+   One easing curve for everything that moves, the one apple.com uses. Nothing here changes layout or colour. */
+:root {
+  --zf-ease: cubic-bezier(0.28, 0.11, 0.32, 1);
+  --zf-dur: 0.24s;
+}
+
+.zf-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 8px 14px;
+  border-radius: 980px;
+  background: var(--zf-link);
+  color: #fff;
+  font-size: 14px;
+  transform: translateY(-160%);
+  transition: transform var(--zf-dur) var(--zf-ease);
+}
+.zf-skip-link:focus {
+  transform: translateY(0);
+  color: #fff;
+}
+
+/* one visible, consistent keyboard ring on the console */
+.console-shell :is(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--zf-link);
+  outline-offset: 2px;
+  border-radius: var(--zf-radius-sm);
+}
+.console-shell .zf-btn:focus-visible {
+  border-radius: 980px;
+}
+
+.zf-btn,
+.console-nav-link,
+.console-main tbody tr {
+  transition:
+    background-color var(--zf-dur) var(--zf-ease),
+    color var(--zf-dur) var(--zf-ease),
+    border-color var(--zf-dur) var(--zf-ease),
+    transform var(--zf-dur) var(--zf-ease),
+    opacity var(--zf-dur) var(--zf-ease);
+}
+.zf-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* a page eases in when it mounts (a route change mounts a new page) */
+@keyframes zf-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.console-main > :not(nav):not(:first-child) {
+  animation: zf-page-in 0.4s var(--zf-ease) both;
+}
+
+/* titles break evenly instead of leaving one word on its own line */
+.console-main :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zf-skip-link,
+  .zf-btn,
+  .console-nav-link,
+  .console-main tbody tr {
+    transition: none;
+  }
+  .zf-btn:active:not(:disabled) {
+    transform: none;
+  }
+  .console-main > :not(nav):not(:first-child) {
+    animation: none;
+  }
+}

@@ -97,6 +97,9 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="console-shell">
+      <a href="#main-content" className="zf-skip-link">
+        Skip to content
+      </a>
       <ConsoleShortcuts
         helpOpen={helpOpen}
         helpTab={helpTab}
