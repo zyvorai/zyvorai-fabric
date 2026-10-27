@@ -47,6 +47,9 @@ pub struct AgentManifest {
     /// Taint the session when it reads content from a host outside `trusted_hosts`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub taint: Option<TaintPolicy>,
+    /// Limits over the order and number of a session's brokered writes (see [`SequencePolicy`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sequence: Option<SequencePolicy>,
     /// Chromium's remote-debugging port inside the guest. Lets an operator list
     /// the agent's open tabs (read-only). See [`crate::browser`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -341,6 +344,9 @@ impl AgentManifest {
                 return Err("taint.trusted_hosts may not contain an empty host".into());
             }
         }
+        if self.sequence.as_ref().and_then(|s| s.max_writes) == Some(0) {
+            return Err("sequence.max_writes must be at least 1".into());
+        }
         Ok(())
     }
 
@@ -538,6 +544,17 @@ pub struct EgressRule {
 pub struct TaintPolicy {
     #[serde(default)]
     pub trusted_hosts: Vec<String>,
+}
+
+/// Rules over a session's history rather than one request. Evaluated on the host, on the brokered path only
+/// (the CONNECT proxy cannot see a method).
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct SequencePolicy {
+    /// After this many brokered writes (any method but GET and HEAD) in one session, each further write is held
+    /// for a person's decision. At least 1.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_writes: Option<u32>,
 }
 
 /// Brokered browser controls (Keep). Model tools use the a11y driver; CONNECT
@@ -837,6 +854,9 @@ pub struct SessionRecord {
     /// [`TaintPolicy`]. Cleared only by an operator.
     #[serde(default)]
     pub tainted_by: Vec<String>,
+    /// Brokered writes this session has made (see [`SequencePolicy`]).
+    #[serde(default)]
+    pub writes: u32,
     /// How the sandbox was launched, when the agent asked for `confidential`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub confidential: Option<ConfidentialStatus>,
@@ -1339,11 +1359,28 @@ pub struct DelegateRequest {
 mod home_volume_tests {
     use super::*;
 
+    #[test]
+    fn a_zero_write_limit_is_refused_at_deploy() {
+        let mut m = manifest(None);
+        m.sequence = Some(SequencePolicy {
+            max_writes: Some(0),
+        });
+        assert!(m
+            .validate_egress_policy()
+            .unwrap_err()
+            .contains("max_writes"));
+        m.sequence = Some(SequencePolicy {
+            max_writes: Some(1),
+        });
+        assert!(m.validate_egress_policy().is_ok());
+    }
+
     fn manifest(home: Option<HomeVolume>) -> AgentManifest {
         AgentManifest {
             egress_rules: vec![],
             dlp: false,
             taint: None,
+            sequence: None,
             confinement: Default::default(),
             resources: None,
             confidential: Default::default(),

@@ -712,6 +712,21 @@ async fn proxy_attempt(
             }
         }
     }
+    let is_write = !matches!(method, reqwest::Method::GET | reqwest::Method::HEAD);
+    if is_write {
+        if let Some(max) = agent.manifest.sequence.as_ref().and_then(|s| s.max_writes) {
+            let made = state
+                .store
+                .get_session(session.id)
+                .await
+                .map_or(0, |s| s.writes);
+            if made >= max {
+                reasons.push(format!(
+                    "{made} writes already made in this session (limit {max})"
+                ));
+            }
+        }
+    }
     let gated = needs_approval.is_some() || !reasons.is_empty();
     let mut approval_id = None;
     let mut _in_flight = None;
@@ -785,6 +800,15 @@ async fn proxy_attempt(
         )
     })?;
     let status = response.status().as_u16();
+    if is_write && agent.manifest.sequence.is_some() {
+        if let Err(error) = state
+            .store
+            .update_session(session.id, |s| s.writes = s.writes.saturating_add(1))
+            .await
+        {
+            tracing::error!(%error, "failed to count a write");
+        }
+    }
     taint_on_read(state, &session, &agent.manifest, host).await;
     let mut out_headers = BTreeMap::new();
     // `headers` collapses repeats (fine for a JSON caller); `header_list` keeps
@@ -1435,6 +1459,7 @@ pub(crate) mod ask_tests {
             parent_session_id: None,
             user_id: None,
             tainted_by: vec![],
+            writes: 0,
             confidential: None,
             agent_paused_reason: None,
             browse: Default::default(),
@@ -1448,6 +1473,7 @@ pub(crate) mod ask_tests {
             egress_rules: vec![],
             dlp: false,
             taint: None,
+            sequence: None,
             confinement: Default::default(),
             resources: None,
             confidential: Default::default(),
@@ -3373,6 +3399,54 @@ pub(crate) mod ask_tests {
             .unwrap();
         assert!(waiter.await.unwrap().is_err());
         assert_eq!(hits(&counter), 1);
+    }
+
+    #[tokio::test]
+    async fn writes_past_the_sequence_limit_are_held_for_a_person() {
+        let (port, counter) = upstream_counter().await;
+        let (state, session) = state_and_session().await;
+        let session = deploy_local_agent(&state, &session, |m| {
+            m.sequence = Some(crate::model::SequencePolicy {
+                max_writes: Some(2),
+            });
+        })
+        .await;
+        // Reads never count, and the first two writes flow.
+        assert!(plain_call(&state, &session, port, "GET", None)
+            .await
+            .is_ok());
+        assert!(plain_call(&state, &session, port, "POST", Some("a"))
+            .await
+            .is_ok());
+        assert!(plain_call(&state, &session, port, "PUT", Some("b"))
+            .await
+            .is_ok());
+        assert_eq!(state.store.get_session(session.id).await.unwrap().writes, 2);
+        // The third is held, and nothing reaches the upstream until a person approves.
+        let before = hits(&counter);
+        let waiter = {
+            let (state, session) = (state.clone(), session.clone());
+            tokio::spawn(async move { plain_call(&state, &session, port, "POST", Some("c")).await })
+        };
+        let pending = wait_pending(&state, session.id).await;
+        assert!(
+            pending.prompt.contains("2 writes already made"),
+            "{}",
+            pending.prompt
+        );
+        assert_eq!(hits(&counter), before);
+        state
+            .store
+            .transition_approval(
+                pending.id,
+                ApprovalStatus::Approved,
+                None,
+                Some(GrantScope::Once),
+            )
+            .await
+            .unwrap();
+        assert!(waiter.await.unwrap().is_ok());
+        assert_eq!(state.store.get_session(session.id).await.unwrap().writes, 3);
     }
 
     #[tokio::test]

@@ -366,6 +366,7 @@ mod tests {
             parent_session_id: None,
             user_id: None,
             tainted_by: vec![],
+            writes: 0,
             confidential: None,
             agent_paused_reason: None,
             browse: Default::default(),

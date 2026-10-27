@@ -933,6 +933,7 @@ async fn run_demo_inner(
         parent_session_id: None,
         user_id: user.clone(),
         tainted_by: vec![],
+        writes: 0,
         confidential: sandbox.confidential.clone(),
         agent_paused_reason: None,
         browse: Default::default(),
