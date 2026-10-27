@@ -42,6 +42,10 @@
 
 | Release | What landed |
 |---|---|
+| **Merion** | **Approve from Slack or Teams.** Each request is posted with the host-rendered preview and its digest. Approve and Deny buttons appear only when no phone signature is required; otherwise the message links to your phone. Slack requests are signature-checked and mapped to a named user. [Design](docs/merion/design/chatops-approvals.md) |
+| **Merion** | **OpenTelemetry export.** Audit entries go out as OTLP logs and decided approvals as spans, one trace per session, to any collector. An allowlist keeps file contents, previews and credentials out. [Design](docs/merion/design/otlp-export.md) |
+| **Fabric** | **One view across daemons.** Register peer Fabric hosts and see their hosts, VMs and health together in the console; a down host never fails the list, and maintenance runs on the target host's own API. [Guide](docs/federation.md) |
+| **Merion** | **Android approvals.** `integrations/android-merion` signs `merion-approval-v1` with a Keystore key behind biometrics, checked against the shared test vectors. The app screen has not been run on a device yet. [README](integrations/android-merion/README.md) |
 | **Merion** | **Keep is now Merion**, end to end: headers, packs, console paths, the Helm chart, the iOS app. Checked after the rename: 533 runtime tests, a 85-check end-to-end run, and a clean redeploy to a real host with a sealed cell making 0 outbound connections. [Details](docs/merion/VERIFICATION.md#after-the-keep--merion-rename-2026-10-16) |
 | **Merion** | **Approvals only your phone can give.** With signatures required, a decision with no signature, a flipped decision or a forged key is refused (403) and the approval stays waiting; a valid one goes through once (a replay is refused). Both `merion-approval-v1` and `merion-approval-v1` are accepted, and the audit log says which |
 | **Merion** | **Auto-approve, in dry run.** Write a policy for a safe class of change (a folder, a file type, a size) and see what it *would* have approved, with the reason when it would not. It approves nothing yet; the agent can never write the policy |
