@@ -15,6 +15,7 @@ async fn main() -> Result<()> {
     let public_addr = config.listen;
     let egress_addr = config.egress_listen;
     let state = AppState::from_config(config).await?;
+    zyvor_fabric_agent_runtime::otlp::init(state.egress_http.clone());
 
     let public = app::public_router(state.clone()).layer(TraceLayer::new_for_http());
     let broker = egress::broker_router(state.clone()).layer(TraceLayer::new_for_http());

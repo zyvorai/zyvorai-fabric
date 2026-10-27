@@ -8,7 +8,9 @@ WORKDIR /build
 COPY . .
 RUN cargo build --locked --release --bin zyvor-fabric-agent-runtime
 
-FROM debian:bookworm-slim
+# Same Debian release as the rust:1.98-slim build stage (trixie). A bookworm runtime has an older glibc and the
+# binary refuses to start (GLIBC_2.38 not found).
+FROM debian:trixie-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/lib/zyvor-fabric-agent /var/lib/fluxvm/agent-snapshots

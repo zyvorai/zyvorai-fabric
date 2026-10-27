@@ -30,6 +30,7 @@ const RETRY_DELAYS: [Duration; 2] = [Duration::from_secs(1), Duration::from_secs
 
 /// Tell the operator's device about a new approval, in the background.
 pub fn approval_requested(state: &AppState, record: &ApprovalRecord) {
+    crate::chatops::approval_requested(state, record);
     let webhook = state.config.approval_webhook.clone();
     let relays = push_relays();
     if webhook.is_none() && relays.is_empty() {

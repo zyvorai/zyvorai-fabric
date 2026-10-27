@@ -8,6 +8,21 @@
   isolation (a down peer, a refused token or a redirect shows in its own row). Host maintenance on a peer is forwarded with the
   caller's own bearer token, so the peer's RBAC decides; no stored admin credential. New **Federation** page in the console. Peer
   read tokens are held in memory (re-set after a restart). The web tests and 5 Rust tests passed (Rust on Linux, 2026-10-27); no real second daemon was used yet. Docs: `docs/federation.md`.
+
+- **Slack and Teams approval messages.** Set `ZYVOR_AGENT_SLACK_WEBHOOK` and/or `ZYVOR_AGENT_TEAMS_WEBHOOK` (and optionally
+  `ZYVOR_AGENT_CONSOLE_URL` for a link) and each new approval is posted there with its kind, subject, agent and id, never the
+  agent's prompt or the request preview. Slack gets Allow and Deny buttons only when `ZYVOR_AGENT_SLACK_SIGNING_SECRET` and
+  `ZYVOR_AGENT_SLACK_USERS` are set and the approval does not need a phone signature; the click
+  (`POST /v1/chatops/slack/interact`, Slack signature checked, five-minute window) goes through the normal user-token decision path
+  and only for the session's owner. Teams gets a card with a link, no buttons. Tested against fakes, not a real workspace.
+  Design: `docs/merion/design/chatops-approvals.md`.
+
+- **OpenTelemetry export (OTLP/HTTP, JSON).** Set `OTEL_EXPORTER_OTLP_ENDPOINT` (https, or http on loopback), and optionally
+  `OTEL_EXPORTER_OTLP_HEADERS` and `OTEL_SERVICE_NAME`; every journal row is sent as an OTLP log record and every decided approval
+  as a span, with one trace id per session. Only an allowlist of scalar fields leaves the host: never the error or output text, the
+  approval prompt, a preview, a request body, or the subject (opt in with `ZYVOR_AGENT_OTLP_INCLUDE_SUBJECT=1`). Delivery is best
+  effort through a bounded queue and never blocks a request. No new dependencies; gRPC and protobuf are not spoken. Tested against a
+  local fake collector, not a real one. Docs: `docs/merion/design/otlp-export.md`.
 - **Verify command and snapshot restore for the run report.** `verify_command` runs after an applied changeset and shows as a check.
   `snapshot_before_apply` snapshots the cell first; an operator can then restore it (`POST /v1/sessions/{id}/changesets/{cs}/restore`,
   confirmed, latest change only, never for end users). The report shows `undo_available` or `restored_from_snapshot`.
