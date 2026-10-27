@@ -121,7 +121,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          to: '/#matrix',
+          to: '/compare',
           label: 'Matrix',
           position: 'right',
         },
@@ -149,7 +149,7 @@ const config: Config = {
             {label: 'Merion', to: '/merion'},
             {label: 'Merion for phone makers', to: '/merion/phones'},
             {label: 'Merion use cases', to: '/merion/packs'},
-            {label: 'Fabric vs the field', to: '/#matrix'},
+            {label: 'Fabric vs the field', to: '/compare'},
             {label: 'Merion docs', to: '/docs/merion/'},
             {label: 'Tutorial 17 — PDF brief', to: '/docs/tutorials/merion-pdf-brief'},
             {label: 'Product overview', to: '/docs/PRODUCT_OVERVIEW'},
