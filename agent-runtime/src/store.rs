@@ -454,11 +454,16 @@ impl Store {
             let record = sessions
                 .get_mut(&id)
                 .with_context(|| format!("session {id} not found"))?;
+            let before = record.status;
             f(record);
             record.updated_at = Utc::now();
-            record.clone()
+            (record.clone(), before)
         };
+        let (updated, before) = updated;
         self.persist_session(&updated).await?;
+        if !before.is_terminal() && updated.status.is_terminal() {
+            crate::run_events::finished(&updated);
+        }
         Ok(updated)
     }
 
@@ -483,6 +488,9 @@ impl Store {
             record.clone()
         };
         self.persist_session(&updated).await?;
+        if !expected.is_terminal() && next.is_terminal() {
+            crate::run_events::finished(&updated);
+        }
         Ok(Some(updated))
     }
 

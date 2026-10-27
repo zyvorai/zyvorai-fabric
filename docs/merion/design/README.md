@@ -26,6 +26,7 @@ build, and the decisions only you can make, with my recommendation for each. Not
 | [Session recording](session-recording.md) | Can a person replay what a session did from a signed record that leaves out the content? |
 | [On behalf of](on-behalf-of.md) | Can the journal tell a person's delegated action from the agent's own, and can a token be asked for one service? |
 | [Model budgets](model-budgets.md) | Can an operator cap an agent's model calls and cost per day, per run and per goal, failing closed? |
+| [Run webhooks](run-webhooks.md) | Can a run's end reach another system as a signed event that carries no content? |
 
 How to read a note: **Decisions for you** at the end of each is the part to answer. Answer in a line ("1: yes, 2: A, 3: not now") and I will
 turn the answers into a build plan. Anything you leave open stays open.
