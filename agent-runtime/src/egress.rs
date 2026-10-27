@@ -30,6 +30,10 @@ use std::{collections::BTreeMap, sync::Arc};
 pub fn broker_router(state: Arc<AppState>) -> axum::Router {
     axum::Router::new()
         .route("/v1/egress", axum::routing::post(proxy))
+        .route(
+            "/v1/mcp/{server}",
+            axum::routing::post(crate::mcp_gateway::relay),
+        )
         .with_state(state)
 }
 
@@ -346,15 +350,11 @@ pub(crate) async fn proxy_inner(
     proxy_attempt(state, headers, request, peer, None).await
 }
 
-/// `chain_credential` names a credential the operator's fallback chain uses for this one request. It stands in for the
-/// manifest's grant of that single name; the vault, the egress policy and every other check still apply to it.
-async fn proxy_attempt(
+/// The session the caller proves it owns with its egress capability, or why not.
+pub(crate) async fn authenticate_session(
     state: &AppState,
     headers: &HeaderMap,
-    request: EgressRequest,
-    peer: Option<std::net::SocketAddr>,
-    chain_credential: Option<&str>,
-) -> Result<Value, (StatusCode, String)> {
+) -> Result<SessionRecord, (StatusCode, String)> {
     let session_id = header(headers, "x-zyvor-session-id")?;
     let capability = header(headers, "x-zyvor-egress-capability")?;
     let id = uuid::Uuid::parse_str(session_id)
@@ -370,6 +370,19 @@ async fn proxy_attempt(
     if session.status.is_terminal() {
         return Err((StatusCode::FORBIDDEN, "session is no longer active".into()));
     }
+    Ok(session)
+}
+
+/// `chain_credential` names a credential the operator's fallback chain uses for this one request. It stands in for the
+/// manifest's grant of that single name; the vault, the egress policy and every other check still apply to it.
+async fn proxy_attempt(
+    state: &AppState,
+    headers: &HeaderMap,
+    request: EgressRequest,
+    peer: Option<std::net::SocketAddr>,
+    chain_credential: Option<&str>,
+) -> Result<Value, (StatusCode, String)> {
+    let session = authenticate_session(state, headers).await?;
 
     let agent = state
         .store
@@ -835,7 +848,7 @@ async fn proxy_attempt(
         ));
     }
 
-    tracing::info!(session = %id, agent = %session.agent, %host, credential = ?request.credential, status, "agent egress");
+    tracing::info!(session = %session.id, agent = %session.agent, %host, credential = ?request.credential, status, "agent egress");
     // A receipt for what a person approved: recorded when the upstream answered with anything below 500 (a 5xx or a network error may be retried).
     let mut receipt_id = None;
     if gated && status < 500 {
@@ -3399,6 +3412,102 @@ pub(crate) mod ask_tests {
             .unwrap();
         assert!(waiter.await.unwrap().is_err());
         assert_eq!(hits(&counter), 1);
+    }
+
+    async fn mcp_call(state: &Arc<AppState>, session: &SessionRecord, body: Value) -> StatusCode {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "x-zyvor-session-id",
+            session.id.to_string().parse().unwrap(),
+        );
+        headers.insert("x-zyvor-egress-capability", "cap".parse().unwrap());
+        axum::response::IntoResponse::into_response(
+            crate::mcp_gateway::relay(
+                axum::extract::State(state.clone()),
+                axum::extract::Path("files".to_string()),
+                headers,
+                MaybePeer(None),
+                Json(body),
+            )
+            .await,
+        )
+        .status()
+    }
+
+    #[tokio::test]
+    async fn the_mcp_gateway_relays_listed_tools_only_and_journals_names_not_arguments() {
+        let (port, counter) = upstream_counter().await;
+        let (state, session) = state_and_session().await;
+        let session = deploy_local_agent(&state, &session, |_| {}).await;
+        let text = format!(
+            r#"{{"url":"http://127.0.0.1:{port}/send","tools":["read_file"],"max_calls_per_minute":3}}"#
+        );
+        let server = crate::mcp_gateway::McpServer::parse("files", &text).unwrap();
+        state.store.save_mcp_server(server).await.unwrap();
+        let call = |tool: &str| {
+            json!({"jsonrpc":"2.0","id":1,"method":"tools/call",
+                   "params":{"name":tool,"arguments":{"path":"/secret-path-1234"}}})
+        };
+        // A listed tool is relayed to the server.
+        assert_eq!(
+            mcp_call(&state, &session, call("read_file")).await,
+            StatusCode::OK
+        );
+        assert_eq!(hits(&counter), 1);
+        // An unlisted tool and an unrelayed method never leave the host.
+        assert_eq!(
+            mcp_call(&state, &session, call("delete_all")).await,
+            StatusCode::FORBIDDEN
+        );
+        let sampling = json!({"jsonrpc":"2.0","id":2,"method":"sampling/createMessage"});
+        assert_eq!(
+            mcp_call(&state, &session, sampling).await,
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(hits(&counter), 1);
+        // The third relayed call in the minute is the last; the fourth is rate limited.
+        assert_eq!(
+            mcp_call(&state, &session, call("read_file")).await,
+            StatusCode::OK
+        );
+        assert_eq!(
+            mcp_call(&state, &session, call("read_file")).await,
+            StatusCode::OK
+        );
+        assert_eq!(
+            mcp_call(&state, &session, call("read_file")).await,
+            StatusCode::TOO_MANY_REQUESTS
+        );
+        assert_eq!(hits(&counter), 3);
+        // An unknown server and a wrong capability are refused.
+        let mut other = HeaderMap::new();
+        other.insert(
+            "x-zyvor-session-id",
+            session.id.to_string().parse().unwrap(),
+        );
+        other.insert("x-zyvor-egress-capability", "wrong".parse().unwrap());
+        let status = axum::response::IntoResponse::into_response(
+            crate::mcp_gateway::relay(
+                axum::extract::State(state.clone()),
+                axum::extract::Path("files".to_string()),
+                other,
+                MaybePeer(None),
+                Json(call("read_file")),
+            )
+            .await,
+        )
+        .status();
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+        // The journal names the tool and the outcome, and never the arguments.
+        let entries = state.store.audit.list(Some(session.id), 100).await.unwrap();
+        let mcp: Vec<_> = entries.iter().filter(|e| e.action == "mcp.call").collect();
+        assert!(mcp.iter().any(|e| e.detail["tool"] == "read_file"));
+        assert!(mcp.iter().any(|e| e.detail["reason"]
+            .as_str()
+            .is_some_and(|r| r.contains("delete_all"))));
+        assert!(!serde_json::to_string(&entries)
+            .unwrap()
+            .contains("secret-path-1234"));
     }
 
     #[tokio::test]
