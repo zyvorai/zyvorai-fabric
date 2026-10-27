@@ -3,6 +3,11 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Merion for Android (`integrations/android-merion`).** `merionkit` is a plain-JVM library for the `merion-approval-v1` protocol:
+  the exact signed text, P-256 signing and verifying, and an API client; its tests read the runtime's own
+  `docs/merion/mobile/test-vectors.json`. `app` is a small Compose app with an Android Keystore key (StrongBox when present, a
+  biometric check per signature). `merionkit`'s 6 tests pass on JDK 17. The app module has never been built or run; no push, chat, goals or Done list yet.
+
 - **Federation: one inventory across several Fabric daemons.** An admin registers peer daemons (`/api/federation/peers`);
   `GET /api/federation/overview` returns each peer's hosts and VM total, asked in parallel with a short timeout and per-peer
   isolation (a down peer, a refused token or a redirect shows in its own row). Host maintenance on a peer is forwarded with the
