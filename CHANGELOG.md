@@ -3,6 +3,11 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Session recording.** `GET /v1/sessions/{id}/recording` returns a masked, ordered, Ed25519-signed bundle of a session's
+  journal rows, events and approvals; `POST /v1/recordings/verify` checks one. Journal rows keep only the OTLP allowlist
+  of scalar fields; event data and approval text are never included (events carry a length and SHA-256). Off unless
+  `ZYVOR_AGENT_RECORDING_KEY` (32-byte hex seed) is set; each export is journaled with a count. Unit tests; the console
+  replay view is not built yet. Design: `docs/merion/design/session-recording.md`.
 - **MCP gateway and registry.** An operator registers tool servers (`PUT /v1/mcp/servers/{name}`: URL, optional vault
   credential, allowed tools, calls per minute); a cell calls `POST /v1/mcp/{server}` on the broker port. Only listed
   tools and the core MCP methods are relayed; each call is journaled by name (never arguments) and then goes through

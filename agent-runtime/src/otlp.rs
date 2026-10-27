@@ -32,7 +32,7 @@ const SEND_TIMEOUT: Duration = Duration::from_secs(10);
 const MAX_STRING: usize = 200;
 
 /// Detail fields that may leave the host, and only as a string, number or boolean.
-const DETAIL_ALLOWLIST: &[&str] = &[
+pub(crate) const DETAIL_ALLOWLIST: &[&str] = &[
     "approval_id",
     "changeset_id",
     "device_id",
