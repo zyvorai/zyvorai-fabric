@@ -31,6 +31,8 @@ pub struct MerionPolicy {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub taint: Option<MerionTaint>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sequence: Option<crate::model::SequencePolicy>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub browser: Option<MerionBrowser>,
 }
 
@@ -297,6 +299,7 @@ impl MerionPolicy {
             allow,
             deny: vec![],
             taint,
+            sequence: m.sequence.clone(),
             browser,
         }
     }
@@ -378,6 +381,9 @@ impl MerionPolicy {
             m.taint = Some(TaintPolicy {
                 trusted_hosts: t.trusted_hosts.clone(),
             });
+        }
+        if let Some(s) = &self.sequence {
+            m.sequence = Some(s.clone());
         }
         if let Some(b) = &self.browser {
             let mut bp = b.to_manifest_policy();

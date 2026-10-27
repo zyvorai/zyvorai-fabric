@@ -3,6 +3,9 @@
 ## 0.4.0 - 2026-10-17
 
 ### Added
+- **Write limit per session.** `sequence.max_writes` in an agent manifest or signed policy holds every brokered write
+  past the Nth (any method but GET and HEAD) for a person's decision; the count is kept on the session. Off by default;
+  the CONNECT proxy is not counted. Unit tests with a local stub upstream. Design: `docs/merion/design/sequence-policy.md`.
 - **Timed auto-approve grants.** A changeset policy can carry `ttl_minutes` (1 to 1440); the runtime turns it into
   `expires_at`, and after that the policy approves nothing and a person decides. Clients cannot set `expires_at`. A
   policy without `ttl_minutes` behaves as before. Tested with unit tests only. Design: `docs/merion/design/auto-approve-changesets.md`.

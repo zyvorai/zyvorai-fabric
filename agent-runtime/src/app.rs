@@ -1019,6 +1019,7 @@ pub(crate) async fn create_session(
             parent_session_id: req.parent_session_id,
             user_id: req.user_id.clone(),
             tainted_by: vec![],
+            writes: 0,
             confidential: confidential.clone(),
             agent_paused_reason: None,
             browse: {
@@ -5162,6 +5163,7 @@ mod tests {
             parent_session_id: None,
             user_id: None,
             tainted_by: vec![],
+            writes: 0,
             confidential: None,
             agent_paused_reason: None,
             browse: Default::default(),
