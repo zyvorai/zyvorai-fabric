@@ -13,6 +13,7 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
+    "check": "node check-site.mjs",
     "gen:packs": "node scripts/gen-pack-gallery.mjs",
     "prebuild": "node scripts/gen-pack-gallery.mjs",
     "prestart": "node scripts/gen-pack-gallery.mjs"

@@ -62,6 +62,8 @@ const config: Config = {
         indexPages: false,
         docsRouteBasePath: '/docs',
         language: 'en',
+        // press / anywhere to search (the default is Cmd/Ctrl+K)
+        searchBarShortcutKeymap: '/',
       },
     ],
   ],
@@ -76,6 +78,8 @@ const config: Config = {
           path: '../docs',
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
+          // "Last updated" under each page, from git history (CI must check out full history)
+          showLastUpdateTime: true,
           editUrl: 'https://github.com/zyvorai/zyvorai-fabric/tree/main/docs/',
           // docs/merion/README.md is the GitHub landing page for Merion. The site
           // already has /keep and docs/merion/MERION.md (the folder index), so
@@ -126,10 +130,10 @@ const config: Config = {
           position: 'right',
         },
         {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
-          position: 'right',
+          to: '/start',
           label: 'Docs',
+          position: 'right',
+          activeBaseRegex: '^/(zyvorai-fabric/)?(start|docs)',
         },
         {to: '/support', label: 'Support', position: 'right'},
         {
