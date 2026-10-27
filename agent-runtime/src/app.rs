@@ -570,6 +570,10 @@ pub fn public_router(state: Arc<AppState>) -> Router {
         .route("/healthz", get(|| async { Json(json!({"ok": true})) }))
         .route("/v1/hooks/{id}", post(crate::schedules::webhook_ingress))
         .route(
+            "/v1/chatops/slack/interact",
+            post(crate::chatops::slack_interact),
+        )
+        .route(
             "/v1/triggers/{id}/hook",
             post(crate::triggers::trigger_hook).layer(axum::extract::DefaultBodyLimit::max(
                 crate::demos::MAX_BATCH_BYTES,
@@ -4634,7 +4638,7 @@ async fn run_verify_command(
     }
 }
 
-async fn decide_approval(
+pub(crate) async fn decide_approval(
     State(state): State<Arc<AppState>>,
     Extension(principal): Extension<Principal>,
     Path(id): Path<Uuid>,
