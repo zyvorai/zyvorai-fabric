@@ -93,7 +93,9 @@ pub fn validate_peer_url(raw: &str) -> Result<String, String> {
     if url.query().is_some() || url.fragment().is_some() {
         return Err("the URL must not have a query or fragment".into());
     }
-    let host = url.host_str().ok_or_else(|| "the URL has no host".to_string())?;
+    let host = url
+        .host_str()
+        .ok_or_else(|| "the URL has no host".to_string())?;
     let ip = host
         .trim_start_matches('[')
         .trim_end_matches(']')
@@ -174,7 +176,8 @@ async fn get_json(
     if bytes.len() > MAX_BODY {
         return Err(("error", Some("the answer was too large".to_string())));
     }
-    serde_json::from_slice(&bytes).map_err(|_| ("error", Some("the answer was not JSON".to_string())))
+    serde_json::from_slice(&bytes)
+        .map_err(|_| ("error", Some("the answer was not JSON".to_string())))
 }
 
 /// One peer's row in the overview. Never fails: trouble becomes the row's `status`.
@@ -205,7 +208,11 @@ pub async fn peer_view(peer: &Peer, token: Option<String>) -> Value {
         Err((status, message)) => return row(status, message, json!({})),
     };
     let Ok(rows) = serde_json::from_value::<Vec<HostRow>>(hosts) else {
-        return row("error", Some("the host list had an unexpected shape".into()), json!({}));
+        return row(
+            "error",
+            Some("the host list had an unexpected shape".into()),
+            json!({}),
+        );
     };
     // The VM total is a courtesy: if it fails the hosts still show.
     let vm_total = get_json(format!("{}/api/v1/vms?limit=1", peer.url), token.as_deref())
@@ -266,7 +273,9 @@ pub async fn forward_maintenance(
 ) -> Result<u16, String> {
     let action = if enter { "enter" } else { "exit" };
     let response = client()
-        .post(format!("{base}/api/v1/hosts/{host_id}/maintenance/{action}"))
+        .post(format!(
+            "{base}/api/v1/hosts/{host_id}/maintenance/{action}"
+        ))
         .header(AUTHORIZATION, caller_authorization)
         .send()
         .await
@@ -309,7 +318,10 @@ pub async fn list_peers(
     RequireRead(_claims): RequireRead,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
-    let peers: Vec<Value> = load_peers(&state).iter().map(|p| peer_info(&state, p)).collect();
+    let peers: Vec<Value> = load_peers(&state)
+        .iter()
+        .map(|p| peer_info(&state, p))
+        .collect();
     Json(peers)
 }
 
@@ -334,13 +346,15 @@ pub async fn register_peer(
     }
     let id = Uuid::new_v4().to_string();
     let token_secret_id = match req.token.as_deref().filter(|t| !t.is_empty()) {
-        Some(token) => match state
-            .secrets_manager
-            .create_secret(&format!("federation-peer-{id}"), token, None)
-        {
-            Ok(s) => Some(s.id),
-            Err(e) => return error(StatusCode::BAD_REQUEST, e.to_string()),
-        },
+        Some(token) => {
+            match state
+                .secrets_manager
+                .create_secret(&format!("federation-peer-{id}"), token, None)
+            {
+                Ok(s) => Some(s.id),
+                Err(e) => return error(StatusCode::BAD_REQUEST, e.to_string()),
+            }
+        }
         None => None,
     };
     let peer = Peer {
@@ -366,10 +380,11 @@ pub async fn set_peer_token(
     let Ok(Some(mut peer)) = state.store.get_entity::<Peer>(COLLECTION, &id) else {
         return error(StatusCode::NOT_FOUND, "peer not found");
     };
-    let secret = match state
-        .secrets_manager
-        .create_secret(&format!("federation-peer-{id}"), &req.token, None)
-    {
+    let secret = match state.secrets_manager.create_secret(
+        &format!("federation-peer-{id}"),
+        &req.token,
+        None,
+    ) {
         Ok(s) => s,
         Err(e) => return error(StatusCode::BAD_REQUEST, e.to_string()),
     };
@@ -408,7 +423,8 @@ pub async fn overview(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     let peers = load_peers(&state);
-    let views = futures::future::join_all(peers.iter().map(|p| peer_view(p, peer_token(&state, p)))).await;
+    let views =
+        futures::future::join_all(peers.iter().map(|p| peer_view(p, peer_token(&state, p)))).await;
     Json(json!({
         "generated_at": Utc::now(),
         "totals": overview_totals(&views),
@@ -488,8 +504,14 @@ mod tests {
 
     #[test]
     fn peer_urls_are_reduced_to_an_origin_and_unsafe_ones_refused() {
-        assert_eq!(validate_peer_url("https://fabric.example:9095/ignored/path").unwrap(), "https://fabric.example:9095");
-        assert_eq!(validate_peer_url("http://10.0.0.5:9095").unwrap(), "http://10.0.0.5:9095");
+        assert_eq!(
+            validate_peer_url("https://fabric.example:9095/ignored/path").unwrap(),
+            "https://fabric.example:9095"
+        );
+        assert_eq!(
+            validate_peer_url("http://10.0.0.5:9095").unwrap(),
+            "http://10.0.0.5:9095"
+        );
         for bad in [
             "ftp://x.example",
             "https://user:pw@x.example",
@@ -507,7 +529,16 @@ mod tests {
     #[test]
     fn host_ids_cannot_escape_the_path() {
         assert!(valid_host_id("host-1.lab_a"));
-        for bad in ["", "..", ".hidden", "a/b", "a?b", "a b", "a%2f", &"x".repeat(129)] {
+        for bad in [
+            "",
+            "..",
+            ".hidden",
+            "a/b",
+            "a?b",
+            "a b",
+            "a%2f",
+            &"x".repeat(129),
+        ] {
             assert!(!valid_host_id(bad), "{bad}");
         }
     }
@@ -521,14 +552,22 @@ mod tests {
             .route(
                 "/api/v1/hosts",
                 get(move |h: HeaderMap| async move {
-                    s1.lock().unwrap().push(h.get(AUTHORIZATION).map(|v| v.to_str().unwrap().to_string()).unwrap_or_default());
+                    s1.lock().unwrap().push(
+                        h.get(AUTHORIZATION)
+                            .map(|v| v.to_str().unwrap().to_string())
+                            .unwrap_or_default(),
+                    );
                     Json(hosts_json())
                 }),
             )
             .route(
                 "/api/v1/vms",
                 get(move |h: HeaderMap| async move {
-                    s2.lock().unwrap().push(h.get(AUTHORIZATION).map(|v| v.to_str().unwrap().to_string()).unwrap_or_default());
+                    s2.lock().unwrap().push(
+                        h.get(AUTHORIZATION)
+                            .map(|v| v.to_str().unwrap().to_string())
+                            .unwrap_or_default(),
+                    );
                     Json(json!({"items": [], "total": 7}))
                 }),
             );
@@ -540,11 +579,18 @@ mod tests {
         assert_eq!(view["totals"]["hosts_in_maintenance"], 1);
         assert_eq!(view["totals"]["cpus"], 12);
         assert_eq!(view["hosts"][1]["status"], "maintenance");
-        assert!(seen.lock().unwrap().iter().all(|a| a == "Bearer read-token"));
+        assert!(seen
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|a| a == "Bearer read-token"));
         // the token itself never appears in the row
         assert!(!view.to_string().contains("read-token"));
         let totals = overview_totals(&[view]);
-        assert_eq!((totals["hosts"].as_u64(), totals["vms"].as_u64()), (Some(2), Some(7)));
+        assert_eq!(
+            (totals["hosts"].as_u64(), totals["vms"].as_u64()),
+            (Some(2), Some(7))
+        );
     }
 
     #[tokio::test]
@@ -556,7 +602,10 @@ mod tests {
                 get(|| async { (StatusCode::FOUND, [("location", "http://169.254.169.254/")]) }),
             );
         let url = serve(app).await;
-        assert_eq!(peer_view(&peer(&url, true), Some("x".into())).await["status"], "unauthorized");
+        assert_eq!(
+            peer_view(&peer(&url, true), Some("x".into())).await["status"],
+            "unauthorized"
+        );
         // a redirect is reported, never followed
         let redirected = peer_view(&peer(&format!("{url}/redirecting"), false), None).await;
         assert_eq!(redirected["status"], "error");
@@ -564,10 +613,23 @@ mod tests {
         let dead = peer_view(&peer("http://127.0.0.1:1", false), None).await;
         assert_eq!(dead["status"], "unreachable");
         // a token was set before a restart and the secret is gone
-        assert_eq!(peer_view(&peer(&url, true), None).await["status"], "token_missing");
+        assert_eq!(
+            peer_view(&peer(&url, true), None).await["status"],
+            "token_missing"
+        );
         // one bad row does not hide a good one in the totals
-        let totals = overview_totals(&[dead, json!({"status": "ok", "vm_total": 2, "totals": {"hosts": 1}})]);
-        assert_eq!((totals["peers"].as_u64(), totals["reachable"].as_u64(), totals["vms"].as_u64()), (Some(2), Some(1), Some(2)));
+        let totals = overview_totals(&[
+            dead,
+            json!({"status": "ok", "vm_total": 2, "totals": {"hosts": 1}}),
+        ]);
+        assert_eq!(
+            (
+                totals["peers"].as_u64(),
+                totals["reachable"].as_u64(),
+                totals["vms"].as_u64()
+            ),
+            (Some(2), Some(1), Some(2))
+        );
     }
 
     #[tokio::test]
@@ -576,18 +638,40 @@ mod tests {
         let s = seen.clone();
         let app = Router::new().route(
             "/api/v1/hosts/{id}/maintenance/{action}",
-            post(move |Path((id, action)): Path<(String, String)>, h: HeaderMap| async move {
-                s.lock().unwrap().push((format!("{id}/{action}"), h.get(AUTHORIZATION).unwrap().to_str().unwrap().to_string()));
-                if id == "denied" { StatusCode::FORBIDDEN } else { StatusCode::OK }
-            }),
+            post(
+                move |Path((id, action)): Path<(String, String)>, h: HeaderMap| async move {
+                    s.lock().unwrap().push((
+                        format!("{id}/{action}"),
+                        h.get(AUTHORIZATION).unwrap().to_str().unwrap().to_string(),
+                    ));
+                    if id == "denied" {
+                        StatusCode::FORBIDDEN
+                    } else {
+                        StatusCode::OK
+                    }
+                },
+            ),
         );
         let url = serve(app).await;
-        assert_eq!(forward_maintenance(&url, "h1", true, "Bearer caller").await, Ok(200));
-        assert_eq!(forward_maintenance(&url, "denied", false, "Bearer viewer").await, Ok(403));
+        assert_eq!(
+            forward_maintenance(&url, "h1", true, "Bearer caller").await,
+            Ok(200)
+        );
+        assert_eq!(
+            forward_maintenance(&url, "denied", false, "Bearer viewer").await,
+            Ok(403)
+        );
         assert_eq!(
             *seen.lock().unwrap(),
-            vec![("h1/enter".to_string(), "Bearer caller".to_string()), ("denied/exit".to_string(), "Bearer viewer".to_string())]
+            vec![
+                ("h1/enter".to_string(), "Bearer caller".to_string()),
+                ("denied/exit".to_string(), "Bearer viewer".to_string())
+            ]
         );
-        assert!(forward_maintenance("http://127.0.0.1:1", "h1", true, "Bearer x").await.is_err());
+        assert!(
+            forward_maintenance("http://127.0.0.1:1", "h1", true, "Bearer x")
+                .await
+                .is_err()
+        );
     }
 }

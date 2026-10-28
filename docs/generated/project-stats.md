@@ -7,8 +7,8 @@
 | Workspace version | 0.4.0 |
 | Web package version | 0.4.0 |
 | React version | 19.3.0 |
-| Rough web route matches | 297 |
-| App.tsx path= count | 112 |
+| Rough web route matches | 299 |
+| App.tsx path= count | 113 |
 
 Canonical facts for README/architecture prose:
 
