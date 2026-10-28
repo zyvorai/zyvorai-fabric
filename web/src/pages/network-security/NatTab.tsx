@@ -141,7 +141,7 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
                     <td className="p-4 font-mono text-sm text-[var(--zf-link)]">{p.ip_ranges.join(', ')}</td>
                     <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{p.port_range ?? '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => onDeletePool(p.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
+                      <button onClick={() => onDeletePool(p.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label={`Delete ${p.name}`} title={`Delete ${p.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -178,7 +178,7 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
                       <StatusBadge status={g.enabled ? 'active' : 'disabled'} color={g.enabled ? 'green' : 'gray'} />
                     </td>
                     <td className="p-4">
-                      <button onClick={() => onDeleteGateway(g.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
+                      <button onClick={() => onDeleteGateway(g.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label={`Delete ${g.name}`} title={`Delete ${g.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
