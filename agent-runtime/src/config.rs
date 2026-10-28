@@ -283,6 +283,18 @@ where
         .with_context(|| format!("invalid {name}"))
 }
 
+/// `ZYVOR_AGENT_RECORDING_KEY`: 64 hex characters. A malformed value is an error, not a silent "off".
+fn recording_key_from_env() -> Result<Option<[u8; 32]>> {
+    let Some(v) = env_opt("ZYVOR_AGENT_RECORDING_KEY").filter(|s| !s.is_empty()) else {
+        return Ok(None);
+    };
+    let bytes = hex::decode(v.trim()).context("ZYVOR_AGENT_RECORDING_KEY must be hex")?;
+    let seed: [u8; 32] = bytes.try_into().map_err(|_| {
+        anyhow::anyhow!("ZYVOR_AGENT_RECORDING_KEY must be 32 bytes (64 hex characters)")
+    })?;
+    Ok(Some(seed))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -316,16 +328,4 @@ mod tests {
     fn accepts_an_explicit_no_auth_opt_out() {
         assert!(validate_auth(None, Some("1")).is_ok());
     }
-}
-
-/// `ZYVOR_AGENT_RECORDING_KEY`: 64 hex characters. A malformed value is an error, not a silent "off".
-fn recording_key_from_env() -> Result<Option<[u8; 32]>> {
-    let Some(v) = env_opt("ZYVOR_AGENT_RECORDING_KEY").filter(|s| !s.is_empty()) else {
-        return Ok(None);
-    };
-    let bytes = hex::decode(v.trim()).context("ZYVOR_AGENT_RECORDING_KEY must be hex")?;
-    let seed: [u8; 32] = bytes.try_into().map_err(|_| {
-        anyhow::anyhow!("ZYVOR_AGENT_RECORDING_KEY must be 32 bytes (64 hex characters)")
-    })?;
-    Ok(Some(seed))
 }

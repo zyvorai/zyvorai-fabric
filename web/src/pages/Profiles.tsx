@@ -73,7 +73,7 @@ export default function Profiles() {
                 <h3 className="text-lg font-bold">{p.name}</h3>
                 <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs border ${categoryColors[p.category] || categoryColors.general}`}>{p.category}</span>
               </div>
-              {!p.builtin && <button onClick={() => handleDelete(p.name)} className="p-1 rounded text-[var(--zf-muted)] hover:bg-red-50 hover:text-red-600 transition-colors" aria-label="Delete" title="Delete"><Trash2 className="w-4 h-4" /></button>}
+              {!p.builtin && <button onClick={() => handleDelete(p.name)} className="p-1 rounded text-[var(--zf-muted)] hover:bg-red-50 hover:text-red-600 transition-colors" aria-label={`Delete ${p.name}`} title={`Delete ${p.name}`}><Trash2 className="w-4 h-4" /></button>}
             </div>
             <p className="text-sm text-[var(--zf-muted)] mb-4">{p.description}</p>
             <div className="space-y-2 text-sm">
