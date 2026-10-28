@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { Plus, RefreshCw, Pencil } from 'lucide-react'
 import * as api from '../../api/network-security'
@@ -231,7 +232,7 @@ export function EditServiceModal({ id, onClose, onUpdated }: { id: string; onClo
   if (loading) {
     return (
       <ModalWrapper title="Edit Service" onClose={onClose}>
-        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
+        <PanelLoading label="Loading..." />
       </ModalWrapper>
     )
   }

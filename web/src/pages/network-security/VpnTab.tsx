@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, RefreshCw, Pencil } from 'lucide-react'
 import * as api from '../../api/network-security'
@@ -386,7 +387,7 @@ export function EditVpnTunnelModal({ id, onClose, onUpdated }: { id: string; onC
   if (loading) {
     return (
       <ModalWrapper title="Edit VPN Tunnel" onClose={onClose}>
-        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
+        <PanelLoading label="Loading..." />
       </ModalWrapper>
     )
   }

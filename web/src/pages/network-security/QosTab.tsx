@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { Plus, RefreshCw, Pencil } from 'lucide-react'
 import * as api from '../../api/network-security'
@@ -236,7 +237,7 @@ export function EditQosModal({ id, onClose, onUpdated }: { id: string; onClose: 
   if (loading) {
     return (
       <ModalWrapper title="Edit QoS Policy" onClose={onClose}>
-        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
+        <PanelLoading label="Loading..." />
       </ModalWrapper>
     )
   }

@@ -64,7 +64,7 @@ export function LabelSelectorInput({
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/15 text-blue-300 border border-blue-500/30"
             >
               {k}={v}
-              <button type="button" onClick={() => handleRemove(k)} className="hover:text-red-600 transition" aria-label="Close" title="Close">
+              <button type="button" onClick={() => handleRemove(k)} className="hover:text-red-600 transition" aria-label={`Remove label ${k}`} title={`Remove label ${k}`}>
                 <X className="w-3.5 h-3.5" />
               </button>
             </span>

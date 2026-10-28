@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, RefreshCw, Pencil, Eye } from 'lucide-react'
 import * as api from '../../api/network-security'
@@ -231,7 +232,7 @@ function IdentityDetailModal({ id, onClose }: { id: number; onClose: () => void 
   return (
     <ModalWrapper title={`Identity ${id}`} onClose={onClose}>
       {loading ? (
-        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
+        <PanelLoading label="Loading..." />
       ) : err ? (
         <p className="text-red-600 text-sm">{err}</p>
       ) : identity ? (
@@ -440,7 +441,7 @@ export function EditPolicyModal({ id, onClose, onUpdated }: { id: string; onClos
   if (loading) {
     return (
       <ModalWrapper title="Edit Network Policy" onClose={onClose}>
-        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
+        <PanelLoading label="Loading..." />
       </ModalWrapper>
     )
   }

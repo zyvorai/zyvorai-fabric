@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, RefreshCw, Pencil } from 'lucide-react'
 import * as api from '../../api/network-security'
@@ -375,7 +376,7 @@ export function EditDnsZoneModal({ id, onClose, onUpdated }: { id: string; onClo
   if (loading) {
     return (
       <ModalWrapper title="Edit DNS Zone" onClose={onClose}>
-        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
+        <PanelLoading label="Loading..." />
       </ModalWrapper>
     )
   }
@@ -497,7 +498,7 @@ export function EditDnsPolicyModal({ id, zones, onClose, onUpdated }: { id: stri
   if (loading) {
     return (
       <ModalWrapper title="Edit DNS Policy" onClose={onClose}>
-        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
+        <PanelLoading label="Loading..." />
       </ModalWrapper>
     )
   }

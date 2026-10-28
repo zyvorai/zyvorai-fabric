@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, RefreshCw, Pencil } from 'lucide-react'
 import * as api from '../../api/network-security'
@@ -363,7 +364,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
   if (loading) {
     return (
       <ModalWrapper title="Edit Firewall Profile" onClose={onClose}>
-        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
+        <PanelLoading label="Loading..." />
       </ModalWrapper>
     )
   }
