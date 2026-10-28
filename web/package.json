@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
-    "a11y": "node a11y-check.mjs",
+    "a11y": "node a11y-check.mjs && node signin-check.mjs",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {

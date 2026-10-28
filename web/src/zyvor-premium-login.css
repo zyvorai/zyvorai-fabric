@@ -50,8 +50,8 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  color: hsl(240 6% 10%);
-  background: hsl(0 0% 100%);
+  color: var(--zf-ink);
+  background: var(--zf-canvas);
   font-family: var(--font-display, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -60,9 +60,9 @@
 html[data-theme='tahoe-light'] .login-page,
 html[data-ui-shell='default'] .login-page,
 .login-page.zeus-login {
-  background-color: hsl(0 0% 100%);
+  background-color: var(--zf-canvas);
   background-image: none;
-  color: hsl(240 6% 10%);
+  color: var(--zf-ink);
 }
 
 /* Full-viewport snap scroll between hero + sign-in chapters */
@@ -105,7 +105,7 @@ html[data-ui-shell='default'] .login-page,
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: hsl(0 0% 100%);
+  background: var(--zf-surface);
   text-align: center;
   animation: login-fade-in-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -121,7 +121,7 @@ html[data-ui-shell='default'] .login-page,
 }
 
 .login-chapter-sign-in {
-  background: hsl(240 5% 96%); /* Apple parchment #f5f5f7 */
+  background: var(--zf-canvas); /* Apple parchment #f5f5f7 */
   justify-content: center;
 }
 
@@ -168,14 +168,13 @@ html[data-ui-shell='default'] .login-page,
 }
 
 .login-zyvor-link {
-  color: var(--tone-orange, #ff5a15);
+  color: var(--zf-link);
   font-weight: 600;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .login-zyvor-link:hover {
-  color: #ff7340;
-  text-decoration: underline;
+  color: var(--zf-link-hover);
 }
 
 /* Brand first — small-caps eyebrow, Vision Pro chapter-divider style */
@@ -199,14 +198,14 @@ html[data-ui-shell='default'] .login-page,
   font-weight: 600;
   letter-spacing: -0.045em;
   line-height: 1.05;
-  color: hsl(240 6% 10%);
+  color: var(--zf-ink);
   text-wrap: balance;
 }
 
 .login-tagline {
   margin: 1rem auto 0;
   max-width: 34rem;
-  color: hsl(240 3% 46%);
+  color: var(--zf-muted);
   letter-spacing: -0.011em;
   font-size: clamp(1.05rem, 2.1vw, 1.3125rem);
   line-height: 1.47;
@@ -247,28 +246,28 @@ a.login-cta-secondary {
 .login-cta-primary,
 a.login-cta-primary {
   border: none;
-  background: hsl(211 100% 45%); /* #0071e3 */
+  background: var(--zf-link-fill); /* #0071e3 */
   color: hsl(0 0% 100%);
   box-shadow: 0 1px 0 hsl(0 0% 100% / 0.18) inset;
 }
 
 .login-cta-primary:hover,
 a.login-cta-primary:hover {
-  background: hsl(211 100% 40%);
+  background: var(--zf-link-fill-hover);
   color: hsl(0 0% 100%);
 }
 
 .login-cta-secondary,
 a.login-cta-secondary {
-  border: 1px solid hsl(211 100% 45%);
-  background: hsl(0 0% 100%);
-  color: hsl(211 100% 45%);
+  border: 1px solid var(--zf-link);
+  background: var(--zf-surface);
+  color: var(--zf-link);
 }
 
 .login-cta-secondary:hover,
 a.login-cta-secondary:hover {
-  background: hsl(211 100% 45% / 0.06);
-  color: hsl(211 100% 40%);
+  background: color-mix(in srgb, var(--zf-link) 6%, transparent);
+  color: var(--zf-link-hover);
 }
 
 .login-cta-primary:active,
@@ -296,8 +295,8 @@ a.login-cta-secondary:active {
   border-radius: 980px;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: hsl(240 6% 10%);
-  background: var(--tone-wash, hsl(211 100% 45% / 0.08));
+  color: var(--zf-ink);
+  background: var(--tone-wash, color-mix(in srgb, var(--zf-link) 8%, transparent));
   border: 1px solid color-mix(in srgb, var(--tone-color, hsl(211 100% 45%)) 28%, transparent);
 }
 
@@ -314,7 +313,7 @@ a.login-cta-secondary:active {
   font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: -0.01em;
-  color: hsl(240 4% 62%);
+  color: var(--zf-muted);
   line-height: 1.4;
 }
 
@@ -324,12 +323,12 @@ a.login-cta-secondary:active {
   font-size: 1.375rem;
   font-weight: 600;
   letter-spacing: -0.022em;
-  color: hsl(240 6% 10%);
+  color: var(--zf-ink);
 }
 
 .login-card {
   width: 100%;
-  background: hsl(0 0% 100%);
+  background: var(--zf-surface);
   border: 1px solid hsl(240 6% 10% / 0.08);
   border-radius: 20px;
   padding: 1.75rem 1.5rem;
@@ -353,26 +352,26 @@ a.login-cta-secondary:active {
   border-radius: 12px;
   font-size: 0.9375rem;
   line-height: 1.35;
-  color: hsl(240 6% 10%);
-  background: hsl(0 0% 100%);
-  border: 1px solid hsl(240 5% 84%);
+  color: var(--zf-ink);
+  background: var(--zf-surface);
+  border: 1px solid var(--zf-hairline);
   font-family: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .login-input::placeholder {
-  color: hsl(240 3% 46%);
+  color: var(--zf-muted);
   opacity: 0.85;
 }
 
 .login-input:focus {
   outline: none;
-  border-color: hsl(211 100% 45%);
-  box-shadow: 0 0 0 3px hsl(211 100% 45% / 0.18);
+  border-color: var(--zf-link);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--zf-link) 18%, transparent);
 }
 
 .login-input:focus-visible {
-  outline: 2px solid hsl(211 100% 45%);
+  outline: 2px solid var(--zf-link);
   outline-offset: 2px;
 }
 
@@ -388,7 +387,7 @@ a.login-cta-secondary:active {
   transform: translateY(-50%);
   width: 0.875rem;
   height: 0.875rem;
-  color: hsl(240 3% 46%);
+  color: var(--zf-muted);
   pointer-events: none;
   opacity: 0.75;
 }
@@ -407,7 +406,7 @@ a.login-cta-secondary:active {
   color: hsl(0 0% 100%);
   border-radius: 980px;
   border: none;
-  background: hsl(211 100% 45%);
+  background: var(--zf-link-fill);
   box-shadow: 0 1px 0 hsl(0 0% 100% / 0.18) inset;
   font-family: inherit;
   cursor: pointer;
@@ -415,7 +414,7 @@ a.login-cta-secondary:active {
 }
 
 .login-btn-primary:hover:not(:disabled) {
-  background: hsl(211 100% 40%);
+  background: var(--zf-link-fill-hover);
 }
 
 .login-btn-primary:active:not(:disabled) {
@@ -436,17 +435,17 @@ a.login-cta-secondary:active {
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: hsl(211 100% 45%);
+  color: var(--zf-link);
   border-radius: 980px;
-  border: 1px solid hsl(211 100% 45%);
-  background: hsl(0 0% 100%);
+  border: 1px solid var(--zf-link);
+  background: var(--zf-surface);
   text-decoration: none;
   font-family: inherit;
   transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .login-btn-secondary:hover {
-  background: hsl(211 100% 45% / 0.06);
+  background: color-mix(in srgb, var(--zf-link) 6%, transparent);
 }
 
 .login-method-toggle {
@@ -456,8 +455,8 @@ a.login-cta-secondary:active {
   grid-auto-columns: 1fr;
   gap: 0.25rem;
   border-radius: 980px;
-  border: 1px solid hsl(240 5% 84%);
-  background: hsl(240 5% 96%);
+  border: 1px solid var(--zf-hairline);
+  background: var(--zf-canvas);
   padding: 0.25rem;
 }
 
@@ -475,20 +474,20 @@ a.login-cta-secondary:active {
 }
 
 .login-method-toggle [role="tab"][aria-selected="true"] {
-  background: hsl(211 100% 45%);
+  background: var(--zf-link-fill);
   color: hsl(0 0% 100%);
 }
 
 .login-method-toggle [role="tab"][aria-selected="false"] {
-  color: hsl(240 3% 46%);
+  color: var(--zf-muted);
 }
 
 .login-method-toggle [role="tab"][aria-selected="false"]:hover {
-  color: hsl(240 6% 10%);
+  color: var(--zf-ink);
 }
 
 .login-hint {
-  color: hsl(240 3% 46%);
+  color: var(--zf-muted);
   font-size: 0.75rem;
   line-height: 1.5;
   text-align: center;
@@ -510,13 +509,13 @@ a.login-cta-secondary:active {
 .login-accent-cyan .login-btn-primary,
 .login-accent-copper .login-btn-primary,
 .login-accent-steel .login-btn-primary {
-  background: hsl(211 100% 45%);
+  background: var(--zf-link-fill);
   color: hsl(0 0% 100%);
   box-shadow: 0 1px 0 hsl(0 0% 100% / 0.18) inset;
 }
 
 .login-page .login-btn-primary:hover:not(:disabled) {
-  background: hsl(211 100% 40%);
+  background: var(--zf-link-fill-hover);
   filter: none;
 }
 
@@ -595,7 +594,7 @@ a.login-cta-secondary:active {
 }
 
 .login-text-gradient {
-  color: hsl(240 6% 10%);
+  color: var(--zf-ink);
   background: none;
 }
 
@@ -616,7 +615,7 @@ a.login-cta-secondary:active {
 
 .login-apple-host {
   font-weight: 600;
-  color: hsl(240 6% 10%);
+  color: var(--zf-ink);
 }
 
 .login-apple-identity {
@@ -627,9 +626,9 @@ a.login-cta-secondary:active {
   margin: 0 0 1rem;
   padding: 0.45rem 0.75rem 0.45rem 0.4rem;
   border-radius: 999px;
-  border: 1px solid hsl(240 5% 84%);
-  background: hsl(0 0% 100%);
-  color: hsl(240 6% 10%);
+  border: 1px solid var(--zf-hairline);
+  background: var(--zf-surface);
+  color: var(--zf-ink);
   font-size: 0.8125rem;
   font-weight: 550;
   line-height: 1.2;
@@ -638,7 +637,7 @@ a.login-cta-secondary:active {
 }
 
 .login-apple-identity:hover {
-  background: hsl(240 5% 96%);
+  background: var(--zf-canvas);
 }
 
 .login-apple-identity:active {
@@ -668,8 +667,8 @@ a.login-cta-secondary:active {
   font-size: 0.6875rem;
   font-weight: 550;
   letter-spacing: 0.01em;
-  color: hsl(240 6% 22%);
-  background: hsl(240 5% 96%);
+  color: var(--zf-secondary);
+  background: var(--zf-canvas);
   border: 1px solid hsl(240 6% 10% / 0.08);
   font-variant-numeric: tabular-nums;
 }
@@ -694,11 +693,11 @@ a.login-cta-secondary:active {
   margin: 0 0 1rem;
   padding: 0.65rem 0.75rem;
   border-radius: 12px;
-  background: hsl(240 5% 96%);
+  background: var(--zf-canvas);
   border: 1px solid hsl(240 6% 10% / 0.06);
   font-size: 0.75rem;
   line-height: 1.45;
-  color: hsl(240 3% 40%);
+  color: var(--zf-muted);
 }
 
 .login-form-instance dt {
@@ -706,14 +705,14 @@ a.login-cta-secondary:active {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: hsl(240 4% 55%);
+  color: var(--zf-muted);
   margin: 0;
 }
 
 .login-form-instance dd {
   margin: 0.1rem 0 0.45rem;
   font-weight: 550;
-  color: hsl(240 6% 16%);
+  color: var(--zf-ink);
   word-break: break-all;
 }
 

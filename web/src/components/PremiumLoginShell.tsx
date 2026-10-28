@@ -134,14 +134,14 @@ export function PremiumLoginShell({
 export function LoginError({ message }: { message: string }) {
   return (
     <div
-      className="flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-xl p-3 mb-6 login-shake"
+      className="flex items-start gap-2.5 bg-[var(--zf-danger)]/10 border border-[var(--zf-danger)]/30 rounded-xl p-3 mb-6 login-shake"
       role="alert"
       aria-live="assertive"
     >
-      <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" aria-hidden />
+      <AlertCircle className="h-4 w-4 text-[var(--zf-danger)] shrink-0 mt-0.5" aria-hidden />
       <div>
-        <p className="text-sm font-medium text-red-700">Unable to sign in</p>
-        <p className="text-sm text-red-600/90 mt-0.5">{message}</p>
+        <p className="text-sm font-medium text-[var(--zf-ink)]">Unable to sign in</p>
+        <p className="text-sm text-[var(--zf-secondary)] mt-0.5">{message}</p>
       </div>
     </div>
   )
@@ -158,7 +158,7 @@ export function LoginField({
 }) {
   return (
     <div className="mb-4">
-      <label htmlFor={id} className="block text-xs font-medium text-zinc-500 mb-1.5">
+      <label htmlFor={id} className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">
         {label}
       </label>
       <div className="relative group">{children}</div>
@@ -202,20 +202,20 @@ export function LoginRemember({
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="w-4 h-4 rounded border-zinc-300 accent-[var(--tone-orange,#ff5a15)]"
+          className="w-4 h-4 rounded border-[var(--zf-hairline)] accent-[var(--zf-link-fill)]"
         />
-        <span className="text-sm text-zinc-500">{label}</span>
+        <span className="text-sm text-[var(--zf-muted)]">{label}</span>
       </label>
-      {hint ? <p className="text-xs text-zinc-400 mt-1.5 ml-[1.625rem]">{hint}</p> : null}
+      {hint ? <p className="text-xs text-[var(--zf-muted)] mt-1.5 ml-[1.625rem]">{hint}</p> : null}
     </div>
   )
 }
 
 export function LoginDivider({ label = 'or' }: { label?: string }) {
   return (
-    <div className="relative py-3 mt-2 text-center text-xs uppercase tracking-[0.18em] text-zinc-400">
+    <div className="relative py-3 mt-2 text-center text-xs uppercase tracking-[0.18em] text-[var(--zf-muted)]">
       <span className="relative z-[1] px-3 bg-[var(--zf-surface)]">{label}</span>
-      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-zinc-200" />
+      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-[var(--zf-hairline)]" />
     </div>
   )
 }
