@@ -265,7 +265,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
-                      className="hover:bg-black/20 rounded-full p-0.5 transition" aria-label="Close" title="Close">
+                      className="hover:bg-black/20 rounded-full p-0.5 transition" aria-label={`Remove tag ${tag}`} title={`Remove tag ${tag}`}>
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </span>

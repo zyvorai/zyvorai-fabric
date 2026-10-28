@@ -251,7 +251,7 @@ function TemplateCard({
         </button>
         <button
           onClick={onDelete}
-          className="zf-btn zf-btn-danger" aria-label="Delete" title="Delete">
+          className="zf-btn zf-btn-danger" aria-label={`Delete ${template.name}`} title={`Delete ${template.name}`}>
           <Trash2 className="w-4 h-4" />
         </button>
       </div>

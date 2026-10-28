@@ -265,7 +265,7 @@ export default function DRS() {
                         <button onClick={() => handleApprove(rec.id)} className="p-1 text-emerald-600 hover:text-emerald-700" aria-label="Confirm" title="Confirm">
                           <Check className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleReject(rec.id)} className="p-1 text-red-600 hover:text-red-700" aria-label="Close" title="Close">
+                        <button onClick={() => handleReject(rec.id)} className="p-1 text-red-600 hover:text-red-700" aria-label="Reject recommendation" title="Reject recommendation">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
