@@ -389,7 +389,7 @@ export default function Datacenters() {
                                       </button>
                                       <button
                                         onClick={() => handleRemoveHost(host.id)}
-                                        className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label={`Delete ${host.name}`} title={`Delete ${host.name}`}>
+                                        className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label={`Delete ${host.hostname}`} title={`Delete ${host.hostname}`}>
                                         <Trash2 className="w-4 h-4" />
                                       </button>
                                     </div>
