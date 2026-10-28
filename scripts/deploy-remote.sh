@@ -365,6 +365,7 @@ banner_deploy "$HOST" "$USER" "$REMOTE_DIR" "$MODE_LABEL"
 
 if $DRY_RUN; then
     deploy_ui_dry_run "$HOST" "$USER" "$REMOTE_DIR" "$QUICK"
+    deploy_ui_note "Order: sync → back up current binaries → build (service keeps running) → install + restart → health check; rolls back to .prev if the new daemon does not start"
     $REMOTE_BUILD && deploy_ui_note "Mode: --remote-build"
     $REMOTE_CHECK && deploy_ui_note "Mode: --remote-check"
     exit 0
@@ -434,16 +435,15 @@ fi
 
 install_step=3
 if ! $QUICK && ! $DEPS_ONLY; then
-    phase "$install_step" "$TOTAL_STEPS" "Remove old binaries" "stop zyvor-fabricd · remove previous /usr/bin installs"
+    phase "$install_step" "$TOTAL_STEPS" "Back up current binaries" "service keeps running during the build · /usr/bin copies kept as .prev for rollback"
     ssh_r_bash "$REMOTE" "
 set -euo pipefail
 SUDO='${SUDO}'
-\$SUDO systemctl stop zyvor-fabricd.service 2>/dev/null || true
-for bin in zyvor-fabricd fabricctl zyvorctl; do
-  \$SUDO rm -f /usr/bin/\$bin 2>/dev/null || true
+for bin in zyvor-fabricd fabricctl; do
+  if [ -f /usr/bin/\$bin ]; then \$SUDO cp -p /usr/bin/\$bin /usr/bin/\$bin.prev; fi
 done
-" || warn "could not remove old binaries"
-    ok "Old binaries removed"
+" || warn "could not back up current binaries (no rollback available)"
+    ok "Current binaries backed up; service left running"
     install_step=$((install_step + 1))
 fi
 
@@ -490,16 +490,15 @@ echo 'System deps installed'
         exit 0
     fi
 elif ! $DEPS_ONLY; then
-    phase "$install_step" "$TOTAL_STEPS" "Remove old binaries" "stop zyvor-fabricd · remove previous /usr/bin installs"
+    phase "$install_step" "$TOTAL_STEPS" "Back up current binaries" "service keeps running during the build · /usr/bin copies kept as .prev for rollback"
     ssh_r_bash "$REMOTE" "
 set -euo pipefail
 SUDO='${SUDO}'
-\$SUDO systemctl stop zyvor-fabricd.service 2>/dev/null || true
-for bin in zyvor-fabricd fabricctl zyvorctl; do
-  \$SUDO rm -f /usr/bin/\$bin 2>/dev/null || true
+for bin in zyvor-fabricd fabricctl; do
+  if [ -f /usr/bin/\$bin ]; then \$SUDO cp -p /usr/bin/\$bin /usr/bin/\$bin.prev; fi
 done
-" || warn "could not remove old binaries"
-    ok "Old binaries removed"
+" || warn "could not back up current binaries (no rollback available)"
+    ok "Current binaries backed up; service left running"
     install_step=$((install_step + 1))
 fi
 
@@ -666,6 +665,17 @@ if [ \"\$NO_START\" != true ]; then
         echo '  ✅ zyvor-fabricd: running'
     else
         echo '  ❌ zyvor-fabricd: not running (journalctl -u zyvor-fabricd -n 20)'
+        if [ -f /usr/bin/zyvor-fabricd.prev ]; then
+            \$SUDO install -m 755 /usr/bin/zyvor-fabricd.prev /usr/bin/zyvor-fabricd
+            \$SUDO systemctl restart zyvor-fabricd.service 2>/dev/null || true
+            sleep 2
+            if \$SUDO systemctl is-active zyvor-fabricd &>/dev/null; then
+                echo '  ↩️  rolled back to the previous zyvor-fabricd: running'
+            else
+                echo '  ❌ rollback failed too (journalctl -u zyvor-fabricd -n 20)'
+            fi
+            exit 1
+        fi
     fi
 else
     echo '  ℹ️  --no-start: service not restarted'
