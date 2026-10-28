@@ -154,7 +154,7 @@ export default function Zones() {
                     </td>
                     <td className="p-4 text-sm">{z.hosts.length}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteZone(z.id, z.name)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
+                      <button onClick={() => handleDeleteZone(z.id, z.name)} className="text-red-600 hover:text-red-800" aria-label={`Delete ${z.name}`} title={`Delete ${z.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>

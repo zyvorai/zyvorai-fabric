@@ -119,8 +119,8 @@ mod tests {
     #[tokio::test]
     async fn a_finished_run_is_posted_once_signed_and_without_free_text() {
         use crate::model::SessionStatus;
-        let seen: std::sync::Arc<std::sync::Mutex<Vec<(String, String, Vec<u8>)>>> =
-            Default::default();
+        type Seen = std::sync::Arc<std::sync::Mutex<Vec<(String, String, Vec<u8>)>>>;
+        let seen: Seen = Default::default();
         let sink = seen.clone();
         let app = axum::Router::new().route(
             "/hook",

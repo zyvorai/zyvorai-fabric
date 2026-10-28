@@ -227,7 +227,7 @@ export default function SiteRecovery() {
                       <button onClick={() => setShowExecute(plan.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] p-1" title="Execute">
                         <Play className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDeletePlan(plan.id)} className="text-red-600 hover:text-red-800 p-1" aria-label="Delete" title="Delete">
+                      <button onClick={() => handleDeletePlan(plan.id)} className="text-red-600 hover:text-red-800 p-1" aria-label={`Delete ${plan.name}`} title={`Delete ${plan.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

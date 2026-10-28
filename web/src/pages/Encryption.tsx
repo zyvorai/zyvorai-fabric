@@ -183,7 +183,7 @@ export default function Encryption() {
                       </span>
                     </td>
                     <td className="p-4">
-                      <button onClick={() => handleRemoveProvider(prov.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
+                      <button onClick={() => handleRemoveProvider(prov.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label={`Delete ${prov.name}`} title={`Delete ${prov.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>

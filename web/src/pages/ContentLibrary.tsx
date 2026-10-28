@@ -177,7 +177,7 @@ export default function ContentLibrary() {
                   <div className="flex items-center gap-2">
                     <button onClick={() => { setSelectedLibrary(lib.id); setActiveTab('items') }}
                       className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] text-sm">Browse</button>
-                    <button onClick={() => handleDeleteLibrary(lib.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
+                    <button onClick={() => handleDeleteLibrary(lib.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label={`Delete ${lib.name}`} title={`Delete ${lib.name}`}>
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -229,7 +229,7 @@ export default function ContentLibrary() {
                     <td className="p-4 text-sm text-[var(--zf-ink)]">{formatBytes(item.size_bytes)}</td>
                     <td className="p-4 text-sm text-[var(--zf-muted)]">{item.updated ? new Date(item.updated).toLocaleDateString() : '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteItem(item.library_id, item.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
+                      <button onClick={() => handleDeleteItem(item.library_id, item.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label={`Delete ${item.name}`} title={`Delete ${item.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -277,7 +277,7 @@ export default function ContentLibrary() {
                     <td className="p-4 text-sm text-[var(--zf-muted)]">{spec.domain || '-'}</td>
                     <td className="p-4 text-sm font-mono text-[var(--zf-muted)]">{spec.dns_servers?.join(', ') || '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteSpec(spec.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
+                      <button onClick={() => handleDeleteSpec(spec.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label={`Delete ${spec.name}`} title={`Delete ${spec.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -326,7 +326,7 @@ export default function ContentLibrary() {
                         <button onClick={() => setComplianceModalProfile(profile)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)]" title="Check host compliance">
                           <ShieldCheck className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDeleteProfile(profile.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label="Delete" title="Delete">
+                        <button onClick={() => handleDeleteProfile(profile.id)} className="text-[var(--zf-danger)] hover:opacity-70" aria-label={`Delete ${profile.name}`} title={`Delete ${profile.name}`}>
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

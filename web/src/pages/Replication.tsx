@@ -187,7 +187,7 @@ export default function Replication() {
                     <td className="p-4 text-sm">{site.replication_count}</td>
                     <td className="p-4 text-sm text-[var(--zf-muted)]">{site.last_sync ? new Date(site.last_sync).toLocaleString() : '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleRemoveSite(site.id)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
+                      <button onClick={() => handleRemoveSite(site.id)} className="text-red-600 hover:text-red-800" aria-label={`Delete ${site.name}`} title={`Delete ${site.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>

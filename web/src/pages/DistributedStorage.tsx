@@ -179,7 +179,7 @@ export default function DistributedStorage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[var(--zf-muted)]">{pool.hosts.length} hosts | RF: {pool.replication_factor}</span>
-                      <button onClick={() => handleDeletePool(pool.id)} className="text-red-600 hover:text-red-800 p-1" aria-label="Delete" title="Delete">
+                      <button onClick={() => handleDeletePool(pool.id)} className="text-red-600 hover:text-red-800 p-1" aria-label={`Delete ${pool.name}`} title={`Delete ${pool.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -250,7 +250,7 @@ export default function DistributedStorage() {
                         <button onClick={() => setComplianceModalPolicy(pol)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)]" title="Check compliance">
                           <ShieldCheck className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDeletePolicy(pol.id)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
+                        <button onClick={() => handleDeletePolicy(pol.id)} className="text-red-600 hover:text-red-800" aria-label={`Delete ${pol.name}`} title={`Delete ${pol.name}`}>
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
