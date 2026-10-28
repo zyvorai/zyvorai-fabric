@@ -3,6 +3,11 @@
 ## 0.4.0 - 2026-10-17
 
 ### Changed
+- **Sign-in page.** It now uses the console's design tokens, so the dark theme works, the accent is the console blue,
+  and the show-password button is a 44px target. The hint no longer prints the lab default login. Behind the card
+  there is a slow aurora and a faded grid, and the card is frosted glass; the motion is off under reduced-motion.
+  Looked at in a browser on a deployed host in light and dark at one desktop size, first and second step. The a11y
+  gate (`npm run a11y`) was not re-run for the backdrop, the animation was not watched, and phone width was not seen.
 - **Replay view and refusal rows.** The console's Merion session page has a Replay card: load the signed recording,
   see whether its signature is valid, scrub through the steps and download the JSON. The Fabric daemon proxies
   `GET /api/sessions/{id}/recording` (owner only) and `POST /api/recordings/verify`. A model call refused by a budget
