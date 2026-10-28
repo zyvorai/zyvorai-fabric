@@ -285,7 +285,7 @@ export default function SignIn() {
       productWordmark=""
       heroTitle="Private cloud. One daemon."
       heroSubheadline="VMs, networking, storage, and security — driven by FluxVM on Linux KVM."
-      accent="orange"
+      accent="sky"
       pills={pills}
       instanceMeta={instanceMeta}
       heroCta={storeCta}
@@ -305,9 +305,7 @@ export default function SignIn() {
               . Retrieve password from Secret{' '}
               <span className="font-mono">zyvor-fabric-secrets</span>
               {' '}
-              (<span className="font-mono">kubectl get secret … -o jsonpath=…</span>). Labs with{' '}
-              <span className="font-mono">FABRIC_LAB_DEFAULTS=1</span> may use{' '}
-              <span className="font-mono">admin</span> / <span className="font-mono">Admin@321</span>.
+              (<span className="font-mono">kubectl get secret … -o jsonpath=…</span>).
             </>
           ) : (
             <>
@@ -319,9 +317,7 @@ export default function SignIn() {
                   {' '}
                   (<span className="font-mono">sudo cat /var/lib/zyvor-fabricd/.admin_password</span>).
                 </>
-              ) : null}{' '}
-              Labs with <span className="font-mono">FABRIC_LAB_DEFAULTS=1</span> may use{' '}
-              <span className="font-mono">admin</span> / <span className="font-mono">Admin@321</span>.
+              ) : null}
             </>
           )
         ) : null
@@ -409,7 +405,7 @@ export default function SignIn() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 transition-colors"
+                className="absolute right-0 top-1/2 -translate-y-1/2 grid h-11 w-11 place-items-center text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
