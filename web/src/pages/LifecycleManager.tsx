@@ -212,7 +212,7 @@ export default function LifecycleManager() {
                           <button onClick={() => handleRunScan(bl.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] p-1" title="Run scan">
                             <Play className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteBaseline(bl.id)} className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label="Delete" title="Delete">
+                          <button onClick={() => handleDeleteBaseline(bl.id)} className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label={`Delete ${bl.name}`} title={`Delete ${bl.name}`}>
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

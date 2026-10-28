@@ -313,7 +313,7 @@ export default function DRS() {
                     <td className="p-4 text-sm">{rule.mandatory ? 'Yes' : 'No'}</td>
                     <td className="p-4 text-sm">{rule.enabled ? 'Yes' : 'No'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteRule(rule.id)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
+                      <button onClick={() => handleDeleteRule(rule.id)} className="text-red-600 hover:text-red-800" aria-label={`Delete ${rule.name}`} title={`Delete ${rule.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>

@@ -160,7 +160,7 @@ export default function ResourcePools() {
             <button onClick={() => setShowAdmissionTest(pool.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] text-xs px-2 py-1">
               Test Admission
             </button>
-            <button onClick={() => handleDelete(pool.id)} className="text-red-600 hover:text-red-800 p-1" aria-label="Delete" title="Delete">
+            <button onClick={() => handleDelete(pool.id)} className="text-red-600 hover:text-red-800 p-1" aria-label={`Delete ${pool.name}`} title={`Delete ${pool.name}`}>
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
