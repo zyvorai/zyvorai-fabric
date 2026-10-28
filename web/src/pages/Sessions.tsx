@@ -161,7 +161,7 @@ export default function Sessions() {
                   <td className="px-4 py-3">{s.status}</td>
                   <td className="px-4 py-3 text-[var(--zf-muted)]">{s.updated_at}</td>
                   <td className="px-4 py-3 text-right">
-                    <button type="button" className="zf-btn zf-btn-danger zf-btn-sm" onClick={() => void remove(s.id)} aria-label="Delete" title="Delete">
+                    <button type="button" className="zf-btn zf-btn-danger zf-btn-sm" onClick={() => void remove(s.id)} aria-label={`Delete ${s.id}`} title={`Delete ${s.id}`}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </td>

@@ -142,7 +142,7 @@ function VpnTabContent({ tunnels, networks, onDeleteTunnel, onDeleteNetwork, onA
                     <td className="p-4"><LabelTags labels={n.labels} /></td>
                     <td className="p-4 font-medium text-cyan-400">{n.tunnel_ids.length}</td>
                     <td className="p-4">
-                      <button onClick={() => onDeleteNetwork(n.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
+                      <button onClick={() => onDeleteNetwork(n.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label={`Delete ${n.name}`} title={`Delete ${n.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>

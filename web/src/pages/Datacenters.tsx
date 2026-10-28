@@ -253,7 +253,7 @@ export default function Datacenters() {
                     </button>
                     <button
                       onClick={() => handleDeleteDC(dc.id)}
-                      className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label="Delete" title="Delete">
+                      className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label={`Delete ${dc.name}`} title={`Delete ${dc.name}`}>
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -294,7 +294,7 @@ export default function Datacenters() {
                           </button>
                           <button
                             onClick={() => handleDeleteCluster(cl.id)}
-                            className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label="Delete" title="Delete">
+                            className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label={`Delete ${cl.name}`} title={`Delete ${cl.name}`}>
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -389,7 +389,7 @@ export default function Datacenters() {
                                       </button>
                                       <button
                                         onClick={() => handleRemoveHost(host.id)}
-                                        className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label="Delete" title="Delete">
+                                        className="text-[var(--zf-danger)] hover:opacity-70 p-1" aria-label={`Delete ${host.name}`} title={`Delete ${host.name}`}>
                                         <Trash2 className="w-4 h-4" />
                                       </button>
                                     </div>

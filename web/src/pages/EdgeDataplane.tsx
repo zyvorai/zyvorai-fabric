@@ -675,7 +675,7 @@ export default function EdgeDataplane() {
                       type="button"
                       disabled={busy}
                       onClick={() => void removeCnp(name)}
-                      className="text-red-600" aria-label="Delete" title="Delete">
+                      className="text-red-600" aria-label={`Delete ${name}`} title={`Delete ${name}`}>
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}

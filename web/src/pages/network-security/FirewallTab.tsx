@@ -177,7 +177,7 @@ function FirewallTabContent({ profiles, zones, assignments, onDeleteProfile, onD
                     <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{a.zone_id ?? '-'}</td>
                     <td className="p-4">
                       {!readOnly && (
-                      <button onClick={() => onDeleteAssignment(a.vm_name)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
+                      <button onClick={() => onDeleteAssignment(a.vm_name)} className="p-2 hover:bg-red-600 rounded transition" aria-label={`Delete ${a.vm_name}`} title={`Delete ${a.vm_name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                       )}
