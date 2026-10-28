@@ -39,7 +39,7 @@ step count only.
 
 ## Not done
 
-- The console replay view (a page that steps through a bundle). The data is ready for it.
+- A richer replay view. The Merion session page has a Replay card (load, check the signature, scrub, download); it shows steps as lines, not a video.
 - Prompt and response capture. Replay alone shows what happened, not why; model calls are not in the bundle.
 - A browser or screen video. This records host-side actions, not pixels.
 - Key rotation and a trusted-signer list; today the caller decides whom to trust.

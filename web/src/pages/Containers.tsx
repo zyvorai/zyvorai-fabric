@@ -146,27 +146,27 @@ export default function Containers() {
             <div key={c.id || i} className="zf-panel p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-[var(--zf-ink)] truncate mr-2">{c.name || c.id?.slice(0, 12) || 'unknown'}</span>
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${stateColor(c.state)}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${stateColor(c.state)}`}>
                   {c.state || 'unknown'}
                 </span>
               </div>
 
               {c.image && (
-                <div className="text-[10px] text-[var(--zf-muted)] truncate mb-3 font-mono">{c.image}</div>
+                <div className="text-xs text-[var(--zf-muted)] truncate mb-3 font-mono">{c.image}</div>
               )}
 
               <div className="mb-2">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] text-[var(--zf-muted)]">CPU</span>
-                  <span className="text-[10px] font-medium text-[var(--zf-ink)]">{(c.cpu_percent ?? 0).toFixed(1)}%</span>
+                  <span className="text-xs text-[var(--zf-muted)]">CPU</span>
+                  <span className="text-xs font-medium text-[var(--zf-ink)]">{(c.cpu_percent ?? 0).toFixed(1)}%</span>
                 </div>
                 <ProgressBar pct={c.cpu_percent ?? 0} color="bg-[var(--zf-ink)]" />
               </div>
 
               <div className="mb-2">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] text-[var(--zf-muted)]">Memory</span>
-                  <span className="text-[10px] font-medium text-[var(--zf-ink)]">
+                  <span className="text-xs text-[var(--zf-muted)]">Memory</span>
+                  <span className="text-xs font-medium text-[var(--zf-ink)]">
                     {c.memory_bytes ? formatBytes(c.memory_bytes) : `${(c.memory_percent ?? 0).toFixed(1)}%`}
                   </span>
                 </div>
@@ -174,7 +174,7 @@ export default function Containers() {
               </div>
 
               {(c.net_rx !== undefined || c.net_tx !== undefined) && (
-                <div className="flex gap-4 text-[10px] text-[var(--zf-muted)] mt-2 pt-2 border-t border-[var(--zf-hairline)]/60">
+                <div className="flex gap-4 text-xs text-[var(--zf-muted)] mt-2 pt-2 border-t border-[var(--zf-hairline)]/60">
                   <span>RX: {formatBytes(c.net_rx ?? 0)}</span>
                   <span>TX: {formatBytes(c.net_tx ?? 0)}</span>
                 </div>

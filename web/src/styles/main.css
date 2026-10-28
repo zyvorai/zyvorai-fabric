@@ -13,6 +13,9 @@
   --zf-hairline: #d2d2d7;
   --zf-link: #0066cc;
   --zf-link-hover: #0077ed;
+  --zf-link-fill: #0066cc; /* solid button fill: white text passes 4.5:1 in both themes */
+  --zf-link-fill-hover: #0077ed;
+  --zf-success-text: #0d7a4a; /* success as text: 4.5:1 on the canvas */
   --zf-accent: #1d1d1f;
   --zf-success: #34c759;
   --zf-danger: #ff3b30;
@@ -45,6 +48,9 @@
   --zf-hairline: #38383a;
   --zf-link: #2997ff;
   --zf-link-hover: #6cb6ff;
+  --zf-link-fill: #0071e3;
+  --zf-link-fill-hover: #0066cc;
+  --zf-success-text: #32d74b;
   --zf-accent: #f5f5f7;
   --zf-success: #32d74b;
   --zf-danger: #ff453a;
@@ -421,7 +427,7 @@ a:hover {
   max-width: 520px;
 }
 .merion-mkt-storyboard-label {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--zf-secondary);
@@ -511,7 +517,7 @@ a:hover {
     linear-gradient(200deg, #151c26 0%, #0a0e14 100%);
 }
 .merion-mkt-sight-tag {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--keep-mist);
@@ -631,7 +637,7 @@ a:hover {
   grid-template-columns: 8.5rem 1fr 1fr;
   gap: 16px;
   padding: 0 0 10px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -681,14 +687,14 @@ a:hover {
   }
   .merion-mkt-versus-muse::before {
     content: 'Muse · ';
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--zf-secondary);
   }
   .merion-mkt-versus-merion::before {
     content: 'Merion · ';
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--zf-secondary);
@@ -743,11 +749,11 @@ a:hover {
   cursor: not-allowed;
 }
 .zf-btn-primary {
-  background: var(--zf-link);
+  background: var(--zf-link-fill);
   color: #fff;
 }
 .zf-btn-primary:hover:not(:disabled) {
-  background: var(--zf-link-hover);
+  background: var(--zf-link-fill-hover);
   color: #fff;
 }
 .zf-btn-secondary {
@@ -796,6 +802,16 @@ a:hover {
   background: var(--zf-nav-surface);
   backdrop-filter: saturate(180%) blur(16px);
   border-bottom: 1px solid var(--zf-hairline);
+}
+/* .zf-btn sets display, which beats Tailwind's `hidden`; hide the search button on phones here */
+@media (max-width: 639px) {
+  .console-topbar {
+    gap: 8px;
+    padding: 0 12px;
+  }
+  .console-topbar-search {
+    display: none;
+  }
 }
 .console-brand {
   display: inline-flex;
@@ -1009,7 +1025,7 @@ textarea.zf-terminal-input {
   background: rgba(10, 132, 255, 0.4);
 }
 .zf-terminal-empty {
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: rgba(255, 255, 255, 0.62) !important;
 }
 .zf-terminal-input,
 textarea.zf-terminal-input {
@@ -1356,11 +1372,10 @@ html:not([data-theme='dark']) {
      blanket `.text-white { color: var(--zf-ink) !important }` rule above. Found
      live: an empty-looking active tab pill on the Certificates page. */
   [class*="bg-[var(--zf-ink)]"].text-white,
-  [class*="bg-[var(--zf-link)]"].text-white,
+  [class*="bg-[var(--zf-link-fill)]"].text-white,
   [class*="bg-[var(--zf-danger)]"].text-white,
   [class*="bg-[var(--zf-success)]"].text-white,
   [class*="bg-[var(--zf-warning)]"].text-white,
-  .bg-\[\#0066cc\],
   .bg-\[\#1d1d1f\],
   .bg-black {
     color: #fff !important;
@@ -1458,49 +1473,6 @@ html:not([data-theme='dark']) {
   border: 1px solid var(--zf-hairline) !important;
   border-radius: var(--zf-radius) !important;
   color: var(--zf-ink) !important;
-}
-
-/* Dark theme: the console's design-token classes (var(--zf-*)) already
-   adapt automatically. These are the ~450 spots across the app that wrote
-   the light palette's literal hex value directly (e.g. `text-[#1d1d1f]`)
-   or `bg-white` instead of the token — redirect those to the dark palette
-   too so nothing is left rendering hardcoded light colors on a dark page. */
-html[data-theme='dark'] {
-  /* `~=` matches a single space-separated class token exactly — unlike the
-     `*=` substring selectors above, this deliberately does NOT also catch
-     Tailwind opacity variants like `bg-[#0066cc]/20` or `bg-white/10`,
-     which are separate token strings and should keep their own (already
-     theme-agnostic, translucent) styling untouched. */
-  [class~="text-[#1d1d1f]"] {
-    color: var(--zf-ink) !important;
-  }
-  [class~="text-[#6e6e73]"] {
-    color: var(--zf-muted) !important;
-  }
-  [class~="border-[#d2d2d7]"] {
-    border-color: var(--zf-hairline) !important;
-  }
-  [class~="bg-[#0066cc]"] {
-    background-color: var(--zf-link) !important;
-  }
-  [class~="text-[#0066cc]"] {
-    color: var(--zf-link) !important;
-  }
-  [class~="bg-[#0077ed]"] {
-    background-color: var(--zf-link-hover) !important;
-  }
-  [class~="bg-[#f5f5f7]"] {
-    background-color: var(--zf-canvas) !important;
-  }
-  [class~="bg-[#e8e8ed]"] {
-    background-color: var(--zf-canvas-alt) !important;
-  }
-  [class~="bg-[#d2d2d7]"] {
-    background-color: var(--zf-hairline) !important;
-  }
-  [class~="bg-white"] {
-    background-color: var(--zf-surface) !important;
-  }
 }
 
 /* Merion marketing: install strip, demo frame, value cards, feature grid */
@@ -1706,4 +1678,273 @@ html[data-theme='dark'] {
   .console-main > :not(nav):not(:first-child) {
     animation: none;
   }
+}
+
+/* —— Apple-style motion (ux-plan step 5) ——
+   Same curve as above. Springy settle for things that appear, short fades for things that leave,
+   and a stagger so lists and card grids arrive in sequence rather than all at once. */
+:root {
+  --zf-spring: cubic-bezier(0.2, 0.9, 0.25, 1.08);
+  --zf-stagger: 40ms;
+}
+
+@keyframes zf-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes zf-backdrop-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+}
+@keyframes zf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* dialogs, palette and help: the backdrop fades and blurs in, the sheet pops up from just below */
+.fixed.inset-0.backdrop-blur-sm {
+  animation: zf-backdrop-in 0.3s var(--zf-ease) both;
+}
+.fixed.inset-0.backdrop-blur-sm > * {
+  animation: zf-pop-in 0.42s var(--zf-spring) both;
+}
+
+/* grids and lists arrive in sequence (first 12 children; later ones appear at once) */
+.console-main :is(.grid, tbody) > * {
+  animation: zf-rise 0.5s var(--zf-ease) both;
+}
+.console-main :is(.grid, tbody) > :nth-child(1) { animation-delay: calc(var(--zf-stagger) * 1); }
+.console-main :is(.grid, tbody) > :nth-child(2) { animation-delay: calc(var(--zf-stagger) * 2); }
+.console-main :is(.grid, tbody) > :nth-child(3) { animation-delay: calc(var(--zf-stagger) * 3); }
+.console-main :is(.grid, tbody) > :nth-child(4) { animation-delay: calc(var(--zf-stagger) * 4); }
+.console-main :is(.grid, tbody) > :nth-child(5) { animation-delay: calc(var(--zf-stagger) * 5); }
+.console-main :is(.grid, tbody) > :nth-child(6) { animation-delay: calc(var(--zf-stagger) * 6); }
+.console-main :is(.grid, tbody) > :nth-child(7) { animation-delay: calc(var(--zf-stagger) * 7); }
+.console-main :is(.grid, tbody) > :nth-child(8) { animation-delay: calc(var(--zf-stagger) * 8); }
+.console-main :is(.grid, tbody) > :nth-child(9) { animation-delay: calc(var(--zf-stagger) * 9); }
+.console-main :is(.grid, tbody) > :nth-child(10) { animation-delay: calc(var(--zf-stagger) * 10); }
+.console-main :is(.grid, tbody) > :nth-child(11) { animation-delay: calc(var(--zf-stagger) * 11); }
+.console-main :is(.grid, tbody) > :nth-child(12) { animation-delay: calc(var(--zf-stagger) * 12); }
+
+/* surfaces lift a little under the pointer (hover devices only) */
+@media (hover: hover) {
+  .zf-panel,
+  .glass-card,
+  [class*='stat-card'] {
+    transition:
+      transform 0.4s var(--zf-ease),
+      box-shadow 0.4s var(--zf-ease);
+  }
+  a.zf-panel:hover,
+  a.glass-card:hover,
+  button.glass-card:hover,
+  [class*='stat-card']:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* route change: cross-fade with a slight lift where the browser supports View Transitions */
+@supports (view-transition-name: none) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+::view-transition-old(root) {
+  animation: 0.18s var(--zf-ease) both zf-vt-out;
+}
+::view-transition-new(root) {
+  animation: 0.32s var(--zf-ease) both zf-vt-in;
+}
+@keyframes zf-vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes zf-vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* skeleton blocks shimmer instead of a spinner */
+.zf-skeleton {
+  border-radius: var(--zf-radius-sm);
+  background: linear-gradient(90deg, rgba(128, 128, 128, 0.12) 25%, rgba(128, 128, 128, 0.22) 50%, rgba(128, 128, 128, 0.12) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* scroll-driven reveal on the marketing site (browsers without animation-timeline just show it) */
+@supports (animation-timeline: view()) {
+  .mkt-reveal {
+    animation: zf-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fixed.inset-0.backdrop-blur-sm,
+  .fixed.inset-0.backdrop-blur-sm > *,
+  .console-main :is(.grid, tbody) > *,
+  .zf-skeleton,
+  .mkt-reveal,
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+  .zf-panel,
+  .glass-card,
+  [class*='stat-card'] {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+/* —— Phone width (ux-plan step 6) —— */
+@keyframes zf-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes zf-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* the nav is a bottom sheet under 900px (the sidebar is hidden there) */
+@media (max-width: 900px) {
+  .console-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.4);
+    animation: zf-fade 0.25s var(--zf-ease) both;
+  }
+  .console-sidebar.is-sheet {
+    display: block;
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 41;
+    width: auto;
+    height: auto;
+    max-height: 78vh;
+    padding: 16px 12px calc(24px + env(safe-area-inset-bottom));
+    border: 0;
+    border-top: 1px solid var(--zf-hairline);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.25);
+    animation: zf-sheet-up 0.4s var(--zf-ease) both;
+  }
+  .console-sidebar.is-sheet::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 5px;
+    margin: 0 auto 12px;
+    border-radius: 3px;
+    background: var(--zf-hairline);
+  }
+}
+@media (min-width: 901px) {
+  .console-sheet-backdrop {
+    display: none;
+  }
+}
+
+/* tables become stacked cards; the header row is hidden and each cell carries its own label
+   (useTableLabels sets data-label). A table opts out with data-no-cards. */
+@media (max-width: 639px) {
+  .console-main table:not([data-no-cards]) {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+  .console-main table:not([data-no-cards]) :is(tbody, tr, td, th) {
+    display: block;
+  }
+  .console-main table:not([data-no-cards]) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .console-main table:not([data-no-cards]) tbody tr {
+    margin-bottom: 12px;
+    padding: 6px 14px;
+    border: 1px solid var(--zf-hairline);
+    border-radius: var(--zf-radius);
+    background: var(--zf-surface);
+  }
+  .console-main table:not([data-no-cards]) td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    border: 0;
+    text-align: right;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .console-main table:not([data-no-cards]) td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--zf-muted);
+    text-align: left;
+  }
+}
+
+/* tap targets: 44px on phones and touch screens (inputs also go to 16px so iOS does not zoom) */
+@media (max-width: 639px), (pointer: coarse) {
+  .console-shell :is(.zf-btn, .console-nav-link),
+  .console-main :is(button, [role='button'], [role='tab'], summary):not(.zf-terminal *) {
+    min-height: 44px;
+  }
+  .console-sidebar.is-sheet .console-sidebar-collapse-btn {
+    display: none;
+  }
+  .console-topbar .zf-btn {
+    min-width: 44px;
+    justify-content: center;
+  }
+  .console-main :is(input:not([type='checkbox'], [type='radio'], [type='range']), select) {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .console-sheet-backdrop,
+  .console-sidebar.is-sheet {
+    animation: none;
+  }
+}
+
+/* solid link-blue fills always carry white text, in both themes */
+[class~='bg-[var(--zf-link-fill)]'] {
+  color: #fff !important;
 }

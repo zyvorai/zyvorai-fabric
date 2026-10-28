@@ -49,40 +49,40 @@ function MacvtapTabContent({ macvtaps, onDelete, onAdopt, onCreate }: MacvtapTab
   const pageItems = paginateSlice(filtered, page, DEFAULT_PAGE_SIZE, showAll)
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Macvtap Devices</h2>
         {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create Macvtap
         </button>}
       </div>
       {macvtaps.length === 0 ? (
-        <div className="p-12 text-center text-[#6e6e73]">No macvtap devices configured.</div>
+        <div className="p-12 text-center text-[var(--zf-muted)]">No macvtap devices configured.</div>
       ) : (
         <>
           <ListControls search={search} onSearchChange={setSearch} searchPlaceholder="Search name, parent, mode…" total={macvtaps.length} filtered={filtered.length} page={page} pageSize={DEFAULT_PAGE_SIZE} onPageChange={setPage} showAll={showAll} onShowAllChange={setShowAll} />
           <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white">
+            <thead className="bg-[var(--zf-surface)]">
               <tr>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Parent</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Mode</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">MAC Address</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">MTU</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Parent</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Mode</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">MAC Address</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">MTU</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#d2d2d7]">
+            <tbody className="divide-y divide-[var(--zf-hairline)]">
               {pageItems.map(m => (
                 <tr key={m.id} className="hover:bg-white/[0.03] transition">
                   <td className="p-4 font-medium">{m.name}{isHostManaged(m) && <HostBadge />}</td>
-                  <td className="p-4 text-[#6e6e73]">{m.parent_interface}</td>
+                  <td className="p-4 text-[var(--zf-muted)]">{m.parent_interface}</td>
                   <td className="p-4">
                     <span className="px-2 py-1 rounded text-xs font-medium bg-green-500/10 text-emerald-600 border border-green-500/20">{m.mode}</span>
                   </td>
-                  <td className="p-4 text-[#6e6e73] font-mono text-sm">{m.mac_address ?? '-'}</td>
-                  <td className="p-4 text-[#6e6e73]">{m.mtu ?? '-'}</td>
+                  <td className="p-4 text-[var(--zf-muted)] font-mono text-sm">{m.mac_address ?? '-'}</td>
+                  <td className="p-4 text-[var(--zf-muted)]">{m.mtu ?? '-'}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-1">
                       <button onClick={() => handleView(m.id)} className="p-2 hover:bg-white/[0.06] rounded transition" title="View details" type="button">
@@ -95,7 +95,7 @@ function MacvtapTabContent({ macvtaps, onDelete, onAdopt, onCreate }: MacvtapTab
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && <div className="p-8 text-center text-[#6e6e73] text-sm">No macvtap devices match your search.</div>}
+          {filtered.length === 0 && <div className="p-8 text-center text-[var(--zf-muted)] text-sm">No macvtap devices match your search.</div>}
           </div>
         </>
       )}
@@ -146,8 +146,8 @@ export function CreateMacvtapModal({ onClose, onCreated }: { onClose: () => void
         <InputField label="Name" value={name} onChange={setName} placeholder="macvtap0" />
         <InputField label="Parent Interface" value={parent} onChange={setParent} placeholder="eth0" />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Mode</label>
-          <select value={mode} onChange={e => setMode(e.target.value as MacvtapMode)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Mode</label>
+          <select aria-label="Mode" value={mode} onChange={e => setMode(e.target.value as MacvtapMode)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="bridge">bridge</option>
             <option value="vepa">vepa</option>
             <option value="private">private</option>

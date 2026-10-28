@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { TrendingUp, AlertTriangle, Download, Clock, Activity } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
@@ -103,12 +104,12 @@ export default function Analytics() {
   const getUtilizationColor = (value: number): string => {
     if (value >= 90) return 'bg-red-500'
     if (value >= 75) return 'bg-amber-500'
-    if (value >= 50) return 'bg-[var(--zf-link)]'
+    if (value >= 50) return 'bg-[var(--zf-link-fill)]'
     return 'bg-emerald-500'
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading analytics...</div>
+    return <PageLoading />
   }
 
   return (
@@ -182,7 +183,7 @@ export default function Analytics() {
             <div className="mb-2">
               <p className="text-2xl font-bold">{utilization.cpu_utilization.toFixed(1)}%</p>
             </div>
-            <div className="h-2 bg-white rounded-full overflow-hidden">
+            <div className="h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${getUtilizationColor(utilization.cpu_utilization)}`}
                 style={{ width: `${utilization.cpu_utilization}%` }}
@@ -198,7 +199,7 @@ export default function Analytics() {
             <div className="mb-2">
               <p className="text-2xl font-bold">{utilization.memory_utilization.toFixed(1)}%</p>
             </div>
-            <div className="h-2 bg-white rounded-full overflow-hidden">
+            <div className="h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${getUtilizationColor(utilization.memory_utilization)}`}
                 style={{ width: `${utilization.memory_utilization}%` }}
@@ -214,7 +215,7 @@ export default function Analytics() {
             <div className="mb-2">
               <p className="text-2xl font-bold">{utilization.disk_utilization.toFixed(1)}%</p>
             </div>
-            <div className="h-2 bg-white rounded-full overflow-hidden">
+            <div className="h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${getUtilizationColor(utilization.disk_utilization)}`}
                 style={{ width: `${utilization.disk_utilization}%` }}
@@ -230,7 +231,7 @@ export default function Analytics() {
             <div className="mb-2">
               <p className="text-2xl font-bold">{utilization.network_utilization.toFixed(1)}%</p>
             </div>
-            <div className="h-2 bg-white rounded-full overflow-hidden">
+            <div className="h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${getUtilizationColor(utilization.network_utilization)}`}
                 style={{ width: `${utilization.network_utilization}%` }}
@@ -282,7 +283,7 @@ export default function Analytics() {
               <div key={idx} className="flex items-center justify-between">
                 <span className="text-sm font-medium">{vm.vm_name}</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-white rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[var(--zf-ink)]"
                       style={{ width: `${vm.value}%` }}
@@ -307,7 +308,7 @@ export default function Analytics() {
               <div key={idx} className="flex items-center justify-between">
                 <span className="text-sm font-medium">{vm.vm_name}</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-white rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[var(--zf-ink)]"
                       style={{ width: `${vm.value}%` }}
@@ -332,7 +333,7 @@ export default function Analytics() {
               <div key={idx} className="flex items-center justify-between">
                 <span className="text-sm font-medium">{vm.vm_name}</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-white rounded-full overflow-hidden">
+                  <div className="w-24 h-2 bg-[var(--zf-surface)] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[var(--zf-ink)]"
                       style={{ width: `${Math.min(vm.value, 100)}%` }}

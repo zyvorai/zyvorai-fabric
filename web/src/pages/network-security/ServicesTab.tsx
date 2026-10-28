@@ -27,41 +27,41 @@ function ServicesTabContent({ services, onDelete, onAdopt, onEdit, onCreate, onS
   const handleSyncClick = async () => { await onSync(); refreshStatus() }
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Service Mesh</h2>
         <div className="flex items-center gap-2">
           {status && (
-            <span className="text-xs text-[#6e6e73] bg-white rounded-lg px-3 py-1.5 border border-[#d2d2d7]">
+            <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.active_services} active &middot; {status.total_backends} backends
             </span>
           )}
-          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-white hover:bg-[#d2d2d7] text-[#1d1d1f] py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync
           </button>}
-          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[#0066cc] hover:bg-[#0077ed] text-white py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
             <Plus className="w-4 h-4" /> Add Service
           </button>}
         </div>
       </div>
       {services.length === 0 ? (
-        <div className="p-12 text-center text-[#6e6e73]">No services configured. Create one to define virtual IP load-balanced services.</div>
+        <div className="p-12 text-center text-[var(--zf-muted)]">No services configured. Create one to define virtual IP load-balanced services.</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white">
+            <thead className="bg-[var(--zf-surface)]">
               <tr>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Virtual IP</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Port</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Algorithm</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Backends</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Labels</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Status</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Virtual IP</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Port</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Algorithm</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Backends</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Labels</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Status</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#d2d2d7]">
+            <tbody className="divide-y divide-[var(--zf-hairline)]">
               {services.map(s => {
                 const port = s.ports?.[0]
                 const labels = s.selector?.match_labels ?? {}
@@ -69,9 +69,9 @@ function ServicesTabContent({ services, onDelete, onAdopt, onEdit, onCreate, onS
                 <tr key={s.id} className="hover:bg-white/[0.03] transition">
                   <td className="p-4">
                     <div className="font-medium">{s.name}{isHostManaged(s) && <HostBadge />}</div>
-                    {s.description && <div className="text-xs text-[#6e6e73] mt-1">{s.description}</div>}
+                    {s.description && <div className="text-xs text-[var(--zf-muted)] mt-1">{s.description}</div>}
                   </td>
-                  <td className="p-4 font-mono text-sm text-[#0066cc]">{s.virtual_ip}</td>
+                  <td className="p-4 font-mono text-sm text-[var(--zf-link)]">{s.virtual_ip}</td>
                   <td className="p-4 font-mono text-sm">{port ? `${port.port}/${port.protocol ?? 'tcp'}` : '-'}</td>
                   <td className="p-4">
                     <StatusBadge status={s.algorithm} color="blue" />
@@ -84,7 +84,7 @@ function ServicesTabContent({ services, onDelete, onAdopt, onEdit, onCreate, onS
                   <td className="p-4">
                     <div className="flex items-center gap-1">
                       {!readOnly && !isHostManaged(s) && onEdit && (
-                        <button onClick={() => onEdit(s.id)} className="p-2 hover:bg-[#d2d2d7] rounded transition" title="Edit">
+                        <button onClick={() => onEdit(s.id)} className="p-2 hover:bg-[var(--zf-hairline)] rounded transition" title="Edit">
                           <Pencil className="w-4 h-4" />
                         </button>
                       )}
@@ -147,16 +147,16 @@ export function CreateServiceModal({ onClose, onCreated }: { onClose: () => void
         <div className="grid grid-cols-2 gap-2">
           <InputField label="Port" value={port} onChange={setPort} placeholder="80" type="number" />
           <div>
-            <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Protocol</label>
-            <select value={protocol} onChange={e => setProtocol(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+            <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Protocol</label>
+            <select aria-label="Protocol" value={protocol} onChange={e => setProtocol(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
               <option value="tcp">TCP</option>
               <option value="udp">UDP</option>
             </select>
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Algorithm</label>
-          <select value={algorithm} onChange={e => setAlgorithm(e.target.value as LoadBalancerAlgorithm)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Algorithm</label>
+          <select aria-label="Algorithm" value={algorithm} onChange={e => setAlgorithm(e.target.value as LoadBalancerAlgorithm)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="round_robin">Round Robin</option>
             <option value="random">Random</option>
             <option value="ip_hash">IP Hash</option>
@@ -164,7 +164,7 @@ export function CreateServiceModal({ onClose, onCreated }: { onClose: () => void
         </div>
         <LabelSelectorInput labels={labels} onChange={setLabels} />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Service'}
         </button>
       </div>
@@ -231,7 +231,7 @@ export function EditServiceModal({ id, onClose, onUpdated }: { id: string; onClo
   if (loading) {
     return (
       <ModalWrapper title="Edit Service" onClose={onClose}>
-        <div className="text-[#6e6e73] text-sm">Loading...</div>
+        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
       </ModalWrapper>
     )
   }
@@ -252,16 +252,16 @@ export function EditServiceModal({ id, onClose, onUpdated }: { id: string; onClo
         <div className="grid grid-cols-2 gap-2">
           <InputField label="Port" value={port} onChange={setPort} placeholder="80" type="number" />
           <div>
-            <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Protocol</label>
-            <select value={protocol} onChange={e => setProtocol(e.target.value)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+            <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Protocol</label>
+            <select aria-label="Protocol" value={protocol} onChange={e => setProtocol(e.target.value)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
               <option value="tcp">TCP</option>
               <option value="udp">UDP</option>
             </select>
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Algorithm</label>
-          <select value={algorithm} onChange={e => setAlgorithm(e.target.value as LoadBalancerAlgorithm)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Algorithm</label>
+          <select aria-label="Algorithm" value={algorithm} onChange={e => setAlgorithm(e.target.value as LoadBalancerAlgorithm)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="round_robin">Round Robin</option>
             <option value="random">Random</option>
             <option value="ip_hash">IP Hash</option>
@@ -269,7 +269,7 @@ export function EditServiceModal({ id, onClose, onUpdated }: { id: string; onClo
         </div>
         <LabelSelectorInput labels={labels} onChange={setLabels} />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>

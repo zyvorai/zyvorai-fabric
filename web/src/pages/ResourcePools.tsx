@@ -129,7 +129,7 @@ export default function ResourcePools() {
     return (
       <div key={pool.id}>
         <div
-          className="flex items-center justify-between p-3 hover:bg-white cursor-pointer border-b border-[var(--zf-hairline)]"
+          className="flex items-center justify-between p-3 hover:bg-[var(--zf-surface)] cursor-pointer border-b border-[var(--zf-hairline)]"
           style={{ paddingLeft: `${depth * 24 + 16}px` }}
           onClick={() => togglePool(pool.id)}
         >
@@ -145,14 +145,14 @@ export default function ResourcePools() {
           <div className="flex items-center gap-4 shrink-0" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-[var(--zf-muted)]">CPU</span>
-              <div className="w-20 bg-white rounded-full h-2">
-                <div className={`h-2 rounded-full ${cpuPct > 80 ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link)]'}`}
+              <div className="w-20 bg-[var(--zf-surface)] rounded-full h-2">
+                <div className={`h-2 rounded-full ${cpuPct > 80 ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link-fill)]'}`}
                   style={{ width: `${Math.min(cpuPct, 100)}%` }} />
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-[var(--zf-muted)]">Mem</span>
-              <div className="w-20 bg-white rounded-full h-2">
+              <div className="w-20 bg-[var(--zf-surface)] rounded-full h-2">
                 <div className={`h-2 rounded-full ${memPct > 80 ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-ink)]'}`}
                   style={{ width: `${Math.min(memPct, 100)}%` }} />
               </div>
@@ -160,7 +160,7 @@ export default function ResourcePools() {
             <button onClick={() => setShowAdmissionTest(pool.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] text-xs px-2 py-1">
               Test Admission
             </button>
-            <button onClick={() => handleDelete(pool.id)} className="text-red-600 hover:text-red-800 p-1">
+            <button onClick={() => handleDelete(pool.id)} className="text-red-600 hover:text-red-800 p-1" aria-label="Delete" title="Delete">
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
@@ -169,14 +169,14 @@ export default function ResourcePools() {
         {isExpanded && (
           <>
             {summary && (
-              <div className="grid grid-cols-4 gap-3 p-3 bg-white" style={{ paddingLeft: `${depth * 24 + 40}px` }}>
+              <div className="grid grid-cols-4 gap-3 p-3 bg-[var(--zf-surface)]" style={{ paddingLeft: `${depth * 24 + 40}px` }}>
                 <div className="text-xs"><span className="text-[var(--zf-muted)]">Reservation:</span> {pool.cpu_reservation_mhz} MHz / {pool.memory_reservation_mb} MB</div>
                 <div className="text-xs"><span className="text-[var(--zf-muted)]">Limit:</span> {pool.cpu_limit_mhz ?? 'Unlimited'} MHz / {pool.memory_limit_mb ?? 'Unlimited'} MB</div>
                 <div className="text-xs"><span className="text-[var(--zf-muted)]">Used:</span> {summary.cpu_used_mhz} MHz / {summary.memory_used_mb} MB</div>
                 <div className="text-xs"><span className="text-[var(--zf-muted)]">Children:</span> {summary.child_pool_count} pools</div>
               </div>
             )}
-            <div className="p-3 bg-white border-t border-[var(--zf-hairline)]" style={{ paddingLeft: `${depth * 24 + 40}px` }}>
+            <div className="p-3 bg-[var(--zf-surface)] border-t border-[var(--zf-hairline)]" style={{ paddingLeft: `${depth * 24 + 40}px` }}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Assigned VMs</span>
                 <button onClick={() => setAssignTargetPool(pool.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] text-xs flex items-center gap-1">
@@ -315,7 +315,7 @@ function SharesLevelPicker({ label, value, onChange }: { label: string; value: S
       <select value={preset} onChange={e => {
         const v = e.target.value
         onChange(v === 'custom' ? { custom: customValue } : (v as SharesLevel))
-      }} className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+      }} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
         <option value="low">Low</option>
         <option value="normal">Normal</option>
         <option value="high">High</option>
@@ -323,7 +323,7 @@ function SharesLevelPicker({ label, value, onChange }: { label: string; value: S
       </select>
       {preset === 'custom' && (
         <input type="number" value={customValue} onChange={e => onChange({ custom: Number(e.target.value) })} min={1}
-          className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2 mt-2" placeholder="Custom share value" />
+          className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2 mt-2" placeholder="Custom share value" />
       )}
     </div>
   )
@@ -366,18 +366,18 @@ function CreatePoolModal({ pools, onClose, onCreated }: { pools: ResourcePool[];
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+            <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Cluster ID</label>
-            <input type="text" value={clusterId} onChange={e => setClusterId(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+            <input aria-label="Cluster ID" type="text" value={clusterId} onChange={e => setClusterId(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Parent Pool (optional)</label>
-            <select value={parentId} onChange={e => setParentId(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+            <select aria-label="Parent Pool (optional)" value={parentId} onChange={e => setParentId(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               <option value="">None (root pool)</option>
               {pools.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
@@ -387,23 +387,23 @@ function CreatePoolModal({ pools, onClose, onCreated }: { pools: ResourcePool[];
             <SharesLevelPicker label="Memory Shares" value={memoryShares} onChange={setMemoryShares} />
             <div>
               <label className="block text-sm font-medium mb-1">CPU Reservation (MHz)</label>
-              <input type="number" value={cpuReservation} onChange={e => setCpuReservation(Number(e.target.value))} min={0}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+              <input aria-label="CPU Reservation (MHz)" type="number" value={cpuReservation} onChange={e => setCpuReservation(Number(e.target.value))} min={0}
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Memory Reservation (MB)</label>
-              <input type="number" value={memoryReservation} onChange={e => setMemoryReservation(Number(e.target.value))} min={0}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+              <input aria-label="Memory Reservation (MB)" type="number" value={memoryReservation} onChange={e => setMemoryReservation(Number(e.target.value))} min={0}
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">CPU Limit (MHz)</label>
-              <input type="number" value={cpuLimit} onChange={e => setCpuLimit(e.target.value)} min={1} placeholder="Unlimited"
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+              <input aria-label="CPU Limit (MHz)" type="number" value={cpuLimit} onChange={e => setCpuLimit(e.target.value)} min={1} placeholder="Unlimited"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Memory Limit (MB)</label>
-              <input type="number" value={memoryLimit} onChange={e => setMemoryLimit(e.target.value)} min={1} placeholder="Unlimited"
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+              <input aria-label="Memory Limit (MB)" type="number" value={memoryLimit} onChange={e => setMemoryLimit(e.target.value)} min={1} placeholder="Unlimited"
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
             </div>
           </div>
           <div className="flex gap-3">
@@ -432,13 +432,13 @@ function AdmissionTestModal({ poolId, result, onTest, onClose }: {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Required CPU (MHz)</label>
-            <input type="number" value={cpu} onChange={e => setCpu(Number(e.target.value))}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+            <input aria-label="Required CPU (MHz)" type="number" value={cpu} onChange={e => setCpu(Number(e.target.value))}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Required Memory (MB)</label>
-            <input type="number" value={memory} onChange={e => setMemory(Number(e.target.value))}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+            <input aria-label="Required Memory (MB)" type="number" value={memory} onChange={e => setMemory(Number(e.target.value))}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
           </div>
           <button onClick={() => onTest(poolId, cpu, memory)}
             className="zf-btn zf-btn-primary w-full">Run Test</button>
@@ -474,8 +474,8 @@ function AssignVmModal({ vms, onAssign, onClose }: { vms: VM[]; onAssign: (vmNam
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">VM</label>
-              <select value={vmName} onChange={e => setVmName(e.target.value)}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+              <select aria-label="VM" value={vmName} onChange={e => setVmName(e.target.value)}
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
                 {vms.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
               </select>
             </div>
@@ -499,8 +499,8 @@ function MoveVmModal({ vmName, pools, onMove, onClose }: { vmName: string; pools
         <h2 className="text-xl font-bold mb-4">Move '{vmName}'</h2>
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Target Pool</label>
-          <select value={toPoolId} onChange={e => setToPoolId(e.target.value)}
-            className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+          <select aria-label="Target Pool" value={toPoolId} onChange={e => setToPoolId(e.target.value)}
+            className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
             {pools.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>

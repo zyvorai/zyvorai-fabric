@@ -58,7 +58,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
       <div
         onDoubleClick={handleCardDoubleClick}
         title="Double-click to open console"
-        className={`group bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] hover:border-[#d2d2d7] card-hover gradient-border state-bar state-bar-${vm.state}`}
+        className={`group bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)] card-hover gradient-border state-bar state-bar-${vm.state}`}
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-3">
@@ -66,11 +66,11 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
             <div className="min-w-0 flex-1">
               <Link
                 to={`/app/vms/${vm.name}`}
-                className="text-base font-semibold text-[#1d1d1f] hover:text-[#0066cc] transition-colors truncate block"
+                className="text-base font-semibold text-[var(--zf-ink)] hover:text-[var(--zf-link)] transition-colors truncate block"
               >
                 {vm.name}
               </Link>
-              <p className="text-xs text-[#6e6e73] mt-0.5 truncate">{vm.image}</p>
+              <p className="text-xs text-[var(--zf-muted)] mt-0.5 truncate">{vm.image}</p>
               {vm.state === 'failed' && vm.last_error && (
                 <p className="flex items-start gap-1 text-xs text-red-600 mt-1.5" title={vm.last_error}>
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
@@ -83,22 +83,21 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setShowMenu(!showMenu)}
-                  className="p-1.5 rounded-md text-[#6e6e73] hover:text-[#1d1d1f] hover:bg-white/5 transition-colors opacity-0 group-hover:opacity-100"
-                >
+                  className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-white/5 transition-colors opacity-0 group-hover:opacity-100" aria-label="More actions" title="More actions">
                   <MoreVertical className="w-4 h-4" />
                 </button>
                 {showMenu && (
-                  <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-[#d2d2d7] rounded-lg shadow-xl py-1 z-20">
+                  <div className="absolute right-0 top-full mt-1 w-44 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg shadow-xl py-1 z-20">
                     <Link
                       to={`/app/vms/${vm.name}`}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-[#1d1d1f] hover:bg-black/[0.04] hover:text-[#1d1d1f] transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--zf-ink)] hover:bg-black/[0.04] hover:text-[var(--zf-ink)] transition-colors"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       View Details
                     </Link>
                     <Link
                       to={`/app/vms/${vm.name}/console`}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-[#1d1d1f] hover:bg-black/[0.04] hover:text-[#1d1d1f] transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--zf-ink)] hover:bg-black/[0.04] hover:text-[var(--zf-ink)] transition-colors"
                     >
                       <Terminal className="w-3.5 h-3.5" />
                       Open Console
@@ -107,19 +106,19 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
                       <>
                     <button
                       onClick={() => { setShowMenu(false); setShowCloneDialog(true) }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1d1d1f] hover:bg-black/[0.04] hover:text-[#1d1d1f] transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--zf-ink)] hover:bg-black/[0.04] hover:text-[var(--zf-ink)] transition-colors"
                     >
                       <Copy className="w-3.5 h-3.5" />
                       Clone VM
                     </button>
                     <button
                       onClick={() => { setShowMenu(false); setShowTagEditor(true) }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1d1d1f] hover:bg-black/[0.04] hover:text-[#1d1d1f] transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--zf-ink)] hover:bg-black/[0.04] hover:text-[var(--zf-ink)] transition-colors"
                     >
                       <Tag className="w-3.5 h-3.5" />
                       Manage Tags
                     </button>
-                    <div className="border-t border-[#d2d2d7] my-1" />
+                    <div className="border-t border-[var(--zf-hairline)] my-1" />
                     <button
                       onClick={() => { setShowMenu(false); setShowDeleteConfirm(true) }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-400/10 transition-colors"
@@ -136,17 +135,17 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
           </div>
 
           {/* Resources */}
-          <div className="flex items-center gap-4 text-sm text-[#6e6e73]">
+          <div className="flex items-center gap-4 text-sm text-[var(--zf-muted)]">
             <div className="flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-[#6e6e73]" />
+              <Cpu className="w-3.5 h-3.5 text-[var(--zf-muted)]" />
               <span>{vm.cpus} vCPU{vm.cpus !== 1 ? 's' : ''}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <HardDrive className="w-3.5 h-3.5 text-[#6e6e73]" />
+              <HardDrive className="w-3.5 h-3.5 text-[var(--zf-muted)]" />
               <span>{vm.memory >= 1024 ? `${(vm.memory / 1024).toFixed(1)} GB` : `${vm.memory} MB`}</span>
             </div>
             {vm.ip && (
-              <span className="text-[#6e6e73] font-mono text-xs">{vm.ip}</span>
+              <span className="text-[var(--zf-muted)] font-mono text-xs">{vm.ip}</span>
             )}
           </div>
         </div>
@@ -158,13 +157,13 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               {vm.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className={`px-2 py-0.5 rounded text-[11px] font-medium ${getTagColor(tag)} text-[#1d1d1f]/90`}
+                  className={`px-2 py-0.5 rounded text-xs font-medium ${getTagColor(tag)} text-[var(--zf-ink)]/90`}
                 >
                   {tag}
                 </span>
               ))}
               {vm.tags.length > 3 && (
-                <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-[#e8e8ed] text-[#6e6e73]">
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-[var(--zf-canvas-alt)] text-[var(--zf-muted)]">
                   +{vm.tags.length - 3}
                 </span>
               )}
@@ -173,7 +172,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
         )}
 
         {/* Actions */}
-        <div className="px-5 py-3 border-t border-[#d2d2d7] bg-white flex items-center gap-2">
+        <div className="px-5 py-3 border-t border-[var(--zf-hairline)] bg-[var(--zf-surface)] flex items-center gap-2">
           {canWrite && (
             <>
               {vm.state === 'stopped' || vm.state === 'failed' ? (
@@ -214,7 +213,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
           )}
           <Link
             to={`/app/vms/${vm.name}/console`}
-            className={`${canWrite ? 'ml-auto' : ''} p-1.5 rounded-md text-[#6e6e73] hover:text-[#0066cc] hover:bg-blue-400/10 transition-colors`}
+            className={`${canWrite ? 'ml-auto' : ''} p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-link)] hover:bg-blue-400/10 transition-colors`}
             title="Open Console"
           >
             <Terminal className="w-4 h-4" />

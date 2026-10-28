@@ -124,7 +124,7 @@ export default function Certificates() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-surface)] rounded-lg p-1 overflow-x-auto">
         {(['dashboard', 'cas', 'certs', 'csrs', 'attestation', 'baselines'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`px-4 py-2 rounded text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab === 'cas' ? 'CAs' : tab === 'certs' ? 'Certificates' : tab === 'csrs' ? 'Requests' :
              tab === 'attestation' ? 'Attestation' : tab === 'baselines' ? 'Security Baselines' : 'Dashboard'}
           </button>
@@ -177,7 +177,7 @@ export default function Certificates() {
               <h3 className="text-lg font-semibold mb-3 text-amber-800">Expiring Within 30 Days</h3>
               <div className="space-y-2">
                 {health.expiring_within_30_days.map(c => (
-                  <div key={c.cert_id} className="flex items-center justify-between p-2 bg-white rounded">
+                  <div key={c.cert_id} className="flex items-center justify-between p-2 bg-[var(--zf-surface)] rounded">
                     <span className="font-mono text-sm">{c.subject}</span>
                     <span className="text-sm text-amber-700">{c.days_remaining} days left</span>
                   </div>
@@ -215,7 +215,7 @@ export default function Certificates() {
                 ) : cas.map(ca => {
                   const days = daysUntil(ca.valid_to)
                   return (
-                    <tr key={ca.id} className="hover:bg-white">
+                    <tr key={ca.id} className="hover:bg-[var(--zf-surface)]">
                       <td className="p-4 font-medium">{ca.name}</td>
                       <td className="p-4 text-sm">{ca.ca_type}</td>
                       <td className="p-4 text-sm font-mono text-[var(--zf-muted)]">{ca.subject}</td>
@@ -264,7 +264,7 @@ export default function Certificates() {
                 ) : certs.map(cert => {
                   const days = daysUntil(cert.valid_to)
                   return (
-                    <tr key={cert.id} className="hover:bg-white">
+                    <tr key={cert.id} className="hover:bg-[var(--zf-surface)]">
                       <td className="p-4 font-mono text-sm">{cert.subject}</td>
                       <td className="p-4 text-sm">{cert.cert_type}</td>
                       <td className="p-4 text-xs font-mono text-[var(--zf-muted)]">{cert.serial_number}</td>
@@ -315,7 +315,7 @@ export default function Certificates() {
               {csrs.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No certificate requests in queue.</td></tr>
               ) : csrs.map(csr => (
-                <tr key={csr.id} className="hover:bg-white">
+                <tr key={csr.id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-mono text-sm">{csr.subject}</td>
                   <td className="p-4 text-sm">{csr.requestor}</td>
                   <td className="p-4 text-sm">{csr.cert_type}</td>
@@ -325,7 +325,7 @@ export default function Certificates() {
                   <td className="p-4">
                     {csr.status === 'pending' && (
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleApproveCSR(csr.id)} className="text-emerald-600 hover:text-emerald-700 p-1">
+                        <button onClick={() => handleApproveCSR(csr.id)} className="text-emerald-600 hover:text-emerald-700 p-1" aria-label="Confirm" title="Confirm">
                           <Check className="w-4 h-4" />
                         </button>
                       </div>
@@ -357,7 +357,7 @@ export default function Certificates() {
               {attestations.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No host attestation data.</td></tr>
               ) : attestations.map(att => (
-                <tr key={att.id} className="hover:bg-white">
+                <tr key={att.id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{att.hostname}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-xs font-medium border ${att.tpm_present ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200'}`}>
@@ -408,7 +408,7 @@ export default function Certificates() {
                 ) : baselines.map(bl => {
                   const checkPct = bl.vm_count > 0 ? (bl.compliant_count / bl.vm_count * 100) : 0
                   return (
-                    <tr key={bl.id} className="hover:bg-white">
+                    <tr key={bl.id} className="hover:bg-[var(--zf-surface)]">
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <Shield className="w-4 h-4 text-[var(--zf-link)]" />
@@ -509,13 +509,13 @@ function CreateCAForm({ onClose, onCreated }: { onClose: () => void; onCreated: 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div><label className="block text-sm font-medium mb-1">Name</label>
-        <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
+        <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
       <div><label className="block text-sm font-medium mb-1">Type</label>
-        <select value={caType} onChange={e => setCaType(e.target.value as 'root' | 'intermediate' | 'external')} className="input-field">
+        <select aria-label="Type" value={caType} onChange={e => setCaType(e.target.value as 'root' | 'intermediate' | 'external')} className="input-field">
           <option value="root">Root</option><option value="intermediate">Intermediate</option><option value="external">External</option>
         </select></div>
       <div><label className="block text-sm font-medium mb-1">Subject</label>
-        <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="input-field" placeholder="CN=My CA, O=My Org" required /></div>
+        <input aria-label="Subject" type="text" value={subject} onChange={e => setSubject(e.target.value)} className="input-field" placeholder="CN=My CA, O=My Org" required /></div>
       <div className="flex gap-3">
         <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
         <button type="submit" className="flex-1 zf-btn zf-btn-primary">Create</button>
@@ -544,9 +544,9 @@ function CreateBaselineForm({ onClose, onCreated }: { onClose: () => void; onCre
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div><label className="block text-sm font-medium mb-1">Name</label>
-        <input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
+        <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)} className="input-field" required /></div>
       <div><label className="block text-sm font-medium mb-1">Description</label>
-        <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
+        <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)} className="input-field" /></div>
       <div className="flex gap-3">
         <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
         <button type="submit" className="flex-1 zf-btn zf-btn-primary">Create</button>
@@ -576,17 +576,17 @@ function IssueCertificateForm({ cas, onClose, onIssued }: { cas: CertificateAuth
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div><label className="block text-sm font-medium mb-1">Certificate Authority</label>
-        <select value={caId} onChange={e => setCaId(e.target.value)} className="input-field">
+        <select aria-label="Certificate Authority" value={caId} onChange={e => setCaId(e.target.value)} className="input-field">
           {cas.map(ca => <option key={ca.id} value={ca.id}>{ca.name}</option>)}
         </select></div>
       <div><label className="block text-sm font-medium mb-1">Subject</label>
-        <input type="text" value={subject} onChange={e => setSubject(e.target.value)} className="input-field" placeholder="CN=vm01.internal" required /></div>
+        <input aria-label="Subject" type="text" value={subject} onChange={e => setSubject(e.target.value)} className="input-field" placeholder="CN=vm01.internal" required /></div>
       <div><label className="block text-sm font-medium mb-1">Type</label>
-        <select value={certType} onChange={e => setCertType(e.target.value as typeof certType)} className="input-field">
+        <select aria-label="Type" value={certType} onChange={e => setCertType(e.target.value as typeof certType)} className="input-field">
           <option value="server">Server</option><option value="client">Client</option><option value="host">Host</option><option value="service">Service</option>
         </select></div>
       <div><label className="block text-sm font-medium mb-1">Validity (days)</label>
-        <input type="number" value={validityDays} onChange={e => setValidityDays(Math.max(1, Number(e.target.value) || 1))} min={1} className="input-field" /></div>
+        <input aria-label="Validity (days)" type="number" value={validityDays} onChange={e => setValidityDays(Math.max(1, Number(e.target.value) || 1))} min={1} className="input-field" /></div>
       <div className="flex gap-3">
         <button type="button" onClick={onClose} className="flex-1 zf-btn zf-btn-ghost">Cancel</button>
         <button type="submit" disabled={submitting} className="flex-1 zf-btn zf-btn-primary disabled:opacity-50">{submitting ? 'Issuing...' : 'Issue'}</button>
@@ -615,7 +615,7 @@ function ComplianceCheckForm({ baseline, vms, onClose, onChecked }: { baseline: 
   return (
     <div className="space-y-4">
       <div><label className="block text-sm font-medium mb-1">VM</label>
-        <select value={vmName} onChange={e => { setVmName(e.target.value); setResult(null) }} className="input-field">
+        <select aria-label="VM" value={vmName} onChange={e => { setVmName(e.target.value); setResult(null) }} className="input-field">
           {vms.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
         </select></div>
       {result && (

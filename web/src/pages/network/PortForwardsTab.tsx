@@ -74,11 +74,11 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
   const pageItems = paginateSlice(filtered, page, DEFAULT_PAGE_SIZE, showAll)
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Port Forwards (nftables DNAT)</h2>
         <div className="flex gap-2">
-          {!readOnly && <button onClick={onSync} className="flex items-center gap-2 bg-white hover:bg-[#d2d2d7] text-[#1d1d1f] py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={onSync} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync Rules
           </button>}
           {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition text-sm">
@@ -87,7 +87,7 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
         </div>
       </div>
       {portForwards.length === 0 ? (
-        <div className="p-12 text-center text-[#6e6e73]">No port forwards configured. Add one to expose a VM service to the host network.</div>
+        <div className="p-12 text-center text-[var(--zf-muted)]">No port forwards configured. Add one to expose a VM service to the host network.</div>
       ) : (
         <>
           <ListControls
@@ -116,7 +116,7 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
                   originFilter === key
                     ? 'bg-red-600/30 text-red-300 border border-red-500/40'
-                    : 'bg-white text-[#6e6e73] border border-[#d2d2d7] hover:text-[#1d1d1f]'
+                    : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border border-[var(--zf-hairline)] hover:text-[var(--zf-ink)]'
                 }`}
               >
                 {label}
@@ -125,17 +125,17 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
           </div>
           <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white">
+            <thead className="bg-[var(--zf-surface)]">
               <tr>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Protocol</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Host Port</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Guest IP:Port</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Enabled</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Protocol</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Host Port</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Guest IP:Port</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Enabled</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#d2d2d7]">
+            <tbody className="divide-y divide-[var(--zf-hairline)]">
               {pageItems.map(pf => (
                 <tr key={pf.id} className="hover:bg-white/[0.03] transition">
                   <td className="p-4 font-medium">
@@ -144,15 +144,15 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
                       {isHostManaged(pf) && <HostBadge />}
                     </span>
                     {pf.description && (
-                      <span className="block text-xs text-[#6e6e73] font-normal mt-0.5">{pf.description}</span>
+                      <span className="block text-xs text-[var(--zf-muted)] font-normal mt-0.5">{pf.description}</span>
                     )}
                   </td>
                   <td className="p-4">
                     <span className="px-2 py-1 rounded text-xs font-medium bg-red-500/10 text-red-600 border border-red-500/20">{pf.protocol}</span>
                   </td>
-                  <td className="p-4 font-mono text-sm text-[#0066cc]">{pf.host_port}</td>
-                  <td className="p-4 font-mono text-sm text-[#6e6e73]">{pf.guest_ip}:{pf.guest_port}</td>
-                  <td className="p-4">{pf.enabled ? <span className="text-emerald-600">yes</span> : <span className="text-[#6e6e73]">no</span>}</td>
+                  <td className="p-4 font-mono text-sm text-[var(--zf-link)]">{pf.host_port}</td>
+                  <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{pf.guest_ip}:{pf.guest_port}</td>
+                  <td className="p-4">{pf.enabled ? <span className="text-emerald-600">yes</span> : <span className="text-[var(--zf-muted)]">no</span>}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-1">
                       <button onClick={() => handleView(pf.id)} className="p-2 hover:bg-white/[0.06] rounded transition" title="View details" type="button">
@@ -170,7 +170,7 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <div className="p-8 text-center text-[#6e6e73] text-sm">No port forwards match your filters.</div>
+            <div className="p-8 text-center text-[var(--zf-muted)] text-sm">No port forwards match your filters.</div>
           )}
           </div>
         </>
@@ -228,8 +228,8 @@ export function CreatePortForwardModal({ onClose, onCreated }: { onClose: () => 
       <div className="space-y-4">
         <InputField label="Name" value={name} onChange={setName} placeholder="web-server" />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Protocol</label>
-          <select value={protocol} onChange={e => setProtocol(e.target.value as Protocol)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Protocol</label>
+          <select aria-label="Protocol" value={protocol} onChange={e => setProtocol(e.target.value as Protocol)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
             <option value="both">Both (TCP + UDP)</option>

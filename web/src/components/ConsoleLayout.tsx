@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-import { ReactNode, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router'
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -15,6 +15,7 @@ import { ZyvorLockup } from './ZyvorMark'
 import ThemeToggle from './ThemeToggle'
 import { useKeyboardShortcut, isInputFocused } from '../hooks/useKeyboardShortcut'
 import { useRecordRecentPage } from '../hooks/useRecordRecentPage'
+import { useTableLabels } from '../hooks/useTableLabels'
 
 function ConsoleShortcuts({
   helpOpen,
@@ -89,6 +90,14 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
     })
   }
   useRecordRecentPage()
+  const mainRef = useRef<HTMLElement>(null)
+  useTableLabels(mainRef)
+  useEffect(() => {
+    if (!mobileNav) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMobileNav(false)
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mobileNav])
 
   const onLogout = () => {
     logout()
@@ -121,14 +130,14 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
         >
           {mobileNav ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </button>
-        <Link to="/app" className="console-brand" aria-label="Zyvor Fabric">
+        <Link to="/app" className="console-brand">
           <ZyvorLockup markClassName="w-6 h-6" />
           <span className="text-[var(--zf-muted)] font-medium">Fabric</span>
         </Link>
         <div className="flex-1" />
         <button
           type="button"
-          className="zf-btn zf-btn-ghost zf-btn-sm hidden sm:inline-flex"
+          className="zf-btn zf-btn-ghost zf-btn-sm console-topbar-search"
           onClick={() =>
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
           }
@@ -149,8 +158,11 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
       </header>
 
       <div className="console-body">
+        {mobileNav && (
+          <div className="console-sheet-backdrop" onClick={() => setMobileNav(false)} aria-hidden />
+        )}
         <aside
-          className={`console-sidebar ${collapsed ? 'collapsed' : ''} ${mobileNav ? '!block fixed inset-x-0 top-[52px] z-20 h-[calc(100vh-52px)]' : ''}`}
+          className={`console-sidebar ${collapsed ? 'collapsed' : ''} ${mobileNav ? 'is-sheet' : ''}`}
         >
           <button
             type="button"
@@ -172,6 +184,7 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
                     <NavLink
                       key={item.path}
                       to={item.path}
+                      viewTransition
                       end={item.path === '/app'}
                       title={collapsed ? item.label : undefined}
                       className={({ isActive }) =>
@@ -189,7 +202,7 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
           })}
         </aside>
 
-        <main id="main-content" className="console-main" role="main">
+        <main id="main-content" ref={mainRef} className="console-main" role="main">
           <Breadcrumb />
           {children}
         </main>

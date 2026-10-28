@@ -83,12 +83,12 @@ export default function MigrationTemplates() {
         <div className="zf-panel p-5 space-y-4">
           <h3 className="text-sm font-semibold text-[var(--zf-ink)]">New Template</h3>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Name</label><input type="text" value={newTemplate.name || ''} onChange={e => setNewTemplate(p => ({ ...p, name: e.target.value }))} placeholder="My Template" className="input-field" /></div>
-            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Description</label><input type="text" value={newTemplate.description || ''} onChange={e => setNewTemplate(p => ({ ...p, description: e.target.value }))} placeholder="Description" className="input-field" /></div>
-            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Format</label><select value={newTemplate.format} onChange={e => setNewTemplate(p => ({ ...p, format: e.target.value }))} className="input-field"><option value="qcow2">QCOW2</option><option value="raw">RAW</option><option value="vmdk">VMDK</option></select></div>
+            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Name</label><input aria-label="Name" type="text" value={newTemplate.name || ''} onChange={e => setNewTemplate(p => ({ ...p, name: e.target.value }))} placeholder="My Template" className="input-field" /></div>
+            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Description</label><input aria-label="Description" type="text" value={newTemplate.description || ''} onChange={e => setNewTemplate(p => ({ ...p, description: e.target.value }))} placeholder="Description" className="input-field" /></div>
+            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Format</label><select aria-label="Format" value={newTemplate.format} onChange={e => setNewTemplate(p => ({ ...p, format: e.target.value }))} className="input-field"><option value="qcow2">QCOW2</option><option value="raw">RAW</option><option value="vmdk">VMDK</option></select></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="block text-xs text-[var(--zf-muted)] mb-1">vCPUs</label><input type="number" value={newTemplate.cpus} onChange={e => setNewTemplate(p => ({ ...p, cpus: Number(e.target.value) }))} min={1} className="input-field" /></div>
-              <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Memory MB</label><input type="number" value={newTemplate.memory} onChange={e => setNewTemplate(p => ({ ...p, memory: Number(e.target.value) }))} min={256} step={256} className="input-field" /></div>
+              <div><label className="block text-xs text-[var(--zf-muted)] mb-1">vCPUs</label><input aria-label="vCPUs" type="number" value={newTemplate.cpus} onChange={e => setNewTemplate(p => ({ ...p, cpus: Number(e.target.value) }))} min={1} className="input-field" /></div>
+              <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Memory MB</label><input aria-label="Memory MB" type="number" value={newTemplate.memory} onChange={e => setNewTemplate(p => ({ ...p, memory: Number(e.target.value) }))} min={256} step={256} className="input-field" /></div>
             </div>
           </div>
           <div className="flex gap-2">
@@ -106,7 +106,7 @@ export default function MigrationTemplates() {
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <h3 className="text-sm font-semibold text-[var(--zf-ink)]">{tmpl.name}</h3>
-                  {isBuiltin && <span className="text-[10px] px-1.5 py-0.5 rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">Built-in</span>}
+                  {isBuiltin && <span className="text-xs px-1.5 py-0.5 rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">Built-in</span>}
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => handleCopy(tmpl)} title="Copy config" className="p-1.5 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors">{copied === tmpl.id ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}</button>

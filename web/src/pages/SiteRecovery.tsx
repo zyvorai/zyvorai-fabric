@@ -112,7 +112,7 @@ export default function SiteRecovery() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['dashboard', 'plans', 'executions'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab === 'executions' ? 'Execution History' : tab === 'plans' ? 'Recovery Plans' : 'DR Dashboard'}
           </button>
         ))}
@@ -177,7 +177,7 @@ export default function SiteRecovery() {
                     <div key={exec.id} className="flex items-center justify-between p-3 bg-[var(--zf-canvas)] rounded">
                       <div>
                         <span className="font-medium">{exec.plan_name}</span>
-                        <span className="ml-2 text-xs px-2 py-0.5 bg-white rounded">{exec.execution_type.replace(/_/g, ' ')}</span>
+                        <span className="ml-2 text-xs px-2 py-0.5 bg-[var(--zf-surface)] rounded">{exec.execution_type.replace(/_/g, ' ')}</span>
                       </div>
                       <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(exec.status)}`}>{exec.status}</span>
                     </div>
@@ -207,7 +207,7 @@ export default function SiteRecovery() {
               {plans.length === 0 ? (
                 <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No recovery plans.</td></tr>
               ) : plans.map(plan => (
-                <tr key={plan.id} className="hover:bg-white">
+                <tr key={plan.id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4">
                     <div className="font-medium">{plan.name}</div>
                     {plan.description && <div className="text-xs text-[var(--zf-muted)]">{plan.description}</div>}
@@ -227,7 +227,7 @@ export default function SiteRecovery() {
                       <button onClick={() => setShowExecute(plan.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] p-1" title="Execute">
                         <Play className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDeletePlan(plan.id)} className="text-red-600 hover:text-red-800 p-1">
+                      <button onClick={() => handleDeletePlan(plan.id)} className="text-red-600 hover:text-red-800 p-1" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -251,7 +251,7 @@ export default function SiteRecovery() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <span className="font-semibold">{exec.plan_name}</span>
-                      <span className="text-xs px-2 py-0.5 bg-white rounded">{exec.execution_type.replace(/_/g, ' ')}</span>
+                      <span className="text-xs px-2 py-0.5 bg-[var(--zf-surface)] rounded">{exec.execution_type.replace(/_/g, ' ')}</span>
                       <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(exec.status)}`}>{exec.status}</span>
                     </div>
                     <div className="text-sm text-[var(--zf-muted)]">
@@ -264,8 +264,8 @@ export default function SiteRecovery() {
                       <span>Progress: {exec.current_step}</span>
                       <span>{exec.progress_pct}%</span>
                     </div>
-                    <div className="w-full bg-white rounded-full h-2">
-                      <div className="h-2 rounded-full bg-[var(--zf-link)]" style={{ width: `${exec.progress_pct}%` }} />
+                    <div className="w-full bg-[var(--zf-surface)] rounded-full h-2">
+                      <div className="h-2 rounded-full bg-[var(--zf-link-fill)]" style={{ width: `${exec.progress_pct}%` }} />
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -362,35 +362,35 @@ function CreatePlanModal({ onClose, onCreated }: { onClose: () => void; onCreate
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Plan Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+            <input aria-label="Plan Name" type="text" value={name} onChange={e => setName(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
-            <input type="text" value={description} onChange={e => setDescription(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+            <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Source Site ID</label>
-              <input type="text" value={sourceSite} onChange={e => setSourceSite(e.target.value)}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+              <input aria-label="Source Site ID" type="text" value={sourceSite} onChange={e => setSourceSite(e.target.value)}
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Target Site ID</label>
-              <input type="text" value={targetSite} onChange={e => setTargetSite(e.target.value)}
-                className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+              <input aria-label="Target Site ID" type="text" value={targetSite} onChange={e => setTargetSite(e.target.value)}
+                className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">VM Group Name</label>
-            <input type="text" value={groupName} onChange={e => setGroupName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+            <input aria-label="VM Group Name" type="text" value={groupName} onChange={e => setGroupName(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">VM IDs (comma-separated)</label>
-            <input type="text" value={vmIds} onChange={e => setVmIds(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+            <input aria-label="VM IDs (comma-separated)" type="text" value={vmIds} onChange={e => setVmIds(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="zf-btn zf-btn-ghost flex-1">Cancel</button>

@@ -5,9 +5,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { mockApi } from './mock-api.ts'
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
+export default defineConfig(({ mode }) => ({
+  plugins: [react(), tailwindcss(), ...(mode === 'mock' ? [mockApi()] : [])],
   // Default target predates top-level await, which @novnc/novnc's ESM
   // build uses -- es2022 is baseline-supported by every browser this
   // app already requires (native ES modules, CSS nesting, etc).
@@ -33,7 +34,7 @@ export default defineConfig({
     port: 3000,
     // Merion marketing copy is shared from ../docs/merion/marketing.json.
     fs: { allow: ['..'] },
-    proxy: {
+    proxy: mode === 'mock' ? undefined : {
       '/api': {
         target: 'http://localhost:9095',
         changeOrigin: true,
@@ -44,4 +45,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

@@ -59,7 +59,7 @@ export default function MigrationWizard() {
       <div className="flex items-center gap-0">
         {steps.map((s, idx) => (
           <div key={s.key} className="flex items-center flex-1">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${idx < currentIdx ? 'bg-[var(--zf-success)] text-white' : idx === currentIdx ? 'bg-[var(--zf-link)] text-white' : 'bg-[var(--zf-canvas)] text-[var(--zf-muted)]'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${idx < currentIdx ? 'bg-[var(--zf-success)] text-white' : idx === currentIdx ? 'bg-[var(--zf-link-fill)] text-white' : 'bg-[var(--zf-canvas)] text-[var(--zf-muted)]'}`}>
               {idx < currentIdx ? <Check className="w-4 h-4" /> : idx + 1}
             </div>
             <span className={`ml-2 text-xs font-medium ${idx <= currentIdx ? 'text-[var(--zf-ink)]' : 'text-[var(--zf-muted)]'}`}>{s.label}</span>
@@ -74,7 +74,7 @@ export default function MigrationWizard() {
             <h2 className="text-lg font-semibold text-[var(--zf-ink)]">Select Source</h2>
             <div className="flex gap-3">
               {(['local', 'remote'] as const).map(t => (
-                <button key={t} onClick={() => setSourceType(t)} className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors capitalize ${sourceType === t ? 'bg-[var(--zf-link)] text-white' : 'bg-[var(--zf-canvas)] text-[var(--zf-ink)] hover:bg-[var(--zf-hairline)]'}`}>{t} {t === 'local' ? 'File' : 'Host'}</button>
+                <button key={t} onClick={() => setSourceType(t)} className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors capitalize ${sourceType === t ? 'bg-[var(--zf-link-fill)] text-white' : 'bg-[var(--zf-canvas)] text-[var(--zf-ink)] hover:bg-[var(--zf-hairline)]'}`}>{t} {t === 'local' ? 'File' : 'Host'}</button>
               ))}
             </div>
             {sourceType === 'local' ? (

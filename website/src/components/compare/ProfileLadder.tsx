@@ -44,7 +44,7 @@ export default function ProfileLadder(): ReactNode {
           <figcaption>
             attestation <span>illustrative · field names from MERION-0.2</span>
           </figcaption>
-          <pre>
+          <pre tabIndex={0}>
             <code>
               {p.receipt.map(([k, v]) => (
                 <span key={k} className={styles.line}>

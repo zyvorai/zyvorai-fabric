@@ -28,7 +28,7 @@ const PIPELINE_STAGES = ['inspect', 'prepare', 'convert', 'validate', 'deploy']
 function getProgressBarColor(status: string): string {
   switch (status.toLowerCase()) {
     case 'completed': return 'bg-emerald-500'
-    case 'running': return 'bg-[var(--zf-link)]'
+    case 'running': return 'bg-[var(--zf-link-fill)]'
     case 'failed': return 'bg-red-500'
     default: return 'bg-[var(--zf-muted)]'
   }
@@ -136,12 +136,12 @@ export default function PipelineMonitor() {
                     let circleClasses = 'bg-[var(--zf-hairline)] text-[var(--zf-muted)]'
                     let lineClasses = 'h-0.5 w-8 bg-[var(--zf-hairline)]'
                     if (idx < currentStage) circleClasses = 'bg-emerald-500 text-white'
-                    else if (idx === currentStage) circleClasses = job.status === 'failed' ? 'bg-red-500 text-white' : 'bg-[var(--zf-link)] text-white animate-pulse'
+                    else if (idx === currentStage) circleClasses = job.status === 'failed' ? 'bg-red-500 text-white' : 'bg-[var(--zf-link-fill)] text-white animate-pulse'
                     if (idx <= currentStage) lineClasses = 'h-0.5 w-8 bg-emerald-500'
                     return (
                       <Fragment key={stage}>
                         {idx > 0 && <div className={lineClasses} />}
-                        <div className={`px-2 py-1 text-[10px] font-semibold rounded uppercase whitespace-nowrap ${circleClasses}`}>{stage}</div>
+                        <div className={`px-2 py-1 text-xs font-semibold rounded uppercase whitespace-nowrap ${circleClasses}`}>{stage}</div>
                       </Fragment>
                     )
                   })}

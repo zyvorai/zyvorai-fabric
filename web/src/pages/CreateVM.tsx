@@ -293,7 +293,7 @@ export default function CreateVM() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="my-virtual-machine"
-                  className="w-full px-3.5 py-2.5 bg-white border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-[var(--zf-link)]/50 focus:ring-1 focus:ring-[var(--zf-link)]/20 transition-colors text-sm"
+                  className="w-full px-3.5 py-2.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-[var(--zf-link)]/50 focus:ring-1 focus:ring-[var(--zf-link)]/20 transition-colors text-sm"
                   required
                   autoFocus
                 />
@@ -309,7 +309,7 @@ export default function CreateVM() {
                   value={tenant}
                   onChange={(e) => setTenant(e.target.value)}
                   placeholder="acme"
-                  className="w-full px-3.5 py-2.5 bg-white border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-[var(--zf-link)]/50 focus:ring-1 focus:ring-[var(--zf-link)]/20 transition-colors text-sm"
+                  className="w-full px-3.5 py-2.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-[var(--zf-link)]/50 focus:ring-1 focus:ring-[var(--zf-link)]/20 transition-colors text-sm"
                 />
               </div>
 
@@ -318,7 +318,7 @@ export default function CreateVM() {
                 <label htmlFor="vm-image" className="block text-sm font-medium text-[var(--zf-ink)]">
                   Disk image
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <button
                     type="button"
                     onClick={() => setShowDownloadImage(true)}
@@ -356,11 +356,11 @@ export default function CreateVM() {
                         className={`relative text-left p-3 rounded-lg border transition-colors ${
                           selected
                             ? 'bg-[var(--zf-link)]/15 border-[var(--zf-link)]/40 ring-1 ring-[var(--zf-link)]/30'
-                            : 'bg-white border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)]'
+                            : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)]'
                         }`}
                       >
                         {selected && (
-                          <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--zf-link)] flex items-center justify-center">
+                          <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--zf-link-fill)] flex items-center justify-center">
                             <Check className="w-2.5 h-2.5 text-[var(--zf-ink)]" />
                           </div>
                         )}
@@ -389,7 +389,7 @@ export default function CreateVM() {
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
                 placeholder="Or enter a path on the host, e.g. /var/lib/zyvor-fabricd/images/ubuntu-24.04.qcow2"
-                className="w-full px-3.5 py-2.5 bg-white border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-[var(--zf-link)]/50 focus:ring-1 focus:ring-[var(--zf-link)]/20 transition-colors text-sm font-mono"
+                className="w-full px-3.5 py-2.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-[var(--zf-link)]/50 focus:ring-1 focus:ring-[var(--zf-link)]/20 transition-colors text-sm font-mono"
                 required
               />
             </div>
@@ -446,7 +446,7 @@ export default function CreateVM() {
                         onChange={(e) => setCpus(Math.max(1, Math.min(32, parseInt(e.target.value) || 1)))}
                         min={1}
                         max={32}
-                        className="w-full px-2 py-1.5 bg-white border border-[var(--zf-hairline)] rounded-md text-center text-sm text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50"
+                        className="w-full px-2 py-1.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-md text-center text-sm text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50"
                       />
                     </div>
                   </div>
@@ -466,7 +466,7 @@ export default function CreateVM() {
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           memory === preset.value
                             ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
-                            : 'bg-white border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:border-[var(--zf-hairline)]'
+                            : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:border-[var(--zf-hairline)]'
                         }`}
                       >
                         {preset.label}
@@ -481,7 +481,7 @@ export default function CreateVM() {
                       onChange={(e) => setMemory(parseInt(e.target.value) || 512)}
                       min={256}
                       step={256}
-                      className="w-28 px-3 py-1.5 bg-white border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50"
+                      className="w-28 px-3 py-1.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50"
                     />
                     <span className="text-sm text-[var(--zf-muted)]">MB</span>
                     <span className="text-sm text-[var(--zf-muted)] ml-2">
@@ -502,7 +502,7 @@ export default function CreateVM() {
                 max={2048}
                 value={diskGb}
                 onChange={(e) => setDiskGb(Math.max(1, parseInt(e.target.value) || 20))}
-                className="w-28 px-3 py-1.5 bg-white border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)]"
+                className="w-28 px-3 py-1.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)]"
               />
             </div>
 
@@ -518,7 +518,7 @@ export default function CreateVM() {
 
             {showAdvanced && (
               <div className="px-6 pb-6 space-y-5 border-t border-[var(--zf-hairline)] pt-5">
-                <p className="text-xs text-[var(--zf-muted)] bg-white border border-[var(--zf-hairline)] rounded-lg px-3 py-2">
+                <p className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2">
                   Applied after the VM is created (boot, display, CPU mode, and UEFI settings).
                 </p>
                 <div>
@@ -541,7 +541,7 @@ export default function CreateVM() {
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                               advanced.firmware === fw
                                 ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
-                                : 'bg-white border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+                                : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                             }`}
                           >
                             {fw.toUpperCase()}
@@ -564,7 +564,7 @@ export default function CreateVM() {
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                               advanced.displayType === dt
                                 ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
-                                : 'bg-white border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+                                : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                             }`}
                           >
                             {dt.toUpperCase()}
@@ -585,7 +585,7 @@ export default function CreateVM() {
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             networkMode === 'nat'
                               ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
-                              : 'bg-white border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+                              : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                           }`}
                         >
                           NAT (default)
@@ -596,7 +596,7 @@ export default function CreateVM() {
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             networkMode === 'bridged'
                               ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
-                              : 'bg-white border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+                              : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                           }`}
                         >
                           Bridged (DHCP)
@@ -607,7 +607,7 @@ export default function CreateVM() {
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             networkMode === 'direct'
                               ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
-                              : 'bg-white border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+                              : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                           }`}
                         >
                           Direct uplink
@@ -627,14 +627,14 @@ export default function CreateVM() {
                             value={directUplink}
                             onChange={(e) => setDirectUplink(e.target.value)}
                             placeholder="Uplink NIC (e.g. enp1s0)"
-                            className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"
+                            className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"
                           />
                           <input
                             type="text"
                             value={directGuestIps}
                             onChange={(e) => setDirectGuestIps(e.target.value)}
                             placeholder="Guest IPv4s, optional (comma-separated, up to 8)"
-                            className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"
+                            className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"
                           />
                         </div>
                       )}
@@ -644,7 +644,7 @@ export default function CreateVM() {
                             type="checkbox"
                             checked={staticIp}
                             onChange={(e) => setStaticIp(e.target.checked)}
-                            className="rounded border-[var(--zf-hairline)] bg-white text-[var(--zf-link)] focus:ring-[var(--zf-link)]/50"
+                            className="rounded border-[var(--zf-hairline)] bg-[var(--zf-surface)] text-[var(--zf-link)] focus:ring-[var(--zf-link)]/50"
                           />
                           Assign the IP statically via cloud-init
                         </label>
@@ -672,7 +672,7 @@ export default function CreateVM() {
                         <button
                           type="button"
                           onClick={() => addPortForwardRow('22')}
-                          className="mb-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
+                          className="mb-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
                         >
                           + Expose SSH (22)
                         </button>
@@ -687,7 +687,7 @@ export default function CreateVM() {
                               placeholder="Host port"
                               min={1}
                               max={65535}
-                              className="w-28 px-2.5 py-1.5 bg-white border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50"
+                              className="w-28 px-2.5 py-1.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50"
                             />
                             <span className="text-[var(--zf-muted)] text-sm">→</span>
                             <input
@@ -697,12 +697,12 @@ export default function CreateVM() {
                               placeholder="Guest port"
                               min={1}
                               max={65535}
-                              className="w-28 px-2.5 py-1.5 bg-white border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50"
+                              className="w-28 px-2.5 py-1.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50"
                             />
                             <select
                               value={row.protocol}
                               onChange={(e) => updatePortForwardRow(i, { protocol: e.target.value as 'tcp' | 'udp' })}
-                              className="px-2 py-1.5 bg-white border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)]"
+                              className="px-2 py-1.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-md text-sm text-[var(--zf-ink)]"
                             >
                               <option value="tcp">TCP</option>
                               <option value="udp">UDP</option>
@@ -721,7 +721,7 @@ export default function CreateVM() {
                       <button
                         type="button"
                         onClick={() => addPortForwardRow()}
-                        className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
+                        className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Add port forward
@@ -919,7 +919,7 @@ function GoldenImageModal({ onClose, onCreated }: { onClose: () => void; onCreat
             </div>
           </div>
           {!submitting && (
-            <button type="button" onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]">
+            <button type="button" onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]" aria-label="Close" title="Close">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -936,18 +936,18 @@ function GoldenImageModal({ onClose, onCreated }: { onClose: () => void; onCreat
           )}
 
           {vmsLoading ? (
-            <div className="h-10 rounded-lg bg-white animate-pulse" />
+            <div className="h-10 rounded-lg bg-[var(--zf-surface)] animate-pulse" />
           ) : vms.length === 0 ? (
             <p className="text-sm text-[var(--zf-muted)]">No VMs exist yet — create a VM first, then come back here to save its disk as a golden image.</p>
           ) : (
             <>
               <div>
                 <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Source VM</label>
-                <select
+                <select aria-label="Source VM"
                   value={vmName}
                   onChange={(e) => setVmName(e.target.value)}
                   disabled={submitting}
-                  className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50 disabled:opacity-50"
+                  className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]/50 disabled:opacity-50"
                 >
                   {vms.map((v) => (
                     <option key={v.name} value={v.name}>{v.name} ({v.state})</option>
@@ -959,7 +959,7 @@ function GoldenImageModal({ onClose, onCreated }: { onClose: () => void; onCreat
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Image Name</label>
-                <input
+                <input aria-label="Image Name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -968,16 +968,16 @@ function GoldenImageModal({ onClose, onCreated }: { onClose: () => void; onCreat
                   }}
                   placeholder="e.g. web-server-golden"
                   disabled={submitting}
-                  className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] font-mono text-sm focus:outline-none focus:border-[var(--zf-link)]/50 disabled:opacity-50"
+                  className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] font-mono text-sm focus:outline-none focus:border-[var(--zf-link)]/50 disabled:opacity-50"
                   required
                   autoFocus
                 />
               </div>
               {submitting && progress !== null && (
                 <div>
-                  <div className="h-1.5 rounded-full bg-white overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-[var(--zf-surface)] overflow-hidden">
                     <div
-                      className="h-full bg-[var(--zf-link)] transition-all duration-500"
+                      className="h-full bg-[var(--zf-link-fill)] transition-all duration-500"
                       style={{ width: `${Math.max(5, progress)}%` }}
                     />
                   </div>
@@ -1106,7 +1106,7 @@ function DownloadImageModal({ existingImages, onClose, onDownloaded }: {
             </div>
           </div>
           {!submitting && (
-            <button type="button" onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]">
+            <button type="button" onClick={onClose} className="p-2 hover:bg-white/[0.03] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]" aria-label="Close" title="Close">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -1121,7 +1121,7 @@ function DownloadImageModal({ existingImages, onClose, onDownloaded }: {
           {catalogLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-16 rounded-lg bg-white animate-pulse" />
+                <div key={i} className="h-16 rounded-lg bg-[var(--zf-surface)] animate-pulse" />
               ))}
             </div>
           ) : (
@@ -1138,11 +1138,11 @@ function DownloadImageModal({ existingImages, onClose, onDownloaded }: {
                     className={`relative text-left p-3 rounded-lg border transition-colors disabled:opacity-50 ${
                       isSelected
                         ? 'bg-[var(--zf-link)]/15 border-[var(--zf-link)]/40 ring-1 ring-[var(--zf-link)]/30'
-                        : 'bg-white border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)]'
+                        : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)]'
                     }`}
                   >
                     {isSelected && (
-                      <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--zf-link)] flex items-center justify-center">
+                      <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-[var(--zf-link-fill)] flex items-center justify-center">
                         <Check className="w-2.5 h-2.5 text-[var(--zf-ink)]" />
                       </div>
                     )}
@@ -1152,7 +1152,7 @@ function DownloadImageModal({ existingImages, onClose, onDownloaded }: {
                     <p className="text-sm font-medium text-[var(--zf-ink)] truncate capitalize">{img.distro}</p>
                     <p className="text-xs text-[var(--zf-muted)]">{img.version} · {img.arch}</p>
                     {onDisk && (
-                      <p className="text-[10px] font-medium text-emerald-600 mt-1">Already on disk</p>
+                      <p className="text-xs font-medium text-emerald-600 mt-1">Already on disk</p>
                     )}
                   </button>
                 )

@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { ArrowRightLeft, Plus, XCircle } from 'lucide-react'
 import {
@@ -137,13 +138,7 @@ export default function Migrations() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--zf-ink)]"></div>
-      </div>
-    )
-  }
+  if (loading) return <PageLoading />
 
   const activeMigrations = migrations.filter(m =>
     !['completed', 'failed', 'cancelled'].includes(m.state)
@@ -255,7 +250,7 @@ export default function Migrations() {
           <div className="bg-[var(--zf-surface)] rounded-lg border border-[var(--zf-hairline)]">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-white">
+                <thead className="bg-[var(--zf-surface)]">
                   <tr>
                     <th className="text-left p-4 font-medium text-[var(--zf-ink)]">VM</th>
                     <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Target Host</th>
@@ -368,7 +363,7 @@ function MigrationCard({
 
       <div className="w-full bg-[var(--zf-canvas)] rounded-full h-2 mb-2">
         <div
-          className="bg-[var(--zf-link)] h-2 rounded-full transition-all duration-500"
+          className="bg-[var(--zf-link-fill)] h-2 rounded-full transition-all duration-500"
           style={{ width: `${migration.progress_percent}%` }}
         />
       </div>
@@ -415,7 +410,7 @@ function NativeMigrationCard({
       </div>
       <div className="w-full bg-[var(--zf-canvas)] rounded-full h-2 mb-2">
         <div
-          className="bg-[var(--zf-link)] h-2 rounded-full transition-all duration-500"
+          className="bg-[var(--zf-link-fill)] h-2 rounded-full transition-all duration-500"
           style={{ width: `${status.progress_percent}%` }}
         />
       </div>
@@ -519,7 +514,7 @@ function StartMigrationDialog({
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">VM</label>
-            <select
+            <select aria-label="VM"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
               className="input-field"
@@ -533,7 +528,7 @@ function StartMigrationDialog({
 
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Migration Type</label>
-            <select
+            <select aria-label="Migration Type"
               value={migrationType}
               onChange={(e) => setMigrationType(e.target.value as MigrationType)}
               className="input-field"
@@ -547,10 +542,8 @@ function StartMigrationDialog({
           {migrationType === 'live' ? (
             <>
               <div>
-                <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">
-                  Target URI
-                </label>
-                <input
+                <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Target URI</label>
+                <input aria-label="Target URI"
                   type="text"
                   value={targetUri}
                   onChange={(e) => setTargetUri(e.target.value)}
@@ -565,7 +558,7 @@ function StartMigrationDialog({
               </div>
               <div>
                 <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Mode</label>
-                <select
+                <select aria-label="Mode"
                   value={mode}
                   onChange={(e) => setMode(e.target.value)}
                   className="input-field"
@@ -590,7 +583,7 @@ function StartMigrationDialog({
           ) : (
             <div>
               <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Target Host</label>
-              <input
+              <input aria-label="Target Host"
                 type="text"
                 value={targetHost}
                 onChange={(e) => setTargetHost(e.target.value)}

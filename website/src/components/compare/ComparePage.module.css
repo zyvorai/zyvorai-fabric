@@ -544,8 +544,8 @@
   }
 
   .ucBtnOn {
-    background: var(--c-accent);
-    border-color: var(--c-accent);
+    background: var(--c-fill);
+    border-color: var(--c-fill);
     color: #fff;
     box-shadow: none;
   }

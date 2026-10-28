@@ -146,7 +146,7 @@ export default function FaultTolerance() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-surface)] rounded-lg p-1">
         {(['vms', 'compatibility', 'events', 'metrics'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab === 'vms' ? 'Protected VMs' : tab === 'compatibility' ? 'Compatibility Check' : tab}
           </button>
         ))}
@@ -170,7 +170,7 @@ export default function FaultTolerance() {
               {ftVMs.length === 0 ? (
                 <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No FT-protected VMs.</td></tr>
               ) : ftVMs.map(vm => (
-                <tr key={vm.vm_name} className="hover:bg-white">
+                <tr key={vm.vm_name} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{vm.vm_name}</td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{vm.secondary_host_id || 'Not assigned'}</td>
                   <td className="p-4">
@@ -359,17 +359,17 @@ function EnableFTModal({ onClose, onCreated }: { onClose: () => void; onCreated:
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">VM name</label>
-            <input type="text" value={vmName} onChange={e => setVmName(e.target.value)}
+            <input aria-label="VM name" type="text" value={vmName} onChange={e => setVmName(e.target.value)}
               className="input-field" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Primary host ID</label>
-            <input type="text" value={primaryHostId} onChange={e => setPrimaryHostId(e.target.value)}
+            <input aria-label="Primary host ID" type="text" value={primaryHostId} onChange={e => setPrimaryHostId(e.target.value)}
               className="input-field" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Secondary host ID</label>
-            <input type="text" value={secondaryHostId} onChange={e => setSecondaryHostId(e.target.value)}
+            <input aria-label="Secondary host ID" type="text" value={secondaryHostId} onChange={e => setSecondaryHostId(e.target.value)}
               className="input-field"
               placeholder="Auto-select if empty" />
           </div>

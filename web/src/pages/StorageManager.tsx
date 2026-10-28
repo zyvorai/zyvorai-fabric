@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { Database } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -56,7 +57,7 @@ export default function StorageManager() {
   useEffect(() => { fetchPools() }, [fetchPools])
   useEffect(() => { if (selectedPool) fetchVolumes(selectedPool) }, [selectedPool, fetchVolumes])
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]"><div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />Loading storage...</div>
+  if (loading) return <PanelLoading label="Loading storage" />
 
   return (
     <div className="space-y-6">
@@ -84,8 +85,8 @@ export default function StorageManager() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold text-[var(--zf-ink)]">{pool.name}</h3>
                   <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${typeBadge[pool.type] || 'text-[var(--zf-muted)] bg-[var(--zf-canvas)] border-[var(--zf-hairline)]'}`}>{pool.type}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${pool.state === 'running' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-[var(--zf-muted)] bg-[var(--zf-canvas)] border-[var(--zf-hairline)]'}`}>{pool.state}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${typeBadge[pool.type] || 'text-[var(--zf-muted)] bg-[var(--zf-canvas)] border-[var(--zf-hairline)]'}`}>{pool.type}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${pool.state === 'running' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-[var(--zf-muted)] bg-[var(--zf-canvas)] border-[var(--zf-hairline)]'}`}>{pool.state}</span>
                   </div>
                 </div>
                 <div className="mb-2"><div className="flex justify-between text-xs text-[var(--zf-muted)] mb-1"><span>{fmtB(pool.allocation)} used</span><span>{fmtB(pool.capacity)}</span></div><div className="h-2 rounded-full bg-[var(--zf-canvas)]"><div className={`h-full rounded-full transition-all ${barColor(usage)}`} style={{ width: `${usage}%` }} /></div></div>

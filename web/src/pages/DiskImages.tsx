@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useMemo } from 'react'
 import { Search, HardDrive } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -55,7 +56,7 @@ export default function DiskImages() {
   const totalSize = images.reduce((sum, img) => sum + (img.size_bytes || 0), 0)
   const toggleSelect = (path: string) => setSelected(prev => { const next = new Set(prev); if (next.has(path)) next.delete(path); else next.add(path); return next })
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]"><div className="animate-spin w-6 h-6 border-2 border-[var(--zf-hairline)] border-t-[var(--zf-ink)] rounded-full mr-3" />Loading disk images...</div>
+  if (loading) return <PanelLoading label="Loading disk images" />
 
   return (
     <div className="space-y-6">

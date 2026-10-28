@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { Package, Power, Loader2 } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -86,10 +87,7 @@ export default function PluginManager() {
     return (
       <div className="space-y-6">
         <PageHeader title="Plugin Manager" description="Manage server extensions and integrations" />
-        <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />
-          Loading plugins…
-        </div>
+        <PanelLoading label="Loading plugins" />
       </div>
     )
   }
@@ -151,7 +149,7 @@ export default function PluginManager() {
                     <h3 className="text-sm font-semibold text-[var(--zf-ink)]">{plugin.name}</h3>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-[var(--zf-muted)]">v{plugin.version}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border capitalize ${typeColor(plugin.type)}`}>{plugin.type}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium border capitalize ${typeColor(plugin.type)}`}>{plugin.type}</span>
                     </div>
                   </div>
                 </div>
@@ -159,7 +157,7 @@ export default function PluginManager() {
               </div>
 
               <p className="text-xs text-[var(--zf-muted)] mb-3">{plugin.description}</p>
-              {plugin.author && <p className="text-[10px] text-[var(--zf-muted)] mb-3">by {plugin.author}</p>}
+              {plugin.author && <p className="text-xs text-[var(--zf-muted)] mb-3">by {plugin.author}</p>}
 
               <div className="flex items-center justify-between pt-3 border-t border-[var(--zf-hairline)]/60">
                 <button onClick={() => togglePlugin(plugin.name, plugin.enabled)} disabled={toggling === plugin.name}

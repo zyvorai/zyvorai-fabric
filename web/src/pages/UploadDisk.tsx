@@ -106,7 +106,7 @@ export default function UploadDisk() {
         <div className="bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-xl p-4 space-y-3">
           <div>
             <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1">Destination Directory</label>
-            <input type="text" value={destDir} onChange={(e) => setDestDir(e.target.value)}
+            <input aria-label="Destination Directory" type="text" value={destDir} onChange={(e) => setDestDir(e.target.value)}
               className="input-field text-sm" />
           </div>
           <div className="flex gap-2">
@@ -123,10 +123,10 @@ export default function UploadDisk() {
         <div className="bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-xl p-5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-[var(--zf-ink)]">Uploading {file?.name}...</span>
-            <button onClick={handleCancel} className="p-1 text-[var(--zf-muted)] hover:text-[var(--zf-danger)] transition-colors"><X className="w-4 h-4" /></button>
+            <button onClick={handleCancel} className="p-1 text-[var(--zf-muted)] hover:text-[var(--zf-danger)] transition-colors" aria-label="Close" title="Close"><X className="w-4 h-4" /></button>
           </div>
           <div className="bg-[var(--zf-hairline)] rounded-full h-3 mb-2">
-            <div className="bg-[var(--zf-link)] h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+            <div className="bg-[var(--zf-link-fill)] h-full rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
           <div className="flex justify-between text-xs text-[var(--zf-muted)]">
             <span>{formatBytes(uploaded)} / {formatBytes(total)} ({progress}%)</span>

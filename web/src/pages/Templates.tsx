@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Plus, Trash2, Copy, Layers, Pencil } from 'lucide-react'
 import {
@@ -72,13 +73,7 @@ export default function Templates() {
     setShowCreateDialog(true)
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--zf-ink)]"></div>
-      </div>
-    )
-  }
+  if (loading) return <PageLoading />
 
   return (
     <div className="space-y-6">
@@ -256,8 +251,7 @@ function TemplateCard({
         </button>
         <button
           onClick={onDelete}
-          className="zf-btn zf-btn-danger"
-        >
+          className="zf-btn zf-btn-danger" aria-label="Delete" title="Delete">
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
@@ -308,7 +302,7 @@ function CreateVMFromTemplateDialog({
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">VM Name</label>
-          <input
+          <input aria-label="VM Name"
             type="text"
             value={vmName}
             onChange={(e) => setVmName(e.target.value)}
@@ -381,7 +375,7 @@ function SaveTemplateDialog({ vms, onClose, onSuccess }: { vms: VM[]; onClose: (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Source VM</label>
-          <select value={vmName} onChange={e => setVmName(e.target.value)}
+          <select aria-label="Source VM" value={vmName} onChange={e => setVmName(e.target.value)}
             className="input-field">
             {vms.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
           </select>
@@ -389,12 +383,12 @@ function SaveTemplateDialog({ vms, onClose, onSuccess }: { vms: VM[]; onClose: (
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Template Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. web-server-baseline"
+          <input aria-label="Template Name" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. web-server-baseline"
             className="input-field" required autoFocus />
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)}
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)}
             className="input-field" />
         </div>
         <div className="flex justify-end gap-2 pt-2">
@@ -459,34 +453,34 @@ function EditTemplateDialog({ template, onClose, onSuccess }: { template: VMTemp
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Template Name</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)}
+          <input aria-label="Template Name" type="text" value={name} onChange={e => setName(e.target.value)}
             className="input-field" required autoFocus />
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)}
+          <input aria-label="Description" type="text" value={description} onChange={e => setDescription(e.target.value)}
             className="input-field" />
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">CPUs</label>
-            <input type="number" min={1} value={cpus} onChange={e => setCpus(e.target.value)}
+            <input aria-label="CPUs" type="number" min={1} value={cpus} onChange={e => setCpus(e.target.value)}
               className="input-field" required />
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Memory (MB)</label>
-            <input type="number" min={1} value={memory} onChange={e => setMemory(e.target.value)}
+            <input aria-label="Memory (MB)" type="number" min={1} value={memory} onChange={e => setMemory(e.target.value)}
               className="input-field" required />
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Disk (GB)</label>
-            <input type="number" min={1} value={disk} onChange={e => setDisk(e.target.value)}
+            <input aria-label="Disk (GB)" type="number" min={1} value={disk} onChange={e => setDisk(e.target.value)}
               className="input-field" required />
           </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Tags (comma-separated)</label>
-          <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="prod, web"
+          <input aria-label="Tags (comma-separated)" type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="prod, web"
             className="input-field" />
         </div>
         {error && <p className="text-[var(--zf-danger)] text-sm">{error}</p>}

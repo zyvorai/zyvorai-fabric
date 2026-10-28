@@ -160,7 +160,7 @@ export default function BackupScheduler() {
 
         <Card><div className="p-5 space-y-4">
           <h3 className="text-sm font-semibold text-[var(--zf-ink)] mb-1">Schedule Configuration</h3>
-          <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Schedule Name</label><input type="text" value={scheduleName} onChange={(e) => setScheduleName(e.target.value)} placeholder="e.g. nightly-backup" className="input-field" /></div>
+          <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Schedule Name</label><input aria-label="Schedule Name" type="text" value={scheduleName} onChange={(e) => setScheduleName(e.target.value)} placeholder="e.g. nightly-backup" className="input-field" /></div>
           <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Frequency</label>
             <div className="grid grid-cols-2 gap-2">
               {([['daily2am', 'Daily 2 AM'], ['weeklySunday', 'Weekly Sun 3 AM'], ['every6h', 'Every 6h'], ['custom', 'Custom']] as [Preset, string][]).map(([id, label]) => (
@@ -168,14 +168,14 @@ export default function BackupScheduler() {
               ))}
             </div>
           </div>
-          {preset === 'custom' && <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Cron Expression</label><input type="text" value={customCron} onChange={(e) => setCustomCron(e.target.value)} placeholder="0 2 * * *" className="input-field font-mono" /></div>}
+          {preset === 'custom' && <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Cron Expression</label><input aria-label="Cron Expression" type="text" value={customCron} onChange={(e) => setCustomCron(e.target.value)} placeholder="0 2 * * *" className="input-field font-mono" /></div>}
           <div className="bg-[var(--zf-canvas)] rounded-lg px-3 py-2 text-xs text-[var(--zf-muted)]"><span className="text-[var(--zf-muted)]">Schedule:</span> <span className="text-[var(--zf-ink)] font-medium">{parseCronToHuman(activeCron)}</span></div>
-          <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Output Directory</label><input type="text" value={outputDir} onChange={(e) => setOutputDir(e.target.value)} className="input-field font-mono" /></div>
+          <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Output Directory</label><input aria-label="Output Directory" type="text" value={outputDir} onChange={(e) => setOutputDir(e.target.value)} className="input-field font-mono" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Retention (keep last N)</label><input type="number" value={retention} onChange={(e) => setRetention(Math.max(1, parseInt(e.target.value, 10) || 1))} min={1} max={365} className="input-field" /></div>
-            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Format</label><select value={format} onChange={(e) => setFormat(e.target.value)} className="input-field"><option value="qcow2">QCOW2</option><option value="raw">RAW</option><option value="vmdk">VMDK</option></select></div>
+            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Retention (keep last N)</label><input aria-label="Retention (keep last N)" type="number" value={retention} onChange={(e) => setRetention(Math.max(1, parseInt(e.target.value, 10) || 1))} min={1} max={365} className="input-field" /></div>
+            <div><label className="block text-xs text-[var(--zf-muted)] mb-1">Format</label><select aria-label="Format" value={format} onChange={(e) => setFormat(e.target.value)} className="input-field"><option value="qcow2">QCOW2</option><option value="raw">RAW</option><option value="vmdk">VMDK</option></select></div>
           </div>
-          <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={compression} onChange={() => setCompression(!compression)} className="sr-only" /><div className={`relative w-10 h-5 rounded-full transition-colors ${compression ? 'bg-[var(--zf-ink)]' : 'bg-[var(--zf-hairline)]'}`}><div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${compression ? 'translate-x-5' : 'translate-x-0.5'}`} /></div><span className="text-sm text-[var(--zf-ink)]">Enable compression</span></label>
+          <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={compression} onChange={() => setCompression(!compression)} className="sr-only" /><div className={`relative w-10 h-5 rounded-full transition-colors ${compression ? 'bg-[var(--zf-ink)]' : 'bg-[var(--zf-hairline)]'}`}><div className={`absolute top-0.5 w-4 h-4 rounded-full bg-[var(--zf-surface)] transition-transform ${compression ? 'translate-x-5' : 'translate-x-0.5'}`} /></div><span className="text-sm text-[var(--zf-ink)]">Enable compression</span></label>
           <button onClick={handleCreate} disabled={creating} className="zf-btn zf-btn-primary w-full">{creating ? 'Creating...' : 'Create Schedule'}</button>
         </div></Card>
       </div>

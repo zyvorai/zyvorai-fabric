@@ -59,7 +59,7 @@ export default function Console() {
             {mode === 'terminal' ? <TerminalIcon className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[var(--zf-ink)] truncate">Console: {name}</h1>
+            <h1 className="text-[26px] sm:text-[32px] leading-tight font-semibold tracking-[-0.022em] text-[var(--zf-ink)] truncate">Console: {name}</h1>
             <p className="text-sm text-[var(--zf-muted)] mt-1">Interactive access to this VM</p>
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function Console() {
             onClick={() => setMode('terminal')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               mode === 'terminal'
-                ? 'bg-[var(--zf-link)] text-white'
+                ? 'bg-[var(--zf-link-fill)] text-white'
                 : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >
@@ -79,7 +79,7 @@ export default function Console() {
             onClick={() => setMode('vnc')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               mode === 'vnc'
-                ? 'bg-[var(--zf-link)] text-white'
+                ? 'bg-[var(--zf-link-fill)] text-white'
                 : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >

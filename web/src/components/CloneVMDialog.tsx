@@ -44,17 +44,16 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-[#f5f5f7] rounded-lg shadow-2xl border border-[#d2d2d7] w-full max-w-md">
+      <div className="bg-[var(--zf-canvas)] rounded-lg shadow-2xl border border-[var(--zf-hairline)] w-full max-w-md">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#d2d2d7]">
+        <div className="flex items-center justify-between p-6 border-b border-[var(--zf-hairline)]">
           <div className="flex items-center gap-3">
-            <Copy className="w-6 h-6 text-[#0066cc]" />
+            <Copy className="w-6 h-6 text-[var(--zf-link)]" />
             <h2 className="text-xl font-bold">Clone VM</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/[0.03] rounded transition"
-          >
+            className="p-2 hover:bg-white/[0.03] rounded transition" aria-label="Close" title="Close">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -62,27 +61,23 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
         {/* Content */}
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#1d1d1f] mb-2">
-              Source VM
-            </label>
-            <input
+            <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Source VM</label>
+            <input aria-label="Source VM"
               type="text"
               value={vmName}
               disabled
-              className="w-full bg-white border border-[#d2d2d7] rounded-lg py-2 px-4 text-[#6e6e73]"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-muted)]"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#1d1d1f] mb-2">
-              New VM Name
-            </label>
-            <input
+            <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">New VM Name</label>
+            <input aria-label="New VM Name"
               type="text"
               value={targetName}
               onChange={(e) => setTargetName(e.target.value)}
               placeholder="Enter name for cloned VM"
-              className="w-full bg-white border border-[#d2d2d7] rounded-lg py-2 px-4 text-[#1d1d1f] focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg py-2 px-4 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -93,9 +88,9 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
                 id="includeSnapshots"
                 checked={includeSnapshots}
                 onChange={(e) => setIncludeSnapshots(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-white border-[#d2d2d7] rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 bg-[var(--zf-surface)] border-[var(--zf-hairline)] rounded focus:ring-blue-500"
               />
-              <label htmlFor="includeSnapshots" className="text-sm text-[#1d1d1f]">
+              <label htmlFor="includeSnapshots" className="text-sm text-[var(--zf-ink)]">
                 Include snapshots
               </label>
             </div>
@@ -106,15 +101,15 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
                 id="linkedClone"
                 checked={linkedClone}
                 onChange={(e) => setLinkedClone(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-white border-[#d2d2d7] rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 bg-[var(--zf-surface)] border-[var(--zf-hairline)] rounded focus:ring-blue-500"
               />
-              <label htmlFor="linkedClone" className="text-sm text-[#1d1d1f]">
+              <label htmlFor="linkedClone" className="text-sm text-[var(--zf-ink)]">
                 Linked clone (faster, uses less space)
               </label>
             </div>
           </div>
 
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-sm text-[#0066cc]">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-sm text-[var(--zf-link)]">
             {linkedClone ? (
               <p>Linked clone creates a VM that shares disk with the source. Changes won't affect the source.</p>
             ) : (
@@ -124,18 +119,18 @@ export default function CloneVMDialog({ vmName, onClose, onSuccess }: CloneVMDia
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 p-6 border-t border-[#d2d2d7]">
+        <div className="flex justify-end gap-2 p-6 border-t border-[var(--zf-hairline)]">
           <button
             onClick={onClose}
             disabled={isCloning}
-            className="px-4 py-2 bg-white hover:bg-[#d2d2d7] text-[#1d1d1f] rounded-lg transition disabled:opacity-50"
+            className="px-4 py-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] rounded-lg transition disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleClone}
             disabled={isCloning}
-            className="px-4 py-2 bg-[#0066cc] hover:bg-[#0077ed] text-white rounded-lg transition disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white rounded-lg transition disabled:opacity-50 flex items-center gap-2"
           >
             {isCloning ? (
               <>

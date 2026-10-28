@@ -17,12 +17,12 @@ const TAG_COLORS: Record<string, string> = {
   production: 'bg-red-600',
   staging: 'bg-yellow-600',
   development: 'bg-green-600',
-  testing: 'bg-[#0066cc]',
+  testing: 'bg-[var(--zf-link-fill)]',
   web: 'bg-purple-600',
   database: 'bg-pink-600',
   backend: 'bg-indigo-600',
   frontend: 'bg-cyan-600',
-  default: 'bg-[#e8e8ed]',
+  default: 'bg-[var(--zf-canvas-alt)]',
 }
 
 export function getTagColor(tag: string): string {
@@ -74,20 +74,19 @@ export default function TagEditor({ vmName, currentTags, onClose, onSuccess }: T
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-[#f5f5f7] rounded-lg shadow-2xl border border-[#d2d2d7] w-full max-w-2xl">
+      <div className="bg-[var(--zf-canvas)] rounded-lg shadow-2xl border border-[var(--zf-hairline)] w-full max-w-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#d2d2d7]">
+        <div className="flex items-center justify-between p-6 border-b border-[var(--zf-hairline)]">
           <div className="flex items-center gap-3">
             <Tag className="w-6 h-6 text-blue-500" />
             <div>
               <h2 className="text-xl font-bold">Manage Tags</h2>
-              <p className="text-sm text-[#6e6e73]">VM: {vmName}</p>
+              <p className="text-sm text-[var(--zf-muted)]">VM: {vmName}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#6e6e73] hover:text-[#1d1d1f] transition"
-          >
+            className="text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition" aria-label="Close" title="Close">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -98,8 +97,8 @@ export default function TagEditor({ vmName, currentTags, onClose, onSuccess }: T
           <div>
             <label className="block text-sm font-medium mb-3">Current Tags</label>
             {tags.length === 0 ? (
-              <div className="text-center py-8 bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-                <p className="text-[#6e6e73]">No tags assigned</p>
+              <div className="text-center py-8 bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+                <p className="text-[var(--zf-muted)]">No tags assigned</p>
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -111,8 +110,7 @@ export default function TagEditor({ vmName, currentTags, onClose, onSuccess }: T
                     {tag}
                     <button
                       onClick={() => handleRemoveTag(tag)}
-                      className="hover:bg-black/20 rounded-full p-0.5 transition"
-                    >
+                      className="hover:bg-black/20 rounded-full p-0.5 transition" aria-label="Close" title="Close">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
@@ -131,12 +129,12 @@ export default function TagEditor({ vmName, currentTags, onClose, onSuccess }: T
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Enter tag name..."
-                className="flex-1 bg-[#f5f5f7] border border-[#d2d2d7] rounded-lg px-4 py-2 text-[#1d1d1f] placeholder-[#6e6e73] focus:outline-none focus:border-blue-500"
+                className="flex-1 bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-4 py-2 text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-blue-500"
               />
               <button
                 onClick={handleAddTag}
                 disabled={!newTag.trim() || tags.includes(newTag.trim())}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0066cc] hover:bg-[#0077ed] rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4" />
                 Add
@@ -164,17 +162,17 @@ export default function TagEditor({ vmName, currentTags, onClose, onSuccess }: T
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-[#d2d2d7] bg-white">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-[var(--zf-hairline)] bg-[var(--zf-surface)]">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-white hover:bg-[#d2d2d7] rounded-lg transition"
+            className="px-4 py-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] rounded-lg transition"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 bg-[#0066cc] hover:bg-[#0077ed] rounded-lg transition disabled:opacity-50"
+            className="px-4 py-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg transition disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Tags'}
           </button>

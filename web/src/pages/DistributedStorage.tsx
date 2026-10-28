@@ -148,7 +148,7 @@ export default function DistributedStorage() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['pools', 'policies', 'migrations', 'clusters'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab === 'clusters' ? 'Datastore Clusters' : tab}
           </button>
         ))}
@@ -179,7 +179,7 @@ export default function DistributedStorage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-[var(--zf-muted)]">{pool.hosts.length} hosts | RF: {pool.replication_factor}</span>
-                      <button onClick={() => handleDeletePool(pool.id)} className="text-red-600 hover:text-red-800 p-1">
+                      <button onClick={() => handleDeletePool(pool.id)} className="text-red-600 hover:text-red-800 p-1" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -189,8 +189,8 @@ export default function DistributedStorage() {
                       <span>Used: {formatGB(pool.used_capacity_gb)}</span>
                       <span>Total: {formatGB(pool.total_capacity_gb)}</span>
                     </div>
-                    <div className="w-full bg-white rounded-full h-3">
-                      <div className={`h-3 rounded-full ${usedPct > 90 ? 'bg-[var(--zf-danger)]' : usedPct > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link)]'}`}
+                    <div className="w-full bg-[var(--zf-surface)] rounded-full h-3">
+                      <div className={`h-3 rounded-full ${usedPct > 90 ? 'bg-[var(--zf-danger)]' : usedPct > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'}`}
                         style={{ width: `${Math.min(usedPct, 100)}%` }} />
                     </div>
                     <div className="text-right text-xs text-[var(--zf-muted)] mt-1">
@@ -230,7 +230,7 @@ export default function DistributedStorage() {
                 {policies.length === 0 ? (
                   <tr><td colSpan={7} className="p-8 text-center text-[var(--zf-muted)]">No storage policies.</td></tr>
                 ) : policies.map(pol => (
-                  <tr key={pol.id} className="hover:bg-white">
+                  <tr key={pol.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4">
                       <div className="font-medium">{pol.name}</div>
                       {pol.description && <div className="text-xs text-[var(--zf-muted)]">{pol.description}</div>}
@@ -250,7 +250,7 @@ export default function DistributedStorage() {
                         <button onClick={() => setComplianceModalPolicy(pol)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)]" title="Check compliance">
                           <ShieldCheck className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDeletePolicy(pol.id)} className="text-red-600 hover:text-red-800">
+                        <button onClick={() => handleDeletePolicy(pol.id)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -289,14 +289,14 @@ export default function DistributedStorage() {
               {migrations.length === 0 ? (
                 <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No storage migrations.</td></tr>
               ) : migrations.map(mig => (
-                <tr key={mig.id} className="hover:bg-white">
+                <tr key={mig.id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{mig.vm_name}</td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{mig.source_pool_name}</td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{mig.target_pool_name}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-24 bg-white rounded-full h-2">
-                        <div className="h-2 rounded-full bg-[var(--zf-link)]" style={{ width: `${mig.progress_pct}%` }} />
+                      <div className="w-24 bg-[var(--zf-surface)] rounded-full h-2">
+                        <div className="h-2 rounded-full bg-[var(--zf-link-fill)]" style={{ width: `${mig.progress_pct}%` }} />
                       </div>
                       <span className="text-xs text-[var(--zf-muted)]">{mig.progress_pct}%</span>
                     </div>
@@ -340,7 +340,7 @@ export default function DistributedStorage() {
                 {dsClusters.length === 0 ? (
                   <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No datastore clusters.</td></tr>
                 ) : dsClusters.map(cl => (
-                  <tr key={cl.id} className="hover:bg-white">
+                  <tr key={cl.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4 font-medium">{cl.name}</td>
                     <td className="p-4 text-sm">{cl.datastore_ids.length}</td>
                     <td className="p-4 text-sm">{cl.storage_drs_enabled ? 'Enabled' : 'Disabled'}</td>
@@ -551,7 +551,7 @@ function ModalForm({ title, fields, onClose, onSubmit }: {
               <label className="block text-sm font-medium mb-1">{f.label}</label>
               {f.type === 'select' ? (
                 <select value={values[f.name]} onChange={e => setValues(v => ({ ...v, [f.name]: e.target.value }))}
-                  className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+                  className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
                   {f.options?.map(o => <option key={o} value={o}>{f.optionLabels?.[o] ?? o}</option>)}
                 </select>
               ) : f.type === 'multiselect' ? (
@@ -566,7 +566,7 @@ function ModalForm({ title, fields, onClose, onSubmit }: {
                             ...v,
                             [f.name]: isSel ? selected.filter(x => x !== o) : [...selected, o],
                           }))}
-                          className={`px-2.5 py-1 rounded text-xs transition ${isSel ? 'bg-[var(--zf-link)] text-white' : 'bg-white text-[var(--zf-muted)] border border-[var(--zf-hairline)]'}`}>
+                          className={`px-2.5 py-1 rounded text-xs transition ${isSel ? 'bg-[var(--zf-link-fill)] text-white' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border border-[var(--zf-hairline)]'}`}>
                           {f.optionLabels?.[o] ?? o}
                         </button>
                       )
@@ -578,7 +578,7 @@ function ModalForm({ title, fields, onClose, onSubmit }: {
               ) : (
                 <input type={f.type} value={values[f.name]}
                   onChange={e => setValues(v => ({ ...v, [f.name]: f.type === 'number' ? Number(e.target.value) : e.target.value }))}
-                  className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required={f.required} />
+                  className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required={f.required} />
               )}
             </div>
           ))}
@@ -625,13 +625,13 @@ function ComplianceCheckModal({ policy, pools, onClose }: {
         <form onSubmit={handleCheck} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">VM Name</label>
-            <input value={vmName} onChange={e => setVmName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="my-vm" />
+            <input aria-label="VM Name" value={vmName} onChange={e => setVmName(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" placeholder="my-vm" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Storage Pool</label>
-            <select value={poolId} onChange={e => setPoolId(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+            <select aria-label="Storage Pool" value={poolId} onChange={e => setPoolId(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               {pools.length === 0 && <option value="">No pools available</option>}
               {pools.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>

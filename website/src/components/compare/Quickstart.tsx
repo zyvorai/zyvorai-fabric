@@ -76,7 +76,7 @@ export default function Quickstart({items = QUICKSTARTS}: {items?: Quick[]}): Re
               {state === 'copied' ? 'Copied to clipboard' : state === 'failed' ? 'Copy failed' : ''}
             </span>
           </div>
-          <pre>
+          <pre tabIndex={0}>
             <code>{q.code}</code>
           </pre>
         </div>

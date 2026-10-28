@@ -113,12 +113,12 @@ export default function Terminal({ vmName }: TerminalProps) {
       live={status === 'connected'}
       trailing={
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px]" style={{ color: meta.color }}>{meta.label}</span>
+          <span className="text-xs" style={{ color: meta.color }}>{meta.label}</span>
           {status === 'disconnected' && (
             <button
               type="button"
               onClick={() => setConnectAttempt((n) => n + 1)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors"
             >
               <RotateCw className="w-3.5 h-3.5" />
               Reconnect

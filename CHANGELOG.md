@@ -3,6 +3,11 @@
 ## 0.4.0 - 2026-10-17
 
 ### Changed
+- **Replay view and refusal rows.** The console's Merion session page has a Replay card: load the signed recording,
+  see whether its signature is valid, scrub through the steps and download the JSON. The Fabric daemon proxies
+  `GET /api/sessions/{id}/recording` (owner only) and `POST /api/recordings/verify`. A model call refused by a budget
+  now writes its own `model.budget_refused` journal row. Console unit tests and the runtime suite pass; the replay
+  card and the daemon proxy were not run against a live host.
 - **UX pass.** Console: a skip link, one keyboard focus ring, one easing curve for hover and press, and a short page
   fade-in. Site: the same focus ring, selection tint and easing. Headings balance their lines on both. All motion is
   off under reduced-motion. Not reviewed page by page; signed-in console pages were not seen. Design:

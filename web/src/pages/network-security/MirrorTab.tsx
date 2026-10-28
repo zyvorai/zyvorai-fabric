@@ -27,45 +27,45 @@ function MirrorTabContent({ sessions, onDelete, onAdopt, onEdit, onCreate, onSyn
   const handleSyncClick = async () => { await onSync(); refreshStatus() }
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Packet Mirror</h2>
         <div className="flex items-center gap-2">
           {status && (
-            <span className="text-xs text-[#6e6e73] bg-white rounded-lg px-3 py-1.5 border border-[#d2d2d7]">
+            <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.active_sessions} active &middot; {status.mirrored_vms} mirrored VMs
             </span>
           )}
-          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-white hover:bg-[#d2d2d7] text-[#1d1d1f] py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync
           </button>}
-          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[#0066cc] hover:bg-[#0077ed] text-white py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
             <Plus className="w-4 h-4" /> Add Session
           </button>}
         </div>
       </div>
       {sessions.length === 0 ? (
-        <div className="p-12 text-center text-[#6e6e73]">No mirror sessions configured. Create one to capture and mirror VM network traffic.</div>
+        <div className="p-12 text-center text-[var(--zf-muted)]">No mirror sessions configured. Create one to capture and mirror VM network traffic.</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white">
+            <thead className="bg-[var(--zf-surface)]">
               <tr>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Source Selector</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Direction</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Collector</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Filter</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Status</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Source Selector</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Direction</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Collector</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Filter</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Status</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#d2d2d7]">
+            <tbody className="divide-y divide-[var(--zf-hairline)]">
               {sessions.map(s => (
                 <tr key={s.id} className="hover:bg-white/[0.03] transition">
                     <td className="p-4">
                       <div className="font-medium">{s.name}{isHostManaged(s) && <HostBadge />}</div>
-                      {s.description && <div className="text-xs text-[#6e6e73] mt-1">{s.description}</div>}
+                      {s.description && <div className="text-xs text-[var(--zf-muted)] mt-1">{s.description}</div>}
                     </td>
                     <td className="p-4 text-sm">
                       <LabelTags labels={s.selector?.match_labels} />
@@ -76,14 +76,14 @@ function MirrorTabContent({ sessions, onDelete, onAdopt, onEdit, onCreate, onSyn
                       color={s.direction === 'both' ? 'blue' : s.direction === 'ingress' ? 'green' : 'yellow'}
                     />
                   </td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">
                       {s.collector_target || '—'}
                     </td>
-                  <td className="p-4 text-sm text-[#6e6e73]">
+                  <td className="p-4 text-sm text-[var(--zf-muted)]">
                     {s.filter?.protocol || s.filter?.dst_port || s.filter?.src_cidr || s.filter?.dst_cidr ? (
                       <span>{[s.filter.protocol, s.filter.dst_port && `:${s.filter.dst_port}`, s.filter.src_cidr, s.filter.dst_cidr].filter(Boolean).join(' ')}</span>
                     ) : (
-                      <span className="text-[#6e6e73]">all</span>
+                      <span className="text-[var(--zf-muted)]">all</span>
                     )}
                   </td>
                   <td className="p-4">
@@ -92,7 +92,7 @@ function MirrorTabContent({ sessions, onDelete, onAdopt, onEdit, onCreate, onSyn
                     <td className="p-4">
                       <div className="flex items-center gap-1">
                         {!readOnly && !isHostManaged(s) && onEdit && (
-                          <button onClick={() => onEdit(s.id)} className="p-2 hover:bg-[#d2d2d7] rounded transition" title="Edit">
+                          <button onClick={() => onEdit(s.id)} className="p-2 hover:bg-[var(--zf-hairline)] rounded transition" title="Edit">
                             <Pencil className="w-4 h-4" />
                           </button>
                         )}
@@ -163,8 +163,8 @@ export function CreateMirrorModal({ onClose, onCreated }: { onClose: () => void;
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Debug traffic capture" />
         <LabelSelectorInput labels={labels} onChange={setLabels} />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Direction</label>
-          <select value={direction} onChange={e => setDirection(e.target.value as MirrorDirection)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Direction</label>
+          <select aria-label="Direction" value={direction} onChange={e => setDirection(e.target.value as MirrorDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="both">Both</option>
             <option value="ingress">Ingress</option>
             <option value="egress">Egress</option>
@@ -174,8 +174,8 @@ export function CreateMirrorModal({ onClose, onCreated }: { onClose: () => void;
           <InputField label="Collector Address" value={collectorAddress} onChange={setCollectorAddress} placeholder="10.0.0.50" />
           <InputField label="Collector Port" value={collectorPort} onChange={setCollectorPort} placeholder="4789" type="number" />
         </div>
-        <div className="border border-[#d2d2d7] rounded-lg p-4 space-y-3">
-          <div className="text-sm font-medium text-[#1d1d1f]">Filters (optional)</div>
+        <div className="border border-[var(--zf-hairline)] rounded-lg p-4 space-y-3">
+          <div className="text-sm font-medium text-[var(--zf-ink)]">Filters (optional)</div>
           <div className="grid grid-cols-3 gap-2">
             <InputField label="Protocol" value={filterProtocol} onChange={setFilterProtocol} placeholder="tcp" />
             <InputField label="Port" value={filterPort} onChange={setFilterPort} placeholder="80" type="number" />
@@ -183,7 +183,7 @@ export function CreateMirrorModal({ onClose, onCreated }: { onClose: () => void;
           </div>
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Session'}
         </button>
       </div>
@@ -262,7 +262,7 @@ export function EditMirrorModal({ id, onClose, onUpdated }: { id: string; onClos
   if (loading) {
     return (
       <ModalWrapper title="Edit Mirror Session" onClose={onClose}>
-        <div className="text-[#6e6e73] text-sm">Loading...</div>
+        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
       </ModalWrapper>
     )
   }
@@ -281,8 +281,8 @@ export function EditMirrorModal({ id, onClose, onUpdated }: { id: string; onClos
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Debug traffic capture" />
         <LabelSelectorInput labels={labels} onChange={setLabels} />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">Direction</label>
-          <select value={direction} onChange={e => setDirection(e.target.value as MirrorDirection)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">Direction</label>
+          <select aria-label="Direction" value={direction} onChange={e => setDirection(e.target.value as MirrorDirection)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="both">Both</option>
             <option value="ingress">Ingress</option>
             <option value="egress">Egress</option>
@@ -292,8 +292,8 @@ export function EditMirrorModal({ id, onClose, onUpdated }: { id: string; onClos
           <InputField label="Collector Address" value={collectorAddress} onChange={setCollectorAddress} placeholder="10.0.0.50" />
           <InputField label="Collector Port" value={collectorPort} onChange={setCollectorPort} placeholder="4789" type="number" />
         </div>
-        <div className="border border-[#d2d2d7] rounded-lg p-4 space-y-3">
-          <div className="text-sm font-medium text-[#1d1d1f]">Filters (optional)</div>
+        <div className="border border-[var(--zf-hairline)] rounded-lg p-4 space-y-3">
+          <div className="text-sm font-medium text-[var(--zf-ink)]">Filters (optional)</div>
           <div className="grid grid-cols-3 gap-2">
             <InputField label="Protocol" value={filterProtocol} onChange={setFilterProtocol} placeholder="tcp" />
             <InputField label="Port" value={filterPort} onChange={setFilterPort} placeholder="80" type="number" />
@@ -301,7 +301,7 @@ export function EditMirrorModal({ id, onClose, onUpdated }: { id: string; onClos
           </div>
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>

@@ -138,9 +138,9 @@ export default function DRS() {
             </div>
             <div>
               <label className="block text-sm text-[var(--zf-muted)] mb-1">Automation Level</label>
-              <select value={config.automation_level}
+              <select aria-label="Automation Level" value={config.automation_level}
                 onChange={e => handleConfigUpdate({ automation_level: e.target.value as DrsConfig['automation_level'] })}
-                className="bg-white border border-[var(--zf-hairline)] rounded px-3 py-1 text-sm">
+                className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-1 text-sm">
                 <option value="manual">Manual</option>
                 <option value="partially_automated">Semi-Auto</option>
                 <option value="fully_automated">Fully Auto</option>
@@ -165,7 +165,7 @@ export default function DRS() {
       <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['balance', 'recommendations', 'rules', 'placement'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
+            className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>
             {tab}
           </button>
         ))}
@@ -201,8 +201,8 @@ export default function DRS() {
                       <span>CPU</span>
                       <span>{host.cpu_usage_pct.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-white rounded-full h-4">
-                      <div className={`h-4 rounded-full text-xs text-center leading-4 text-white ${host.cpu_usage_pct > 80 ? 'bg-[var(--zf-danger)]' : host.cpu_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link)]'}`}
+                    <div className="w-full bg-[var(--zf-surface)] rounded-full h-4">
+                      <div className={`h-4 rounded-full text-xs text-center leading-4 text-white ${host.cpu_usage_pct > 80 ? 'bg-[var(--zf-danger)]' : host.cpu_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'}`}
                         style={{ width: `${Math.min(host.cpu_usage_pct, 100)}%` }}>
                         {host.cpu_usage_pct > 20 ? `${host.cpu_usage_pct.toFixed(0)}%` : ''}
                       </div>
@@ -213,7 +213,7 @@ export default function DRS() {
                       <span>Memory</span>
                       <span>{host.memory_usage_pct.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-white rounded-full h-4">
+                    <div className="w-full bg-[var(--zf-surface)] rounded-full h-4">
                       <div className={`h-4 rounded-full text-xs text-center leading-4 text-white ${host.memory_usage_pct > 80 ? 'bg-[var(--zf-danger)]' : host.memory_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-ink)]'}`}
                         style={{ width: `${Math.min(host.memory_usage_pct, 100)}%` }}>
                         {host.memory_usage_pct > 20 ? `${host.memory_usage_pct.toFixed(0)}%` : ''}
@@ -247,7 +247,7 @@ export default function DRS() {
               {recommendations.length === 0 ? (
                 <tr><td colSpan={8} className="p-8 text-center text-[var(--zf-muted)]">No migration recommendations.</td></tr>
               ) : recommendations.map(rec => (
-                <tr key={rec.id} className="hover:bg-white">
+                <tr key={rec.id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{rec.vm_name}</td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{rec.source_hostname}</td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{rec.target_hostname}</td>
@@ -262,10 +262,10 @@ export default function DRS() {
                   <td className="p-4">
                     {rec.status === 'pending' && (
                       <div className="flex gap-2">
-                        <button onClick={() => handleApprove(rec.id)} className="p-1 text-emerald-600 hover:text-emerald-700">
+                        <button onClick={() => handleApprove(rec.id)} className="p-1 text-emerald-600 hover:text-emerald-700" aria-label="Confirm" title="Confirm">
                           <Check className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleReject(rec.id)} className="p-1 text-red-600 hover:text-red-700">
+                        <button onClick={() => handleReject(rec.id)} className="p-1 text-red-600 hover:text-red-700" aria-label="Close" title="Close">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
@@ -302,7 +302,7 @@ export default function DRS() {
                 {rules.length === 0 ? (
                   <tr><td colSpan={6} className="p-8 text-center text-[var(--zf-muted)]">No affinity rules configured.</td></tr>
                 ) : rules.map(rule => (
-                  <tr key={rule.id} className="hover:bg-white">
+                  <tr key={rule.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="p-4 font-medium">{rule.name}</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium border ${rule.rule_type === 'affinity' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200'}`}>
@@ -313,7 +313,7 @@ export default function DRS() {
                     <td className="p-4 text-sm">{rule.mandatory ? 'Yes' : 'No'}</td>
                     <td className="p-4 text-sm">{rule.enabled ? 'Yes' : 'No'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteRule(rule.id)} className="text-red-600 hover:text-red-800">
+                      <button onClick={() => handleDeleteRule(rule.id)} className="text-red-600 hover:text-red-800" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -364,13 +364,13 @@ function PlacementForm({ result, onTest }: { clusterId: string; result: Placemen
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">VM CPUs (MHz)</label>
-          <input type="number" value={cpus} onChange={e => setCpus(Number(e.target.value))}
-            className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+          <input aria-label="VM CPUs (MHz)" type="number" value={cpus} onChange={e => setCpus(Number(e.target.value))}
+            className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">VM Memory (MB)</label>
-          <input type="number" value={memory} onChange={e => setMemory(Number(e.target.value))}
-            className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" />
+          <input aria-label="VM Memory (MB)" type="number" value={memory} onChange={e => setMemory(Number(e.target.value))}
+            className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" />
         </div>
       </div>
       <button onClick={() => onTest(cpus, memory)} className="zf-btn zf-btn-primary">Test Placement</button>
@@ -421,21 +421,21 @@ function CreateRuleModal({ clusterId, onClose, onCreated }: { clusterId: string;
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+            <input aria-label="Name" type="text" value={name} onChange={e => setName(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Type</label>
-            <select value={ruleType} onChange={e => setRuleType(e.target.value as 'affinity' | 'anti_affinity')}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2">
+            <select aria-label="Type" value={ruleType} onChange={e => setRuleType(e.target.value as 'affinity' | 'anti_affinity')}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2">
               <option value="affinity">Affinity (keep together)</option>
               <option value="anti_affinity">Anti-Affinity (keep apart)</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">VM IDs (comma-separated)</label>
-            <input type="text" value={vmIds} onChange={e => setVmIds(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-3 py-2" required />
+            <input aria-label="VM IDs (comma-separated)" type="text" value={vmIds} onChange={e => setVmIds(e.target.value)}
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2" required />
           </div>
           <label className="flex items-center gap-2">
             <input type="checkbox" checked={mandatory} onChange={e => setMandatory(e.target.checked)} />

@@ -32,13 +32,13 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
   const handleSyncClick = async () => { await onSync(); refreshStatus() }
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">NAT Gateway</h2>
-          <div className="flex bg-white rounded-lg p-0.5">
+          <div className="flex bg-[var(--zf-surface)] rounded-lg p-0.5">
             {(['rules', 'pools', 'gateways'] as const).map(v => (
-              <button key={v} onClick={() => setView(v)} className={`px-3 py-1 rounded text-sm transition ${view === v ? 'bg-[#e8e8ed] text-[#1d1d1f]' : 'text-[#6e6e73] hover:text-[#1d1d1f]'}`}>
+              <button key={v} onClick={() => setView(v)} className={`px-3 py-1 rounded text-sm transition ${view === v ? 'bg-[var(--zf-canvas-alt)] text-[var(--zf-ink)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'}`}>
                 {v.charAt(0).toUpperCase() + v.slice(1)}
               </button>
             ))}
@@ -46,14 +46,14 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
         </div>
         <div className="flex items-center gap-2">
           {status && (
-            <span className="text-xs text-[#6e6e73] bg-white rounded-lg px-3 py-1.5 border border-[#d2d2d7]">
+            <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.active_rules} active &middot; {status.gateways} gateways
             </span>
           )}
-          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-white hover:bg-[#d2d2d7] text-[#1d1d1f] py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={handleSyncClick} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync
           </button>}
-          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[#0066cc] hover:bg-[#0077ed] text-white py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
             <Plus className="w-4 h-4" /> Add {view === 'rules' ? 'Rule' : view === 'pools' ? 'Pool' : 'Gateway'}
           </button>}
         </div>
@@ -61,27 +61,27 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
 
       {view === 'rules' && (
         rules.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No NAT rules configured.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No NAT rules configured.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Type</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Source</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Destination</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Translate To</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Status</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Type</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Source</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Destination</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Translate To</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Status</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {rules.map(r => (
                   <tr key={r.id} className="hover:bg-white/[0.03] transition">
                     <td className="p-4">
                       <div className="font-medium">{r.name}{isHostManaged(r) && <HostBadge />}</div>
-                      {r.description && <div className="text-xs text-[#6e6e73] mt-1">{r.description}</div>}
+                      {r.description && <div className="text-xs text-[var(--zf-muted)] mt-1">{r.description}</div>}
                     </td>
                     <td className="p-4">
                       <StatusBadge
@@ -89,9 +89,9 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
                         color={r.rule_type === 'masquerade' ? 'blue' : r.rule_type === 'snat' ? 'green' : r.rule_type === 'dnat' ? 'yellow' : 'red'}
                       />
                     </td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{r.source_cidr ?? '*'}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{r.dest_cidr ?? '*'}</td>
-                    <td className="p-4 font-mono text-sm text-[#0066cc]">
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{r.source_cidr ?? '*'}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{r.dest_cidr ?? '*'}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-link)]">
                       {r.translate_to ?? '-'}{r.translate_port ? `:${r.translate_port}` : ''}
                     </td>
                     <td className="p-4">
@@ -100,7 +100,7 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
                     <td className="p-4">
                       <div className="flex items-center gap-1">
                         {!readOnly && !isHostManaged(r) && onEditRule && (
-                          <button onClick={() => onEditRule(r.id)} className="p-2 hover:bg-[#d2d2d7] rounded transition" title="Edit">
+                          <button onClick={() => onEditRule(r.id)} className="p-2 hover:bg-[var(--zf-hairline)] rounded transition" title="Edit">
                             <Pencil className="w-4 h-4" />
                           </button>
                         )}
@@ -122,26 +122,26 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
 
       {view === 'pools' && (
         pools.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No NAT pools configured.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No NAT pools configured.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Address Range</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Port Range</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Address Range</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Port Range</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {pools.map(p => (
                   <tr key={p.id} className="hover:bg-white/[0.03] transition">
                     <td className="p-4 font-medium">{p.name}</td>
-                    <td className="p-4 font-mono text-sm text-[#0066cc]">{p.ip_ranges.join(', ')}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{p.port_range ?? '-'}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-link)]">{p.ip_ranges.join(', ')}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{p.port_range ?? '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => onDeletePool(p.id)} className="p-2 hover:bg-red-600 rounded transition">
+                      <button onClick={() => onDeletePool(p.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -155,30 +155,30 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
 
       {view === 'gateways' && (
         gateways.length === 0 ? (
-          <div className="p-12 text-center text-[#6e6e73]">No NAT gateways configured.</div>
+          <div className="p-12 text-center text-[var(--zf-muted)]">No NAT gateways configured.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Subnet</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Outbound</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Status</th>
-                  <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Subnet</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Outbound</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Status</th>
+                  <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#d2d2d7]">
+              <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {gateways.map(g => (
                   <tr key={g.id} className="hover:bg-white/[0.03] transition">
                     <td className="p-4 font-medium">{g.name}</td>
-                    <td className="p-4 font-mono text-sm text-[#6e6e73]">{g.subnet}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{g.subnet}</td>
                     <td className="p-4 font-mono text-sm text-cyan-400">{g.outbound_interface}</td>
                     <td className="p-4">
                       <StatusBadge status={g.enabled ? 'active' : 'disabled'} color={g.enabled ? 'green' : 'gray'} />
                     </td>
                     <td className="p-4">
-                      <button onClick={() => onDeleteGateway(g.id)} className="p-2 hover:bg-red-600 rounded transition">
+                      <button onClick={() => onDeleteGateway(g.id)} className="p-2 hover:bg-red-600 rounded transition" aria-label="Delete" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -237,8 +237,8 @@ export function CreateNatRuleModal({ onClose, onCreated }: { onClose: () => void
         <InputField label="Name" value={name} onChange={setName} placeholder="outbound-masq" />
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Outbound masquerade" />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">NAT Type</label>
-          <select value={ruleType} onChange={e => setRuleType(e.target.value as NatRuleType)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">NAT Type</label>
+          <select aria-label="NAT Type" value={ruleType} onChange={e => setRuleType(e.target.value as NatRuleType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="masquerade">Masquerade</option>
             <option value="snat">SNAT</option>
             <option value="dnat">DNAT</option>
@@ -258,7 +258,7 @@ export function CreateNatRuleModal({ onClose, onCreated }: { onClose: () => void
           <InputField label="Translate Port" value={translatePort} onChange={setTranslatePort} placeholder="8080" type="number" />
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create NAT Rule'}
         </button>
       </div>
@@ -299,7 +299,7 @@ export function CreateNatPoolModal({ onClose, onCreated }: { onClose: () => void
         <InputField label="IP Ranges (comma-separated)" value={ipRanges} onChange={setIpRanges} placeholder="203.0.113.10-203.0.113.20" />
         <InputField label="Port Range" value={portRange} onChange={setPortRange} placeholder="1024-65535" />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Pool'}
         </button>
       </div>
@@ -346,7 +346,7 @@ export function CreateNatGatewayModal({ onClose, onCreated }: { onClose: () => v
         <InputField label="Subnet" value={subnet} onChange={setSubnet} placeholder="10.0.0.0/24" />
         <InputField label="Outbound Interface" value={outboundInterface} onChange={setOutboundInterface} placeholder="eth0" />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Gateway'}
         </button>
       </div>
@@ -419,7 +419,7 @@ export function EditNatRuleModal({ id, onClose, onUpdated }: { id: string; onClo
   if (loading) {
     return (
       <ModalWrapper title="Edit NAT Rule" onClose={onClose}>
-        <div className="text-[#6e6e73] text-sm">Loading...</div>
+        <div className="text-[var(--zf-muted)] text-sm">Loading...</div>
       </ModalWrapper>
     )
   }
@@ -437,8 +437,8 @@ export function EditNatRuleModal({ id, onClose, onUpdated }: { id: string; onClo
         <InputField label="Name" value={name} onChange={setName} placeholder="outbound-masq" />
         <InputField label="Description" value={description} onChange={setDescription} placeholder="Outbound masquerade" />
         <div>
-          <label className="block text-sm font-medium text-[#1d1d1f] mb-1">NAT Type</label>
-          <select value={ruleType} onChange={e => setRuleType(e.target.value as NatRuleType)} className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-[#1d1d1f] focus:outline-none focus:border-blue-500">
+          <label className="block text-sm font-medium text-[var(--zf-ink)] mb-1">NAT Type</label>
+          <select aria-label="NAT Type" value={ruleType} onChange={e => setRuleType(e.target.value as NatRuleType)} className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-blue-500">
             <option value="masquerade">Masquerade</option>
             <option value="snat">SNAT</option>
             <option value="dnat">DNAT</option>
@@ -458,7 +458,7 @@ export function EditNatRuleModal({ id, onClose, onUpdated }: { id: string; onClo
           <InputField label="Translate Port" value={translatePort} onChange={setTranslatePort} placeholder="8080" type="number" />
         </div>
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>

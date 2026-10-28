@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { Cpu, Server, MemoryStick, HardDrive, Zap } from 'lucide-react'
 import {
@@ -83,7 +84,7 @@ export default function SystemResources() {
     return (
       <div className="p-8 space-y-6">
         <PageHeader title="System Resources" description="Hardware topology and resource allocation" />
-        <div className="text-[var(--zf-muted)]">Loading system resources…</div>
+        <PanelLoading label="Loading system resources" />
       </div>
     )
   }
@@ -334,7 +335,7 @@ function NumaTopologyView({ topology }: { topology: NumaTopology | null }) {
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-[var(--zf-hairline)] rounded-full h-2 overflow-hidden">
                   <div
-                    className="h-full bg-[var(--zf-link)]"
+                    className="h-full bg-[var(--zf-link-fill)]"
                     style={{
                       width: `${
                         ((node.memory_total_mb - node.memory_free_mb) / node.memory_total_mb) *
@@ -459,7 +460,7 @@ function MemoryView({
               <div className="flex-1 bg-[var(--zf-hairline)] h-3 overflow-hidden">
                 <div
                   className={`h-full ${
-                    usagePercent > 90 ? 'bg-[var(--zf-danger)]' : usagePercent > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link)]'
+                    usagePercent > 90 ? 'bg-[var(--zf-danger)]' : usagePercent > 75 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'
                   }`}
                   style={{ width: `${usagePercent}%` }}
                 />
@@ -634,7 +635,7 @@ function AllocateHugepagesDialog({
 
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Size</label>
-        <select
+        <select aria-label="Size"
           value={size}
           onChange={(e) => setSize(e.target.value as any)}
           className="input-field"
@@ -646,7 +647,7 @@ function AllocateHugepagesDialog({
 
       <div className="mb-6">
         <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Count</label>
-        <input
+        <input aria-label="Count"
           type="number"
           value={count}
           onChange={(e) => setCount(parseInt(e.target.value) || 0)}

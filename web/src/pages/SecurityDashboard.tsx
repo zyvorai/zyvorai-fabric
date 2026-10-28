@@ -114,7 +114,7 @@ export default function SecurityDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
         <div className="stat-card-red rounded-xl border border-[var(--zf-hairline)] p-6 flex flex-col items-center justify-center">
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center bg-white border-4 ${riskBg(riskScore)}`}>
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center bg-[var(--zf-surface)] border-4 ${riskBg(riskScore)}`}>
             <span className={`text-3xl font-bold ${riskColor(riskScore)}`}>{riskScore}</span>
           </div>
           <span className="text-xs text-[var(--zf-muted)] mt-2">Risk Score</span>
@@ -137,7 +137,7 @@ export default function SecurityDashboard() {
       <div className="zf-panel-muted overflow-hidden">
         <div className="px-5 py-4 border-b border-[var(--zf-hairline)] flex items-center justify-between">
           <h3 className="text-base font-semibold text-[var(--zf-ink)]">Security Alerts</h3>
-          <span className="text-xs font-medium text-[var(--zf-muted)] bg-[var(--zf-hairline)] px-2.5 py-1 rounded-full">
+          <span className="text-xs font-medium text-[var(--zf-secondary)] bg-[var(--zf-hairline)] px-2.5 py-1 rounded-full">
             {alerts.length} alerts
           </span>
         </div>
@@ -147,13 +147,13 @@ export default function SecurityDashboard() {
           <div className="divide-y divide-[var(--zf-hairline)]/30">
             {alerts.map((alert: any, i: number) => (
               <div key={i} className="px-5 py-3 table-row-hover flex items-start gap-3">
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${severityColor(alert.severity)}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${severityColor(alert.severity)}`}>
                   {alert.severity || 'unknown'}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm text-[var(--zf-ink)]">{alert.message || alert.title || 'No description'}</div>
-                  {alert.source && <div className="text-[10px] text-[var(--zf-muted)] mt-0.5">Source: {alert.source}</div>}
-                  {alert.timestamp && <div className="text-[10px] text-[var(--zf-muted)]">{new Date(alert.timestamp).toLocaleString()}</div>}
+                  {alert.source && <div className="text-xs text-[var(--zf-muted)] mt-0.5">Source: {alert.source}</div>}
+                  {alert.timestamp && <div className="text-xs text-[var(--zf-muted)]">{new Date(alert.timestamp).toLocaleString()}</div>}
                 </div>
               </div>
             ))}
@@ -195,7 +195,7 @@ export default function SecurityDashboard() {
         <div className="zf-panel-muted overflow-hidden">
           <div className="px-5 py-4 border-b border-[var(--zf-hairline)] flex items-center justify-between">
             <h3 className="text-base font-semibold text-[var(--zf-ink)]">Listening Ports</h3>
-            <span className="text-xs font-medium text-[var(--zf-muted)] bg-[var(--zf-hairline)] px-2.5 py-1 rounded-full">
+            <span className="text-xs font-medium text-[var(--zf-secondary)] bg-[var(--zf-hairline)] px-2.5 py-1 rounded-full">
               {listeningPorts.length} ports
             </span>
           </div>

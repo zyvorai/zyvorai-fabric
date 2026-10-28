@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useState, useEffect } from 'react'
 import { HardDrive, Plus, Play, Square, Trash2, RefreshCw, Server, Folder, AlertCircle, CheckCircle, Database, X } from 'lucide-react'
 import {
@@ -183,7 +184,7 @@ export default function StoragePools() {
   }
 
   if (loading) {
-    return <div className="p-8 text-[var(--zf-muted)]">Loading storage pools...</div>
+    return <PageLoading />
   }
 
   return (
@@ -531,7 +532,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
         {/* Common Fields */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Pool Name</label>
-          <input
+          <input aria-label="Pool Name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -544,7 +545,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
         {poolType === 'local' ? (
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Local Path</label>
-            <input
+            <input aria-label="Local Path"
               type="text"
               value={path}
               onChange={(e) => setPath(e.target.value)}
@@ -557,7 +558,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Volume Group</label>
-              <input
+              <input aria-label="Volume Group"
                 type="text"
                 value={volumeGroup}
                 onChange={(e) => setVolumeGroup(e.target.value)}
@@ -569,7 +570,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             {poolType === 'lvm-thin' && (
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Thin Pool</label>
-                <input
+                <input aria-label="Thin Pool"
                   type="text"
                   value={thinPool}
                   onChange={(e) => setThinPool(e.target.value)}
@@ -584,7 +585,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">ZFS Pool</label>
-              <input
+              <input aria-label="ZFS Pool"
                 type="text"
                 value={zpool}
                 onChange={(e) => setZpool(e.target.value)}
@@ -595,7 +596,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Dataset (optional)</label>
-              <input
+              <input aria-label="Dataset (optional)"
                 type="text"
                 value={dataset}
                 onChange={(e) => setDataset(e.target.value)}
@@ -608,7 +609,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Monitor Addresses</label>
-              <input
+              <input aria-label="Monitor Addresses"
                 type="text"
                 value={cephMonitors}
                 onChange={(e) => setCephMonitors(e.target.value)}
@@ -620,7 +621,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Ceph Pool Name</label>
-              <input
+              <input aria-label="Ceph Pool Name"
                 type="text"
                 value={cephPoolName}
                 onChange={(e) => setCephPoolName(e.target.value)}
@@ -631,7 +632,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">User (optional)</label>
-              <input
+              <input aria-label="User (optional)"
                 type="text"
                 value={cephUser}
                 onChange={(e) => setCephUser(e.target.value)}
@@ -641,7 +642,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Keyring Path (optional)</label>
-              <input
+              <input aria-label="Keyring Path (optional)"
                 type="text"
                 value={cephKeyring}
                 onChange={(e) => setCephKeyring(e.target.value)}
@@ -654,7 +655,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">NFS Server</label>
-              <input
+              <input aria-label="NFS Server"
                 type="text"
                 value={nfsServer}
                 onChange={(e) => setNfsServer(e.target.value)}
@@ -665,7 +666,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Export Path</label>
-              <input
+              <input aria-label="Export Path"
                 type="text"
                 value={nfsExportPath}
                 onChange={(e) => setNfsExportPath(e.target.value)}
@@ -676,7 +677,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Mount Path</label>
-              <input
+              <input aria-label="Mount Path"
                 type="text"
                 value={nfsMountPath}
                 onChange={(e) => setNfsMountPath(e.target.value)}
@@ -687,7 +688,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">NFS Version</label>
-              <select
+              <select aria-label="NFS Version"
                 value={nfsVersion}
                 onChange={(e) => setNfsVersion(e.target.value as any)}
                 className="input-field"
@@ -700,7 +701,7 @@ function CreatePoolDialog({ onClose, onCreated }: CreatePoolDialogProps) {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2 text-[var(--zf-ink)]">Mount Options</label>
-              <input
+              <input aria-label="Mount Options"
                 type="text"
                 value={mountOptions}
                 onChange={(e) => setMountOptions(e.target.value)}
@@ -816,7 +817,7 @@ function RbdImagesModal({ pool, onClose }: RbdImagesModalProps) {
             <h2 className="text-xl font-bold text-[var(--zf-ink)]">RBD Images</h2>
             <p className="text-sm text-[var(--zf-muted)] mt-0.5">Pool: {pool.name}</p>
           </div>
-          <button onClick={onClose} className="p-2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-black/[0.04] rounded transition">
+          <button onClick={onClose} className="p-2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-black/[0.04] rounded transition" aria-label="Close" title="Close">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -829,7 +830,7 @@ function RbdImagesModal({ pool, onClose }: RbdImagesModalProps) {
           <form onSubmit={handleCreate} className="flex items-end gap-2">
             <div className="flex-1">
               <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1">Image name</label>
-              <input
+              <input aria-label="Image name"
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -839,7 +840,7 @@ function RbdImagesModal({ pool, onClose }: RbdImagesModalProps) {
             </div>
             <div className="w-28">
               <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1">Size (MB)</label>
-              <input
+              <input aria-label="Size (MB)"
                 type="number"
                 min={1}
                 value={newSizeMb}

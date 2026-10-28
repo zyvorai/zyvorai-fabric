@@ -86,7 +86,7 @@ export default function VMHealthCheck() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div className="md:col-span-2">
                 <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Select VM</label>
-                <select
+                <select aria-label="Select VM"
                   value={selectedVM}
                   onChange={(e) => setSelectedVM(e.target.value)}
                   className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] focus:outline-none focus:ring-1 focus:ring-[var(--zf-ink)]"

@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useRef, useCallback, Fragment } from 'react'
 import { Clock, CheckCircle, AlertCircle, Loader2, XCircle } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -103,10 +104,7 @@ export default function JobMonitor() {
     return (
       <div className="space-y-6">
         <PageHeader title="Job Monitor" description="Real-time job tracking with live logs" />
-        <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-link)] border-t-transparent rounded-full mr-3" />
-          Loading jobs…
-        </div>
+        <PanelLoading label="Loading jobs" />
       </div>
     )
   }
@@ -151,7 +149,7 @@ export default function JobMonitor() {
                     <Icon className={`w-3.5 h-3.5 ${job.status === 'running' ? 'animate-spin' : ''}`} /> {job.status}
                   </span>
                 </div>
-                <div className="bg-[var(--zf-hairline)] rounded-full h-1.5 mb-2"><div className={`h-full rounded-full transition-all ${job.status === 'completed' ? 'bg-[var(--zf-success)]' : job.status === 'failed' ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link)]'}`} style={{ width: `${job.progress}%` }} /></div>
+                <div className="bg-[var(--zf-hairline)] rounded-full h-1.5 mb-2"><div className={`h-full rounded-full transition-all ${job.status === 'completed' ? 'bg-[var(--zf-success)]' : job.status === 'failed' ? 'bg-[var(--zf-danger)]' : 'bg-[var(--zf-link-fill)]'}`} style={{ width: `${job.progress}%` }} /></div>
                 <div className="text-xs text-[var(--zf-muted)]">{job.progress}% {job.current_step && `— ${job.current_step}`}</div>
               </div>
             )
@@ -165,21 +163,21 @@ export default function JobMonitor() {
               <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5">
                 <h3 className="text-base font-semibold text-[var(--zf-ink)] mb-3">{selected.name || selected.vm_name || selected.id}</h3>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                  <div className="bg-[var(--zf-surface)] rounded-lg p-3 border border-[var(--zf-hairline)]"><div className="text-[10px] text-[var(--zf-muted)]">Status</div><div className="text-xs font-semibold text-[var(--zf-ink)] capitalize">{selected.status}</div></div>
-                  <div className="bg-[var(--zf-surface)] rounded-lg p-3 border border-[var(--zf-hairline)]"><div className="text-[10px] text-[var(--zf-muted)]">Progress</div><div className="text-xs font-semibold text-[var(--zf-ink)]">{selected.progress}%</div></div>
-                  <div className="bg-[var(--zf-surface)] rounded-lg p-3 border border-[var(--zf-hairline)]"><div className="text-[10px] text-[var(--zf-muted)]">Phase</div><div className="text-xs font-semibold text-[var(--zf-ink)] capitalize">{selected.phase || '-'}</div></div>
-                  <div className="bg-[var(--zf-surface)] rounded-lg p-3 border border-[var(--zf-hairline)]"><div className="text-[10px] text-[var(--zf-muted)]">Duration</div><div className="text-xs font-semibold text-[var(--zf-ink)]">{selected.started_at && selected.completed_at ? formatDuration(selected.started_at, selected.completed_at) : selected.started_at ? formatDuration(selected.started_at, new Date().toISOString()) : '-'}</div></div>
+                  <div className="bg-[var(--zf-surface)] rounded-lg p-3 border border-[var(--zf-hairline)]"><div className="text-xs text-[var(--zf-muted)]">Status</div><div className="text-xs font-semibold text-[var(--zf-ink)] capitalize">{selected.status}</div></div>
+                  <div className="bg-[var(--zf-surface)] rounded-lg p-3 border border-[var(--zf-hairline)]"><div className="text-xs text-[var(--zf-muted)]">Progress</div><div className="text-xs font-semibold text-[var(--zf-ink)]">{selected.progress}%</div></div>
+                  <div className="bg-[var(--zf-surface)] rounded-lg p-3 border border-[var(--zf-hairline)]"><div className="text-xs text-[var(--zf-muted)]">Phase</div><div className="text-xs font-semibold text-[var(--zf-ink)] capitalize">{selected.phase || '-'}</div></div>
+                  <div className="bg-[var(--zf-surface)] rounded-lg p-3 border border-[var(--zf-hairline)]"><div className="text-xs text-[var(--zf-muted)]">Duration</div><div className="text-xs font-semibold text-[var(--zf-ink)]">{selected.started_at && selected.completed_at ? formatDuration(selected.started_at, selected.completed_at) : selected.started_at ? formatDuration(selected.started_at, new Date().toISOString()) : '-'}</div></div>
                 </div>
                 {/* Pipeline stages */}
                 <div className="flex items-center gap-0 mb-3">
                   {PIPELINE_STAGES.map((stage, idx) => {
                     let cls = 'bg-[var(--zf-hairline)] text-[var(--zf-muted)]'
                     if (idx < stageIndex) cls = 'bg-[var(--zf-success)] text-white'
-                    else if (idx === stageIndex) cls = selected.status === 'failed' ? 'bg-[var(--zf-danger)] text-white' : 'bg-[var(--zf-link)] text-white animate-pulse'
+                    else if (idx === stageIndex) cls = selected.status === 'failed' ? 'bg-[var(--zf-danger)] text-white' : 'bg-[var(--zf-link-fill)] text-white animate-pulse'
                     return (
                       <Fragment key={stage}>
                         {idx > 0 && <div className={`h-0.5 w-6 ${idx <= stageIndex ? 'bg-[var(--zf-success)]' : 'bg-[var(--zf-hairline)]'}`} />}
-                        <div className={`px-2 py-1 text-[10px] font-semibold rounded uppercase whitespace-nowrap ${cls}`}>{stage}</div>
+                        <div className={`px-2 py-1 text-xs font-semibold rounded uppercase whitespace-nowrap ${cls}`}>{stage}</div>
                       </Fragment>
                     )
                   })}
@@ -197,7 +195,7 @@ export default function JobMonitor() {
                 title={`${selected.name || selected.vm_name || selected.id} — job logs`}
                 live={selected.status === 'running'}
                 trailing={
-                  <label className="flex items-center gap-2 text-[11px] text-white/50 cursor-pointer shrink-0">
+                  <label className="flex items-center gap-2 text-xs text-white/50 cursor-pointer shrink-0">
                     <input type="checkbox" checked={follow} onChange={(e) => setFollow(e.target.checked)} className="rounded border-white/20" />
                     Follow
                   </label>

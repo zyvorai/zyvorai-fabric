@@ -24,6 +24,7 @@ import {
 import { getToken } from '../api/client'
 import { PageHeader, Card, EmptyState } from '../components/ui'
 import PageLoadBanner from '../components/PageLoadBanner'
+import SessionReplay from '../components/merion/SessionReplay'
 import { usePageLoader } from '../hooks/usePageLoader'
 import { useToastContext } from '../contexts/ToastContext'
 import { toastFailure } from '../utils/toastError'
@@ -332,6 +333,8 @@ export default function MerionSession() {
       <PageLoadBanner title={t('session.loadFailed')} headline={loadError} onRetry={() => void load()} />
 
       <div className="space-y-4 max-w-3xl">
+        <SessionReplay sessionId={sessionId} />
+
         <Card className="p-4 space-y-2 text-sm">
           <h2 className="text-base font-semibold text-[var(--zf-ink)]">Goal</h2>
           {goal ? (

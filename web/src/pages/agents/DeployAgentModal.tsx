@@ -154,8 +154,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
           <button
             type="button"
             onClick={handleClose}
-            className="p-2 hover:bg-black/[0.04] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]"
-          >
+            className="p-2 hover:bg-black/[0.04] rounded transition text-[var(--zf-muted)] hover:text-[var(--zf-ink)]" aria-label="Close" title="Close">
             <X className="w-4 h-4" />
           </button>
         )}
@@ -168,7 +167,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
 
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Name</label>
-          <input
+          <input aria-label="Name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -182,7 +181,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
 
         <div>
           <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Template</label>
-          <input
+          <input aria-label="Template"
             type="text"
             value={template}
             onChange={(e) => setTemplate(e.target.value)}
@@ -249,7 +248,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
             type="button"
             onClick={addCredentialRow}
             disabled={submitting}
-            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Add credential
@@ -285,7 +284,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
             type="button"
             onClick={addEgressHostRow}
             disabled={submitting}
-            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
+            className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:border-[var(--zf-hairline)] transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Add egress host
@@ -315,7 +314,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Runtime port</label>
-            <input
+            <input aria-label="Runtime port"
               type="number"
               min={1}
               value={runtimePort}
@@ -326,7 +325,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--zf-ink)] mb-2">Warm pool size</label>
-            <input
+            <input aria-label="Warm pool size"
               type="number"
               min={0}
               max={64}

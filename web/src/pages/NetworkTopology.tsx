@@ -312,7 +312,7 @@ export default function NetworkTopology() {
                             {vm.interfaces?.length > 0 && (
                               <div className="mt-2 space-y-1">
                                 {vm.interfaces.map((iface, i) => (
-                                  <div key={i} className="text-[11px] text-[var(--zf-muted)] font-mono">
+                                  <div key={i} className="text-xs text-[var(--zf-muted)] font-mono">
                                     {iface.type} → {iface.source || '—'} · {iface.model} · {iface.mac || 'no MAC'}
                                   </div>
                                 ))}

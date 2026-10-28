@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Save, RotateCcw, Trash2, Plus, HardDrive, Clock, CheckCircle, XCircle, Loader } from 'lucide-react'
 import {
@@ -135,7 +136,7 @@ export default function Backups() {
   const { query, setQuery, filtered: filteredBackups } = useTableFilter(backups, (b) => [b.vm_name, b.backup_type, b.status])
 
   if (loading) {
-    return <div className="text-center py-8">Loading backups...</div>
+    return <PageLoading />
   }
 
   return (
@@ -257,7 +258,7 @@ export default function Backups() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">VM</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">Type</th>
@@ -277,7 +278,7 @@ export default function Backups() {
                   </tr>
                 )}
                 {filteredBackups.map((backup) => (
-                  <tr key={backup.id} className="hover:bg-white">
+                  <tr key={backup.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="px-4 py-3 text-sm font-medium">{backup.vm_name}</td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-1 rounded text-xs font-medium border text-[var(--zf-muted)] bg-[var(--zf-canvas)] border-[var(--zf-hairline)]">
@@ -379,7 +380,7 @@ function CreateBackupDialog({ vms, onClose, onCreate }: CreateBackupDialogProps)
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Virtual Machine</label>
-            <select
+            <select aria-label="Virtual Machine"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
               className="input-field"
@@ -391,7 +392,7 @@ function CreateBackupDialog({ vms, onClose, onCreate }: CreateBackupDialogProps)
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Backup Type</label>
-            <select
+            <select aria-label="Backup Type"
               value={backupType}
               onChange={(e) => setBackupType(e.target.value as 'full' | 'incremental')}
               className="input-field"
@@ -460,7 +461,7 @@ function RestoreDialog({ backup, onClose, onRestore }: RestoreDialogProps) {
           {createNew && (
             <div>
               <label className="block text-sm font-medium mb-2">New VM Name</label>
-              <input
+              <input aria-label="New VM Name"
                 type="text"
                 value={targetName}
                 onChange={(e) => setTargetName(e.target.value)}

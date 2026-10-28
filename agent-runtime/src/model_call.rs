@@ -422,6 +422,30 @@ pub(crate) async fn check_agent_budget(
     agent: &str,
     session: Option<uuid::Uuid>,
 ) -> Result<(), String> {
+    let result = check_agent_budget_inner(state, agent, session).await;
+    if let Err(why) = &result {
+        // The refusal is its own row, so a person reading the journal sees which cap stopped the call. The text names
+        // the agent and the counts; it never carries a request.
+        let _ = state
+            .store
+            .audit
+            .append(
+                session,
+                AuditPhase::Denied,
+                "model.budget_refused",
+                Some(agent.to_string()),
+                json!({ "reason": why }),
+            )
+            .await;
+    }
+    result
+}
+
+async fn check_agent_budget_inner(
+    state: &AppState,
+    agent: &str,
+    session: Option<uuid::Uuid>,
+) -> Result<(), String> {
     let Some(prices) =
         crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())?
     else {
