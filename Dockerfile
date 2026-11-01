@@ -15,7 +15,7 @@ COPY docs/merion/marketing.json /build/docs/merion/marketing.json
 COPY web/ ./
 RUN npm run build
 
-FROM rust:1.98-slim AS rust-builder
+FROM rust:1.99-slim AS rust-builder
 
 WORKDIR /build
 
