@@ -1056,4 +1056,84 @@ mod tests {
         assert!(cs.unstaged.is_empty());
         assert_eq!(cs.error, None);
     }
+    /// `contracts/fluxvm-vm-calls.json` lists the `/v1/vms/{id}/...` requests this client and
+    /// `backend/crates/fluxvm-client` both make. The backend crate replays the same file.
+    #[tokio::test]
+    async fn shared_vm_calls_match_the_cross_client_contract() {
+        type Seen = std::sync::Arc<std::sync::Mutex<Vec<(String, String, Vec<u8>)>>>;
+        let seen: Seen = Default::default();
+        let sink = seen.clone();
+        let app = axum::Router::new().fallback(move |req: axum::extract::Request| {
+            let sink = sink.clone();
+            async move {
+                let (parts, body) = req.into_parts();
+                let bytes = axum::body::to_bytes(body, 1 << 20).await.unwrap().to_vec();
+                sink.lock().unwrap().push((
+                    parts.method.to_string(),
+                    parts.uri.path().to_string(),
+                    bytes,
+                ));
+                axum::Json(json!({}))
+            }
+        });
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        let c = FluxVm::new(&format!("http://{addr}"), None).unwrap();
+        let id = Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap();
+
+        let contract: Value =
+            serde_json::from_str(include_str!("../../contracts/fluxvm-vm-calls.json")).unwrap();
+        let calls = contract["calls"].as_array().unwrap();
+        for entry in calls {
+            seen.lock().unwrap().clear();
+            let name = entry["call"].as_str().unwrap();
+            let _ = match name {
+                "pause" => c.pause(id).await,
+                "resume" => c.resume(id).await,
+                "snapshot" => c.snapshot_tag(id, "t1").await,
+                "restore" => c.restore_tag(id, "t1").await,
+                "freeze" => c.freeze(id).await,
+                "thaw" => c.thaw(id).await,
+                "delete" => c.delete(id).await,
+                "set_network_policy" => {
+                    c.set_network_policy(id, &json!({"default_allow": false}))
+                        .await
+                }
+                other => panic!("contract lists `{other}` but this test does not call it"),
+            };
+            let got = seen.lock().unwrap().clone();
+            assert_eq!(
+                got.len(),
+                1,
+                "{name}: expected exactly one request, got {got:?}"
+            );
+            let (m, p, body) = &got[0];
+            assert_eq!(m, entry["method"].as_str().unwrap(), "{name} method");
+            let want_path = entry["path"]
+                .as_str()
+                .unwrap()
+                .replace("{id}", &id.to_string());
+            assert_eq!(p, &want_path, "{name} path");
+            match &entry["body"] {
+                Value::Null => assert!(body.is_empty(), "{name}: expected no body"),
+                Value::String(s) if s == "object" => {
+                    assert!(
+                        serde_json::from_slice::<Value>(body).unwrap().is_object(),
+                        "{name} body"
+                    )
+                }
+                want => assert_eq!(
+                    &serde_json::from_slice::<Value>(body).unwrap(),
+                    want,
+                    "{name} body"
+                ),
+            }
+        }
+        assert_eq!(
+            calls.len(),
+            8,
+            "update both clients' tests when adding a shared call"
+        );
+    }
 }
