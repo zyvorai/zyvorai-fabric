@@ -459,11 +459,25 @@ const AGENTS = ['invoice-check', 'pdf-brief', 'csv-clean', 'contract-clauses', '
   manifest: { template: 'node22-agent', confinement: 'strict', egress_allow_hosts: [], credentials: [] },
 }))
 
+const GB = 1024 ** 3
+/** Storage pools. One list serves both pages: StoragePools reads pool_type/path/auto_start, StorageManager reads type/allocation. */
+const STORAGE_POOLS = [
+  { id: 'sp-1', name: 'default', pool_type: 'Directory', type: 'dir', path: '/var/lib/fabric/images', capacity: 500 * GB, allocation: 180 * GB, available: 320 * GB, state: 'Active', auto_start: true, created: ago(30 * 86400), updated: ago(3600) },
+  { id: 'sp-2', name: 'fast-lvm', pool_type: { LVM: { volume_group: 'vg_fast' } }, type: 'logical', path: '/dev/vg_fast', capacity: 200 * GB, allocation: 190 * GB, available: 10 * GB, state: 'Degraded', auto_start: true, created: ago(20 * 86400), updated: ago(600) },
+  { id: 'sp-3', name: 'archive', pool_type: 'Local', type: 'dir', path: '/mnt/archive', capacity: 1000 * GB, allocation: 0, available: 1000 * GB, state: 'Inactive', auto_start: false, created: ago(10 * 86400), updated: ago(86400) },
+]
+const STORAGE_VOLUMES = [
+  { name: 'web-01.qcow2', path: '/var/lib/fabric/images/web-01.qcow2', capacity: 40 * GB, allocation: 12 * GB, format: 'qcow2' },
+  { name: 'db-primary.qcow2', path: '/var/lib/fabric/images/db-primary.qcow2', capacity: 100 * GB, allocation: 64 * GB, format: 'qcow2' },
+]
+
 /** The JSON body for an `/api/...` path (without the `/api` prefix and query), or undefined for the default. */
 export function mockBody(path) {
   const p = path.replace(/\/+$/, '')
   if (p === '/auth/me') return MOCK_USER
   if (p === '/vms') return VMS
+  if (p === '/storage/pools') return STORAGE_POOLS
+  if (/^\/storage\/pools\/[^/]+\/volumes$/.test(p)) return STORAGE_VOLUMES
   let m = p.match(/^\/vms\/([^/]+)$/)
   if (m) return VMS.find((v) => v.name === m[1])
   m = p.match(/^\/vms\/([^/]+)\/(boot|display|cpu-model|watchdog|serials|firmware\/status|cpu\/affinity|logs)$/)

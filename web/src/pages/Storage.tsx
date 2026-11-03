@@ -128,7 +128,7 @@ export default function Storage() {
 
   const getTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'local': case 'directory': return 'text-[var(--zf-link)] bg-[var(--zf-link)]/10 border-[var(--zf-link)]/20'
+      case 'local': case 'directory': return 'text-[var(--zf-ink)] bg-[var(--zf-link)]/10 border-[var(--zf-link)]/20'
       case 'lvm': case 'lvm-thin': return 'text-[var(--zf-ink)] bg-black/[0.04] border-[var(--zf-hairline)]'
       case 'zfs': return 'text-emerald-700 bg-emerald-50 border-emerald-200'
       case 'nfs': return 'text-amber-800 bg-amber-50 border-amber-200'
@@ -210,7 +210,7 @@ export default function Storage() {
                       <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getTypeColor(typeStr)}`}>
                         {typeStr.toUpperCase()}
                       </span>
-                      <span className={`text-sm font-medium ${pool.state === 'Active' ? 'text-emerald-700' : 'text-[var(--zf-muted)]'}`}>
+                      <span className={`text-sm font-medium ${pool.state === 'Active' ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-muted)]'}`}>
                         {pool.state}
                       </span>
                       <button onClick={() => setShowCreateVolume(pool.name)} className="zf-btn zf-btn-ghost zf-btn-sm">
@@ -221,7 +221,7 @@ export default function Storage() {
                   <div className="mb-2">
                     <div className="flex items-center justify-between text-sm mb-1">
                       <span className="text-[var(--zf-muted)]">{formatBytes(used)} / {formatBytes(pool.capacity)}</span>
-                      <span className={`font-bold ${percentage > 80 ? 'text-red-700' : percentage > 50 ? 'text-amber-800' : 'text-emerald-700'}`}>
+                      <span className={`font-bold ${percentage > 80 ? 'text-[var(--zf-danger-text)]' : percentage > 50 ? 'text-[var(--zf-warn-text)]' : 'text-[var(--zf-proof-text)]'}`}>
                         {percentage}%
                       </span>
                     </div>
