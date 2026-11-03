@@ -43,6 +43,7 @@ import { usePermissions } from '../hooks/usePermissions'
 import { ReadOnlyProvider } from '../contexts/ReadOnlyContext'
 import ReadOnlyNotice from '../components/ReadOnlyNotice'
 import { PageHeader } from '../components/ui'
+import { NetworkMap } from '../components/NetworkMap'
 
 type Tab = 'bridges' | 'bonds' | 'vlans' | 'macvtap' | 'taps' | 'netfiles' | 'linkfiles' | 'portforwards' | 'vxlan' | 'sriov' | 'floatingips' | 'status'
 type Modal = 'bridge' | 'bond' | 'vlan' | 'macvtap' | 'tap' | 'netfile' | 'linkfile' | 'portforward' | 'vxlan' | 'sriov' | 'floatingip'
@@ -416,6 +417,18 @@ export default function Network() {
           <div className="text-2xl font-bold text-[var(--zf-ink)]">{sriov.length}</div>
         </div>
       </div>
+
+      {/* How the pieces connect: drawn from the same lists the tabs below show */}
+      <NetworkMap
+        links={links}
+        bonds={bonds}
+        vlans={vlans}
+        vxlans={vxlans}
+        macvtaps={macvtaps}
+        bridges={bridges}
+        taps={taps}
+        netfiles={netfiles}
+      />
 
       {/* Tabs */}
       <div className="border-b border-[var(--zf-hairline)] overflow-x-auto">

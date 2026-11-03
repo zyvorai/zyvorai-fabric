@@ -33,7 +33,7 @@ function VxlansTabContent({ vxlans, onDelete, onAdopt, onCreate }: VxlansTabProp
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">VXLAN</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create VXLAN
         </button>}
       </div>
@@ -129,8 +129,8 @@ export function CreateVxlanModal({ onClose, onCreated }: { onClose: () => void; 
         <InputField label="UDP Port" value={port} onChange={setPort} placeholder="4789" type="number" />
         <InputField label="Parent Interface (optional)" value={parent} onChange={setParent} placeholder="eth0" />
         <InputField label="Addresses (comma-separated)" value={addresses} onChange={setAddresses} placeholder="10.10.0.1/24" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create VXLAN'}
         </button>
       </div>

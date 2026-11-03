@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- **Network page: a map of how it connects.** Interfaces, bonds, VLANs, VXLANs, macvtaps, bridges and taps in four columns, joined
+  where the configuration joins them, outlined by link state, with a line that moves only when both ends are up. The Network
+  tabs' "Create" buttons all use the one primary colour, and their low-contrast text and an unlabelled sort control are fixed.
+  The accessibility gate now clicks through a page's tabs (Network first) instead of seeing only the one that loads open.
 - **Virtual Machines page.** A proportional status bar with a count per state replaces the text line (which left failed VMs out
   and drew stopped red), running VM cards show live CPU and memory bars, a failed VM's card has a red edge, and the empty state
   has an illustration. The dashboard and this page share one place for the load maths.

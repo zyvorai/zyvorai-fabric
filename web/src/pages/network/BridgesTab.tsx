@@ -69,7 +69,7 @@ function BridgesTabContent({ bridges, dhcpServers, onDelete, onAdopt, onCreate, 
                     {isHostManaged(b) && <HostBadge />}
                   </td>
                   <td className="p-4 text-[var(--zf-muted)] font-mono text-sm">{b.addresses.join(', ') || '-'}</td>
-                  <td className="p-4">{b.stp ? <span className="text-emerald-600">on</span> : <span className="text-[var(--zf-muted)]">off</span>}</td>
+                  <td className="p-4">{b.stp ? <span className="text-[var(--zf-proof-text)]">on</span> : <span className="text-[var(--zf-muted)]">off</span>}</td>
                   <td className="p-4 text-[var(--zf-muted)]">{b.dhcp}</td>
                   <td className="p-4 text-[var(--zf-muted)]">{b.mtu ?? '-'}</td>
                   <td className="p-4">
@@ -81,7 +81,7 @@ function BridgesTabContent({ bridges, dhcpServers, onDelete, onAdopt, onCreate, 
                       )}
                       {!readOnly && !isHostManaged(b) && (
                         <button onClick={() => onConfigureDhcp(b)} className="p-2 hover:bg-white/[0.06] rounded transition" title={dhcpServers.some(d => d.bridge === b.name) ? 'DHCP server configured' : 'Configure DHCP server'} type="button">
-                          <Router className={`w-4 h-4 ${dhcpServers.some(d => d.bridge === b.name) ? 'text-emerald-600' : ''}`} />
+                          <Router className={`w-4 h-4 ${dhcpServers.some(d => d.bridge === b.name) ? 'text-[var(--zf-proof-text)]' : ''}`} />
                         </button>
                       )}
                       <HostManagedActions readOnly={readOnly} item={b} onDelete={() => onDelete(b.id)} onAdopt={() => onAdopt(b.id)} />
@@ -140,7 +140,7 @@ export function CreateBridgeModal({ onClose, onCreated }: { onClose: () => void;
         <InputField label="DNS (comma-separated)" value={dns} onChange={setDns} placeholder="8.8.8.8, 1.1.1.1" />
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="1500" type="number" />
         <CheckboxField label="Enable STP (Spanning Tree Protocol)" checked={stp} onChange={setStp} />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Bridge'}
         </button>
@@ -190,7 +190,7 @@ export function EditBridgeModal({ bridge, onClose, onUpdated }: { bridge: Bridge
         <InputField label="DNS (comma-separated)" value={dns} onChange={setDns} placeholder="8.8.8.8, 1.1.1.1" />
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="1500" type="number" />
         <CheckboxField label="Enable STP (Spanning Tree Protocol)" checked={stp} onChange={setStp} />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
@@ -272,12 +272,12 @@ export function DhcpServerModal({ bridge, existing, onClose, onCreated, onDelete
             <div><div className="text-[var(--zf-muted)] text-xs mb-1">DNS servers</div><div className="font-mono">{existing.dns_servers.join(', ') || '—'}</div></div>
             <div><div className="text-[var(--zf-muted)] text-xs mb-1">Domain</div><div>{existing.domain ?? '—'}</div></div>
           </div>
-          {err && <p className="text-red-600 text-sm">{err}</p>}
+          {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
           <div className="flex gap-2">
             <button onClick={() => setEditing(true)} className="flex-1 flex items-center justify-center gap-2 bg-[var(--zf-canvas-alt)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
               <Pencil className="w-4 h-4" /> Edit
             </button>
-            <button onClick={handleDelete} disabled={submitting} className="flex-1 flex items-center justify-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-600 disabled:opacity-50 py-2 px-4 rounded-lg transition">
+            <button onClick={handleDelete} disabled={submitting} className="flex-1 flex items-center justify-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-[var(--zf-danger-text)] disabled:opacity-50 py-2 px-4 rounded-lg transition">
               <Trash2 className="w-4 h-4" /> {submitting ? 'Removing...' : 'Remove'}
             </button>
           </div>
@@ -301,7 +301,7 @@ export function DhcpServerModal({ bridge, existing, onClose, onCreated, onDelete
         </div>
         <InputField label="DNS Servers (comma-separated, optional)" value={dnsServers} onChange={setDnsServers} placeholder="defaults to this bridge's own gateway" />
         <InputField label="Domain (optional)" value={domain} onChange={setDomain} placeholder="vms.local" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <div className="flex gap-2">
           {existing && (
             <button onClick={() => setEditing(false)} className="flex-1 bg-[var(--zf-canvas-alt)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">

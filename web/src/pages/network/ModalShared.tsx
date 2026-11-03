@@ -134,7 +134,7 @@ export function DetailModal({ title, data, loading, error, onClose }: {
   return (
     <ModalWrapper title={title} onClose={onClose}>
       {loading && <p className="text-[var(--zf-muted)] text-sm">Loading…</p>}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p className="text-[var(--zf-danger-text)] text-sm">{error}</p>}
       {!loading && !error && data && (
         <dl className="space-y-2 text-sm">
           {Object.entries(data).map(([k, v]) => (

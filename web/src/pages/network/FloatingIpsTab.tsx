@@ -37,7 +37,7 @@ function FloatingIpsTabContent({ floatingIps, onDelete, onAdopt, onAssign, onUna
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Floating IPs</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Add Floating IP
         </button>}
       </div>
@@ -86,7 +86,7 @@ function FloatingIpsTabContent({ floatingIps, onDelete, onAdopt, onAssign, onUna
                           )
                         )}
                         {!readOnly && (
-                        <button type="button" onClick={() => onDelete(f.id)} className="p-2 hover:bg-red-600/20 rounded transition text-red-600" title="Delete">
+                        <button type="button" onClick={() => onDelete(f.id)} className="p-2 hover:bg-red-600/20 rounded transition text-[var(--zf-danger-text)]" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                         )}
@@ -174,8 +174,8 @@ export function CreateFloatingIpModal({
             />
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating…' : 'Create Floating IP'}
         </button>
       </div>
@@ -237,8 +237,8 @@ function AssignFloatingIpModal({
             </select>
           </div>
         )}
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting || loading || vms.length === 0} className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting || loading || vms.length === 0} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Assigning…' : 'Assign to VM'}
         </button>
       </div>

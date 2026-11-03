@@ -76,7 +76,18 @@ The VM list got the same treatment as the dashboard, on the same shared pieces:
 - **Live load on running cards** (`VMLoad`): CPU and memory bars from the same per-VM metrics poll the dashboard uses (every 10 s, running VMs only). `vmLoadFrom` in `lib/fleet.ts` is the one place memory bytes are set against the VM's own allocation; the dashboard uses it too. A stopped VM or one with no reading shows nothing, never 0%.
 - A failed VM's card has a danger edge. The empty state shows the illustration (`EmptyState` has a new optional `illustration` prop).
 
-Not done here: the table view, VM details, create, network and storage pages.
+Not done here: the table view, VM details, create and storage pages.
+
+## Console pages: Network
+
+- **`NetworkMap`** ("How it connects") draws four columns: interfaces; bonds, VLANs, VXLANs and macvtaps; bridges; taps. A line joins two things where the configuration does: a bond's members, a VLAN, macvtap or VXLAN to its parent, a network file's `bridge` or `bond`, a tap to its bridge (`lib/networkMap.ts`, pure and tested; nothing is inferred). A node is outlined by its networkd state (green when clearly working, amber for degraded, grey otherwise; nothing is red, because a down link is not an error); a line moves only when both ends are up; something referred to but not listed is drawn dashed and labelled "(not listed)". The picture is `aria-hidden`; the same connections are a text list for a screen reader. On a narrow screen it scrolls inside its own keyboard-reachable box. It draws nothing when nothing is configured.
+- The seed now has networkd data (links, bonds, bridges, VLANs, macvtaps, taps, VXLANs, network files, port forwards), so the page and its tables render populated in the gate.
+
+### The gate now clicks through tabs
+
+axe only sees the tab that is open when a page loads, so a page's other tabs were never checked. `PAGE_TABS` in `page-harness.mjs` lists a page's tabs; `a11y-check.mjs` clicks each (a button with exactly that text) and scans again. Network is the first. That found, in tabs nobody had checked: "Create" buttons in a different saturated colour per tab (cyan, green, orange, pink, indigo, purple, yellow) with theme-dependent text that could not pass in both themes, now the one primary button colour; green and red text and badges at 3.3 to 4.4:1; and a sort control with no accessible name. To prove the gate, one fixed badge was put back and the gate named it.
+
+Not done here: the table view of VMs, VM details, create and storage pages; the Docusaurus `website/`.
 
 ## The gate and crashed pages
 
