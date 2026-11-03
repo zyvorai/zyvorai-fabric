@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **Five more console pages are covered by the accessibility gate** (backups, analytics, audit, system, migrations), with seeded mock
+  data. That found and fixed low-contrast text on the audit page, an unlabelled time-range select on analytics, and a badge that
+  failed contrast in dark theme.
 - **Product, Platform and Security pages redesigned.** A hero with the aurora, a picture for each feature (the fleet map, a
   network and a storage diagram, the sealed-cell pipeline, four ways in around one daemon), the feature lists as pills, and
   the same call-to-action band as the home page. The copy is unchanged apart from the new call-to-action lines. The sealed-cell

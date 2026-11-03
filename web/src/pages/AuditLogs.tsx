@@ -99,11 +99,11 @@ export default function AuditLogs() {
   })
 
   const getActionColor = (action: string): string => {
-    if (action.includes('create')) return 'text-emerald-600'
-    if (action.includes('delete')) return 'text-red-600'
+    if (action.includes('create')) return 'text-[var(--zf-proof-text)]'
+    if (action.includes('delete')) return 'text-[var(--zf-danger-text)]'
     if (action.includes('update') || action.includes('edit')) return 'text-amber-600'
-    if (action.includes('start')) return 'text-emerald-600'
-    if (action.includes('stop')) return 'text-red-600'
+    if (action.includes('start')) return 'text-[var(--zf-proof-text)]'
+    if (action.includes('stop')) return 'text-[var(--zf-danger-text)]'
     return 'text-[var(--zf-link)]'
   }
 
@@ -184,7 +184,7 @@ export default function AuditLogs() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--zf-muted)]">Success Rate</p>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-bold text-[var(--zf-proof-text)]">
                   {stats.total_logs > 0 ? ((stats.by_status.success || 0) / stats.total_logs * 100).toFixed(1) : '0.0'}%
                 </p>
               </div>
@@ -195,7 +195,7 @@ export default function AuditLogs() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-[var(--zf-muted)]">Recent Failures</p>
-                <p className="text-2xl font-bold text-red-600">{stats.recent_failures}</p>
+                <p className="text-2xl font-bold text-[var(--zf-danger-text)]">{stats.recent_failures}</p>
               </div>
               <AlertCircle className="w-8 h-8 text-[var(--zf-danger)]" />
             </div>
@@ -338,7 +338,7 @@ export default function AuditLogs() {
                     <td className="px-4 py-3">
                       <StatusBadge status={log.status} />
                       {log.error && (
-                        <p className="text-xs text-red-600 mt-1">{log.error}</p>
+                        <p className="text-xs text-[var(--zf-danger-text)] mt-1">{log.error}</p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-[var(--zf-muted)]">

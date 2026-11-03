@@ -96,7 +96,7 @@ export default function Analytics() {
     switch (severity) {
       case 'critical': return 'text-red-700 bg-red-50 border border-red-200'
       case 'warning': return 'text-amber-800 bg-amber-50 border border-amber-200'
-      case 'info': return 'text-[var(--zf-link)] bg-blue-50 border border-blue-100'
+      case 'info': return 'text-[var(--zf-ink)] bg-[var(--zf-link)]/10 border border-[var(--zf-link)]/30'
       default: return 'text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]'
     }
   }
@@ -122,6 +122,7 @@ export default function Analytics() {
         actions={
           <>
             <select
+              aria-label="Time range"
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as TimeRange)}
               className="zf-panel-muted px-4 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]"
