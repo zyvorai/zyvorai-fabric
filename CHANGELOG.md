@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- **Product, Platform and Security pages redesigned.** A hero with the aurora, a picture for each feature (the fleet map, a
+  network and a storage diagram, the sealed-cell pipeline, four ways in around one daemon), the feature lists as pills, and
+  the same call-to-action band as the home page. The copy is unchanged apart from the new call-to-action lines. The sealed-cell
+  pipeline no longer forces a sideways scroll on a phone.
 - **Sign-in and marketing home.** The marketing home shows a picture of the real console (the fleet map, donut and load bars on
   example data) in place of a grey placeholder, with the aurora behind the hero and the second call-to-action row centred. The
   sign-in page has a faint fleet map behind the credentials card on wide screens. See `docs/merion/design/ux-bold.md`.

@@ -57,7 +57,17 @@ Not done: the history Runs and Triggers tabs are still plain lists; an expiry co
 - **Marketing home**: the grey placeholder "console" is now `ConsoleMock`, a picture of the dashboard built from the same pieces as the real one (the fleet map, the donut, the load bars) on an invented fleet (`lib/sampleFleet.ts`), in a browser frame and labelled "Example data". A screen reader gets one description of it, not its parts. The hero has the aurora behind it, and the "See the platform" and "Meet Merion" buttons are centred under their text (they were stuck at the left edge).
 - **Sign-in**: the fleet map sits behind the credentials card as a faint, `aria-hidden` backdrop (`PremiumLoginShell`'s `backdrop` prop). It is behind the card, not in the hero chapter, because the username field is focused on load and that scrolls the hero away: people land on the card. It is sized so the ring of nodes falls outside the card and its text, is off below 700 px wide, and its flow lines stop for reduced motion. `LiveFabric` has a `decorative` mode (no role, label or titles) for this.
 
-Not done: the other marketing pages (Product, Platform, Security, Merion) and the Docusaurus `website/` are unchanged.
+### The other marketing pages
+
+Product, Platform and Security were headlines over blocks of text. They now share a hero with the aurora (`MarketingHero`, which fades the glow out toward its bottom edge) and end in the same inverted call-to-action band as the home page (`CtaBand`).
+- **Product**: a `FeatureRow` per feature (words, chips, a picture), alternating sides on wide screens and stacked on a phone, the words always first in reading order. The pictures are `components/marketing/visuals.tsx`: the live fleet map, a floating IP over a bridge over three VMs, a primary volume replicating with a backup, and the finished sealed-cell pipeline with "0 CONNECT, sealed". They are decorative (`aria-hidden`); the words and chips say everything. The chips are the feature lists from the existing copy, split into pills.
+- **Platform**: the four ways in drawn around one daemon, with an icon card per surface.
+- **Security**: a shield, and three pillars (Access, Network security, Compliance) with their items as pills.
+- The Merion page is already a rich page with its own storyboard, comparison table and install box, so it was left alone (it passes the marketing gate, and the contrast and keyboard fixes from the sign-in change covered it).
+
+The marketing gate then found a real bug: the sealed-cell pipeline made `/product` scroll sideways on a phone, because its connector line had an intrinsic width that made every step 104px wide. The connectors now shrink, which also tightens the Merion home page.
+
+Not done: the Docusaurus `website/` is unchanged.
 
 ## The gate and crashed pages
 

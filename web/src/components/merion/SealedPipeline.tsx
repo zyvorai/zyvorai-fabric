@@ -36,7 +36,7 @@ export function SealedPipeline({ stage, labels }: SealedPipelineProps) {
         return (
           <li key={n.label} className="flex flex-1 items-start">
             {i > 0 && (
-              <svg viewBox="0 0 40 4" className="mt-6 h-1 min-w-4 flex-1" preserveAspectRatio="none" aria-hidden="true">
+              <svg viewBox="0 0 40 4" className="mt-6 h-1 w-0 min-w-4 flex-1" preserveAspectRatio="none" aria-hidden="true">
                 <path
                   d="M0 2H40"
                   stroke={linkOn ? 'var(--zf-proof)' : 'var(--zf-hairline)'}
