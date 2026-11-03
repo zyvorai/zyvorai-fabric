@@ -15,6 +15,8 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { formatUserError } from '../utils/apiError'
 import { ZyvorLockup } from '../components/ZyvorMark'
+import { LiveFabric } from '../components/LiveFabric'
+import { SAMPLE_FLEET } from '../lib/sampleFleet'
 import {
   PremiumLoginShell,
   LoginError,
@@ -289,6 +291,7 @@ export default function SignIn() {
       pills={pills}
       instanceMeta={instanceMeta}
       heroCta={storeCta}
+      backdrop={<LiveFabric vms={SAMPLE_FLEET} decorative />}
       chapterNote={chapterNote}
       panelSubtitle={panelSubtitle}
       panelHint={

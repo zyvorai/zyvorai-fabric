@@ -121,9 +121,31 @@ html[data-ui-shell='default'] .login-page,
 }
 
 .login-chapter-sign-in {
+  position: relative;
   background: transparent;
   justify-content: center;
 }
+/* Art behind the card: faint, never in the way of a click, and still for reduced motion (the flow lines stop). It is sized so
+   the ring of nodes falls outside the card and the text around it; on a narrow screen there is no room for that, so it is off. */
+.login-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0.26;
+}
+.login-backdrop > * {
+  width: min(104vmin, 80rem);
+  height: min(104vmin, 80rem);
+  flex: none;
+}
+html:not([data-theme='dark']) .login-backdrop { opacity: 0.2; }
+@media (max-width: 700px) {
+  .login-backdrop { display: none; }
+}
+.login-chapter-sign-in .login-chapter-inner { position: relative; z-index: 1; }
 
 .login-chapter-inner {
   width: 100%;

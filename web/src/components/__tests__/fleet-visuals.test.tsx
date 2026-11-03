@@ -8,6 +8,10 @@ import { LiveFabric } from '../LiveFabric'
 import { LoadBar } from '../LoadBar'
 import { GettingStarted } from '../GettingStarted'
 import { StatusBadge } from '../ui'
+import { ConsoleMock } from '../ConsoleMock'
+import { PremiumLoginShell } from '../PremiumLoginShell'
+import { SAMPLE_FLEET } from '../../lib/sampleFleet'
+import { fleetCounts } from '../../lib/fleet'
 
 const vm = (name: string, state: string) => ({ name, state })
 
@@ -70,5 +74,53 @@ describe('StatusBadge', () => {
     const html = renderToStaticMarkup(<StatusBadge status="stopped" />)
     expect(html).not.toContain('red')
     expect(renderToStaticMarkup(<StatusBadge status="failed" />)).toContain('red')
+  })
+})
+
+describe('decorative LiveFabric', () => {
+  it('is hidden from assistive tech and carries no role, label or titles', () => {
+    const html = renderToStaticMarkup(<LiveFabric vms={SAMPLE_FLEET} decorative />)
+    expect(html).toContain('aria-hidden="true"')
+    expect(html).not.toContain('role="img"')
+    expect(html).not.toContain('aria-label')
+    expect(html).not.toContain('<title>')
+  })
+})
+
+describe('SAMPLE_FLEET', () => {
+  it('is an invented fleet of eight with six running, so the marketing copy and the picture agree', () => {
+    expect(fleetCounts(SAMPLE_FLEET)).toMatchObject({ total: 8, running: 6, paused: 1, stopped: 1, failed: 0 })
+  })
+})
+
+describe('ConsoleMock', () => {
+  const html = renderToStaticMarkup(<ConsoleMock />)
+  it('is one described picture, labelled as example data', () => {
+    expect(html).toContain('role="img"')
+    expect(html).toContain('Example of the Zyvor Fabric console')
+    expect(html).toContain('six running')
+    expect(html).toContain('Example data.')
+  })
+  it('is built from the real pieces: the fleet map, the donut and load bars', () => {
+    expect(html).toContain('zf-flow') // a running VM's line in the fleet map
+    expect(html).toContain('role="meter"')
+    expect(html).toContain('<caption>VMs</caption>')
+  })
+})
+
+describe('PremiumLoginShell backdrop', () => {
+  const shell = (props: Record<string, unknown>) =>
+    renderToStaticMarkup(
+      <PremiumLoginShell productName="Zyvor Fabric" {...props}>
+        <form />
+      </PremiumLoginShell>,
+    )
+  it('puts the art behind the credentials card, hidden from assistive tech', () => {
+    const html = shell({ backdrop: <i data-art="x" /> })
+    expect(html).toContain('<div class="login-backdrop" aria-hidden="true"><i data-art="x"></i></div>')
+    expect(html.indexOf('login-backdrop')).toBeGreaterThan(html.indexOf('login-chapter-sign-in'))
+  })
+  it('draws nothing extra without a backdrop', () => {
+    expect(shell({})).not.toContain('login-backdrop')
   })
 })

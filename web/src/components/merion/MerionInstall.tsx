@@ -37,7 +37,7 @@ export default function MerionInstall() {
         ))}
       </div>
       <div className="merion-mkt-install-code">
-        <pre>
+        <pre tabIndex={0} role="region" aria-label="Install commands">
           <code>{text}</code>
         </pre>
         <button className="merion-mkt-install-copy" onClick={copy} aria-label="Copy commands">

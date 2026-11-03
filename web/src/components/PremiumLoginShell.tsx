@@ -37,6 +37,9 @@ export type PremiumLoginShellProps = {
   formClassName?: string
   className?: string
   showSignInChapter?: boolean
+  /** Decorative art behind the credentials card, where the person lands (the username field is focused on load, which scrolls
+      the hero away). It must be aria-hidden and carry no meaning. */
+  backdrop?: ReactNode
   children?: ReactNode
 }
 
@@ -59,6 +62,7 @@ export function PremiumLoginShell({
   formClassName = '',
   className = '',
   showSignInChapter = true,
+  backdrop,
   children,
 }: PremiumLoginShellProps) {
   const tagline =
@@ -117,6 +121,7 @@ export function PremiumLoginShell({
             className="login-chapter login-chapter-sign-in"
             aria-label="Credentials"
           >
+            {backdrop ? <div className="login-backdrop" aria-hidden="true">{backdrop}</div> : null}
             <div className="login-chapter-inner login-sign-in-inner">
               <p className="login-form-heading">{formHeading}</p>
               <div className={`login-card ${formClassName}`.trim()}>{children}</div>
