@@ -564,6 +564,7 @@ mod tests {
             grant_scope: None,
             preview: None,
             broker_held: false,
+            apply_error: None,
         }
     }
 

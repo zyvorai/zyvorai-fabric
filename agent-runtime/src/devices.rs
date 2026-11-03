@@ -406,6 +406,7 @@ mod tests {
             grant_scope: None,
             preview: None,
             broker_held: true,
+            apply_error: None,
         }
     }
 

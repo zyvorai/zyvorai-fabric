@@ -1318,6 +1318,10 @@ pub struct ApprovalRecord {
     /// the approval is pending, and never sent to the journal, a webhook or a push relay.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub preview: Option<Value>,
+    /// Set when a person approved a changeset but FluxVM could not carry it out. The decision stands
+    /// (it is the person's), but nothing was applied, so a goal or report must not treat it as done.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub apply_error: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

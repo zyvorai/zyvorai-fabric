@@ -1243,6 +1243,22 @@ impl Store {
         Ok(Some(updated))
     }
 
+    /// Record that an approved approval could not be carried out. Only an approved record takes it.
+    pub async fn set_apply_error(&self, id: Uuid, error: String) -> Result<Option<ApprovalRecord>> {
+        let mut map = self.approvals.write().await;
+        let Some(record) = map.get_mut(&id) else {
+            return Ok(None);
+        };
+        if record.status != ApprovalStatus::Approved {
+            return Ok(None);
+        }
+        record.apply_error = Some(error);
+        let updated = record.clone();
+        self.persist_vec("approvals.json", &map.values().cloned().collect::<Vec<_>>())
+            .await?;
+        Ok(Some(updated))
+    }
+
     /// Return the pending egress approval for (session, host), or create one
     /// from `new`. The bool is true when a new record was created, so
     /// concurrent requests to the same host share a single question.

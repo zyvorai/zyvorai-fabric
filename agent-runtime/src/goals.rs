@@ -695,6 +695,7 @@ pub(crate) async fn advance_step(
             grant_scope: None,
             preview: None,
             broker_held: false,
+            apply_error: None,
         };
         state
             .store
@@ -732,8 +733,9 @@ pub(crate) async fn advance_step(
     if step.requires_approval && matches!(req.status, PlanStepStatus::Done) {
         if let Some(approval_id) = step.approval_id {
             let approval = state.store.get_approval(approval_id).await;
+            let apply_failed = approval.as_ref().is_some_and(|a| a.apply_error.is_some());
             match approval.as_ref().map(|a| &a.status) {
-                Some(ApprovalStatus::Approved) => {}
+                Some(ApprovalStatus::Approved) if !apply_failed => {}
                 Some(ApprovalStatus::Pending) => {
                     return Err(ApiError::conflict(
                         "the approval for this step is still pending",
@@ -743,6 +745,7 @@ pub(crate) async fn advance_step(
                     let reason = match other {
                         Some(ApprovalStatus::Denied) => "denied",
                         Some(ApprovalStatus::Expired) => "expired",
+                        Some(ApprovalStatus::Approved) => "approved but not applied",
                         _ => "missing",
                     };
                     step.status = PlanStepStatus::Blocked;
