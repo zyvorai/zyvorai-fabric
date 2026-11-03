@@ -129,7 +129,7 @@ export default function Autoscale() {
                     {canWrite && (
                       <button
                         onClick={() => void handleDelete(p.vm_name)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        className="p-2 text-[var(--zf-danger-text)] hover:bg-red-50 rounded-lg"
                         title="Delete policy"
                       >
                         <Trash2 className="w-4 h-4" />

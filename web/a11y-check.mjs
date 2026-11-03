@@ -4,20 +4,25 @@
 // Run: npx vite build && node a11y-check.mjs [--verbose]
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { PAGES, PAGE_TABS, UNSEEDED_PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
+import { PAGES, EMPTY_STATE_PAGES, PAGE_TABS, UNSEEDED_PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
 
 const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 const verbose = process.argv.includes('--verbose')
+// `--theme=light|dark` checks one theme and `--port=N` serves on that port, so `a11y-parallel.mjs` can run the two themes at once.
+const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1]
+const only = arg('theme')
+const port = Number(arg('port') ?? 3111)
 if (UNSEEDED_PAGES.length) console.log(`not covered (no mock data yet, see page-harness.mjs): ${UNSEEDED_PAGES.join(', ')}`)
-const server = serveDist()
+const server = serveDist(port)
 const browser = await launch()
 const focusFailures = []
 const found = new Map() // rule id -> { impact, help, nodes: Set<"page theme size: selector"> }
-for (const theme of ['light', 'dark']) {
+for (const theme of only ? [only] : ['light', 'dark']) {
   for (const [size, dims] of Object.entries(SIZES)) {
     const page = await newConsolePage(browser, theme, dims)
     for (const name of PAGES) {
-      await openPage(page, name)
+      // an empty page has nothing to wait for; a populated one has charts and polls that need the longer settle
+      await openPage(page, name, port, EMPTY_STATE_PAGES.includes(name) ? 700 : 1800)
       // keyboard focus must be visible: the skip link is first, so the second Tab lands on a real control
       await page.keyboard.press('Tab')
       await page.keyboard.press('Tab')

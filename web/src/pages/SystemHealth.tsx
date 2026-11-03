@@ -30,9 +30,9 @@ function usageBarColor(pct: number): string {
 }
 
 function healthTextColor(score: number): string {
-  if (score > 80) return 'text-emerald-600'
-  if (score > 60) return 'text-amber-600'
-  return 'text-red-600'
+  if (score > 80) return 'text-[var(--zf-proof-text)]'
+  if (score > 60) return 'text-[var(--zf-warn-text)]'
+  return 'text-[var(--zf-danger-text)]'
 }
 
 function healthBorderColor(score: number): string {
@@ -238,7 +238,7 @@ export default function SystemHealth() {
                   <span>TX: {fmtB(iface.tx_bytes)}</span>
                 </div>
                 {(iface.rx_errors > 0 || iface.tx_errors > 0) && (
-                  <div className="text-xs text-red-600 mt-1">Errors: RX {iface.rx_errors} / TX {iface.tx_errors}</div>
+                  <div className="text-xs text-[var(--zf-danger-text)] mt-1">Errors: RX {iface.rx_errors} / TX {iface.tx_errors}</div>
                 )}
               </div>
             ))}

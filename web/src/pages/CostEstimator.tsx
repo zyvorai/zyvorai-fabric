@@ -125,10 +125,11 @@ export default function CostEstimator() {
 
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <label className="text-[var(--zf-muted)]">Number of VMs</label>
+            <label htmlFor="ce-vms" className="text-[var(--zf-muted)]">Number of VMs</label>
             <span className="text-[var(--zf-ink)] font-medium">{vmCount}</span>
           </div>
           <input
+            id="ce-vms"
             type="range"
             min={1}
             max={1000}
@@ -144,10 +145,11 @@ export default function CostEstimator() {
 
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <label className="text-[var(--zf-muted)]">Average VM Size (GB)</label>
+            <label htmlFor="ce-size" className="text-[var(--zf-muted)]">Average VM Size (GB)</label>
             <span className="text-[var(--zf-ink)] font-medium">{avgSizeGB} GB</span>
           </div>
           <input
+            id="ce-size"
             type="range"
             min={10}
             max={2000}
@@ -164,10 +166,11 @@ export default function CostEstimator() {
 
         <div>
           <div className="flex justify-between text-xs mb-1">
-            <label className="text-[var(--zf-muted)]">Storage Duration (months)</label>
+            <label htmlFor="ce-months" className="text-[var(--zf-muted)]">Storage Duration (months)</label>
             <span className="text-[var(--zf-ink)] font-medium">{durationMonths} months</span>
           </div>
           <input
+            id="ce-months"
             type="range"
             min={1}
             max={36}
@@ -191,7 +194,7 @@ export default function CostEstimator() {
 
         <div className="bg-[var(--zf-canvas)] rounded-lg px-3 py-2 text-xs text-[var(--zf-muted)]">
           Total estimated storage:{' '}
-          <span className="text-emerald-600 font-medium">
+          <span className="text-[var(--zf-proof-text)] font-medium">
             {totalGB >= 1000 ? `${(totalGB / 1000).toFixed(1)} TB` : `${totalGB.toFixed(0)} GB`}
           </span>
         </div>
@@ -247,7 +250,7 @@ export default function CostEstimator() {
 
           {cheapest && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
-              <h4 className="text-sm font-semibold text-emerald-600 mb-2">
+              <h4 className="text-sm font-semibold text-[var(--zf-proof-text)] mb-2">
                 Savings vs On-Premises Storage
               </h4>
               <p className="text-xs text-[var(--zf-muted)] mb-1">
@@ -255,8 +258,8 @@ export default function CostEstimator() {
                 {ON_PREM_PRICE}/GB/mo)
               </p>
               <p className="text-sm text-[var(--zf-ink)]">
-                Using <span className="text-emerald-600 font-semibold">{cheapest.name}</span> saves{' '}
-                <span className="text-emerald-600 font-semibold">
+                Using <span className="text-[var(--zf-proof-text)] font-semibold">{cheapest.name}</span> saves{' '}
+                <span className="text-[var(--zf-proof-text)] font-semibold">
                   {formatCurrency(onPremMonthly - cheapest.monthly)}
                 </span>
                 /month (

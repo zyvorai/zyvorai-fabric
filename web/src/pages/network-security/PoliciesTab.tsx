@@ -234,7 +234,7 @@ function IdentityDetailModal({ id, onClose }: { id: number; onClose: () => void 
       {loading ? (
         <PanelLoading label="Loading..." />
       ) : err ? (
-        <p className="text-red-600 text-sm">{err}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>
       ) : identity ? (
         <div className="space-y-4">
           <div>
@@ -356,7 +356,7 @@ export function CreatePolicyModal({ onClose, onCreated }: { onClose: () => void;
                   {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
                   {r.port && <span className="text-[var(--zf-muted)]">:{r.port}</span>}
                   {r.cidr && <span className="text-[var(--zf-muted)]">{r.cidr}</span>}
-                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -364,7 +364,7 @@ export function CreatePolicyModal({ onClose, onCreated }: { onClose: () => void;
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Policy'}
         </button>
@@ -448,7 +448,7 @@ export function EditPolicyModal({ id, onClose, onUpdated }: { id: string; onClos
   if (loadErr) {
     return (
       <ModalWrapper title="Edit Network Policy" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -484,7 +484,7 @@ export function EditPolicyModal({ id, onClose, onUpdated }: { id: string; onClos
                   {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
                   {r.port && <span className="text-[var(--zf-muted)]">:{r.port}</span>}
                   {r.cidr && <span className="text-[var(--zf-muted)]">{r.cidr}</span>}
-                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -492,7 +492,7 @@ export function EditPolicyModal({ id, onClose, onUpdated }: { id: string; onClos
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>

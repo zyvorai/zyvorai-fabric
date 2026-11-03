@@ -146,13 +146,13 @@ function MonitorTabContent({ policies, metrics, alerts, onDelete, onAdopt, onEdi
                   <tr key={i} className="hover:bg-white/[0.03] transition">
                     <td className="p-4 font-medium">{m.vm_name}</td>
                     <td className="p-4 font-mono text-sm text-[var(--zf-link)]">{m.interface_name}</td>
-                    <td className="p-4 font-mono text-sm text-emerald-600">{formatBytes(m.rx_bytes)}</td>
-                    <td className="p-4 font-mono text-sm text-amber-600">{formatBytes(m.tx_bytes)}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-proof-text)]">{formatBytes(m.rx_bytes)}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-warn-text)]">{formatBytes(m.tx_bytes)}</td>
                     <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{m.rx_packets}</td>
                     <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{m.tx_packets}</td>
                     <td className="p-4 font-mono text-sm">
                       {m.rx_errors + m.tx_errors > 0 ? (
-                        <span className="text-red-600">{m.rx_errors + m.tx_errors}</span>
+                        <span className="text-[var(--zf-danger-text)]">{m.rx_errors + m.tx_errors}</span>
                       ) : (
                         <span className="text-[var(--zf-muted)]">0</span>
                       )}
@@ -188,7 +188,7 @@ function MonitorTabContent({ policies, metrics, alerts, onDelete, onAdopt, onEdi
                   <tr key={a.id} className={`hover:bg-white/[0.03] transition ${a.acknowledged ? 'opacity-50' : ''}`}>
                     <td className="p-4 font-medium">{a.vm_name}</td>
                     <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{a.metric}</td>
-                    <td className="p-4 font-mono text-sm text-red-600">{a.value}</td>
+                    <td className="p-4 font-mono text-sm text-[var(--zf-danger-text)]">{a.value}</td>
                     <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{a.threshold}</td>
                     <td className="p-4">
                       <StatusBadge
@@ -321,7 +321,7 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
                   <span className="text-[var(--zf-ink)]">{t.metric}</span>
                   <span className="text-[var(--zf-muted)]">{t.value} {t.unit}</span>
                   <span className="text-[var(--zf-muted)]">{t.direction}</span>
-                  <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -329,7 +329,7 @@ export function CreateMonitorPolicyModal({ onClose, onCreated }: { onClose: () =
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Monitor Policy'}
         </button>
@@ -415,7 +415,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
   if (loadErr) {
     return (
       <ModalWrapper title="Edit Monitor Policy" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -479,7 +479,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
                   <span className="text-[var(--zf-ink)]">{t.metric}</span>
                   <span className="text-[var(--zf-muted)]">{t.value} {t.unit}</span>
                   <span className="text-[var(--zf-muted)]">{t.direction}</span>
-                  <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setThresholds(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -487,7 +487,7 @@ export function EditMonitorPolicyModal({ id, onClose, onUpdated }: { id: string;
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>

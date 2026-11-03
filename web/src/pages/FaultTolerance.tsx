@@ -130,11 +130,11 @@ export default function FaultTolerance() {
         </div>
         <div className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
           <div className="text-[var(--zf-muted)] text-sm mb-1">Running</div>
-          <div className="text-2xl font-bold text-emerald-600">{ftVMs.filter(v => v.status === 'running').length}</div>
+          <div className="text-2xl font-bold text-[var(--zf-proof-text)]">{ftVMs.filter(v => v.status === 'running').length}</div>
         </div>
         <div className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
           <div className="text-[var(--zf-muted)] text-sm mb-1">Needs Attention</div>
-          <div className="text-2xl font-bold text-amber-600">{ftVMs.filter(v => v.status !== 'running').length}</div>
+          <div className="text-2xl font-bold text-[var(--zf-warn-text)]">{ftVMs.filter(v => v.status !== 'running').length}</div>
         </div>
         <div className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
           <div className="text-[var(--zf-muted)] text-sm mb-1">Failover Events</div>
@@ -183,10 +183,10 @@ export default function FaultTolerance() {
                       <button onClick={() => handleTestFailover(vm.vm_name)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] text-sm px-2 py-1" title="Test failover">
                         Test
                       </button>
-                      <button onClick={() => handleTriggerFailover(vm.vm_name)} className="text-amber-600 hover:text-amber-700 text-sm px-2 py-1" title="Trigger failover">
+                      <button onClick={() => handleTriggerFailover(vm.vm_name)} className="text-[var(--zf-warn-text)] hover:text-amber-700 text-sm px-2 py-1" title="Trigger failover">
                         <Play className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDisableFT(vm.vm_name)} className="text-red-600 hover:text-red-800 p-1" title="Disable FT">
+                      <button onClick={() => handleDisableFT(vm.vm_name)} className="text-[var(--zf-danger-text)] hover:text-red-800 p-1" title="Disable FT">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -212,7 +212,7 @@ export default function FaultTolerance() {
           {compatResult && (
             <div className={`p-4 rounded border ${compatResult.compatible ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
               <div className="flex items-center gap-2 mb-3">
-                {compatResult.compatible ? <CheckCircle className="w-5 h-5 text-emerald-600" /> : <AlertTriangle className="w-5 h-5 text-red-600" />}
+                {compatResult.compatible ? <CheckCircle className="w-5 h-5 text-[var(--zf-proof-text)]" /> : <AlertTriangle className="w-5 h-5 text-[var(--zf-danger-text)]" />}
                 <span className="font-semibold">{compatResult.vm_name}: {compatResult.compatible ? 'Compatible' : 'Not Compatible'}</span>
               </div>
               {compatResult.issues.length > 0 && (
@@ -263,7 +263,7 @@ export default function FaultTolerance() {
                       {evt.downtime_ms > 0 && <span className="ml-2">| Downtime: {evt.downtime_ms}ms</span>}
                     </div>
                     <div className="text-xs text-[var(--zf-muted)] mt-1">{new Date(evt.started_at).toLocaleString()}</div>
-                    {evt.error && <div className="text-sm text-red-600 mt-1">{evt.error}</div>}
+                    {evt.error && <div className="text-sm text-[var(--zf-danger-text)] mt-1">{evt.error}</div>}
                   </div>
                 </div>
               ))}

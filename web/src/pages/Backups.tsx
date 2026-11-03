@@ -126,8 +126,8 @@ export default function Backups() {
 
   const getJobStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="w-5 h-5 text-emerald-600" />
-      case 'failed': return <XCircle className="w-5 h-5 text-red-600" />
+      case 'completed': return <CheckCircle className="w-5 h-5 text-[var(--zf-proof-text)]" />
+      case 'failed': return <XCircle className="w-5 h-5 text-[var(--zf-danger-text)]" />
       case 'running': return <Loader className="w-5 h-5 text-[var(--zf-link)] animate-spin" />
       default: return <Clock className="w-5 h-5 text-[var(--zf-muted)]" />
     }

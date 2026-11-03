@@ -262,10 +262,10 @@ export default function DRS() {
                   <td className="p-4">
                     {rec.status === 'pending' && (
                       <div className="flex gap-2">
-                        <button onClick={() => handleApprove(rec.id)} className="p-1 text-emerald-600 hover:text-emerald-700" aria-label="Confirm" title="Confirm">
+                        <button onClick={() => handleApprove(rec.id)} className="p-1 text-[var(--zf-proof-text)] hover:text-emerald-700" aria-label="Confirm" title="Confirm">
                           <Check className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleReject(rec.id)} className="p-1 text-red-600 hover:text-red-700" aria-label="Reject recommendation" title="Reject recommendation">
+                        <button onClick={() => handleReject(rec.id)} className="p-1 text-[var(--zf-danger-text)] hover:text-red-700" aria-label="Reject recommendation" title="Reject recommendation">
                           <X className="w-4 h-4" />
                         </button>
                       </div>
@@ -313,7 +313,7 @@ export default function DRS() {
                     <td className="p-4 text-sm">{rule.mandatory ? 'Yes' : 'No'}</td>
                     <td className="p-4 text-sm">{rule.enabled ? 'Yes' : 'No'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleDeleteRule(rule.id)} className="text-red-600 hover:text-red-800" aria-label={`Delete ${rule.name}`} title={`Delete ${rule.name}`}>
+                      <button onClick={() => handleDeleteRule(rule.id)} className="text-[var(--zf-danger-text)] hover:text-red-800" aria-label={`Delete ${rule.name}`} title={`Delete ${rule.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>

@@ -280,7 +280,7 @@ export function CreateFirewallProfileModal({ onClose, onCreated }: { onClose: ()
                   {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
                   {r.dest_port && <span className="text-[var(--zf-muted)]">:{r.dest_port}</span>}
                   {r.source_cidr && <span className="text-[var(--zf-muted)]">src:{r.source_cidr}</span>}
-                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -288,7 +288,7 @@ export function CreateFirewallProfileModal({ onClose, onCreated }: { onClose: ()
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Profile'}
         </button>
@@ -371,7 +371,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
   if (loadErr) {
     return (
       <ModalWrapper title="Edit Firewall Profile" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -417,7 +417,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
                   {r.protocol && <span className="text-[var(--zf-muted)]">{r.protocol}</span>}
                   {r.dest_port && <span className="text-[var(--zf-muted)]">:{r.dest_port}</span>}
                   {r.source_cidr && <span className="text-[var(--zf-muted)]">src:{r.source_cidr}</span>}
-                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setRules(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -425,7 +425,7 @@ export function EditFirewallProfileModal({ id, onClose, onUpdated }: { id: strin
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
@@ -474,7 +474,7 @@ export function CreateFirewallZoneModal({ profiles, onClose, onCreated }: { prof
             ))}
           </select>
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Zone'}
         </button>
@@ -530,7 +530,7 @@ export function CreateVMFirewallAssignmentModal({ profiles, zones, onClose, onCr
             ))}
           </select>
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting || !profileId} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Assigning...' : 'Assign Profile'}
         </button>

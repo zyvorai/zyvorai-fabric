@@ -148,16 +148,16 @@ export default function BulkOperations() {
       case 'running':
         return <Loader2 className="w-4 h-4 text-[var(--zf-link)] animate-spin" />
       case 'done':
-        return <CheckCircle className="w-4 h-4 text-emerald-600" />
+        return <CheckCircle className="w-4 h-4 text-[var(--zf-proof-text)]" />
       case 'error':
-        return <AlertTriangle className="w-4 h-4 text-red-600" />
+        return <AlertTriangle className="w-4 h-4 text-[var(--zf-danger-text)]" />
     }
   }
 
   const stateColor = (state: string) => {
     const s = state?.toLowerCase() || ''
-    if (s === 'running') return 'text-emerald-600'
-    if (s === 'paused') return 'text-amber-600'
+    if (s === 'running') return 'text-[var(--zf-proof-text)]'
+    if (s === 'paused') return 'text-[var(--zf-warn-text)]'
     return 'text-[var(--zf-muted)]'
   }
 
@@ -326,7 +326,7 @@ export default function BulkOperations() {
                 <span className="text-sm text-[var(--zf-ink)] font-medium flex-1">{t.vmName}</span>
                 <span className="text-xs text-[var(--zf-muted)] capitalize">{t.action}</span>
                 {t.message && (
-                  <span className={`text-xs max-w-[40%] truncate ${t.status === 'error' ? 'text-red-600' : 'text-emerald-600'}`}>
+                  <span className={`text-xs max-w-[40%] truncate ${t.status === 'error' ? 'text-[var(--zf-danger-text)]' : 'text-[var(--zf-proof-text)]'}`}>
                     {t.message}
                   </span>
                 )}

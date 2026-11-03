@@ -331,7 +331,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
               {firmware.tpm_enabled && <span className="text-[var(--zf-muted)]"> · TPM {firmware.tpm_version}</span>}
             </p>
             <p className="text-sm">
-              Secure Boot: <span className={firmware.secure_boot_enabled ? 'text-emerald-600' : 'text-[var(--zf-muted)]'}>{firmware.secure_boot_enabled ? 'Enabled' : 'Disabled'}</span>
+              Secure Boot: <span className={firmware.secure_boot_enabled ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-muted)]'}>{firmware.secure_boot_enabled ? 'Enabled' : 'Disabled'}</span>
             </p>
           </>
         ) : (

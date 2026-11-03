@@ -19,9 +19,9 @@ function severityColor(severity: string): string {
 }
 
 function riskColor(score: number): string {
-  if (score >= 80) return 'text-red-600'
-  if (score >= 50) return 'text-amber-600'
-  return 'text-emerald-600'
+  if (score >= 80) return 'text-[var(--zf-danger-text)]'
+  if (score >= 50) return 'text-[var(--zf-warn-text)]'
+  return 'text-[var(--zf-proof-text)]'
 }
 
 function riskBg(score: number): string {

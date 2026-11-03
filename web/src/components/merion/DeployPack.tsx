@@ -91,7 +91,7 @@ export default function DeployPack({ status, onDeployed, onError }: Props) {
           </li>
         </ul>
       )}
-      {problem && <p className="text-sm text-red-600 whitespace-pre-wrap">{problem}</p>}
+      {problem && <p className="text-sm text-[var(--zf-danger-text)] whitespace-pre-wrap">{problem}</p>}
       <button
         type="button"
         className="zf-btn zf-btn-primary"

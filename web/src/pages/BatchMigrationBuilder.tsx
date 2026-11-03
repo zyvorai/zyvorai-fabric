@@ -52,7 +52,7 @@ export default function BatchMigrationBuilder() {
                   {entry.source && <span className="text-xs text-[var(--zf-muted)] font-mono truncate max-w-[200px]">{entry.source}</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={(e) => { e.stopPropagation(); removeEntry(entry.id) }} className="p-1.5 text-[var(--zf-muted)] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remove"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={(e) => { e.stopPropagation(); removeEntry(entry.id) }} className="p-1.5 text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)] hover:bg-red-50 rounded-lg transition-colors" title="Remove"><Trash2 className="w-4 h-4" /></button>
                   {entry.expanded ? <ChevronUp className="w-4 h-4 text-[var(--zf-muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--zf-muted)]" />}
                 </div>
               </div>

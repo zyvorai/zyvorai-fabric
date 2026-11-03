@@ -164,7 +164,7 @@ export function CreateServiceModal({ onClose, onCreated }: { onClose: () => void
           </select>
         </div>
         <LabelSelectorInput labels={labels} onChange={setLabels} />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Service'}
         </button>
@@ -239,7 +239,7 @@ export function EditServiceModal({ id, onClose, onUpdated }: { id: string; onClo
   if (loadErr) {
     return (
       <ModalWrapper title="Edit Service" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -269,7 +269,7 @@ export function EditServiceModal({ id, onClose, onUpdated }: { id: string; onClo
           </select>
         </div>
         <LabelSelectorInput labels={labels} onChange={setLabels} />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>

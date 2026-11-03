@@ -178,7 +178,7 @@ export default function StoragePools() {
     if (!health) return null
 
     if (health.status === 'Healthy') {
-      return <CheckCircle className="w-4 h-4 text-emerald-600" />
+      return <CheckCircle className="w-4 h-4 text-[var(--zf-proof-text)]" />
     }
     return <AlertCircle className="w-4 h-4 text-[var(--zf-danger)]" />
   }
@@ -332,9 +332,9 @@ export default function StoragePools() {
                       {getHealthIcon(nfsHealth.get(pool.name))}
                       {cephHealth.has(pool.name) && (
                         cephHealth.get(pool.name)?.status === 'Ok'
-                          ? <CheckCircle className="w-4 h-4 text-emerald-600" />
+                          ? <CheckCircle className="w-4 h-4 text-[var(--zf-proof-text)]" />
                           : cephHealth.get(pool.name)?.status === 'Warn'
-                          ? <AlertCircle className="w-4 h-4 text-amber-600" />
+                          ? <AlertCircle className="w-4 h-4 text-[var(--zf-warn-text)]" />
                           : <AlertCircle className="w-4 h-4 text-[var(--zf-danger)]" />
                       )}
                     </td>
@@ -346,7 +346,7 @@ export default function StoragePools() {
                             className="p-2 hover:bg-black/[0.04] rounded transition"
                             title="Start pool"
                           >
-                            <Play className="w-4 h-4 text-emerald-600" />
+                            <Play className="w-4 h-4 text-[var(--zf-proof-text)]" />
                           </button>
                         ) : pool.state === 'Active' ? (
                           <button
@@ -354,7 +354,7 @@ export default function StoragePools() {
                             className="p-2 hover:bg-black/[0.04] rounded transition"
                             title="Stop pool"
                           >
-                            <Square className="w-4 h-4 text-amber-600" />
+                            <Square className="w-4 h-4 text-[var(--zf-warn-text)]" />
                           </button>
                         ) : null}
                         {typeof pool.pool_type === 'object' && 'Ceph' in pool.pool_type && (

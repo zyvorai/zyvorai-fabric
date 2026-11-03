@@ -112,10 +112,11 @@ export default function MigrationReadiness() {
                 {hasIssues ? '\u26A0' : '\u2713'}
               </div>
               <div>
-                <div className="text-sm font-semibold text-[var(--zf-ink)]">
+                {/* the banner background is a fixed pale tint in both themes, so its text is a fixed dark colour too */}
+                <div className="text-sm font-semibold text-slate-900">
                   {hasIssues ? 'Issues Found' : 'Ready for Migration'}
                 </div>
-                <div className="text-xs text-[var(--zf-muted)]">
+                <div className="text-xs text-slate-700">
                   {hasIssues
                     ? `${errorCount} error${errorCount !== 1 ? 's' : ''}, ${warningCount} warning${warningCount !== 1 ? 's' : ''}`
                     : `All ${checks.length} checks passed`}

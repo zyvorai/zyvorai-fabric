@@ -157,14 +157,14 @@ export default function Snapshots() {
                           className="p-2 hover:bg-black/[0.04] rounded transition"
                           title="Revert to snapshot"
                         >
-                          <RotateCcw className="w-4 h-4 text-amber-600" />
+                          <RotateCcw className="w-4 h-4 text-[var(--zf-warn-text)]" />
                         </button>
                         <button
                           onClick={() => handleDelete(snap.id)}
                           className="p-2 hover:bg-black/[0.04] rounded transition"
                           title="Delete snapshot"
                         >
-                          <Trash2 className="w-4 h-4 text-red-600" />
+                          <Trash2 className="w-4 h-4 text-[var(--zf-danger-text)]" />
                         </button>
                       </div>
                     </td>

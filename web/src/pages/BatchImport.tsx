@@ -85,7 +85,7 @@ export default function BatchImport() {
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => setInputText(ev.target?.result as string); reader.readAsText(file) } }, [])
   const handleDownloadTemplate = useCallback(() => { const blob = new Blob([exampleYAML], { type: 'text/yaml' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'batch-import-template.yaml'; a.click(); URL.revokeObjectURL(url) }, [])
 
-  const statusIcon = (status: VMStatus) => { switch (status) { case 'pending': return <Clock className="w-4 h-4 text-[var(--zf-muted)]" />; case 'submitting': return <Loader2 className="w-4 h-4 text-[var(--zf-link)] animate-spin" />; case 'submitted': return <CheckCircle className="w-4 h-4 text-emerald-600" />; case 'error': return <XCircle className="w-4 h-4 text-red-600" /> } }
+  const statusIcon = (status: VMStatus) => { switch (status) { case 'pending': return <Clock className="w-4 h-4 text-[var(--zf-muted)]" />; case 'submitting': return <Loader2 className="w-4 h-4 text-[var(--zf-link)] animate-spin" />; case 'submitted': return <CheckCircle className="w-4 h-4 text-[var(--zf-proof-text)]" />; case 'error': return <XCircle className="w-4 h-4 text-[var(--zf-danger-text)]" /> } }
   const submitted = items.filter((i) => i.status === 'submitted').length
   const errors = items.filter((i) => i.status === 'error').length
 
@@ -128,8 +128,8 @@ export default function BatchImport() {
         <div className="space-y-4">
           <div className="flex items-center gap-4 p-3 bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg text-sm">
             <span className="text-[var(--zf-muted)]"><FileText className="w-4 h-4 inline mr-1" />{items.length} VMs</span>
-            {submitted > 0 && <span className="text-emerald-600"><CheckCircle className="w-4 h-4 inline mr-1" />{submitted} submitted</span>}
-            {errors > 0 && <span className="text-red-600"><XCircle className="w-4 h-4 inline mr-1" />{errors} failed</span>}
+            {submitted > 0 && <span className="text-[var(--zf-proof-text)]"><CheckCircle className="w-4 h-4 inline mr-1" />{submitted} submitted</span>}
+            {errors > 0 && <span className="text-[var(--zf-danger-text)]"><XCircle className="w-4 h-4 inline mr-1" />{errors} failed</span>}
           </div>
           <div className="bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-xl overflow-hidden">
             <table className="w-full text-sm"><thead><tr className="border-b border-[var(--zf-hairline)] bg-[var(--zf-canvas)]"><th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">Status</th><th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">VM Name</th><th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">CPUs</th><th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">Memory</th><th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">Image</th></tr></thead>
@@ -139,7 +139,7 @@ export default function BatchImport() {
                 <td className="px-4 py-3 text-[var(--zf-ink)] font-medium">{item.name}</td>
                 <td className="px-4 py-3 text-[var(--zf-muted)]">{item.cpus}</td>
                 <td className="px-4 py-3 text-[var(--zf-muted)]">{item.memory}</td>
-                <td className="px-4 py-3 text-[var(--zf-muted)] font-mono text-xs">{item.image}{item.error && <p className="text-red-600 mt-1">{item.error}</p>}</td>
+                <td className="px-4 py-3 text-[var(--zf-muted)] font-mono text-xs">{item.image}{item.error && <p className="text-[var(--zf-danger-text)] mt-1">{item.error}</p>}</td>
               </tr>
             ))}</tbody></table>
           </div>

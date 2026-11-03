@@ -208,7 +208,7 @@ function DeviceTable({
                     type="button"
                     disabled={!canWrite || row.busy}
                     onClick={row.onDetach}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600/20 text-red-600 hover:bg-red-600/30 disabled:opacity-50"
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-600/20 text-[var(--zf-danger-text)] hover:bg-red-600/30 disabled:opacity-50"
                   >
                     {row.busy ? '…' : 'Detach'}
                   </button>

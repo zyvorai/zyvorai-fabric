@@ -77,9 +77,9 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
 
   const statusMeta: Record<Status, { label: string; dot: string; text: string }> = {
     connecting: { label: 'Connecting…', dot: 'bg-amber-400 animate-pulse', text: 'text-amber-400' },
-    connected: { label: 'Connected', dot: 'bg-emerald-400', text: 'text-emerald-600' },
+    connected: { label: 'Connected', dot: 'bg-emerald-400', text: 'text-[var(--zf-proof-text)]' },
     disconnected: { label: 'Disconnected', dot: 'bg-slate-500', text: 'text-[var(--zf-muted)]' },
-    error: { label: 'Connection failed', dot: 'bg-red-400', text: 'text-red-600' },
+    error: { label: 'Connection failed', dot: 'bg-red-400', text: 'text-[var(--zf-danger-text)]' },
   }
   const meta = statusMeta[status]
 
@@ -153,8 +153,8 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
             )}
             {status === 'error' && (
               <>
-                <AlertTriangle className="w-8 h-8 text-red-600" />
-                <p className="text-sm text-red-600">{errorMsg || 'Connection failed'}</p>
+                <AlertTriangle className="w-8 h-8 text-[var(--zf-danger-text)]" />
+                <p className="text-sm text-[var(--zf-danger-text)]">{errorMsg || 'Connection failed'}</p>
               </>
             )}
           </div>

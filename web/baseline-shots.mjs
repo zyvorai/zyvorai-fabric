@@ -1,7 +1,7 @@
 // Baseline screenshots of the busiest console pages (ux-plan step 0).
 // Run: npx vite build && node baseline-shots.mjs <outdir>
 import { mkdirSync } from 'node:fs'
-import { PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
+import { SEEDED_PAGES as PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
 
 const out = process.argv[2]
 mkdirSync(out, { recursive: true })

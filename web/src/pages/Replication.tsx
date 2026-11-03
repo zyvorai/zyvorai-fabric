@@ -119,11 +119,11 @@ export default function Replication() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
             <div className="zf-panel-muted px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">Active Replications</div>
-              <div className="text-2xl font-bold text-emerald-600">{health.active}</div>
+              <div className="text-2xl font-bold text-[var(--zf-proof-text)]">{health.active}</div>
             </div>
             <div className="zf-panel-muted px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">RPO Violations</div>
-              <div className="text-2xl font-bold text-red-600">{health.rpo_violations}</div>
+              <div className="text-2xl font-bold text-[var(--zf-danger-text)]">{health.rpo_violations}</div>
             </div>
             <div className="zf-panel-muted px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">Avg RPO</div>
@@ -131,7 +131,7 @@ export default function Replication() {
             </div>
             <div className="zf-panel-muted px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">Paused / Error</div>
-              <div className="text-2xl font-bold text-amber-600">{health.paused} / {health.error}</div>
+              <div className="text-2xl font-bold text-[var(--zf-warn-text)]">{health.paused} / {health.error}</div>
             </div>
           </div>
           <div className="zf-panel-muted p-4">
@@ -187,7 +187,7 @@ export default function Replication() {
                     <td className="p-4 text-sm">{site.replication_count}</td>
                     <td className="p-4 text-sm text-[var(--zf-muted)]">{site.last_sync ? new Date(site.last_sync).toLocaleString() : '-'}</td>
                     <td className="p-4">
-                      <button onClick={() => handleRemoveSite(site.id)} className="text-red-600 hover:text-red-800" aria-label={`Delete ${site.name}`} title={`Delete ${site.name}`}>
+                      <button onClick={() => handleRemoveSite(site.id)} className="text-[var(--zf-danger-text)] hover:text-red-800" aria-label={`Delete ${site.name}`} title={`Delete ${site.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
@@ -246,11 +246,11 @@ export default function Replication() {
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         {rep.status === 'active' ? (
-                          <button onClick={() => handlePause(rep.id)} className="text-amber-600 hover:text-amber-800 p-1" title="Pause">
+                          <button onClick={() => handlePause(rep.id)} className="text-[var(--zf-warn-text)] hover:text-amber-800 p-1" title="Pause">
                             <Pause className="w-4 h-4" />
                           </button>
                         ) : rep.status === 'paused' ? (
-                          <button onClick={() => handleResume(rep.id)} className="text-emerald-600 hover:text-emerald-800 p-1" title="Resume">
+                          <button onClick={() => handleResume(rep.id)} className="text-[var(--zf-proof-text)] hover:text-emerald-800 p-1" title="Resume">
                             <Play className="w-4 h-4" />
                           </button>
                         ) : null}
@@ -286,7 +286,7 @@ export default function Replication() {
                 <tr key={v.replication_id} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium">{v.vm_name}</td>
                   <td className="p-4 text-sm">{v.rpo_target_minutes} min</td>
-                  <td className="p-4 text-sm text-red-600 font-bold">{v.current_rpo_minutes.toFixed(0)} min</td>
+                  <td className="p-4 text-sm text-[var(--zf-danger-text)] font-bold">{v.current_rpo_minutes.toFixed(0)} min</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-xs font-medium border ${v.rpo_compliant ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-red-700 bg-red-50 border-red-200'}`}>
                       {v.rpo_compliant ? 'Yes' : 'No'}
@@ -294,7 +294,7 @@ export default function Replication() {
                   </td>
                   <td className="p-4 text-sm">{v.bandwidth_usage_mbps.toFixed(1)} Mbps</td>
                   <td className="p-4 text-sm">{v.sync_count}</td>
-                  <td className="p-4 text-sm text-red-600">{v.failure_count}</td>
+                  <td className="p-4 text-sm text-[var(--zf-danger-text)]">{v.failure_count}</td>
                 </tr>
               ))}
             </tbody>

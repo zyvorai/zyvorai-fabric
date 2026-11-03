@@ -214,7 +214,7 @@ export default function Alerts() {
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`text-xs font-medium ${rule.enabled ? 'text-emerald-600' : 'text-[var(--zf-muted)]'}`}
+                            className={`text-xs font-medium ${rule.enabled ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-muted)]'}`}
                           >
                             {rule.enabled ? 'Yes' : 'No'}
                           </span>

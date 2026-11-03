@@ -341,7 +341,7 @@ export default function Schedules() {
                           {item.status.toUpperCase()}
                         </span>
                         {item.error && (
-                          <p className="text-xs text-red-600 mt-1">{item.error}</p>
+                          <p className="text-xs text-[var(--zf-danger-text)] mt-1">{item.error}</p>
                         )}
                       </td>
                     </tr>

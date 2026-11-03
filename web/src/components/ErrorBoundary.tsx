@@ -37,7 +37,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
           <div className="p-3 rounded-xl bg-red-500/10 mb-4">
-            <AlertTriangle className="w-8 h-8 text-red-600" />
+            <AlertTriangle className="w-8 h-8 text-[var(--zf-danger-text)]" />
           </div>
           <h2 className="text-lg font-semibold text-[var(--zf-ink)] mb-1">Something went wrong</h2>
           <p className="text-sm text-[var(--zf-muted)] mb-6 text-center max-w-md">
@@ -66,7 +66,7 @@ export function PageErrorBoundary({ children }: { children: React.ReactNode }) {
       fallback={
         <div className="flex flex-col items-center justify-center p-12">
           <div className="p-2.5 rounded-xl bg-yellow-500/10 mb-3">
-            <AlertTriangle className="w-6 h-6 text-amber-600" />
+            <AlertTriangle className="w-6 h-6 text-[var(--zf-warn-text)]" />
           </div>
           <h3 className="text-base font-semibold text-[var(--zf-ink)] mb-1">Section error</h3>
           <p className="text-sm text-[var(--zf-muted)] mb-5">This section encountered an error</p>

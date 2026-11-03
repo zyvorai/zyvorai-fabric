@@ -101,7 +101,7 @@ export default function AuditLogs() {
   const getActionColor = (action: string): string => {
     if (action.includes('create')) return 'text-[var(--zf-proof-text)]'
     if (action.includes('delete')) return 'text-[var(--zf-danger-text)]'
-    if (action.includes('update') || action.includes('edit')) return 'text-amber-600'
+    if (action.includes('update') || action.includes('edit')) return 'text-[var(--zf-warn-text)]'
     if (action.includes('start')) return 'text-[var(--zf-proof-text)]'
     if (action.includes('stop')) return 'text-[var(--zf-danger-text)]'
     return 'text-[var(--zf-link)]'
