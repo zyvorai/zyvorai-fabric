@@ -4150,11 +4150,14 @@ async fn speculate_session(
         broker_held: false,
         apply_error: None,
     };
-    state
-        .store
-        .save_approval(record.clone())
-        .await
-        .map_err(ApiError::internal)?;
+    if let Err(e) = state.store.save_approval(record.clone()).await {
+        // No approval will ever name this changeset: drop it rather than leave it pending in FluxVM.
+        let _ = state
+            .fluxvm
+            .reject_changeset(session.sandbox_id, changeset.id)
+            .await;
+        return Err(ApiError::internal(e));
+    }
     audit_approval_planned(&state, &record).await;
     let policy_file = std::env::var("ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE").ok();
     dry_run_changeset_policy(
@@ -4747,6 +4750,17 @@ async fn run_verify_command(
     }
 }
 
+/// True when a changeset approval's FluxVM changeset is past its `expires_at` (Unix seconds; 0 = none).
+fn changeset_expired(record: &ApprovalRecord, now: i64) -> bool {
+    record.kind == ApprovalKind::Changeset
+        && record
+            .planned_action
+            .as_ref()
+            .and_then(|a| a.get("expires_at"))
+            .and_then(Value::as_i64)
+            .is_some_and(|t| t > 0 && now >= t)
+}
+
 pub(crate) async fn decide_approval(
     State(state): State<Arc<AppState>>,
     Extension(principal): Extension<Principal>,
@@ -4766,6 +4780,19 @@ pub(crate) async fn decide_approval(
         return Err(ApiError::conflict("approval is already decided"));
     }
     let session = require_session(&state, record.session_id).await?;
+    if changeset_expired(&record, Utc::now().timestamp()) {
+        // FluxVM drops the changeset at expires_at, so approving now could only fail. Close it instead.
+        let _ = state
+            .store
+            .transition_approval(
+                id,
+                ApprovalStatus::Expired,
+                Some("changeset expired before it was decided".into()),
+                None,
+            )
+            .await;
+        return Err(ApiError::conflict("the changeset has expired"));
+    }
     let session_running = session.status == SessionStatus::Running;
     if !session_running && (record.broker_held || record.kind == ApprovalKind::Egress) {
         return Err(ApiError::conflict("session is not running"));
@@ -5818,5 +5845,25 @@ mod tests {
         .await
         .unwrap_err();
         assert_eq!(err.status, StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn an_expired_changeset_approval_is_closed_not_approved() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+
+        let mut record = state.store.get_approval(approval).await.unwrap();
+        record.planned_action.as_mut().unwrap()["expires_at"] = json!(1);
+        state.store.save_approval(record).await.unwrap();
+
+        let err = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::CONFLICT);
+        let stored = state.store.get_approval(approval).await.unwrap();
+        assert_eq!(stored.status, ApprovalStatus::Expired);
     }
 }

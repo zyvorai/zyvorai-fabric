@@ -129,7 +129,7 @@
   credentials whose Keep limits a grant can keep: an `Authorization` header, no approval, method, path or per-user limits,
   hosts inside the credential's host. The secret is sent once and never returned or audited.
 - **`fluxvm-client`:** `Idempotency-Key` on create and delete, fork, snapshot, restore, snapshot list and delete,
-  `?ready=exec` timing, guest exec `policy` with the guest's `enforcement` result (Keep's `process_confined` fails closed
+  `?ready=exec` timing, guest exec `policy` with the guest's `enforcement` result (Keep's `process_confined` helper refuses a result without full enforcement; no Keep route calls it yet
   when the guest did not enforce what was asked), balloon and PSS memory, CD-ROM eject, and `BackendKind::Vz`.
 - **`fabricctl live-fork`, `fabricctl memory`, `fabricctl balloon`** and the fabricd routes behind them
   (`POST /vms/{name}/live-fork`, `GET /vms/{name}/memory`, `GET|POST /vms/{name}/balloon`). Balloon is Beta: FluxVM lists
