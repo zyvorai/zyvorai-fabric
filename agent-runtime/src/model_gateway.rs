@@ -229,6 +229,12 @@ pub struct Prices {
     pub default_budget: Option<Budget>,
     #[serde(default)]
     pub budgets: BTreeMap<String, Budget>,
+    /// A rolling 24-hour allowance for one person across every agent they run, applied to a user with no entry of
+    /// their own. Only `max_calls_per_day`, `max_cost_per_day` and `warn_at` apply; `run` and `goal` are per agent.
+    #[serde(default)]
+    pub default_user_budget: Option<Budget>,
+    #[serde(default)]
+    pub user_budgets: BTreeMap<String, Budget>,
 }
 
 #[derive(Debug, Clone, Copy, Deserialize)]
@@ -292,14 +298,38 @@ impl Prices {
         {
             return Err("prices file: prices and budgets must be finite and not negative".into());
         }
+        if p.user_budgets
+            .values()
+            .chain(p.default_user_budget.iter())
+            .any(|b| b.run.is_some() || b.goal.is_some())
+        {
+            return Err("prices file: a user budget takes only max_calls_per_day, max_cost_per_day and warn_at".into());
+        }
+        if p.user_budgets
+            .values()
+            .chain(p.default_user_budget.iter())
+            .any(|b| b.max_cost_per_day.is_some_and(bad))
+        {
+            return Err("prices file: prices and budgets must be finite and not negative".into());
+        }
         if p.budgets
             .values()
             .chain(p.default_budget.iter())
+            .chain(p.user_budgets.values())
+            .chain(p.default_user_budget.iter())
             .any(|b| b.warn_at.is_some_and(|w| !(w > 0.0 && w <= 1.0)))
         {
             return Err("prices file: warn_at must be above 0 and at most 1".into());
         }
         Ok(Some(p))
+    }
+
+    /// The allowance for one person across all their agents, if the operator set one.
+    pub fn user_budget_for(&self, user: &str) -> Option<Budget> {
+        self.user_budgets
+            .get(user)
+            .copied()
+            .or(self.default_user_budget)
     }
 
     pub fn budget_for(&self, agent: &str) -> Option<Budget> {
@@ -330,22 +360,51 @@ pub fn over_budget(
     rows: &[crate::audit::AuditEntry],
     since: chrono::DateTime<chrono::Utc>,
 ) -> Option<String> {
-    use crate::audit::AuditPhase;
     let b = prices.budget_for(agent)?;
+    over_day(prices, &format!("agent '{agent}'"), b, rows, since)
+}
+
+/// Refuse a model call when one person is at their allowance across every agent they run. `rows` are the journal rows of
+/// all that person's sessions. A user with no budget (and no `default_user_budget`) is never refused here.
+pub fn over_user_budget(
+    prices: &Prices,
+    user: &str,
+    rows: &[crate::audit::AuditEntry],
+    since: chrono::DateTime<chrono::Utc>,
+) -> Option<String> {
+    let b = prices.user_budget_for(user)?;
+    over_day(prices, &format!("user '{user}'"), b, rows, since)
+}
+
+/// The rolling 24-hour calls and cost check shared by the agent and user budgets. `who` names the owner in the message.
+fn over_day(
+    prices: &Prices,
+    who: &str,
+    b: Budget,
+    rows: &[crate::audit::AuditEntry],
+    since: chrono::DateTime<chrono::Utc>,
+) -> Option<String> {
+    use crate::audit::AuditPhase;
     let mine: Vec<_> = rows
         .iter()
         .filter(|r| r.action == "model.call" && r.phase == AuditPhase::Performed && r.at >= since)
         .collect();
     if let Some(max) = b.max_calls_per_day.filter(|m| mine.len() as u64 >= *m) {
         return Some(format!(
-            "model budget reached for agent '{agent}': {} of {max} calls in the last 24 hours",
+            "model budget reached for {who}: {} of {max} calls in the last 24 hours",
             mine.len()
         ));
     }
     if let Some(max) = b.max_cost_per_day {
         let spent: f64 = mine.iter().filter_map(|r| call_cost(Some(prices), r)).sum();
         if spent >= max {
-            return Some(format!("model budget reached for agent '{agent}': {spent:.4} of {max} {} in the last 24 hours", prices.currency).replace("  ", " "));
+            return Some(
+                format!(
+                    "model budget reached for {who}: {spent:.4} of {max} {} in the last 24 hours",
+                    prices.currency
+                )
+                .replace("  ", " "),
+            );
         }
     }
     None
@@ -362,11 +421,18 @@ pub fn budget_status(
     since: chrono::DateTime<chrono::Utc>,
     run_rows: Option<&[&crate::audit::AuditEntry]>,
     goal_rows: Option<&[&crate::audit::AuditEntry]>,
+    user: Option<(&str, &[crate::audit::AuditEntry])>,
 ) -> Option<Value> {
     use crate::audit::AuditPhase;
-    let b = prices.budget_for(agent)?;
+    let user_budget = user.and_then(|(u, _)| prices.user_budget_for(u));
+    let agent_budget = prices.budget_for(agent);
+    if agent_budget.is_none() && user_budget.is_none() {
+        return None;
+    }
+    let b = agent_budget.unwrap_or_default();
     let warn_at = b.warn_at.unwrap_or(DEFAULT_WARN_AT);
     let scope = |name: &str,
+                 warn_at: f64,
                  max_calls: Option<u64>,
                  max_cost: Option<f64>,
                  rows: &[&crate::audit::AuditEntry]| {
@@ -405,15 +471,27 @@ pub fn budget_status(
     let mut scopes: Vec<Value> = Vec::new();
     scopes.extend(scope(
         "day",
+        warn_at,
         b.max_calls_per_day,
         b.max_cost_per_day,
         &day_rows,
     ));
     if let (Some(l), Some(r)) = (b.run, run_rows) {
-        scopes.extend(scope("run", l.max_calls, l.max_cost, r));
+        scopes.extend(scope("run", warn_at, l.max_calls, l.max_cost, r));
     }
     if let (Some(l), Some(r)) = (b.goal, goal_rows) {
-        scopes.extend(scope("goal", l.max_calls, l.max_cost, r));
+        scopes.extend(scope("goal", warn_at, l.max_calls, l.max_cost, r));
+    }
+    // The person's allowance across all their agents: the same rolling 24 hours, counted over every session they own.
+    if let (Some(ub), Some((_, urows))) = (user_budget, user) {
+        let mine: Vec<&crate::audit::AuditEntry> = urows.iter().filter(|r| r.at >= since).collect();
+        scopes.extend(scope(
+            "user",
+            ub.warn_at.unwrap_or(DEFAULT_WARN_AT),
+            ub.max_calls_per_day,
+            ub.max_cost_per_day,
+            &mine,
+        ));
     }
     if scopes.is_empty() {
         return None;
@@ -788,6 +866,56 @@ mod tests {
     }
 
     #[test]
+    fn a_user_budget_falls_back_to_the_default_and_refuses_run_and_goal_caps() {
+        use crate::audit::AuditPhase::Performed;
+        let since = chrono::Utc::now() - chrono::Duration::hours(24);
+        let calls = |n: usize| {
+            (0..n)
+                .map(|_| call("m", None, Performed))
+                .collect::<Vec<_>>()
+        };
+        let p = prices(serde_json::json!({
+            "default_user_budget": {"max_calls_per_day": 5},
+            "user_budgets": {"vip": {"max_calls_per_day": 50}}
+        }));
+        assert!(over_user_budget(&p, "anyone", &calls(4), since).is_none());
+        assert!(over_user_budget(&p, "anyone", &calls(5), since)
+            .unwrap()
+            .contains("user 'anyone': 5 of 5 calls"));
+        assert!(
+            over_user_budget(&p, "vip", &calls(5), since).is_none(),
+            "their own entry wins"
+        );
+        // No user budget at all: nobody is refused.
+        let none = prices(serde_json::json!({"budgets": {"a": {"max_calls_per_day": 1}}}));
+        assert!(over_user_budget(&none, "anyone", &calls(99), since).is_none());
+        // `run` and `goal` are per agent, so a user budget that sets them is a mistake worth failing on.
+        let dir = tempfile::tempdir().unwrap();
+        let f = dir.path().join("p.json");
+        for bad in [
+            serde_json::json!({"default_user_budget": {"run": {"max_calls": 3}}}),
+            serde_json::json!({"user_budgets": {"u": {"goal": {"max_calls": 3}}}}),
+        ] {
+            std::fs::write(&f, bad.to_string()).unwrap();
+            assert!(Prices::load(Some(&f))
+                .unwrap_err()
+                .contains("user budget takes only"));
+        }
+        std::fs::write(
+            &f,
+            serde_json::json!({"user_budgets": {"u": {"max_cost_per_day": -1}}}).to_string(),
+        )
+        .unwrap();
+        assert!(Prices::load(Some(&f)).is_err());
+        std::fs::write(
+            &f,
+            serde_json::json!({"user_budgets": {"u": {"warn_at": 2}}}).to_string(),
+        )
+        .unwrap();
+        assert!(Prices::load(Some(&f)).unwrap_err().contains("warn_at"));
+    }
+
+    #[test]
     fn the_warning_starts_at_the_set_share_and_never_changes_what_is_refused() {
         use crate::audit::AuditPhase::Performed;
         let since = chrono::Utc::now() - chrono::Duration::hours(24);
@@ -797,7 +925,7 @@ mod tests {
                 .collect::<Vec<_>>()
         };
         let day = |p: &Prices, n: usize| {
-            let v = budget_status(p, "a", &calls(n), since, None, None).unwrap();
+            let v = budget_status(p, "a", &calls(n), since, None, None, None).unwrap();
             (
                 v["warn"].clone(),
                 v["reached"].clone(),
@@ -827,7 +955,7 @@ mod tests {
             "prices":{"m":{"input_per_mtok":1.0,"output_per_mtok":1.0}},
             "budgets":{"a":{"max_cost_per_day":2.0}}}));
         let rows = vec![call("m", Some((1_000_000, 700_000)), Performed)];
-        let v = budget_status(&p, "a", &rows, since, None, None).unwrap();
+        let v = budget_status(&p, "a", &rows, since, None, None, None).unwrap();
         assert_eq!(v["warn"], true, "1.7 of 2.0 is 0.85");
         // A bad share is refused when the file loads, not ignored.
         let dir = tempfile::tempdir().unwrap();
