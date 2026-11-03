@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **VM details is covered by the accessibility gate** (all 12 tabs). Fixed: 14 selects with no accessible name, low-contrast danger and
+  amber text, and two tabs that crashed against the mock. The "active toggle" look (link-blue text on a link-coloured tint, 11 uses
+  in VM details, the VM list and create VM) now uses the theme's ink colour, which passes contrast in both themes.
 - **The accessibility gate clicks through the tabs of 16 pages** (it was Network only) and fails on a stale tab label or a tab that
   crashes the page. That found and fixed unnamed terminal editors and selects, dark-theme text on cards, a light-theme packet-flow
   panel with near-white text on white, and three mock gaps that had been hiding tabs behind a crash.

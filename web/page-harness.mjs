@@ -11,7 +11,7 @@ import { mockBody, SEEDED_SESSION_ID } from './mock-data.mjs'
 export const SEEDED_PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
   'schedules', 'settings', 'alerts', 'security-dashboard', 'access-control',
   'backups', 'analytics', 'audit', 'system', 'migrations',
-  'certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'ui-kit']
+  'certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'vms/web-01', 'ui-kit']
 /** Pages that render fine against the mock's empty answers but have no seed data yet. They are checked as empty states (structure,
     labels, contrast of what is drawn), not populated. Seed one in mock-data.mjs and move it to SEEDED_PAGES to check it with data. */
 export const EMPTY_STATE_PAGES = [
@@ -47,6 +47,7 @@ export const PAGE_TABS = {
   'network-security': ['Policies', 'Firewall', 'Services', 'QoS', 'DNS', 'VPN', 'Mirror', 'NAT', 'Monitor'],
   notifications: ['Channels', 'Rules', 'History'],
   'merion/history': ['Runs', 'Triggers', 'Audit', 'Approvals'],
+  'vms/web-01': ['Overview', 'Metrics', 'Disks', 'Network', 'Dataplane', 'Snapshots', 'Hotplug', 'Devices', 'Cloud-init', 'Rescue', 'Advanced', 'Logs'],
 }
 export const SIZES = { desktop: [1440, 900], phone: [390, 844] }
 

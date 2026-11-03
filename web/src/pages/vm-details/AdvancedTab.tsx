@@ -318,7 +318,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
       )}
 
       {!canWrite && (
-        <p className="text-sm text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+        <p className="text-sm text-[var(--zf-warn-text)] bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
           Viewer accounts cannot change advanced configuration.
         </p>
       )}
@@ -363,7 +363,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Firmware</label>
-              <select
+              <select aria-label="Firmware"
                 disabled={!canWrite}
                 value={boot.firmware}
                 onChange={(e) => setBoot({ ...boot, firmware: e.target.value as BootConfig['firmware'] })}
@@ -408,7 +408,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Protocol</label>
-              <select
+              <select aria-label="Protocol"
                 disabled={!canWrite}
                 value={display.type}
                 onChange={(e) => setDisplay({ ...display, type: e.target.value as DisplayConfig['type'] })}
@@ -436,7 +436,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Mode</label>
-              <select
+              <select aria-label="Mode"
                 disabled={!canWrite}
                 value={cpuConfig.mode}
                 onChange={(e) => setCpuConfig({ ...cpuConfig, mode: e.target.value as CPUModelConfig['mode'] })}
@@ -450,7 +450,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
             {cpuConfig.mode === 'custom' && (
               <div>
                 <label className={labelCls}>Model</label>
-                <select
+                <select aria-label="Model"
                   disabled={!canWrite}
                   value={cpuConfig.model}
                   onChange={(e) => setCpuConfig({ ...cpuConfig, model: e.target.value })}
@@ -498,7 +498,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Pinning Mode</label>
-                  <select
+                  <select aria-label="Pinning mode"
                     disabled={savingPinning}
                     value={pinMode}
                     onChange={(e) => setPinMode(e.target.value as CpuPinning['type'])}
@@ -514,7 +514,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
                 {pinMode === 'NumaNode' && numaTopology && (
                   <div>
                     <label className={labelCls}>NUMA Node</label>
-                    <select
+                    <select aria-label="NUMA node"
                       disabled={savingPinning}
                       value={pinNumaNode}
                       onChange={(e) => setPinNumaNode(Number(e.target.value))}
@@ -532,7 +532,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
                 {pinMode === 'Socket' && cpuTopology && (
                   <div>
                     <label className={labelCls}>Socket</label>
-                    <select
+                    <select aria-label="Socket"
                       disabled={savingPinning}
                       value={pinSocket}
                       onChange={(e) => setPinSocket(Number(e.target.value))}
@@ -575,7 +575,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
                 )}
               </div>
               {vm.state === 'running' && (
-                <p className="text-xs text-amber-400/80">This VM is running — pinning changes apply immediately to the live process.</p>
+                <p className="text-xs text-[var(--zf-warn-text)]">This VM is running — pinning changes apply immediately to the live process.</p>
               )}
             </>
           )}
@@ -592,7 +592,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
         )}
         {canWrite && (
           <div className="grid grid-cols-2 gap-3">
-            <select
+            <select aria-label="Watchdog model"
               disabled={savingWatchdog}
               defaultValue={watchdog?.model ?? 'i6300esb'}
               id="watchdog-model"
@@ -601,7 +601,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
               <option value="i6300esb">i6300esb</option>
               <option value="ib700">ib700</option>
             </select>
-            <select
+            <select aria-label="Watchdog action"
               disabled={savingWatchdog}
               defaultValue={watchdog?.action ?? 'reset'}
               id="watchdog-action"
@@ -648,7 +648,7 @@ export default function AdvancedTab({ vm }: { vm: VM }) {
           <div className="flex items-end gap-2">
             <div>
               <label className={labelCls}>Type</label>
-              <select value={newSerialType} onChange={(e) => setNewSerialType(e.target.value as SerialConfig['type'])} className={inputCls}>
+              <select aria-label="Serial type" value={newSerialType} onChange={(e) => setNewSerialType(e.target.value as SerialConfig['type'])} className={inputCls}>
                 <option value="pty">pty</option>
                 <option value="unix">unix</option>
                 <option value="tcp">tcp</option>
