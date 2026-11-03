@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- **Dashboard redesign.** The hero graphic shows the real fleet (a node per VM in its state colour, running ones animated), a
+  Fleet donut sits beside the charts, and the VM table shows live CPU and memory bars per running VM. A stopped VM is now drawn
+  grey, not red (only a failed one is red). First-run guidance has an illustration and icons; the active sidebar item has a brand
+  edge. See `docs/merion/design/ux-bold.md`.
 - **Merion replay, history and home.** The replay has a scrubber (a marker per step coloured by outcome, play and pause, the
   current step in words, a signature chip). The history page shows audit phases and approval statuses as chips, and the Merion
   home shows the run as a four-step sealed-cell pipeline with a drop zone. Home, history and the audit/approval colours use the

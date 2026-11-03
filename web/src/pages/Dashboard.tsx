@@ -8,14 +8,16 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useWebSocketContext } from '../contexts/WebSocketContext'
 import { useToastContext } from '../contexts/ToastContext'
 import { SkeletonDashboard } from '../components/Skeleton'
-import { StatusBadge } from '../components/ui'
+import { StatusBadge, GlowCard, AuroraBackdrop, Donut } from '../components/ui'
 import { Link } from 'react-router'
 import ErrorBanner from '../components/ErrorBanner'
 import { formatUserError } from '../utils/apiError'
 import { toastFailure } from '../utils/toastError'
 import { hintsForError } from '../utils/daemonHints'
 import { GettingStarted } from '../components/GettingStarted'
-import { FabricGraphic } from '../components/FabricGraphic'
+import { LiveFabric } from '../components/LiveFabric'
+import { LoadBar } from '../components/LoadBar'
+import { fleetCounts } from '../lib/fleet'
 import { StatTile } from '../components/StatTile'
 import { apiFetch } from '../api/client'
 import { listStoragePools } from '../api/storage'
@@ -68,6 +70,8 @@ const CHART_TOOLTIP_STYLE = {
 
 export default function Dashboard() {
   const [vms, setVMs] = useState<VM[]>([])
+  // The latest per-VM reading from the same poll that feeds the charts: CPU %, and memory as a % of the VM's own allocation.
+  const [vmLoad, setVmLoad] = useState<Record<string, { cpu: number; mem: number | null }>>({})
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [refreshError, setRefreshError] = useState<string | null>(null)
@@ -106,6 +110,7 @@ export default function Dashboard() {
       const currentVMs = await listVMs()
       const running = currentVMs.filter((vm) => vm.state === 'running')
       if (running.length === 0) {
+        setVmLoad({})
         setMetricsHistory((prev) => [...prev.slice(-29), { time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), cpu: 0, memory: 0 }])
         return
       }
@@ -113,6 +118,14 @@ export default function Dashboard() {
       const metrics = results
         .filter((r): r is PromiseFulfilledResult<{ vm: VM; m: VMMetrics }> => r.status === 'fulfilled')
         .map((r) => r.value)
+      setVmLoad(
+        Object.fromEntries(
+          metrics.map(({ vm, m }) => [
+            vm.name,
+            { cpu: m.cpu_usage, mem: vm.memory > 0 ? (m.memory_usage / (vm.memory * 1024 * 1024)) * 100 : null },
+          ]),
+        ),
+      )
       const avgCpu = metrics.length > 0 ? metrics.reduce((s, { m }) => s + m.cpu_usage, 0) / metrics.length : 0
       // memory_usage is raw bytes, not a percentage (unlike cpu_usage) — express it
       // as a percentage of each VM's own allocated memory (`vm.memory`, in MiB) so
@@ -167,6 +180,7 @@ export default function Dashboard() {
     totalCPU: vms.reduce((a, v) => a + v.cpus, 0),
     totalMem: vms.reduce((a, v) => a + v.memory, 0),
   }
+  const fleet = fleetCounts(vms)
   const fleetHealthPct = stats.total > 0 ? (stats.running / stats.total) * 100 : 0
 
   const totalCount = useCountUp(stats.total)
@@ -188,8 +202,9 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Hero */}
       <div className="glass-panel relative overflow-hidden px-6 py-6 sm:px-8 sm:py-7">
-        <div className="pointer-events-none absolute -right-6 -top-10 w-72 h-72 opacity-70">
-          <FabricGraphic ambient />
+        <AuroraBackdrop />
+        <div className="pointer-events-none absolute right-2 top-1 hidden h-56 w-64 sm:block lg:right-6">
+          <LiveFabric vms={vms} />
         </div>
         <div className="relative flex flex-col sm:flex-row sm:items-center gap-6">
           <div className="flex-1 min-w-0">
@@ -273,8 +288,36 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Fleet status, then the charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-[17rem_minmax(0,1fr)_minmax(0,1fr)] gap-6">
+        <GlowCard className="p-5" tone={fleet.failed > 0 ? 'danger' : 'neutral'}>
+          <h3 className="mb-3 text-base font-semibold text-[var(--zf-ink)]">Fleet</h3>
+          <div className="flex items-center gap-4 lg:flex-col lg:items-start">
+            <Donut
+              size={120}
+              thickness={13}
+              center={String(fleet.total)}
+              centerLabel={fleet.total === 1 ? 'VM' : 'VMs'}
+              segments={[
+                { label: 'Running', value: fleet.running, color: 'var(--zf-success)' },
+                { label: 'Paused', value: fleet.paused, color: 'var(--zf-warning)' },
+                { label: 'Stopped', value: fleet.stopped, color: 'var(--zf-muted)' },
+                { label: 'Failed', value: fleet.failed, color: 'var(--zf-danger)' },
+                { label: 'Other', value: fleet.other, color: 'var(--zf-cool)' },
+              ]}
+            />
+            <ul className="space-y-1 text-sm text-[var(--zf-secondary)]">
+              {([['Running', fleet.running, 'var(--zf-success)'], ['Paused', fleet.paused, 'var(--zf-warning)'], ['Stopped', fleet.stopped, 'var(--zf-muted)'], ['Failed', fleet.failed, 'var(--zf-danger)']] as const)
+                .filter(([, n]) => n > 0 || fleet.total === 0)
+                .map(([label, n, color]) => (
+                  <li key={label} className="flex items-center gap-2 tabular-nums">
+                    <span className="h-2 w-2 rounded-full" style={{ background: color }} aria-hidden="true" />
+                    {label} {n}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </GlowCard>
         {/* CPU Chart */}
         <div className="bg-[var(--zf-canvas)] rounded-xl p-5 border border-[var(--zf-hairline)]">
           <div className="flex items-center gap-3 mb-4">
@@ -357,6 +400,7 @@ export default function Dashboard() {
               <tr className="border-b border-[var(--zf-hairline)]">
                 <th className="text-left px-5 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Name</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Status</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Load</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">CPU</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Memory</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">IP</th>
@@ -369,6 +413,16 @@ export default function Dashboard() {
                     <Link to={`/app/vms/${vm.name}`} className="font-medium text-[var(--zf-ink)] hover:text-[var(--zf-link)] transition-colors">{vm.name}</Link>
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={vm.state} /></td>
+                  <td className="px-4 py-3">
+                    {vm.state === 'running' && vmLoad[vm.name] ? (
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2"><span className="w-7 text-xs text-[var(--zf-muted)]">CPU</span><LoadBar label={`${vm.name} CPU`} value={vmLoad[vm.name].cpu} /></div>
+                        <div className="flex items-center gap-2"><span className="w-7 text-xs text-[var(--zf-muted)]">Mem</span><LoadBar label={`${vm.name} memory`} value={vmLoad[vm.name].mem} /></div>
+                      </div>
+                    ) : (
+                      <span className="text-[var(--zf-muted)]">–</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-[var(--zf-muted)] tabular-nums">{vm.cpus} vCPU</td>
                   <td className="px-4 py-3 text-[var(--zf-muted)] tabular-nums">{vm.memory >= 1024 ? `${(vm.memory / 1024).toFixed(1)} GB` : `${vm.memory} MB`}</td>
                   <td className="px-4 py-3 text-[var(--zf-muted)] font-mono text-xs">{vm.ip || '-'}</td>

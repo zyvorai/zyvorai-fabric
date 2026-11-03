@@ -1,6 +1,6 @@
 # Bold, dark-first UX: foundation
 
-**Status:** phase 0 (tokens, primitives, seeded mock, gate) and phase 1 (the Merion session page, replay, history and home) are built. Phases 2 and 3 (console shell and dashboard, sign-in and marketing) are still to do.
+**Status:** phase 0 (tokens, primitives, seeded mock, gate), phase 1 (the Merion pages) and phase 2 (the dashboard and shell touches) are built. Phase 3 (sign-in and marketing) is still to do.
 
 The [UX plan](ux-plan.md) made the console calm and consistent. This work makes it bold: dark first, depth and glow, graphics that carry meaning, and motion that is purposeful. It builds on the same token system, motion variables and accessibility gate.
 
@@ -42,6 +42,15 @@ The page used to be one 3,200 px column of plain cards with the approval near th
 - The history page is now covered by the gate (it is in `PAGES` with seeded runs, approvals, audit and triggers).
 
 Not done: the history Runs and Triggers tabs are still plain lists; an expiry countdown ring (the runtime sends a deadline but not the full lifetime, so there is nothing to draw the ring against), a content diff (contents are masked on the host by design), and the replay scrubber, history table and Merion home, which are the next part of phase 1.
+
+## Phase 2: the dashboard and the shell
+
+- **`LiveFabric`** replaces the decorative constellation in the dashboard hero: a core with one node per real VM (up to eight, running first, then failed, paused, the rest), each in the colour of its state. A running VM's line moves; the others are still. The svg carries one sentence ("6 virtual machines: 3 running, ...") and each node has a title; the VM table below still lists every VM. Hidden on phones.
+- **Fleet card**: a `Donut` of running, paused, stopped, failed and other, with the same numbers listed in text; the card gets a danger halo only when a VM has failed.
+- **Per-VM load** in the table: CPU and memory bars (`LoadBar`, `role="meter"`, amber from 50%, red from 80%) from the metrics the page already polls for the charts. There is no per-VM history, so there are no per-VM sparklines; a VM with no reading shows a dash, never zero.
+- **Colour language**: only a failed VM is red. `StatusBadge` now draws `stopped` as a neutral grey (it was red, as if an error); `stateTone` in `lib/fleet.ts` is the one mapping the graphic, donut and bars share.
+- **Onboarding** (`GettingStarted`): an illustration, an icon per step, numbered steps, and the first one carries the brand halo.
+- **Shell**: the active sidebar item gets a brand edge (the weight and text still mark it), and the "Live" pill uses the shared pulse.
 
 ## The gate and crashed pages
 

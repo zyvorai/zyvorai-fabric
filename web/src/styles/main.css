@@ -937,7 +937,10 @@ a:hover {
   background: var(--zf-active-tint);
   color: var(--zf-ink);
   font-weight: 600;
+  /* the brand edge marks where you are; the text and weight say it too */
+  box-shadow: inset 3px 0 0 var(--zf-brand);
 }
+.console-nav-link.active svg { color: var(--zf-brand-text); }
 .console-main {
   flex: 1;
   min-width: 0;
