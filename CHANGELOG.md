@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **Sign-in and marketing home.** The marketing home shows a picture of the real console (the fleet map, donut and load bars on
+  example data) in place of a grey placeholder, with the aurora behind the hero and the second call-to-action row centred. The
+  sign-in page has a faint fleet map behind the credentials card on wide screens. See `docs/merion/design/ux-bold.md`.
 - **Dashboard redesign.** The hero graphic shows the real fleet (a node per VM in its state colour, running ones animated), a
   Fleet donut sits beside the charts, and the VM table shows live CPU and memory bars per running VM. A stopped VM is now drawn
   grey, not red (only a failed one is red). First-run guidance has an illustration and icons; the active sidebar item has a brand

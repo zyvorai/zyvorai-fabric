@@ -214,6 +214,9 @@ a:hover {
     radial-gradient(ellipse 80% 50% at 50% 0%, var(--zf-hover-tint), transparent 60%),
     var(--zf-canvas);
 }
+.mkt-hero > :not(.zf-aurora) {
+  position: relative; /* paints above the aurora layer, which is the hero's first child */
+}
 .mkt-hero h1 {
   font-size: clamp(2.75rem, 8vw, 5.5rem);
   font-weight: 600;
@@ -300,6 +303,12 @@ a:hover {
 .mkt-band .mkt-band-cta:hover:not(:disabled) {
   opacity: 0.92;
   color: var(--mkt-band-cta-fg) !important;
+}
+.mkt-band .zf-btn-secondary {
+  /* The band inverts with the theme (dark in light, light in dark), so its secondary button follows the band, not the page. */
+  color: var(--mkt-band-fg);
+  border-color: color-mix(in srgb, var(--mkt-band-fg) 35%, transparent);
+  background: transparent;
 }
 .mkt-footer {
   border-top: 1px solid var(--zf-hairline);

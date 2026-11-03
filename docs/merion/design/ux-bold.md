@@ -1,6 +1,6 @@
 # Bold, dark-first UX: foundation
 
-**Status:** phase 0 (tokens, primitives, seeded mock, gate), phase 1 (the Merion pages) and phase 2 (the dashboard and shell touches) are built. Phase 3 (sign-in and marketing) is still to do.
+**Status:** all three phases are built: phase 0 (tokens, primitives, seeded mock, gate), phase 1 (the Merion pages), phase 2 (the dashboard and shell touches) and phase 3 (sign-in and the marketing home).
 
 The [UX plan](ux-plan.md) made the console calm and consistent. This work makes it bold: dark first, depth and glow, graphics that carry meaning, and motion that is purposeful. It builds on the same token system, motion variables and accessibility gate.
 
@@ -51,6 +51,13 @@ Not done: the history Runs and Triggers tabs are still plain lists; an expiry co
 - **Colour language**: only a failed VM is red. `StatusBadge` now draws `stopped` as a neutral grey (it was red, as if an error); `stateTone` in `lib/fleet.ts` is the one mapping the graphic, donut and bars share.
 - **Onboarding** (`GettingStarted`): an illustration, an icon per step, numbered steps, and the first one carries the brand halo.
 - **Shell**: the active sidebar item gets a brand edge (the weight and text still mark it), and the "Live" pill uses the shared pulse.
+
+## Phase 3: sign-in and the marketing home
+
+- **Marketing home**: the grey placeholder "console" is now `ConsoleMock`, a picture of the dashboard built from the same pieces as the real one (the fleet map, the donut, the load bars) on an invented fleet (`lib/sampleFleet.ts`), in a browser frame and labelled "Example data". A screen reader gets one description of it, not its parts. The hero has the aurora behind it, and the "See the platform" and "Meet Merion" buttons are centred under their text (they were stuck at the left edge).
+- **Sign-in**: the fleet map sits behind the credentials card as a faint, `aria-hidden` backdrop (`PremiumLoginShell`'s `backdrop` prop). It is behind the card, not in the hero chapter, because the username field is focused on load and that scrolls the hero away: people land on the card. It is sized so the ring of nodes falls outside the card and its text, is off below 700 px wide, and its flow lines stop for reduced motion. `LiveFabric` has a `decorative` mode (no role, label or titles) for this.
+
+Not done: the other marketing pages (Product, Platform, Security, Merion) and the Docusaurus `website/` are unchanged.
 
 ## The gate and crashed pages
 

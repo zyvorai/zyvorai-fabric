@@ -22,7 +22,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       <header className="mkt-nav">
         <div className="mkt-nav-inner">
           <nav className="flex items-center gap-7">
-            <Link to="/" className="mkt-brand" aria-label="Zyvor Fabric">
+            <Link to="/" className="mkt-brand">
               <ZyvorLockup markClassName="w-6 h-6" />
               <span className="text-[var(--zf-muted)] font-medium">Fabric</span>
             </Link>
