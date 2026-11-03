@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- **Merion replay, history and home.** The replay has a scrubber (a marker per step coloured by outcome, play and pause, the
+  current step in words, a signature chip). The history page shows audit phases and approval statuses as chips, and the Merion
+  home shows the run as a four-step sealed-cell pipeline with a drop zone. Home, history and the audit/approval colours use the
+  contrast-safe tokens. See `docs/merion/design/ux-bold.md`.
 - **Merion session page redesign.** Two columns with the approval first; the 0 CONNECT proof is a seal that never claims
   "sealed" when no count was reported; the changeset diff has a proportional change bar and shows what is replayed next to what
   is only recorded; the model budget is a set of meters; the run is a timeline that words every outcome (a failed apply is

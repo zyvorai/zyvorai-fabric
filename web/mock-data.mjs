@@ -135,6 +135,56 @@ const REPORT = (s) => ({
   rollback: [{ item: '/work/out/invoice-summary.md', state: 'not applied', note: 'nothing in the cell changed' }],
 })
 
+const RECORDING = (s) => ({
+  bundle: {
+    format: 'zyvor-session-recording/1',
+    session: { id: s.id, agent: s.agent, status: s.status },
+    masking: 'message text, request bodies and approval wording are not included',
+    steps: [
+      { n: 0, source: 'journal', at: ago(3300), action: 'session.created', phase: 'Performed' },
+      { n: 1, source: 'event', at: ago(3290), kind: 'stdout', data_bytes: 412 },
+      { n: 2, source: 'journal', at: ago(3240), action: 'model.call', phase: 'Performed', detail: { host: 'api.example.com' } },
+      { n: 3, source: 'journal', at: ago(3200), action: 'egress.drop', phase: 'Denied', detail: { host: 'tracker.example.net' } },
+      { n: 4, source: 'approval', at: ago(3000), kind: 'changeset', status: 'pending' },
+      { n: 5, source: 'approval', at: ago(1700), kind: 'changeset', status: 'approved', decided_at: ago(1700) },
+      { n: 6, source: 'journal', at: ago(1690), action: 'changeset.apply', phase: 'Failed' },
+    ],
+  },
+  digest: 'a'.repeat(64),
+  signature: 'b'.repeat(128),
+  signer: 'c'.repeat(64),
+})
+
+const ARTIFACTS = [
+  { id: 'ar-0001', kind: 'brief', title: 'invoices-march.md', created_at: ago(7200), session_id: SESSIONS[1].id, agent: 'pdf-brief', metadata: { demo: 'pdf-brief' } },
+  { id: 'ar-0002', kind: 'csv', title: 'ledger-clean.csv', created_at: ago(5400), session_id: SESSIONS[2].id, agent: 'csv-clean', metadata: { demo: 'csv-clean' } },
+  { id: 'ar-0003', kind: 'brief', title: 'invoices-april.md', created_at: ago(1800), session_id: SESSIONS[1].id, agent: 'pdf-brief', metadata: { demo: 'pdf-brief' } },
+]
+
+const APPROVALS = [
+  { id: 'a1b2c3d4-0000-4000-8000-000000000001', session_id: SESSIONS[0].id, kind: 'changeset', subject: 'python3 check.py --in /work/in', prompt: 'Apply the file changes?', status: 'pending', created_at: ago(3000) },
+  { id: 'a1b2c3d4-0000-4000-8000-000000000002', session_id: SESSIONS[0].id, kind: 'changeset', subject: 'echo two > /tmp/rt/b.txt', prompt: 'Apply the file changes?', status: 'approved', created_at: ago(1900), decided_at: ago(1700) },
+  { id: 'a1b2c3d4-0000-4000-8000-000000000003', session_id: SESSIONS[3].id, kind: 'egress', subject: 'api.example.com', prompt: 'Allow api.example.com?', status: 'denied', created_at: ago(9000), decided_at: ago(8900) },
+]
+
+const AUDIT = {
+  items: [
+    { seq: 41, at: ago(3300), session_id: SESSIONS[0].id, phase: 'Performed', action: 'session.created' },
+    { seq: 42, at: ago(3240), session_id: SESSIONS[0].id, phase: 'Performed', action: 'model.call' },
+    { seq: 43, at: ago(3200), session_id: SESSIONS[0].id, phase: 'Denied', action: 'egress.drop' },
+    { seq: 44, at: ago(1700), session_id: SESSIONS[0].id, phase: 'Approved', action: 'approval.changeset' },
+    { seq: 45, at: ago(1690), session_id: SESSIONS[0].id, phase: 'Failed', action: 'changeset.apply' },
+  ],
+  chain: { entries: 45, chain_ok: true, broken_at: null },
+}
+
+const DEMOS = [
+  { id: 'pdf-brief', title: 'PDF brief', description: 'Drop a PDF, get a one-page brief.md.', accepts: ['pdf'], max_bytes: 33554432, builtin: true, has_sample: true },
+  { id: 'csv-clean', title: 'CSV cleanup', description: 'Drop a messy CSV, get a clean one and a report.', accepts: ['csv'], max_bytes: 8388608, builtin: true, has_sample: true },
+  { id: 'contract-clauses', title: 'Contract clauses', description: 'Pull the key clauses out of a contract.', accepts: ['pdf', 'docx'], max_bytes: 33554432, builtin: true, has_sample: false, model: { host: 'api.example.com', model: 'fable-5-1' } },
+  { id: 'invoice-check', title: 'Invoice check', description: 'Check invoices against your rules.', accepts: ['pdf', 'csv'], max_bytes: 8388608, builtin: false, has_sample: false },
+]
+
 const AGENTS = ['invoice-check', 'pdf-brief', 'csv-clean', 'contract-clauses', 'log-triage'].map((name) => ({
   name,
   version: '15ab785375eb',
@@ -162,6 +212,13 @@ export function mockBody(path) {
   }
   if (p === '/system/alerts') return [{ severity: 'warning', message: 'db-primary disk 82% full' }]
   if (p === '/sessions') return { items: SESSIONS }
+  if (p === '/artifacts') return { items: ARTIFACTS }
+  if (p === '/approvals') return { items: APPROVALS }
+  if (p === '/audit/agent-actions') return AUDIT
+  if (p === '/triggers') return { items: [{ id: 'tr-1', use_case: 'csv-clean', kind: 'folder', enabled: true, runs: 12, dir: '/inbox/csv', interval_seconds: 60, last_run_at: ago(120) }], watch_root_configured: true }
+  if (p === '/demos') return { demos: DEMOS }
+  if (p === '/merion/status') return { merion_mode: true, signature_required: true, trusted_signers: 1, fluxvm: { ready: true }, demo_template: 'node22-agent', demos: { builtin: 3, custom: 1 } }
+  if (p === '/recordings/verify') return { valid: true, signer: 'c'.repeat(64) }
   if (p === '/agents') return { items: AGENTS }
   m = p.match(/^\/sessions\/([^/]+)$/)
   if (m) return SESSIONS.find((s) => s.id === m[1]) ?? SESSIONS[0]
@@ -174,6 +231,8 @@ export function mockBody(path) {
       policy: { id: m[2], version: 2, paths: ['/work/out'], kinds: ['added'], max_files: 20, max_bytes: 1048576, deny_globs: ['*.env'] },
     }
   }
+  m = p.match(/^\/sessions\/([^/]+)\/recording$/)
+  if (m) return RECORDING(SESSIONS.find((s) => s.id === m[1]) ?? SESSIONS[0])
   m = p.match(/^\/sessions\/([^/]+)\/report$/)
   if (m) return REPORT(SESSIONS.find((s) => s.id === m[1]) ?? SESSIONS[0])
   m = p.match(/^\/sessions\/([^/]+)\/cockpit$/)

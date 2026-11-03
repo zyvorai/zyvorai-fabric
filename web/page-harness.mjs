@@ -8,7 +8,7 @@ import { extname, join } from 'node:path'
 import { mockBody, SEEDED_SESSION_ID } from './mock-data.mjs'
 
 export const PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
-  'schedules', 'settings', 'alerts', 'security-dashboard', 'access-control', `merion/${SEEDED_SESSION_ID}`, 'ui-kit']
+  'schedules', 'settings', 'alerts', 'security-dashboard', 'access-control', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'ui-kit']
 /** Pages whose mock data is not seeded yet: with the mock's empty `{}` they throw and show the error boundary, so axe
     has nothing real to check. They were in PAGES before, and "passed" because an error page has no violations. Seed each
     one (see mock-data.mjs) and move it back to PAGES. */

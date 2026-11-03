@@ -42,3 +42,24 @@ export function barShare(used: number, max: number | null): number | null {
   if (max <= 0) return 1
   return Math.max(0, Math.min(1, used / max))
 }
+
+export type RunStage = 'idle' | 'cell' | 'extract' | 'done' | 'fail'
+export type NodeState = 'todo' | 'active' | 'done' | 'fail'
+
+/** What each of the four pipeline nodes (file, cell, extract, artifact) shows for a run stage. The one that is working is
+    `active`; on failure everything reached stays done and the node it stopped at is `fail`. */
+export function pipelineStates(stage: RunStage): [NodeState, NodeState, NodeState, NodeState] {
+  switch (stage) {
+    case 'idle':
+      return ['todo', 'todo', 'todo', 'todo']
+    case 'cell':
+      return ['done', 'active', 'todo', 'todo']
+    case 'extract':
+      return ['done', 'done', 'active', 'todo']
+    case 'done':
+      return ['done', 'done', 'done', 'done']
+    case 'fail':
+      // A failure can happen at any point and the page does not say where, so it is shown at the cell, the first thing that runs.
+      return ['done', 'fail', 'todo', 'todo']
+  }
+}
