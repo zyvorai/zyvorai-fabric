@@ -79,6 +79,8 @@ export interface MerionApproval {
   subject?: string | null;
   prompt: string;
   status: "pending" | "approved" | "denied" | "expired";
+  /** Set when a person approved a changeset but FluxVM could not apply it; nothing changed. */
+  apply_error?: string;
   planned_action?: unknown;
   created_at: string;
   decided_at?: string | null;

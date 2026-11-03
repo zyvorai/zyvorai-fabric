@@ -131,7 +131,7 @@ pub fn next_move(
             (Some(BlockedOn::Approval), Some(_), Some(ApprovalStatus::Expired) | None) => {
                 block_once(
                     step,
-                    "the approval expired or is missing; the goal stays blocked",
+                    "the approval expired, could not be applied or is missing; the goal stays blocked",
                     BlockedOn::Rejected,
                 )
             }
@@ -264,7 +264,14 @@ pub async fn tick_goal(state: &Arc<AppState>, goal_id: Uuid, now: DateTime<Utc>)
             None => None,
         },
         approval: match step.approval_id {
-            Some(aid) => state.store.get_approval(aid).await.map(|a| a.status),
+            Some(aid) => state.store.get_approval(aid).await.map(|a| {
+                // Approved but never applied is not done: block the step like an expired approval.
+                if a.status == ApprovalStatus::Approved && a.apply_error.is_some() {
+                    ApprovalStatus::Expired
+                } else {
+                    a.status
+                }
+            }),
             None => None,
         },
     };
@@ -529,6 +536,7 @@ async fn open_approval(
         grant_scope: None,
         preview: None,
         broker_held: false,
+        apply_error: None,
     };
     state
         .store

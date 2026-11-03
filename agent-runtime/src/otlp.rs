@@ -458,6 +458,7 @@ mod tests {
             decided_at: None,
             source_seq: None,
             broker_held: false,
+            apply_error: None,
             grant_scope: None,
             preview: Some(json!("SECRET-PREVIEW")),
         };

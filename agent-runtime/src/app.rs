@@ -2312,6 +2312,7 @@ async fn record_approval_request(
         grant_scope: None,
         preview: None,
         broker_held: false,
+        apply_error: None,
     };
     state.store.save_approval(record.clone()).await?;
     audit_approval_planned(state, &record).await;
@@ -3805,6 +3806,7 @@ async fn create_approval(
         grant_scope: None,
         preview: None,
         broker_held: false,
+        apply_error: None,
     };
     state
         .store
@@ -4146,6 +4148,7 @@ async fn speculate_session(
         grant_scope: None,
         preview: None,
         broker_held: false,
+        apply_error: None,
     };
     state
         .store
@@ -4290,6 +4293,11 @@ async fn auto_decide_changeset(
         .await
         .err()
         .map(|e| format!("{e:?}"));
+    let decided = state
+        .store
+        .get_approval(decided.id)
+        .await
+        .unwrap_or(decided);
     (decided, apply_error)
 }
 
@@ -4535,6 +4543,16 @@ async fn settle_changeset(
     }
     if approved && outcome.is_ok() {
         run_verify_command(state, session, record, &changeset_id.to_string()).await;
+    }
+    if let (Err(e), true) = (&outcome, approved) {
+        // The decision stands, but nothing was applied: say so on the record so a goal does not proceed.
+        if let Err(error) = state
+            .store
+            .set_apply_error(record.id, format!("{e:#}"))
+            .await
+        {
+            tracing::error!(%error, approval_id = %record.id, "failed to record the apply error");
+        }
     }
     outcome.map(|_| ()).map_err(|e| {
         ApiError::bad_gateway(format!(
@@ -5703,6 +5721,8 @@ mod tests {
         // The person's decision is not lost, and a second decision is refused.
         let stored = state.store.get_approval(approval).await.unwrap();
         assert_eq!(stored.status, ApprovalStatus::Approved);
+        // ...but the record says nothing was applied, so a goal or report cannot read it as done.
+        assert!(stored.apply_error.is_some(), "apply_error must be recorded");
         assert!(decide(&state, approval, ApprovalStatus::Approved)
             .await
             .is_err());
