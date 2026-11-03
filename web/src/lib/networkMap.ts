@@ -33,6 +33,9 @@ export interface NetworkMapInput {
   bridges?: Array<{ name: string; operational_state?: string }>
   taps?: Array<{ name: string; bridge?: string; operational_state?: string }>
   netfiles?: Array<{ match_name: string; bridge?: string; bond?: string }>
+  /** Interfaces to draw even when nothing refers to them, such as the host's physical NICs, so a host with no bonds, VLANs or taps
+      still shows what it has. A name that is also a configured device is not drawn twice. */
+  interfaces?: Array<{ name: string; operational_state?: string }>
 }
 
 export interface NetworkMap {
@@ -84,6 +87,7 @@ export function buildNetworkMap(input: NetworkMapInput): NetworkMap {
   for (const m of input.macvtaps ?? []) add('macvtap', m.name, m.operational_state)
   for (const b of input.bridges ?? []) add('bridge', b.name, b.operational_state)
   for (const t of input.taps ?? []) add('tap', t.name, t.operational_state)
+  for (const i of input.interfaces ?? []) if (!byName.has(i.name)) add('interface', i.name, i.operational_state)
 
   for (const b of input.bonds ?? []) for (const s of b.slave_interfaces ?? []) link(resolve(s), resolve(b.name))
   for (const v of input.vlans ?? []) if (v.parent_interface) link(resolve(v.parent_interface), resolve(v.name))
@@ -104,13 +108,16 @@ export function buildNetworkMap(input: NetworkMapInput): NetworkMap {
 
 export type NetTone = 'proof' | 'warn' | 'neutral'
 
-/** The tone of a networkd operational state. Only a clearly working link is green; `degraded` is amber; everything else, including
-    a link with no carrier and one whose state was not reported, is neutral. No state is red: a down link is not an error. */
+/** The tone of an operational state. The API uses two vocabularies: networkd's own (`routable`, `carrier`, `enslaved`, `degraded`,
+    `no-carrier`, ...) on links, and plain `up`, `down` and `unknown` on bridges, VXLANs and network files (seen on a real host).
+    Only a clearly working link is green; `degraded` is amber; everything else, including `down` and a state that was not reported,
+    is neutral. No state is red: a down link is not an error. */
 export function netTone(state: string | undefined): NetTone {
   switch (state) {
     case 'routable':
     case 'carrier':
     case 'enslaved':
+    case 'up':
       return 'proof'
     case 'degraded':
       return 'warn'
