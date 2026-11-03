@@ -105,7 +105,7 @@ export interface MerionCockpit {
     warn?: boolean
     warn_at?: number
     scopes?: Array<{
-      scope: 'day' | 'run' | 'goal'
+      scope: 'day' | 'run' | 'goal' | 'user'
       calls: { used: number; max: number | null }
       cost: { used: number; max: number | null; currency?: string }
       /** The closest any cap in this scope is to its limit, 0 to 1. */

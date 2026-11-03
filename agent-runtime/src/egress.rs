@@ -3143,6 +3143,76 @@ pub(crate) mod ask_tests {
     }
 
     #[tokio::test]
+    async fn a_user_budget_counts_all_of_their_agents_and_nobody_elses() {
+        let (p1, seen) = chat_stub(200).await;
+        let prices = json!({
+            "budgets": {"a": {"max_calls_per_day": 100}},
+            "user_budgets": {"alice": {"max_calls_per_day": 3}}
+        });
+        let (state, session) = socket_agent(p1, &[], false, "127.0.0.1", Some(prices)).await;
+        let as_user = |user: Option<&str>, agent: &str| {
+            let mut s = session.clone();
+            s.id = uuid::Uuid::new_v4();
+            s.agent = agent.to_string();
+            s.user_id = user.map(str::to_string);
+            s
+        };
+        // Alice's own session on agent "a", plus another of her sessions on a different agent that already made 2 calls.
+        let alice = SessionRecord {
+            user_id: Some("alice".into()),
+            ..session.clone()
+        };
+        state.store.save_session(alice.clone()).await.unwrap();
+        let other = as_user(Some("alice"), "b");
+        state.store.save_session(other.clone()).await.unwrap();
+        for _ in 0..2 {
+            state
+                .store
+                .audit
+                .append(
+                    Some(other.id),
+                    AuditPhase::Performed,
+                    "model.call",
+                    Some("b".into()),
+                    json!({}),
+                )
+                .await
+                .unwrap();
+        }
+        // 2 of 3 across her agents: this one goes through and makes it 3.
+        chat(&state, &alice, p1).await.unwrap();
+        let err = chat(&state, &alice, p1).await.unwrap_err();
+        assert_eq!(err.0, StatusCode::TOO_MANY_REQUESTS);
+        assert!(err.1.contains("user 'alice'"), "{}", err.1);
+        assert_eq!(
+            seen.lock().unwrap().len(),
+            1,
+            "the refused call is never sent"
+        );
+        // The status says the same thing before the refusal does.
+        let st = crate::model_call::budget_status_for(&state, "a", alice.id)
+            .await
+            .unwrap()
+            .unwrap();
+        let user = st["scopes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|s| s["scope"] == "user")
+            .unwrap();
+        assert_eq!(user["calls"]["used"], 3, "{st}");
+        assert_eq!(user["reached"], true);
+        // Someone else on the same agent, and a session with no user, are not counted against her.
+        let bob = as_user(Some("bob"), "a");
+        state.store.save_session(bob.clone()).await.unwrap();
+        chat(&state, &bob, p1).await.unwrap();
+        let nobody = as_user(None, "a");
+        state.store.save_session(nobody.clone()).await.unwrap();
+        chat(&state, &nobody, p1).await.unwrap();
+        assert_eq!(seen.lock().unwrap().len(), 3);
+    }
+
+    #[tokio::test]
     async fn a_run_and_a_goal_each_have_their_own_model_call_cap() {
         // Per run: this session stops at 2 calls, a second session of the same agent is not affected.
         let (p1, seen) = chat_stub(200).await;
