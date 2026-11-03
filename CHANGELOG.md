@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- **Storage pages are checked with data** (pools and volumes seeded in the mock). Fixed low-contrast state and usage text on the storage page and pools page in both themes.
 - **The accessibility gate checks VM details for a stopped and a paused VM** as well as the running one (12 tabs each). No app change was needed.
 - **VM details is covered by the accessibility gate** (all 12 tabs). Fixed: 14 selects with no accessible name, low-contrast danger and
   amber text, and two tabs that crashed against the mock. The "active toggle" look (link-blue text on a link-coloured tint, 11 uses

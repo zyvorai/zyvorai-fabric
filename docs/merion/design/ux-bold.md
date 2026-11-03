@@ -122,3 +122,7 @@ The run takes about 7 minutes in one process, so `npm run a11y` runs the two the
 `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run a11y` (22 pages, light and dark, 1440 and 390 px), and `node baseline-shots.mjs <dir>` for screenshots.
 
 VM details is now also checked for a **stopped** (`vms/staging-api`) and a **paused** (`vms/ci-runner`) VM, 12 tabs each, in both themes and both sizes. Both passed with no change to the app. Still not covered: a VM that is failed or mid-migration.
+
+### Storage
+
+The storage pools and storage manager pages now have seeded pools (active, degraded, inactive) and volumes in the mock, so they are checked with data (before: empty state only). That also exposed the `storage` page's pool cards. Fixed: green, red and amber text on themed cards in dark theme (3.3 to 3.9:1), amber state text on white (2.05:1), and blue text on a blue tint (4.45:1, now ink). Not covered: the create-pool dialogs and the RBD image list.

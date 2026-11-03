@@ -11,7 +11,7 @@ import { mockBody, SEEDED_SESSION_ID } from './mock-data.mjs'
 export const SEEDED_PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
   'schedules', 'settings', 'alerts', 'security-dashboard', 'access-control',
   'backups', 'analytics', 'audit', 'system', 'migrations',
-  'certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'vms/web-01', 'vms/staging-api', 'vms/ci-runner', 'ui-kit']
+  'certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'vms/web-01', 'vms/staging-api', 'vms/ci-runner', 'storage-pools', 'storage-manager', 'ui-kit']
 /** Pages that render fine against the mock's empty answers but have no seed data yet. They are checked as empty states (structure,
     labels, contrast of what is drawn), not populated. Seed one in mock-data.mjs and move it to SEEDED_PAGES to check it with data. */
 export const EMPTY_STATE_PAGES = [
@@ -20,8 +20,8 @@ export const EMPTY_STATE_PAGES = [
   'download-disk', 'edge-dataplane', 'encryption', 'event-stream', 'explain', 'fault-tolerance', 'favorites', 'iso-images', 'job-monitor',
   'kernel', 'live-metrics', 'manifest-builder', 'migration-history', 'migration-readiness', 'migration-templates', 'migration-wizard',
   'network-security', 'network-topology', 'notification-center', 'notifications', 'pipeline', 'playground', 'plugins', 'processes',
-  'profiles', 'quotas', 'resource-optimizer', 'resource-pools', 'service-map', 'snapshot-manager', 'snapshots', 'storage-manager',
-  'storage-pools', 'system-health', 'timeline', 'upload-disk', 'vm-browser', 'vm-compare', 'vm-healthcheck', 'vm-pools', 'vm-wizard',
+  'profiles', 'quotas', 'resource-optimizer', 'resource-pools', 'service-map', 'snapshot-manager', 'snapshots',
+  'system-health', 'timeline', 'upload-disk', 'vm-browser', 'vm-compare', 'vm-healthcheck', 'vm-pools', 'vm-wizard',
   'webhooks', 'zones',
 ]
 export const PAGES = [...SEEDED_PAGES, ...EMPTY_STATE_PAGES]

@@ -159,14 +159,14 @@ export default function StoragePools() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'Active':
-        return 'text-emerald-700'
+        return 'text-[var(--zf-proof-text)]'
       case 'Inactive':
         return 'text-[var(--zf-muted)]'
       case 'Starting':
       case 'Stopping':
         return 'text-amber-800'
       case 'Degraded':
-        return 'text-[var(--zf-warning)]'
+        return 'text-[var(--zf-warn-text)]'
       case 'Failed':
         return 'text-[var(--zf-danger)]'
       default:
@@ -219,7 +219,7 @@ export default function StoragePools() {
         </div></Card>
         <Card><div className="px-4 py-3">
           <div className="text-[var(--zf-muted)] text-sm mb-1">Active Pools</div>
-          <div className="text-2xl font-bold text-emerald-700">
+          <div className="text-2xl font-bold text-[var(--zf-proof-text)]">
             {pools.filter((p) => p.state === 'Active').length}
           </div>
         </div></Card>
