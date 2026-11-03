@@ -5,10 +5,11 @@ import puppeteer from 'puppeteer'
 import { readFileSync, existsSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { extname, join } from 'node:path'
+import { mockBody, SEEDED_SESSION_ID } from './mock-data.mjs'
 
 export const PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
   'schedules', 'backups', 'settings', 'alerts', 'analytics', 'audit', 'system', 'security-dashboard',
-  'migrations', 'access-control']
+  'migrations', 'access-control', `merion/${SEEDED_SESSION_ID}`, 'ui-kit']
 export const SIZES = { desktop: [1440, 900], phone: [390, 844] }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.woff2': 'font/woff2', '.png': 'image/png' }
@@ -36,8 +37,7 @@ export async function newConsolePage(browser, theme, [width, height]) {
     const path = new URL(req.url()).pathname
     if (!path.startsWith('/api/')) return req.continue()
     const p = path.slice(4).replace(/\/+$/, '')
-    let body = p.endsWith('s') ? [] : {}
-    if (p === '/auth/me') body = { id: 'mock-admin', username: 'admin', role: 'admin', tenant: null }
+    const body = mockBody(p) ?? (p.endsWith('s') ? [] : {})
     req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
   })
   await page.evaluateOnNewDocument((t) => {

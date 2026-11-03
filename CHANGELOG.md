@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- **Bold UX foundation (console).** Dark is now the default theme for a first visit (a stored choice still wins). New tokens (brand
+  orange, shadow and glow scale, state text colours), a small set of primitives (`GlowCard`, `AuroraBackdrop`, `StatusPulse`,
+  `AnimatedNumber`, `Donut`, `FlowLine`, `Illustration`) and a `/app/ui-kit` gallery. The dev mock now serves seed data, so pages
+  and the accessibility gate see populated lists. With it the gate found and we fixed contrast failures in the VM cards and the
+  dashboard percentages. No page is redesigned yet. See `docs/merion/design/ux-bold.md`.
 - **Model budget status.** The session cockpit (`GET /v1/sessions/{id}/cockpit`, `merionctl cockpit`) now carries a `budget`
   object: calls and cost used against each cap that is set (24 hours, run, goal) and whether the next call would be refused.
   The console shows it as a "Model budget" card. It counts the same journal rows as the refusal. Read-only.

@@ -72,7 +72,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               </Link>
               <p className="text-xs text-[var(--zf-muted)] mt-0.5 truncate">{vm.image}</p>
               {vm.state === 'failed' && vm.last_error && (
-                <p className="flex items-start gap-1 text-xs text-red-600 mt-1.5" title={vm.last_error}>
+                <p className="flex items-start gap-1 text-xs text-[var(--zf-danger-text)] mt-1.5" title={vm.last_error}>
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span className="line-clamp-2">{vm.last_error}</span>
                 </p>
@@ -121,7 +121,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
                     <div className="border-t border-[var(--zf-hairline)] my-1" />
                     <button
                       onClick={() => { setShowMenu(false); setShowDeleteConfirm(true) }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-400/10 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--zf-danger-text)] hover:bg-red-400/10 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Delete VM
@@ -157,7 +157,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               {vm.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className={`px-2 py-0.5 rounded text-xs font-medium ${getTagColor(tag)} text-[var(--zf-ink)]/90`}
+                  className={`px-2 py-0.5 rounded text-xs font-medium ${getTagColor(tag)} text-[var(--zf-ink)]`}
                 >
                   {tag}
                 </span>
@@ -178,7 +178,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               {vm.state === 'stopped' || vm.state === 'failed' ? (
                 <button
                   onClick={handleStart}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/15 text-emerald-600 hover:bg-green-600/25 rounded-md transition-colors text-sm font-medium"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/15 text-[var(--zf-proof-text)] hover:bg-green-600/25 rounded-md transition-colors text-sm font-medium"
                 >
                   <Play className="w-3.5 h-3.5" />
                   Start
@@ -186,7 +186,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               ) : vm.state === 'paused' ? (
                 <button
                   onClick={handleResume}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/15 text-emerald-600 hover:bg-green-600/25 rounded-md transition-colors text-sm font-medium"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600/15 text-[var(--zf-proof-text)] hover:bg-green-600/25 rounded-md transition-colors text-sm font-medium"
                 >
                   <Play className="w-3.5 h-3.5" />
                   Resume
@@ -195,14 +195,14 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
                 <>
                   <button
                     onClick={handleStop}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/15 text-red-600 hover:bg-red-600/25 rounded-md transition-colors text-sm font-medium"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600/15 text-[var(--zf-danger-text)] hover:bg-red-600/25 rounded-md transition-colors text-sm font-medium"
                   >
                     <Square className="w-3.5 h-3.5" />
                     Stop
                   </button>
                   <button
                     onClick={handlePause}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-600/15 text-amber-600 hover:bg-yellow-600/25 rounded-md transition-colors text-sm font-medium"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-600/15 text-[var(--zf-warn-text)] hover:bg-yellow-600/25 rounded-md transition-colors text-sm font-medium"
                   >
                     <Pause className="w-3.5 h-3.5" />
                     Pause

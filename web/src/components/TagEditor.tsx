@@ -13,16 +13,18 @@ interface TagEditorProps {
   onSuccess: () => void
 }
 
+// A 20% tint of the tag's colour with a border of the full colour: the text stays the theme's ink, which is 11:1 or
+// better on every tint in both themes. (Saturated 600 fills with ink text failed contrast in light theme.)
 const TAG_COLORS: Record<string, string> = {
-  production: 'bg-red-600',
-  staging: 'bg-yellow-600',
-  development: 'bg-green-600',
-  testing: 'bg-[var(--zf-link-fill)]',
-  web: 'bg-purple-600',
-  database: 'bg-pink-600',
-  backend: 'bg-indigo-600',
-  frontend: 'bg-cyan-600',
-  default: 'bg-[var(--zf-canvas-alt)]',
+  production: 'bg-red-600/20 border border-red-600/60',
+  staging: 'bg-yellow-600/20 border border-yellow-600/60',
+  development: 'bg-green-600/20 border border-green-600/60',
+  testing: 'bg-[var(--zf-link-fill)]/20 border border-[var(--zf-link-fill)]/60',
+  web: 'bg-purple-600/20 border border-purple-600/60',
+  database: 'bg-pink-600/20 border border-pink-600/60',
+  backend: 'bg-indigo-600/20 border border-indigo-600/60',
+  frontend: 'bg-cyan-600/20 border border-cyan-600/60',
+  default: 'bg-[var(--zf-canvas-alt)] border border-[var(--zf-hairline)]',
 }
 
 export function getTagColor(tag: string): string {

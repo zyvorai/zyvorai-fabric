@@ -30,6 +30,23 @@
   --zf-focus-tint: rgba(0, 0, 0, 0.06);
   --zf-nav-surface: rgba(251, 251, 253, 0.72);
   --zf-nav-border: rgba(0, 0, 0, 0.08);
+  /* Bold layer (ux foundation): Zyvor orange + a cool secondary, depth, and state colours for proof/warn/danger. */
+  --zf-brand: #ff5a15;
+  --zf-brand-text: #c2410c; /* brand as text: 5:1 on white, 4.6:1 on the canvas */
+  --zf-cool: #3b6df0;
+  --zf-proof: #0d7a4a;
+  --zf-proof-text: #0b6b40; /* proof/success as text on a pale green tint: 5.3 to 5.6:1 */
+  --zf-warn-text: #7a4100; /* 5.7 to 7:1 on a pale tint of amber or red */
+  --zf-danger-text: #b42318; /* 4.6 to 5:1 on a pale tint of red, and on the canvas */
+  --zf-radius-lg: 18px;
+  --zf-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.04);
+  --zf-shadow-2: 0 6px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --zf-shadow-3: 0 18px 50px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --zf-glow-brand: 0 0 0 1px rgba(255, 90, 21, 0.28), 0 8px 28px rgba(255, 90, 21, 0.16);
+  --zf-glow-proof: 0 0 0 1px rgba(13, 122, 74, 0.28), 0 8px 28px rgba(13, 122, 74, 0.14);
+  --zf-glow-warn: 0 0 0 1px rgba(255, 159, 10, 0.4), 0 8px 28px rgba(255, 159, 10, 0.16);
+  --zf-glow-danger: 0 0 0 1px rgba(255, 59, 48, 0.34), 0 8px 28px rgba(255, 59, 48, 0.16);
+  --zf-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
   color-scheme: light;
 }
 
@@ -60,6 +77,21 @@
   --zf-focus-tint: rgba(255, 255, 255, 0.14);
   --zf-nav-surface: rgba(0, 0, 0, 0.72);
   --zf-nav-border: rgba(255, 255, 255, 0.1);
+  --zf-brand: #ff6a2b;
+  --zf-brand-text: #ff9a66; /* 8:1 on the dark surface */
+  --zf-cool: #7aa2ff;
+  --zf-proof: #32d74b;
+  --zf-proof-text: #32d74b;
+  --zf-warn-text: #ffb340;
+  --zf-danger-text: #ff6961;
+  --zf-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --zf-shadow-2: 0 8px 28px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --zf-shadow-3: 0 22px 60px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.5);
+  --zf-glow-brand: 0 0 0 1px rgba(255, 106, 43, 0.4), 0 0 36px rgba(255, 106, 43, 0.22);
+  --zf-glow-proof: 0 0 0 1px rgba(50, 215, 75, 0.38), 0 0 36px rgba(50, 215, 75, 0.2);
+  --zf-glow-warn: 0 0 0 1px rgba(255, 159, 10, 0.5), 0 0 36px rgba(255, 159, 10, 0.2);
+  --zf-glow-danger: 0 0 0 1px rgba(255, 69, 58, 0.5), 0 0 36px rgba(255, 69, 58, 0.22);
+  --zf-card-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0));
   color-scheme: dark;
 }
 
@@ -1092,13 +1124,6 @@ textarea.input-field {
   overflow: auto;
 }
 
-.skeleton {
-  background: linear-gradient(90deg, #ebebed 25%, #f5f5f7 50%, #ebebed 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
-  border-radius: 8px;
-}
-
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -1948,3 +1973,93 @@ html:not([data-theme='dark']) {
 [class~='bg-[var(--zf-link-fill)]'] {
   color: #fff !important;
 }
+
+
+/* —— Bold layer (ux foundation) ——
+   Depth, glow and motion for the new primitives in components/ui. Everything reads the --zf-* tokens, so light and dark
+   both work; every animation has a reduced-motion fallback below. */
+.zf-glow {
+  position: relative;
+  border-radius: var(--zf-radius-lg);
+  border: 1px solid var(--zf-hairline);
+  background: var(--zf-card-sheen), var(--zf-surface);
+  box-shadow: var(--zf-shadow-2);
+  transition: box-shadow var(--zf-dur) var(--zf-ease), transform var(--zf-dur) var(--zf-ease), border-color var(--zf-dur) var(--zf-ease);
+}
+.zf-glow[data-interactive='true']:hover { transform: translateY(-2px); box-shadow: var(--zf-shadow-3); }
+.zf-glow[data-tone='brand'] { box-shadow: var(--zf-glow-brand); border-color: transparent; }
+.zf-glow[data-tone='proof'] { box-shadow: var(--zf-glow-proof); border-color: transparent; }
+.zf-glow[data-tone='warn'] { box-shadow: var(--zf-glow-warn); border-color: transparent; }
+.zf-glow[data-tone='danger'] { box-shadow: var(--zf-glow-danger); border-color: transparent; }
+
+.zf-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.zf-aurora::before,
+.zf-aurora::after {
+  content: '';
+  position: absolute;
+  width: 60%;
+  height: 120%;
+  filter: blur(60px);
+  opacity: 0.55;
+  animation: zf-aurora-drift 18s ease-in-out infinite alternate;
+}
+.zf-aurora::before { left: -10%; top: -30%; background: radial-gradient(closest-side, var(--zf-brand), transparent); }
+.zf-aurora::after { right: -10%; top: -10%; background: radial-gradient(closest-side, var(--zf-cool), transparent); animation-delay: -9s; }
+html:not([data-theme='dark']) .zf-aurora::before,
+html:not([data-theme='dark']) .zf-aurora::after { opacity: 0.22; }
+
+.zf-pulse {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.zf-pulse[data-live='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  animation: zf-ring 1.8s var(--zf-ease) infinite;
+}
+
+.zf-flow { stroke-dasharray: 6 8; animation: zf-flow 1.4s linear infinite; }
+.zf-draw { stroke-dasharray: var(--zf-len, 100); stroke-dashoffset: var(--zf-len, 100); animation: zf-draw 0.9s var(--zf-ease) forwards; }
+
+@keyframes zf-aurora-drift {
+  from { transform: translate3d(-4%, -3%, 0) scale(1); }
+  to { transform: translate3d(8%, 5%, 0) scale(1.15); }
+}
+@keyframes zf-ring {
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes zf-flow {
+  to { stroke-dashoffset: -28; }
+}
+@keyframes zf-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Nothing animates for people who ask for less motion, and animation stops when the tab is hidden (see useTabVisible). */
+@media (prefers-reduced-motion: reduce) {
+  .zf-glow { transition: none; }
+  .zf-glow[data-interactive='true']:hover { transform: none; }
+  .zf-aurora::before,
+  .zf-aurora::after,
+  .zf-pulse[data-live='true']::after,
+  .zf-flow { animation: none; }
+  .zf-draw { animation: none; stroke-dashoffset: 0; }
+}
+[data-paused='true'] .zf-aurora::before,
+[data-paused='true'] .zf-aurora::after,
+[data-paused='true'] .zf-pulse[data-live='true']::after,
+[data-paused='true'] .zf-flow { animation-play-state: paused; }

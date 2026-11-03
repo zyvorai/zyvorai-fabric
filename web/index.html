@@ -15,7 +15,8 @@ SPDX-License-Identifier: Apache-2.0
       (function () {
         try {
           var stored = localStorage.getItem('zyvor-fabricd-theme');
-          var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          // Dark is the default for a first visit; a stored choice (either way) always wins.
+          var dark = stored ? stored === 'dark' : true;
           if (dark) document.documentElement.setAttribute('data-theme', 'dark');
         } catch (e) {}
       })();
