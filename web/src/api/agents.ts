@@ -96,6 +96,18 @@ export interface MerionCockpit {
     apply_error: string
     decided_at?: string | null
   }>
+  /** What the operator's model budget for this agent has used. Null when no budget applies. `error` when it cannot be read. */
+  budget?: {
+    error?: string
+    agent?: string
+    reached?: boolean
+    scopes?: Array<{
+      scope: 'day' | 'run' | 'goal'
+      calls: { used: number; max: number | null }
+      cost: { used: number; max: number | null; currency?: string }
+      reached: boolean
+    }>
+  } | null
   last_decisions?: Array<{
     action?: string
     phase?: string

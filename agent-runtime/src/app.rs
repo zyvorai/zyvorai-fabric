@@ -2832,6 +2832,12 @@ async fn session_cockpit(
             })
         })
         .collect();
+    // How much of the operator's model budget this session's agent has used. A prices file that cannot be read is
+    // shown as an error string, never as "no budget".
+    let budget = match crate::model_call::budget_status_for(&state, &session.agent, id).await {
+        Ok(v) => v.unwrap_or(Value::Null),
+        Err(e) => json!({"error": e}),
+    };
     let schedules = state.store.list_schedules().await;
     let upcoming: Vec<_> = schedules
         .into_iter()
@@ -2911,6 +2917,7 @@ async fn session_cockpit(
         "drop_reasons": drop_reasons,
         "pending_approvals": pending,
         "failed_applies": failed_applies,
+        "budget": budget,
         "last_decisions": decisions,
         "upcoming_cron": upcoming,
         "active_goal": active_goal.as_ref().map(|g| json!({

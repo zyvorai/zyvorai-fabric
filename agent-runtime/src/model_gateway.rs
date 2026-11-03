@@ -337,6 +337,65 @@ pub fn over_budget(
     None
 }
 
+/// How much of each cap `agent` has used, for people to read before a call is refused. One entry per scope the budget sets:
+/// `day` (rolling 24 hours, all of the agent's sessions), `run` (this session) and `goal` (the goal this session belongs
+/// to). `reached` is true when a call would be refused now. The counts are the ones the refusal uses, so the two agree.
+/// `cost.used` covers only calls with reported tokens on a priced model, as for the cap itself.
+pub fn budget_status(
+    prices: &Prices,
+    agent: &str,
+    rows: &[crate::audit::AuditEntry],
+    since: chrono::DateTime<chrono::Utc>,
+    run_rows: Option<&[&crate::audit::AuditEntry]>,
+    goal_rows: Option<&[&crate::audit::AuditEntry]>,
+) -> Option<Value> {
+    use crate::audit::AuditPhase;
+    let b = prices.budget_for(agent)?;
+    let scope = |name: &str,
+                 max_calls: Option<u64>,
+                 max_cost: Option<f64>,
+                 rows: &[&crate::audit::AuditEntry]| {
+        if max_calls.is_none() && max_cost.is_none() {
+            return None;
+        }
+        let counted: Vec<_> = rows
+            .iter()
+            .filter(|r| r.action == "model.call" && r.phase == AuditPhase::Performed)
+            .collect();
+        let calls = counted.len() as u64;
+        let spent: f64 = counted
+            .iter()
+            .filter_map(|r| call_cost(Some(prices), r))
+            .sum();
+        let reached = max_calls.is_some_and(|m| calls >= m) || max_cost.is_some_and(|m| spent >= m);
+        Some(serde_json::json!({
+            "scope": name,
+            "calls": {"used": calls, "max": max_calls},
+            "cost": {"used": spent, "max": max_cost, "currency": prices.currency},
+            "reached": reached,
+        }))
+    };
+    let day_rows: Vec<&crate::audit::AuditEntry> = rows.iter().filter(|r| r.at >= since).collect();
+    let mut scopes: Vec<Value> = Vec::new();
+    scopes.extend(scope(
+        "day",
+        b.max_calls_per_day,
+        b.max_cost_per_day,
+        &day_rows,
+    ));
+    if let (Some(l), Some(r)) = (b.run, run_rows) {
+        scopes.extend(scope("run", l.max_calls, l.max_cost, r));
+    }
+    if let (Some(l), Some(r)) = (b.goal, goal_rows) {
+        scopes.extend(scope("goal", l.max_calls, l.max_cost, r));
+    }
+    if scopes.is_empty() {
+        return None;
+    }
+    let reached = scopes.iter().any(|s| s["reached"] == true);
+    Some(serde_json::json!({"agent": agent, "reached": reached, "scopes": scopes}))
+}
+
 /// Refuse a model call when `rows` (the journal rows of one run, or of every session of one goal) already reach `limit`.
 /// `what` names the scope in the message, such as `run` or `goal`.
 pub fn over_limit(

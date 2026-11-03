@@ -3100,6 +3100,49 @@ pub(crate) mod ask_tests {
     }
 
     #[tokio::test]
+    async fn the_budget_status_shows_what_is_used_and_agrees_with_the_refusal() {
+        let (p1, _seen) = chat_stub(200).await;
+        let prices = json!({"budgets": {"a": {"max_calls_per_day": 3, "run": {"max_calls": 2}}}});
+        let (state, session) = socket_agent(p1, &[], false, "127.0.0.1", Some(prices)).await;
+        let status = |state: Arc<AppState>| {
+            let id = session.id;
+            async move {
+                crate::model_call::budget_status_for(&state, "a", id)
+                    .await
+                    .unwrap()
+                    .unwrap()
+            }
+        };
+        let s0 = status(state.clone()).await;
+        assert_eq!(s0["reached"], false);
+        assert_eq!(s0["scopes"][0]["scope"], "day");
+        assert_eq!(s0["scopes"][0]["calls"]["used"], 0);
+        assert_eq!(s0["scopes"][0]["calls"]["max"], 3);
+
+        chat(&state, &session, p1).await.unwrap();
+        chat(&state, &session, p1).await.unwrap();
+        let s2 = status(state.clone()).await;
+        assert_eq!(s2["scopes"][0]["calls"]["used"], 2, "{s2}");
+        assert_eq!(s2["scopes"][0]["reached"], false, "day is 2 of 3");
+        assert_eq!(s2["scopes"][1]["scope"], "run");
+        assert_eq!(s2["scopes"][1]["reached"], true, "run is 2 of 2");
+        assert_eq!(s2["reached"], true);
+        // The status said "reached", and the next call is in fact refused for the same scope.
+        let err = chat(&state, &session, p1).await.unwrap_err();
+        assert_eq!(err.0, StatusCode::TOO_MANY_REQUESTS);
+        assert!(err.1.contains("this run"), "{}", err.1);
+        // A refused call is not counted.
+        assert_eq!(status(state.clone()).await["scopes"][0]["calls"]["used"], 2);
+        // An agent with no budget has no status.
+        assert!(
+            crate::model_call::budget_status_for(&state, "other", session.id)
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[tokio::test]
     async fn a_run_and_a_goal_each_have_their_own_model_call_cap() {
         // Per run: this session stops at 2 calls, a second session of the same agent is not affected.
         let (p1, seen) = chat_stub(200).await;
