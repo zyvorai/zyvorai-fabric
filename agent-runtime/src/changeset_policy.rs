@@ -67,6 +67,10 @@ pub struct StoredPolicy {
 /// At most this many auto-approvals per session per hour; past it a person decides.
 pub const MAX_AUTO_PER_HOUR: usize = 30;
 
+/// At most this many auto-approvals per user per hour, across all their sessions. A policy that is
+/// safe once per session is not safe a hundred sessions at a time.
+pub const MAX_AUTO_PER_USER_PER_HOUR: usize = 120;
+
 fn default_kinds() -> Vec<String> {
     vec!["added".to_string()]
 }

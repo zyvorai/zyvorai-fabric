@@ -1243,6 +1243,35 @@ impl Store {
         Ok(Some(updated))
     }
 
+    /// Record who decided an approval that no person decided (an auto-approval policy).
+    pub async fn set_decided_by(&self, id: Uuid, by: String) -> Result<Option<ApprovalRecord>> {
+        let mut map = self.approvals.write().await;
+        let Some(record) = map.get_mut(&id) else {
+            return Ok(None);
+        };
+        record.decided_by = Some(by);
+        let updated = record.clone();
+        self.persist_vec("approvals.json", &map.values().cloned().collect::<Vec<_>>())
+            .await?;
+        Ok(Some(updated))
+    }
+
+    /// Clear `apply_error` once a retry applied the changeset. Only an approved record takes it.
+    pub async fn clear_apply_error(&self, id: Uuid) -> Result<Option<ApprovalRecord>> {
+        let mut map = self.approvals.write().await;
+        let Some(record) = map.get_mut(&id) else {
+            return Ok(None);
+        };
+        if record.status != ApprovalStatus::Approved {
+            return Ok(None);
+        }
+        record.apply_error = None;
+        let updated = record.clone();
+        self.persist_vec("approvals.json", &map.values().cloned().collect::<Vec<_>>())
+            .await?;
+        Ok(Some(updated))
+    }
+
     /// Record that an approved approval could not be carried out. Only an approved record takes it.
     pub async fn set_apply_error(&self, id: Uuid, error: String) -> Result<Option<ApprovalRecord>> {
         let mut map = self.approvals.write().await;

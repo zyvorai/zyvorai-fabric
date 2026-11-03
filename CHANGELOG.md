@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **Failed applies are visible and retryable.** An approved changeset that FluxVM could not apply now shows in the
+  console's Merion session page as "Approved, but not applied" with the error and a Retry button
+  (`POST /v1/approvals/{id}/retry-apply`, `merionctl retry-apply <id>`). A person asks for each retry; it checks the
+  changeset's state first, so an applied one is not applied twice. Tested against a fake FluxVM only.
+- **`decided_by` on approvals.** An auto-approval records `policy:<id>:v<n>`; the audit entry carries it too.
+  A per-user cap of 120 auto-approvals per hour (all of a user's sessions) sits above the per-session 30.
+
+### Changed
+- Keep's plain FluxVM reads time out after 30 s (`ZYVOR_AGENT_FLUXVM_READ_TIMEOUT_SECS`, 1 to 600); creates, execs and
+  snapshots keep the 180 s limit.
+- `POST /api/vms/{name}/balloon` refuses a `balloon_mib` above the VM's configured memory with a 400.
+
 ## 0.4.0 - 2026-10-17
 
 ### Changed

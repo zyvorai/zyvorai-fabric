@@ -1168,6 +1168,36 @@ pub async fn create_approval(
     .await
 }
 
+/// A non-admin may act only on an approval that belongs to one of their own sessions. `id` is a validated UUID.
+#[allow(clippy::result_large_err)] // axum Response is intentionally large as Err
+async fn approval_owned(state: &Arc<AppState>, claims: &Claims, id: &str) -> Result<(), Response> {
+    if claims.role == Role::Admin {
+        return Ok(());
+    }
+    let (status, value) = proxy_json(state, Method::GET, "/v1/approvals", None, None).await?;
+    if !status.is_success() {
+        return Err(json_response(status, value));
+    }
+    let session = value["items"]
+        .as_array()
+        .and_then(|items| items.iter().find(|a| a["id"].as_str() == Some(id)))
+        .and_then(|a| a["session_id"].as_str())
+        .filter(|sid| uuid::Uuid::parse_str(sid).is_ok())
+        .map(str::to_string);
+    let owned = match session {
+        Some(sid) => session_owned(state, claims, &sid).await.is_ok(),
+        None => false,
+    };
+    if owned {
+        Ok(())
+    } else {
+        Err(json_response(
+            StatusCode::NOT_FOUND,
+            json!({ "error": "approval not found" }),
+        ))
+    }
+}
+
 /// Approve or deny a pending approval. The id is validated as a UUID because
 /// it is interpolated into the upstream path.
 pub async fn decide_approval(
@@ -1183,32 +1213,8 @@ pub async fn decide_approval(
         )
             .into_response();
     }
-    // A non-admin may decide only an approval that belongs to one of their own sessions.
-    if claims.role != Role::Admin {
-        let (status, value) =
-            match proxy_json(&state, Method::GET, "/v1/approvals", None, None).await {
-                Ok(v) => v,
-                Err(resp) => return resp,
-            };
-        if !status.is_success() {
-            return json_response(status, value);
-        }
-        let session = value["items"]
-            .as_array()
-            .and_then(|items| items.iter().find(|a| a["id"].as_str() == Some(id.as_str())))
-            .and_then(|a| a["session_id"].as_str())
-            .filter(|sid| uuid::Uuid::parse_str(sid).is_ok())
-            .map(str::to_string);
-        let owned = match session {
-            Some(sid) => session_owned(&state, &claims, &sid).await.is_ok(),
-            None => false,
-        };
-        if !owned {
-            return json_response(
-                StatusCode::NOT_FOUND,
-                json!({ "error": "approval not found" }),
-            );
-        }
+    if let Err(resp) = approval_owned(&state, &claims, &id).await {
+        return resp;
     }
     proxy(
         &state,
@@ -1216,6 +1222,33 @@ pub async fn decide_approval(
         &format!("/v1/approvals/{id}"),
         None,
         Some(body),
+        None,
+    )
+    .await
+}
+
+/// `POST /approvals/{id}/retry-apply`: try again to apply a changeset a person approved but FluxVM could not apply.
+pub async fn retry_apply(
+    RequireWrite(claims): RequireWrite,
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> Response {
+    if uuid::Uuid::parse_str(&id).is_err() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "approval id must be a UUID" })),
+        )
+            .into_response();
+    }
+    if let Err(resp) = approval_owned(&state, &claims, &id).await {
+        return resp;
+    }
+    proxy(
+        &state,
+        Method::POST,
+        &format!("/v1/approvals/{id}/retry-apply"),
+        None,
+        None,
         None,
     )
     .await

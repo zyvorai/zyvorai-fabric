@@ -1322,6 +1322,10 @@ pub struct ApprovalRecord {
     /// (it is the person's), but nothing was applied, so a goal or report must not treat it as done.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub apply_error: Option<String>,
+    /// Who decided when it was not a person at the console: `policy:<id>:v<version>` for an auto-approval.
+    /// Absent for a person's decision. Older auto-approvals are recognised by their comment instead.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decided_by: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

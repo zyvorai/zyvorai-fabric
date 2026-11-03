@@ -790,6 +790,7 @@ mod tests {
             source_seq: None,
             broker_held,
             apply_error: None,
+            decided_by: None,
             grant_scope: None,
             preview: Some(
                 json!({"kind": "gmail-message", "fields": [{"label": "To", "value": "ana@example.com"}]}),

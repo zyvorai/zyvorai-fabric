@@ -388,6 +388,7 @@ mod tests {
             source_seq: None,
             broker_held: false,
             apply_error: None,
+            decided_by: None,
             grant_scope: None,
             preview: Some(json!({"text": "PREVIEW-SECRET"})),
         }

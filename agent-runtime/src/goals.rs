@@ -696,6 +696,7 @@ pub(crate) async fn advance_step(
             preview: None,
             broker_held: false,
             apply_error: None,
+            decided_by: None,
         };
         state
             .store

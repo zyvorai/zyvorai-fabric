@@ -10,6 +10,7 @@ import {
   MerionCockpit,
   RunReport,
   decideApproval,
+  retryApply,
   getSession,
   getSessionBrowserScreenshot,
   getSessionBrowserView,
@@ -172,6 +173,17 @@ export default function MerionSession() {
     }
   }
 
+  const retry = async (approvalId: string) => {
+    try {
+      await retryApply(approvalId)
+      toast.success('Applied')
+      void load()
+    } catch (e) {
+      toastFailure(toast, 'Retry failed', e)
+      void load()
+    }
+  }
+
   const [policy, setPolicy] = useState<StoredPolicy | null>(null)
   const [policyForm, setPolicyForm] = useState<PolicyForm>(emptyForm)
   const [policyVisible, setPolicyVisible] = useState(false)
@@ -306,6 +318,7 @@ export default function MerionSession() {
   const currentStep = goal?.plan?.find((s) => s.status === 'running' || s.status === 'blocked')
     ?? goal?.plan?.find((s) => s.status === 'pending')
   const pending = cockpit?.pending_approvals ?? []
+  const failedApplies = cockpit?.failed_applies ?? []
   const lastOutcome = (cockpit?.last_decisions ?? []).slice(-3).reverse()
 
   return (
@@ -710,6 +723,27 @@ export default function MerionSession() {
             ))
           )}
         </Card>
+
+        {failedApplies.length > 0 && (
+          <Card className="p-4 space-y-3 text-sm">
+            <h2 className="text-base font-semibold text-[var(--zf-ink)]">Approved, but not applied</h2>
+            {failedApplies.map((a) => (
+              <div key={a.id} className="border-t border-[var(--zf-hairline)] pt-3 first:border-0 first:pt-0">
+                <div className="font-medium">{a.prompt}</div>
+                <div className="text-xs mt-1 text-[var(--zf-danger,#b42318)]">
+                  FluxVM could not apply it, so nothing in the cell changed: {a.apply_error}
+                </div>
+                <button
+                  type="button"
+                  className="zf-btn zf-btn-primary zf-btn-sm mt-2"
+                  onClick={() => void retry(a.id)}
+                >
+                  Retry apply
+                </button>
+              </div>
+            ))}
+          </Card>
+        )}
 
         <Card className="p-4 space-y-2 text-sm">
           <h2 className="text-base font-semibold text-[var(--zf-ink)]">Outcome</h2>

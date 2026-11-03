@@ -565,6 +565,7 @@ mod tests {
             preview: None,
             broker_held: false,
             apply_error: None,
+            decided_by: None,
         }
     }
 

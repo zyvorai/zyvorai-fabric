@@ -113,9 +113,12 @@ pub fn build(i: &Inputs<'_>) -> Value {
             .map(|k| count(&changes[*k]))
             .sum::<usize>();
         let by_policy = a
-            .comment
+            .decided_by
             .as_deref()
-            .is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX));
+            .is_some_and(|d| d.starts_with("policy:"))
+            || a.comment
+                .as_deref()
+                .is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX));
         let row = settled(i.audit, a);
         let reference = json!({ "approval_id": a.id, "changeset_id": cs_id });
         let at = a.decided_at.unwrap_or(a.created_at);
@@ -399,6 +402,7 @@ mod tests {
             preview: None,
             broker_held: false,
             apply_error: None,
+            decided_by: None,
         }
     }
 
