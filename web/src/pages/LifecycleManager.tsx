@@ -131,7 +131,7 @@ export default function LifecycleManager() {
         </div>
         <div className="bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
           <div className="text-[var(--zf-muted)] text-sm mb-1">Non-Compliant Hosts</div>
-          <div className="text-2xl font-bold text-red-700">
+          <div className="text-2xl font-bold text-[var(--zf-danger-text)]">
             {scans.filter(s => s.status === 'non_compliant').length}
           </div>
         </div>
@@ -251,8 +251,8 @@ export default function LifecycleManager() {
                   </td>
                   <td className="p-4 text-sm">
                     {scan.missing_patches.length > 0 ? (
-                      <span className="text-red-700">{scan.missing_patches.length} patches</span>
-                    ) : <span className="text-emerald-700">None</span>}
+                      <span className="text-[var(--zf-danger-text)]">{scan.missing_patches.length} patches</span>
+                    ) : <span className="text-[var(--zf-proof-text)]">None</span>}
                   </td>
                   <td className="p-4 text-sm text-[var(--zf-muted)]">{new Date(scan.last_scanned).toLocaleString()}</td>
                 </tr>
@@ -295,7 +295,7 @@ export default function LifecycleManager() {
                     </div>
                   </td>
                   <td className="p-4 text-sm">{task.patches_applied}/{task.patches_total}</td>
-                  <td className="p-4 text-sm text-red-700">{task.error || '-'}</td>
+                  <td className="p-4 text-sm text-[var(--zf-danger-text)]">{task.error || '-'}</td>
                 </tr>
               ))}
             </tbody>
@@ -329,7 +329,7 @@ export default function LifecycleManager() {
                     {update.completed_hosts}/{update.total_hosts} hosts | Parallel: {update.parallel_count}
                   </span>
                   {update.status === 'pending' && (
-                    <button onClick={() => handleStartUpdate(update.id)} className="flex items-center gap-1 text-emerald-700 hover:opacity-70 text-sm">
+                    <button onClick={() => handleStartUpdate(update.id)} className="flex items-center gap-1 text-[var(--zf-proof-text)] hover:opacity-70 text-sm">
                       <Play className="w-3.5 h-3.5" /> Start
                     </button>
                   )}
@@ -338,13 +338,13 @@ export default function LifecycleManager() {
                       <button onClick={() => handleAdvanceUpdate(update.id)} className="flex items-center gap-1 text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] text-sm" title="Advance to next host">
                         <SkipForward className="w-3.5 h-3.5" /> Advance
                       </button>
-                      <button onClick={() => handlePauseUpdate(update.id)} className="flex items-center gap-1 text-amber-700 hover:opacity-70 text-sm">
+                      <button onClick={() => handlePauseUpdate(update.id)} className="flex items-center gap-1 text-[var(--zf-warn-text)] hover:opacity-70 text-sm">
                         <Pause className="w-3.5 h-3.5" /> Pause
                       </button>
                     </>
                   )}
                   {update.status === 'paused' && (
-                    <button onClick={() => handleStartUpdate(update.id)} className="flex items-center gap-1 text-emerald-700 hover:opacity-70 text-sm">
+                    <button onClick={() => handleStartUpdate(update.id)} className="flex items-center gap-1 text-[var(--zf-proof-text)] hover:opacity-70 text-sm">
                       <Play className="w-3.5 h-3.5" /> Resume
                     </button>
                   )}
@@ -363,7 +363,7 @@ export default function LifecycleManager() {
               <div className="text-xs text-[var(--zf-muted)]">
                 {update.started_at && `Started: ${new Date(update.started_at).toLocaleString()}`}
                 {update.completed_at && ` | Completed: ${new Date(update.completed_at).toLocaleString()}`}
-                {update.failed_hosts > 0 && <span className="text-red-700"> | {update.failed_hosts} failed</span>}
+                {update.failed_hosts > 0 && <span className="text-[var(--zf-danger-text)]"> | {update.failed_hosts} failed</span>}
               </div>
             </div>
           )})}

@@ -27,14 +27,18 @@ export default function PacketFlowPanel({ views, loading, emptyHint, onReload, o
   return (
     <div
       className={`rounded-xl border overflow-hidden ${
-        dark ? 'bg-[#0b1020] border-[#243056] text-[#e8eefc]' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)] text-[var(--zf-ink)]'
+        dark ? '' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)] text-[var(--zf-ink)]'
       }`}
+      // The Colorful theme is a dark panel in either page theme. Inline styles, because the stylesheet remaps hard-coded colour
+      // classes (bg-[#0b1020]) to the page theme in light mode, which left light text on a white panel.
+      style={dark ? { background: '#0b1020', borderColor: '#243056', color: '#e8eefc' } : undefined}
     >
-      <div className={`flex flex-wrap gap-2 items-center p-3 border-b ${dark ? 'border-[#243056]' : 'border-[var(--zf-hairline)]'}`}>
+      <div className={`flex flex-wrap gap-2 items-center p-3 border-b ${dark ? '' : 'border-[var(--zf-hairline)]'}`} style={dark ? { borderColor: '#243056' } : undefined}>
         <label className="text-xs">
           Theme
           <select
-            className={`ml-1 rounded border px-2 py-1 text-sm ${dark ? 'bg-[#121a30] border-[#243056]' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)]'}`}
+            className={`ml-1 rounded border px-2 py-1 text-sm ${dark ? '' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)]'}`}
+            style={dark ? { background: '#121a30', borderColor: '#243056', color: '#e8eefc' } : undefined}
             value={theme}
             onChange={(e) => setTheme(e.target.value as FlowTheme)}
           >
@@ -45,7 +49,8 @@ export default function PacketFlowPanel({ views, loading, emptyHint, onReload, o
         <label className="text-xs">
           Verdict
           <select
-            className={`ml-1 rounded border px-2 py-1 text-sm ${dark ? 'bg-[#121a30] border-[#243056]' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)]'}`}
+            className={`ml-1 rounded border px-2 py-1 text-sm ${dark ? '' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)]'}`}
+            style={dark ? { background: '#121a30', borderColor: '#243056', color: '#e8eefc' } : undefined}
             value={verdict}
             onChange={(e) => setVerdict(e.target.value)}
           >
@@ -58,7 +63,8 @@ export default function PacketFlowPanel({ views, loading, emptyHint, onReload, o
         <label className="text-xs">
           Proto
           <select
-            className={`ml-1 rounded border px-2 py-1 text-sm ${dark ? 'bg-[#121a30] border-[#243056]' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)]'}`}
+            className={`ml-1 rounded border px-2 py-1 text-sm ${dark ? '' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)]'}`}
+            style={dark ? { background: '#121a30', borderColor: '#243056', color: '#e8eefc' } : undefined}
             value={protocol}
             onChange={(e) => setProtocol(e.target.value)}
           >
@@ -71,7 +77,8 @@ export default function PacketFlowPanel({ views, loading, emptyHint, onReload, o
         <label className="text-xs">
           Detail
           <select
-            className={`ml-1 rounded border px-2 py-1 text-sm ${dark ? 'bg-[#121a30] border-[#243056]' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)]'}`}
+            className={`ml-1 rounded border px-2 py-1 text-sm ${dark ? '' : 'bg-[var(--zf-surface)] border-[var(--zf-hairline)]'}`}
+            style={dark ? { background: '#121a30', borderColor: '#243056', color: '#e8eefc' } : undefined}
             value={detail}
             onChange={(e) => setDetail(e.target.value as 'path' | 'table')}
           >
@@ -83,7 +90,8 @@ export default function PacketFlowPanel({ views, loading, emptyHint, onReload, o
           <button
             type="button"
             onClick={onReload}
-            className={`ml-auto text-sm px-3 py-1 rounded border ${dark ? 'border-[#243056]' : 'border-[var(--zf-hairline)]'}`}
+            className={`ml-auto text-sm px-3 py-1 rounded border ${dark ? '' : 'border-[var(--zf-hairline)]'}`}
+            style={dark ? { borderColor: '#243056' } : undefined}
           >
             Reload
           </button>

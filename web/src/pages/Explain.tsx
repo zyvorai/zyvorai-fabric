@@ -32,7 +32,7 @@ function impactBadgeClasses(impact: string): string {
   switch (impact?.toLowerCase()) {
     case 'high': return 'text-red-700 bg-red-50 border border-red-200'
     case 'medium': return 'text-amber-800 bg-amber-50 border border-amber-200'
-    case 'low': return 'text-[var(--zf-link)] bg-blue-50 border border-blue-100'
+    case 'low': return 'text-blue-800 bg-blue-50 border border-blue-100'
     default: return 'text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]'
   }
 }

@@ -450,7 +450,7 @@ function MemoryView({
           </div>
           <div>
             <div className="text-sm text-[var(--zf-muted)] mb-1">Available</div>
-            <div className="text-xl font-medium text-emerald-700">
+            <div className="text-xl font-medium text-[var(--zf-proof-text)]">
               {formatMemory(memory.available_kb)}
             </div>
           </div>
@@ -506,7 +506,7 @@ function MemoryView({
               </div>
               <div>
                 <div className="text-sm text-[var(--zf-muted)] mb-1">Free</div>
-                <div className="text-xl text-emerald-700">{hugepages2mb.free}</div>
+                <div className="text-xl text-[var(--zf-proof-text)]">{hugepages2mb.free}</div>
               </div>
               <div>
                 <div className="text-sm text-[var(--zf-muted)] mb-1">Reserved</div>
@@ -529,7 +529,7 @@ function MemoryView({
               </div>
               <div>
                 <div className="text-sm text-[var(--zf-muted)] mb-1">Free</div>
-                <div className="text-xl text-emerald-700">{hugepages1gb.free}</div>
+                <div className="text-xl text-[var(--zf-proof-text)]">{hugepages1gb.free}</div>
               </div>
               <div>
                 <div className="text-sm text-[var(--zf-muted)] mb-1">Reserved</div>
@@ -599,7 +599,7 @@ function OptimizationView({
                   </span>
                 </div>
                 <p className="text-sm text-[var(--zf-muted)] mb-1">{r.reason}</p>
-                <p className="text-xs text-emerald-700">{r.impact}</p>
+                <p className="text-xs text-[var(--zf-proof-text)]">{r.impact}</p>
               </div>
             ))}
           </div>

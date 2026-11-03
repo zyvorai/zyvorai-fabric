@@ -433,6 +433,24 @@ const SR_DASHBOARD = {
   recent_executions: SR_EXECUTIONS,
 }
 
+const DATAPLANE_SERVICES = {
+  items: [
+    { name: 'web-lb', vip: '10.50.0.10', port: 443, protocol: 'tcp', backends: [{ address: '10.20.0.11', port: 443, enabled: true }, { address: '10.20.0.12', port: 443, enabled: true }] },
+  ],
+}
+const DATAPLANE_SERVICES_STATUS = {
+  schema_version: 1,
+  north_south_interfaces: ['eno8303'],
+  xdp_acceleration: false,
+  interfaces: [{ interface: 'eno8303', tc_program_pinned: true, xdp_requested: false, xdp_program_pinned: false, pin_dir: '/sys/fs/bpf/fluxvm/host/eno8303' }],
+}
+
+const NOTIFICATION_HISTORY = [
+  { id: 'nh-1', rule_id: 'r-1', rule_name: 'VM failed', event_type: 'vm_state_changed', severity: 'critical', channel: 'ops-email', vm_name: 'batch-7', message: 'batch-7 failed: disk image not found', sent_at: ago(3600), status: 'sent' },
+  { id: 'nh-2', rule_id: 'r-2', rule_name: 'Backup finished', event_type: 'backup_completed', severity: 'info', channel: 'ops-chat', vm_name: 'db-primary', message: 'Full backup of db-primary completed', sent_at: ago(86400), status: 'sent' },
+  { id: 'nh-3', rule_id: 'r-1', rule_name: 'VM failed', event_type: 'vm_state_changed', severity: 'warning', channel: 'ops-chat', message: 'Channel unreachable', sent_at: ago(90000), status: 'failed', error: 'connection refused' },
+]
+
 const AGENTS = ['invoice-check', 'pdf-brief', 'csv-clean', 'contract-clauses', 'log-triage'].map((name) => ({
   name,
   version: '15ab785375eb',
@@ -484,6 +502,10 @@ export function mockBody(path) {
   if (p === '/networkd/vxlans') return NETD_VXLANS
   if (p === '/networkd/network-files') return NETD_NETFILES
   if (p === '/networkd/port-forwards') return NETD_PORT_FORWARDS
+  if (p === '/networkd/sriov') return []
+  if (p === '/dataplane/services') return DATAPLANE_SERVICES
+  if (p === '/dataplane/services/status') return DATAPLANE_SERVICES_STATUS
+  if (p === '/notifications/history') return NOTIFICATION_HISTORY
   if (p === '/sessions') return { items: SESSIONS }
   if (p === '/certificates/cas') return CERT_CAS
   if (p === '/certificates') return CERTS

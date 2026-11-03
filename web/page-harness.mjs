@@ -32,6 +32,21 @@ export const UNSEEDED_PAGES = []
     sees the tab that is open when the page loads. A name with no matching button on the page is skipped. */
 export const PAGE_TABS = {
   network: ['Bridges', 'Bonds', 'VLANs', 'Macvtap', 'Tap', 'Interfaces', 'Link Files', 'Port Forwards', 'VXLAN', 'SR-IOV', 'Floating IPs', 'Status'],
+  system: ['CPU Topology', 'NUMA Topology', 'Memory & Hugepages', 'Optimization'],
+  certificates: ['Dashboard', 'CAs', 'Certificates', 'Requests', 'Attestation', 'Security Baselines'],
+  drs: ['balance', 'recommendations', 'rules', 'placement'],
+  lifecycle: ['baselines', 'Compliance Scans', 'remediation', 'Rolling Updates'],
+  replication: ['dashboard', 'sites', 'Replications', 'RPO Violations'],
+  'site-recovery': ['DR Dashboard', 'Recovery Plans', 'Execution History'],
+  ai: ['Models', 'Deployments', 'Endpoints', 'API keys', 'Nodes', 'Host GPUs'],
+  'content-library': ['Libraries', 'Item Browser', 'Guest Customization', 'Host Profiles'],
+  'distributed-storage': ['pools', 'policies', 'migrations', 'Datastore Clusters'],
+  'edge-dataplane': ['Health', 'Services', 'Groups', 'CNP', 'Endpoints', 'Identities', 'Observe', 'Packet flow', 'Ipcache'],
+  encryption: ['Key Providers', 'Policies', 'Encrypted VMs'],
+  'fault-tolerance': ['Protected VMs', 'Compatibility Check', 'events', 'metrics'],
+  'network-security': ['Policies', 'Firewall', 'Services', 'QoS', 'DNS', 'VPN', 'Mirror', 'NAT', 'Monitor'],
+  notifications: ['Channels', 'Rules', 'History'],
+  'merion/history': ['Runs', 'Triggers', 'Audit', 'Approvals'],
 }
 export const SIZES = { desktop: [1440, 900], phone: [390, 844] }
 

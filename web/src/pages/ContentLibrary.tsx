@@ -193,7 +193,7 @@ export default function ContentLibrary() {
         <div>
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
-              <select value={selectedLibrary || ''} onChange={e => setSelectedLibrary(e.target.value || null)}
+              <select aria-label="Library" value={selectedLibrary || ''} onChange={e => setSelectedLibrary(e.target.value || null)}
                 className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-3 py-2 text-sm text-[var(--zf-ink)]">
                 <option value="">All Libraries</option>
                 {libraries.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
