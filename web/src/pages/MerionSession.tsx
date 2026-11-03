@@ -747,6 +747,11 @@ export default function MerionSession() {
                       {sc.cost.used.toFixed(4)} of {sc.cost.max} {sc.cost.currency ?? ''}
                     </span>
                   )}
+                  {sc.warn && !sc.reached && (
+                    <span className="text-xs text-[var(--zf-warning,#b54708)]">
+                      {Math.round((sc.fraction ?? 0) * 100)}% used: close to the limit
+                    </span>
+                  )}
                   {sc.reached && <span className="text-xs text-[var(--zf-danger,#b42318)]">limit reached: further calls are refused</span>}
                 </div>
               ))

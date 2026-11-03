@@ -6,6 +6,8 @@
 - **Model budget status.** The session cockpit (`GET /v1/sessions/{id}/cockpit`, `merionctl cockpit`) now carries a `budget`
   object: calls and cost used against each cap that is set (24 hours, run, goal) and whether the next call would be refused.
   The console shows it as a "Model budget" card. It counts the same journal rows as the refusal. Read-only.
+  It warns (`warn`, an amber line in the card) from 80% of a cap; `warn_at` in a budget sets another share, above 0 and at most 1.
+  The warning never refuses a call.
 - **Failed applies are visible and retryable.** An approved changeset that FluxVM could not apply now shows in the
   console's Merion session page as "Approved, but not applied" with the error and a Retry button
   (`POST /v1/approvals/{id}/retry-apply`, `merionctl retry-apply <id>`). A person asks for each retry; it checks the

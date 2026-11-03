@@ -30,12 +30,14 @@ scope, before anything is sent, and the refusal is journaled as `model.budget_re
 cap that is set (`day`, `run`, `goal`) with calls and cost used against the cap, and `reached` when the next call would be refused.
 It reads the same journal rows the refusal reads, through one shared helper, so the two cannot disagree. It is `null` when no budget
 applies, and `{"error": ...}` when the prices file cannot be read (calls are refused in that case too). The console shows it as a
-"Model budget" card on the session page. It is read-only: nothing here changes a cap.
+"Model budget" card on the session page. Each entry also has `fraction` (how close its nearest cap is, 0 to 1) and `warn`, true from `warn_at` of a cap up to the cap. `warn_at`
+is set per budget in the prices file (above 0, at most 1; default 0.8) and a bad value fails the file load. At the cap `reached`
+replaces `warn`. The warning only changes what is shown: a call is refused at the cap and never before it. It is read-only: nothing
+here changes a cap.
 
 ## Not done
 
 - Per-user caps across agents.
-- A warning before a cap is reached (only `reached` is reported, not a threshold).
 
 - Caps in the manifest. They live in the operator's file so an agent's author cannot raise their own.
 - Goal caps spanning agents other than the budgeted one only when those sessions belong to the same goal.
