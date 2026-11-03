@@ -1386,6 +1386,16 @@ pub fn with_idempotency_key(
     Ok(builder.header("Idempotency-Key", key))
 }
 
+/// Succeed on a 2xx; otherwise fail with FluxVM's own error body, as `parse` does for reads.
+async fn expect_deleted(resp: reqwest::Response, what: &str) -> Result<()> {
+    let status = resp.status();
+    if status.is_success() {
+        return Ok(());
+    }
+    let body = resp.text().await.unwrap_or_default();
+    bail!("{what} failed: {status} — {body}")
+}
+
 pub fn validate_idempotency_key(key: &str) -> Result<()> {
     if key.is_empty() || key.len() > 255 || !key.bytes().all(|b| (0x21..=0x7e).contains(&b)) {
         bail!("Idempotency-Key must be 1-255 visible ASCII characters");
@@ -1757,8 +1767,22 @@ impl FluxVmClient {
     /// `POST /v1/vms/{id}/restore`: restore a running VM in place from `tag`,
     /// or relaunch a stopped one from it.
     pub async fn restore_vm(&self, id: Uuid, tag: &str) -> Result<VmRecord> {
+        self.restore_vm_keyed(id, tag, None).await
+    }
+
+    /// Like [`restore_vm`](Self::restore_vm), with an `Idempotency-Key` so a retried
+    /// restore replays the first outcome instead of restoring twice.
+    pub async fn restore_vm_keyed(
+        &self,
+        id: Uuid,
+        tag: &str,
+        key: Option<&str>,
+    ) -> Result<VmRecord> {
         let resp = self
-            .authed(self.http.post(self.url(&format!("/v1/vms/{id}/restore"))?))
+            .keyed(
+                self.authed(self.http.post(self.url(&format!("/v1/vms/{id}/restore"))?)),
+                key,
+            )?
             .json(&serde_json::json!({ "tag": tag }))
             .send()
             .await?;
@@ -1787,11 +1811,7 @@ impl FluxVmClient {
             .pop_if_empty()
             .push(tag);
         let resp = self.authed(self.http.delete(url)).send().await?;
-        if resp.status().is_success() {
-            Ok(())
-        } else {
-            bail!("DELETE snapshot {tag} of {id} failed: {}", resp.status())
-        }
+        expect_deleted(resp, &format!("DELETE snapshot {tag} of {id}")).await
     }
 
     fn keyed(
@@ -1815,11 +1835,7 @@ impl FluxVmClient {
             )?)
             .send()
             .await?;
-        if resp.status().is_success() {
-            Ok(())
-        } else {
-            bail!("DELETE /v1/vms/{id} failed: {}", resp.status())
-        }
+        expect_deleted(resp, &format!("DELETE /v1/vms/{id}")).await
     }
 
     pub async fn delete_vm(&self, id: Uuid) -> Result<()> {
@@ -1827,11 +1843,7 @@ impl FluxVmClient {
             .authed(self.http.delete(self.url(&format!("/v1/vms/{id}"))?))
             .send()
             .await?;
-        if resp.status().is_success() {
-            Ok(())
-        } else {
-            bail!("DELETE /v1/vms/{id} failed: {}", resp.status())
-        }
+        expect_deleted(resp, &format!("DELETE /v1/vms/{id}")).await
     }
 
     /// `POST /v1/vms/{id}/agent` — exec a command over the in-guest vsock

@@ -633,3 +633,39 @@ async fn eject_cdrom_escapes_the_name_and_vz_backend_round_trips() {
         "a vz VM must decode and re-encode as vz"
     );
 }
+
+#[tokio::test]
+async fn keyed_restore_sends_key_and_delete_errors_carry_the_body() {
+    let server = MockServer::start().await;
+    let id = Uuid::new_v4();
+    let req = sample_create_req();
+    Mock::given(method("POST"))
+        .and(path(format!("/v1/vms/{id}/restore")))
+        .and(header("Idempotency-Key", "restore-1"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(vm_record(id, "recv", &req)))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("DELETE"))
+        .and(path(format!("/v1/vms/{id}")))
+        .respond_with(ResponseTemplate::new(409).set_body_string("vm is busy"))
+        .mount(&server)
+        .await;
+
+    let client = FluxVmClient::new(server.uri()).unwrap();
+    assert_eq!(
+        client
+            .restore_vm_keyed(id, "t", Some("restore-1"))
+            .await
+            .unwrap()
+            .id,
+        id
+    );
+    // A malformed key is refused before any request goes out.
+    assert!(client
+        .restore_vm_keyed(id, "t", Some("bad key"))
+        .await
+        .is_err());
+    let err = client.delete_vm(id).await.unwrap_err().to_string();
+    assert!(err.contains("409") && err.contains("vm is busy"), "{err}");
+}
