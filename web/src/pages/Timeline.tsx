@@ -164,7 +164,7 @@ export default function Timeline() {
             onClick={() => setFilter(f.value)}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
               filter === f.value
-                ? 'bg-[var(--zf-ink)] text-white border border-[var(--zf-ink)]'
+                ? 'bg-[var(--zf-ink)] text-[var(--zf-canvas)] border border-[var(--zf-ink)]'
                 : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)]'
             }`}
           >

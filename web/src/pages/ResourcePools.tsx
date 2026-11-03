@@ -160,7 +160,7 @@ export default function ResourcePools() {
             <button onClick={() => setShowAdmissionTest(pool.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] text-xs px-2 py-1">
               Test Admission
             </button>
-            <button onClick={() => handleDelete(pool.id)} className="text-red-600 hover:text-red-800 p-1" aria-label={`Delete ${pool.name}`} title={`Delete ${pool.name}`}>
+            <button onClick={() => handleDelete(pool.id)} className="text-[var(--zf-danger-text)] hover:text-red-800 p-1" aria-label={`Delete ${pool.name}`} title={`Delete ${pool.name}`}>
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
@@ -196,7 +196,7 @@ export default function ResourcePools() {
                             <ArrowRightLeft className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        <button onClick={() => handleUnassign(pool.id, vmName)} className="text-[var(--zf-muted)] hover:text-red-600" title="Unassign">
+                        <button onClick={() => handleUnassign(pool.id, vmName)} className="text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)]" title="Unassign">
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>

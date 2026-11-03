@@ -47,8 +47,8 @@ export default function ConfirmDialog({
   }[variant]
 
   const iconColor = {
-    danger: 'text-red-600',
-    warning: 'text-amber-600',
+    danger: 'text-[var(--zf-danger-text)]',
+    warning: 'text-[var(--zf-warn-text)]',
     info: 'text-[var(--zf-link)]',
   }[variant]
 

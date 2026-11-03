@@ -30,7 +30,7 @@ const typeTextColor: Record<Notification['type'], string> = {
   vm_started: 'text-emerald-700',
   vm_stopped: 'text-red-700',
   alert: 'text-amber-800',
-  warning: 'text-[var(--zf-link)]',
+  warning: 'text-blue-800',
 }
 
 function formatTimeAgo(date: Date): string {

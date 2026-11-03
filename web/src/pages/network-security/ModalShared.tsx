@@ -64,7 +64,7 @@ export function LabelSelectorInput({
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/15 text-blue-300 border border-blue-500/30"
             >
               {k}={v}
-              <button type="button" onClick={() => handleRemove(k)} className="hover:text-red-600 transition" aria-label={`Remove label ${k}`} title={`Remove label ${k}`}>
+              <button type="button" onClick={() => handleRemove(k)} className="hover:text-[var(--zf-danger-text)] transition" aria-label={`Remove label ${k}`} title={`Remove label ${k}`}>
                 <X className="w-3.5 h-3.5" />
               </button>
             </span>
@@ -78,9 +78,9 @@ export function LabelSelectorInput({
 /** Colored status badge */
 export function StatusBadge({ status, color }: { status: string; color?: string }) {
   const colorMap: Record<string, string> = {
-    green: 'bg-green-500/10 text-emerald-600 border-green-500/20',
-    red: 'bg-red-500/10 text-red-600 border-red-500/20',
-    yellow: 'bg-yellow-500/10 text-amber-600 border-yellow-500/20',
+    green: 'bg-green-500/10 text-[var(--zf-proof-text)] border-green-500/20',
+    red: 'bg-red-500/10 text-[var(--zf-danger-text)] border-red-500/20',
+    yellow: 'bg-yellow-500/10 text-[var(--zf-warn-text)] border-yellow-500/20',
     blue: 'bg-blue-500/10 text-[var(--zf-link)] border-blue-500/20',
     gray: 'bg-black/[0.04] text-[var(--zf-muted)] border-[var(--zf-hairline)]',
   }

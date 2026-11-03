@@ -214,7 +214,7 @@ export default function Explain() {
                   const text = typeof rec === 'string' ? rec : rec.text ?? rec.description ?? ''
                   return (
                     <div key={idx} className="px-4 py-3 flex items-start gap-3">
-                      <span className="text-emerald-600 mt-0.5 flex-shrink-0">&#10003;</span>
+                      <span className="text-[var(--zf-proof-text)] mt-0.5 flex-shrink-0">&#10003;</span>
                       <span className="text-sm text-[var(--zf-ink)]">{text}</span>
                     </div>
                   )

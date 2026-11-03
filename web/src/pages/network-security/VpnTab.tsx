@@ -237,7 +237,7 @@ export function CreateVpnTunnelModal({ onClose, onCreated }: { onClose: () => vo
                 <div key={i} className="flex items-center gap-2 text-xs bg-[var(--zf-surface)] rounded px-2 py-1">
                   <span className="text-[var(--zf-ink)] truncate">{p.public_key.slice(0, 20)}...</span>
                   {p.endpoint && <span className="text-[var(--zf-muted)]">{p.endpoint}</span>}
-                  <button onClick={() => setPeers(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setPeers(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -245,7 +245,7 @@ export function CreateVpnTunnelModal({ onClose, onCreated }: { onClose: () => vo
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Tunnel'}
         </button>
@@ -299,7 +299,7 @@ export function CreateVpnNetworkModal({ onClose, onCreated }: { onClose: () => v
         </div>
         <InputField label="Address Range" value={addressRange} onChange={setAddressRange} placeholder="10.10.0.0/16" />
         <LabelSelectorInput labels={labels} onChange={setLabels} />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Network'}
         </button>
@@ -394,7 +394,7 @@ export function EditVpnTunnelModal({ id, onClose, onUpdated }: { id: string; onC
   if (loadErr) {
     return (
       <ModalWrapper title="Edit VPN Tunnel" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -426,7 +426,7 @@ export function EditVpnTunnelModal({ id, onClose, onUpdated }: { id: string; onC
                 <div key={i} className="flex items-center gap-2 text-xs bg-[var(--zf-surface)] rounded px-2 py-1">
                   <span className="text-[var(--zf-ink)] truncate">{p.public_key.slice(0, 20)}...</span>
                   {p.endpoint && <span className="text-[var(--zf-muted)]">{p.endpoint}</span>}
-                  <button onClick={() => setPeers(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setPeers(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -434,7 +434,7 @@ export function EditVpnTunnelModal({ id, onClose, onUpdated }: { id: string; onC
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>

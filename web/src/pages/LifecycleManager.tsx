@@ -197,7 +197,7 @@ export default function LifecycleManager() {
                       </td>
                       <td className="p-4 text-sm text-[var(--zf-muted)]">{new Date(bl.release_date).toLocaleDateString()}</td>
                       <td className="p-4 text-sm">{bl.host_count}</td>
-                      <td className="p-4 text-sm text-emerald-600">{bl.compliant_count}</td>
+                      <td className="p-4 text-sm text-[var(--zf-proof-text)]">{bl.compliant_count}</td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <div className="w-20 bg-[var(--zf-hairline)] rounded-full h-2">

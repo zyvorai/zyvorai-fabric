@@ -236,7 +236,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
                   type="button"
                   onClick={() => removeCredentialRow(i)}
                   disabled={submitting}
-                  className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)] hover:bg-red-50 transition-colors"
                   title="Remove"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -272,7 +272,7 @@ export default function DeployAgentModal({ open, onClose, onDeployed }: DeployAg
                   type="button"
                   onClick={() => removeEgressHostRow(i)}
                   disabled={submitting}
-                  className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)] hover:bg-red-50 transition-colors"
                   title="Remove"
                 >
                   <X className="w-3.5 h-3.5" />

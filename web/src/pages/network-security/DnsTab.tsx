@@ -229,7 +229,7 @@ export function CreateDnsZoneModal({ onClose, onCreated }: { onClose: () => void
                   <span className="text-[var(--zf-ink)]">{r.name}</span>
                   <span className="text-[var(--zf-muted)]">{r.value}</span>
                   <span className="text-[var(--zf-muted)]">TTL:{r.ttl}</span>
-                  <button onClick={() => setRecords(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setRecords(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -237,7 +237,7 @@ export function CreateDnsZoneModal({ onClose, onCreated }: { onClose: () => void
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Zone'}
         </button>
@@ -306,7 +306,7 @@ export function CreateDnsPolicyModal({ zones, onClose, onCreated }: { zones: Dns
           <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} className="rounded border-[var(--zf-hairline)]" />
           Enabled
         </label>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting || !zoneId} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create DNS Policy'}
         </button>
@@ -383,7 +383,7 @@ export function EditDnsZoneModal({ id, onClose, onUpdated }: { id: string; onClo
   if (loadErr) {
     return (
       <ModalWrapper title="Edit DNS Zone" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -422,7 +422,7 @@ export function EditDnsZoneModal({ id, onClose, onUpdated }: { id: string; onClo
                   <span className="text-[var(--zf-ink)]">{r.name}</span>
                   <span className="text-[var(--zf-muted)]">{r.value}</span>
                   <span className="text-[var(--zf-muted)]">TTL:{r.ttl}</span>
-                  <button onClick={() => setRecords(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-600 hover:text-red-300" aria-label="Delete" title="Delete">
+                  <button onClick={() => setRecords(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-[var(--zf-danger-text)] hover:text-red-300" aria-label="Delete" title="Delete">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -430,7 +430,7 @@ export function EditDnsZoneModal({ id, onClose, onUpdated }: { id: string; onClo
             </div>
           )}
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
@@ -505,7 +505,7 @@ export function EditDnsPolicyModal({ id, zones, onClose, onUpdated }: { id: stri
   if (loadErr) {
     return (
       <ModalWrapper title="Edit DNS Policy" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -536,7 +536,7 @@ export function EditDnsPolicyModal({ id, zones, onClose, onUpdated }: { id: stri
           <input type="checkbox" checked={enabled} onChange={e => setEnabled(e.target.checked)} className="rounded border-[var(--zf-hairline)]" />
           Enabled
         </label>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting || !zoneId} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>

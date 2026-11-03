@@ -75,10 +75,10 @@ function QosTabContent({ policies, onDelete, onAdopt, onEdit, onCreate, onSync }
                   </td>
                   <td className="p-4 font-mono text-sm text-cyan-400">{p.interface}</td>
                   <td className="p-4 font-mono text-sm">{p.traffic_class?.name ?? '-'}</td>
-                  <td className="p-4 font-mono text-sm text-emerald-600">
+                  <td className="p-4 font-mono text-sm text-[var(--zf-proof-text)]">
                     {p.traffic_class ? formatRate(p.traffic_class.guaranteed_rate) : '-'}
                   </td>
-                  <td className="p-4 font-mono text-sm text-amber-600">
+                  <td className="p-4 font-mono text-sm text-[var(--zf-warn-text)]">
                     {p.traffic_class ? formatRate(p.traffic_class.max_rate) : '-'}
                   </td>
                   <td className="p-4 font-mono text-sm">{p.traffic_class?.priority ?? '-'}</td>
@@ -163,7 +163,7 @@ export function CreateQosModal({ onClose, onCreated }: { onClose: () => void; on
           <InputField label="Burst" value={burst} onChange={setBurst} placeholder="32kbit" />
           <InputField label="Priority" value={priority} onChange={setPriority} placeholder="100" type="number" />
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create QoS Policy'}
         </button>
@@ -244,7 +244,7 @@ export function EditQosModal({ id, onClose, onUpdated }: { id: string; onClose: 
   if (loadErr) {
     return (
       <ModalWrapper title="Edit QoS Policy" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -264,7 +264,7 @@ export function EditQosModal({ id, onClose, onUpdated }: { id: string; onClose: 
           <InputField label="Burst" value={burst} onChange={setBurst} placeholder="32kbit" />
           <InputField label="Priority" value={priority} onChange={setPriority} placeholder="100" type="number" />
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>

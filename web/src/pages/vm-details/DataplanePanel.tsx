@@ -298,7 +298,7 @@ export default function DataplanePanel({ vmName }: { vmName: string }) {
       <div className="space-y-3">
         <SubsystemBanner subsystem="vm_dataplane" title="VM edge dataplane" />
         <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-6 space-y-3">
-        <div className="flex items-center gap-2 text-red-600">
+        <div className="flex items-center gap-2 text-[var(--zf-danger-text)]">
           <AlertCircle className="w-4 h-4" />
           <span className="text-sm font-medium">VM edge dataplane (FluxVM)</span>
         </div>
@@ -1021,7 +1021,7 @@ function TagList({
               <button
                 type="button"
                 onClick={() => onRemove(item)}
-                className="text-[var(--zf-muted)] hover:text-red-600"
+                className="text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)]"
                 aria-label={`Remove ${item}`}
               >
                 <X className="w-3 h-3" />

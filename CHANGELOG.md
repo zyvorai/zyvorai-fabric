@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **The accessibility gate covers 82 console pages, up from about 25**, and runs the two themes in parallel. Widening it fixed
+  low-contrast green, amber and red text across 55 files, unlabelled sliders and selects on the cost estimator and event stream,
+  and two chips that failed contrast in dark theme. Eight pages that cannot render against the empty mock are listed as not covered.
 - **Network page: a map of how it connects.** Interfaces, bonds, VLANs, VXLANs, macvtaps, bridges and taps in four columns, joined
   where the configuration joins them, outlined by link state, with a line that moves only when both ends are up. The Network
   tabs' "Create" buttons all use the one primary colour, and their low-contrast text and an unlabelled sort control are fixed.

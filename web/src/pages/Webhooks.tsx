@@ -189,7 +189,7 @@ export default function Webhooks() {
           </div>
 
           {addError && (
-            <p className="text-sm text-red-600">{addError}</p>
+            <p className="text-sm text-[var(--zf-danger-text)]">{addError}</p>
           )}
 
           <div className="flex gap-2">
@@ -240,14 +240,14 @@ export default function Webhooks() {
                     ))}
                     <div className="flex items-center gap-1 text-xs">
                       {wh.enabled ? (
-                        <><ToggleRight className="w-4 h-4 text-emerald-600" /><span className="text-emerald-600">Enabled</span></>
+                        <><ToggleRight className="w-4 h-4 text-[var(--zf-proof-text)]" /><span className="text-[var(--zf-proof-text)]">Enabled</span></>
                       ) : (
                         <><ToggleLeft className="w-4 h-4 text-[var(--zf-muted)]" /><span className="text-[var(--zf-muted)]">Disabled</span></>
                       )}
                     </div>
                   </div>
                   {testResult?.id === wh.id && (
-                    <div className={`mt-2 flex items-center gap-1.5 text-xs ${testResult.ok ? 'text-emerald-600' : 'text-red-600'}`}>
+                    <div className={`mt-2 flex items-center gap-1.5 text-xs ${testResult.ok ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-danger-text)]'}`}>
                       {testResult.ok ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                       {testResult.msg}
                     </div>
@@ -266,7 +266,7 @@ export default function Webhooks() {
                   </button>
                   <button
                     onClick={() => handleDelete(wh.id, wh.url)}
-                    className="p-1.5 text-[var(--zf-muted)] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)] hover:bg-red-50 rounded-lg transition-colors"
                     title="Delete webhook"
                   >
                     <Trash2 className="w-4 h-4" />

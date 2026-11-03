@@ -147,15 +147,15 @@ export default function Certificates() {
             </div>
             <div className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">Active</div>
-              <div className="text-2xl font-bold text-emerald-600">{health.active}</div>
+              <div className="text-2xl font-bold text-[var(--zf-proof-text)]">{health.active}</div>
             </div>
             <div className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">Expiring Soon</div>
-              <div className="text-2xl font-bold text-amber-600">{health.expiring_soon}</div>
+              <div className="text-2xl font-bold text-[var(--zf-warn-text)]">{health.expiring_soon}</div>
             </div>
             <div className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">Expired</div>
-              <div className="text-2xl font-bold text-red-600">{health.expired}</div>
+              <div className="text-2xl font-bold text-[var(--zf-danger-text)]">{health.expired}</div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
@@ -220,7 +220,7 @@ export default function Certificates() {
                       <td className="p-4 text-sm">{ca.ca_type}</td>
                       <td className="p-4 text-sm font-mono text-[var(--zf-muted)]">{ca.subject}</td>
                       <td className="p-4 text-sm">
-                        <span className={days < 30 ? 'text-red-600' : days < 90 ? 'text-amber-600' : 'text-[var(--zf-muted)]'}>
+                        <span className={days < 30 ? 'text-[var(--zf-danger-text)]' : days < 90 ? 'text-[var(--zf-warn-text)]' : 'text-[var(--zf-muted)]'}>
                           {new Date(ca.valid_to).toLocaleDateString()} ({days}d)
                         </span>
                       </td>
@@ -269,7 +269,7 @@ export default function Certificates() {
                       <td className="p-4 text-sm">{cert.cert_type}</td>
                       <td className="p-4 text-xs font-mono text-[var(--zf-muted)]">{cert.serial_number}</td>
                       <td className="p-4 text-sm">
-                        <span className={days < 0 ? 'text-red-600' : days < 30 ? 'text-amber-600' : 'text-[var(--zf-muted)]'}>
+                        <span className={days < 0 ? 'text-[var(--zf-danger-text)]' : days < 30 ? 'text-[var(--zf-warn-text)]' : 'text-[var(--zf-muted)]'}>
                           {new Date(cert.valid_to).toLocaleDateString()} ({days}d)
                         </span>
                       </td>
@@ -283,7 +283,7 @@ export default function Certificates() {
                             </button>
                           )}
                           {cert.status === 'active' && (
-                            <button onClick={() => handleRevoke(cert.id)} className="text-red-600 hover:text-red-800 text-sm">Revoke</button>
+                            <button onClick={() => handleRevoke(cert.id)} className="text-[var(--zf-danger-text)] hover:text-red-800 text-sm">Revoke</button>
                           )}
                         </div>
                       </td>
@@ -325,7 +325,7 @@ export default function Certificates() {
                   <td className="p-4">
                     {csr.status === 'pending' && (
                       <div className="flex items-center gap-2">
-                        <button onClick={() => handleApproveCSR(csr.id)} className="text-emerald-600 hover:text-emerald-700 p-1" aria-label="Confirm" title="Confirm">
+                        <button onClick={() => handleApproveCSR(csr.id)} className="text-[var(--zf-proof-text)] hover:text-emerald-700 p-1" aria-label="Confirm" title="Confirm">
                           <Check className="w-4 h-4" />
                         </button>
                       </div>
@@ -419,7 +419,7 @@ export default function Certificates() {
                         </div>
                       </td>
                       <td className="p-4 text-sm">{bl.vm_count}</td>
-                      <td className="p-4 text-sm text-emerald-600">{bl.compliant_count}</td>
+                      <td className="p-4 text-sm text-[var(--zf-proof-text)]">{bl.compliant_count}</td>
                       <td className="p-4 text-sm">{bl.checks.length}</td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
@@ -620,14 +620,14 @@ function ComplianceCheckForm({ baseline, vms, onClose, onChecked }: { baseline: 
         </select></div>
       {result && (
         <div className={`rounded-lg p-3 border ${result.compliant ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
-          <div className={`text-sm font-semibold mb-2 ${result.compliant ? 'text-emerald-600' : 'text-red-600'}`}>
+          <div className={`text-sm font-semibold mb-2 ${result.compliant ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-danger-text)]'}`}>
             {result.compliant ? 'Compliant' : 'Non-compliant'}
           </div>
           <div className="space-y-1">
             {result.checks.map(c => (
               <div key={c.check_id} className="flex items-center justify-between text-xs">
                 <span className="text-[var(--zf-ink)]">{c.name}</span>
-                <span className={c.status === 'pass' ? 'text-emerald-600' : c.status === 'fail' ? 'text-red-600' : 'text-[var(--zf-muted)]'}>{c.status.replace(/_/g, ' ')}</span>
+                <span className={c.status === 'pass' ? 'text-[var(--zf-proof-text)]' : c.status === 'fail' ? 'text-[var(--zf-danger-text)]' : 'text-[var(--zf-muted)]'}>{c.status.replace(/_/g, ' ')}</span>
               </div>
             ))}
           </div>

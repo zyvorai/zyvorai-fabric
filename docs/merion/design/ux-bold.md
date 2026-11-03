@@ -95,6 +95,18 @@ Not done here: the table view of VMs, VM details, create and storage pages; the 
 
 Seeding them found real problems, now fixed: the audit page's action and error text and counters used mid-tone green and red (3.4 to 4.4:1), the analytics time-range select had no accessible name (a critical axe finding), and the analytics "info" badge used the link colour on a pale blue that fails in dark theme.
 
+## How much of the console the gate covers
+
+The gate now covers 82 of the console's roughly 100 pages, in light and dark, desktop and phone (`page-harness.mjs`):
+- **`SEEDED_PAGES`** (23): the mock feeds them data, so they render populated and tables, cards and charts are checked.
+- **`EMPTY_STATE_PAGES`** (59): they render fine against the mock's empty answers but have no seed data, so they are checked as empty states (structure, labels, and the contrast of what is drawn). Seed one in `mock-data.mjs` and move it to `SEEDED_PAGES` to check it with data. They settle for 0.7 s instead of 1.8 s, since there is nothing to wait for.
+- **`UNSEEDED_PAGES`** (8: certificates, compliance, drs, federation, lifecycle, migration-report, replication, site-recovery): they throw against the empty mock, so they are **not covered**, and `npm run a11y` prints that list on every run.
+- **`PAGE_TABS`**: a page's other tabs are clicked and scanned too (Network so far).
+
+Widening it from about 25 pages found 36 violations in the 59 new ones: mid-tone green, amber and red text at 2.9 to 4.4:1 (the same three Tailwind classes in 55 files, now the contrast-safe tokens everywhere), three unlabelled sliders on the cost estimator, an unlabelled select on the event stream, a link-blue notification chip on a fixed pale background, and white text on the theme's ink colour in the timeline's active filter.
+
+The run takes about 7 minutes in one process, so `npm run a11y` runs the two themes at once (`a11y-parallel.mjs`, two processes on two ports).
+
 ## Checks
 
 `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run a11y` (22 pages, light and dark, 1440 and 390 px), and `node baseline-shots.mjs <dir>` for screenshots.

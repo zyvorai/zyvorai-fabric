@@ -7,12 +7,26 @@ import { createServer } from 'node:http'
 import { extname, join } from 'node:path'
 import { mockBody, SEEDED_SESSION_ID } from './mock-data.mjs'
 
-export const PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
+/** Pages the mock feeds with data (see mock-data.mjs): they render populated, so tables, cards and charts are checked too. */
+export const SEEDED_PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
   'schedules', 'settings', 'alerts', 'security-dashboard', 'access-control',
   'backups', 'analytics', 'audit', 'system', 'migrations', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'ui-kit']
+/** Pages that render fine against the mock's empty answers but have no seed data yet. They are checked as empty states (structure,
+    labels, contrast of what is drawn), not populated. Seed one in mock-data.mjs and move it to SEEDED_PAGES to check it with data. */
+export const EMPTY_STATE_PAGES = [
+  'ai', 'autoscale', 'backup-scheduler', 'batch-import', 'batch-migration', 'bulk-operations', 'capacity-planning', 'container-groups',
+  'containers', 'content-library', 'cost-estimator', 'datacenters', 'debug', 'disk-converter', 'disk-images', 'distributed-storage',
+  'download-disk', 'edge-dataplane', 'encryption', 'event-stream', 'explain', 'fault-tolerance', 'favorites', 'iso-images', 'job-monitor',
+  'kernel', 'live-metrics', 'manifest-builder', 'migration-history', 'migration-readiness', 'migration-templates', 'migration-wizard',
+  'network-security', 'network-topology', 'notification-center', 'notifications', 'pipeline', 'playground', 'plugins', 'processes',
+  'profiles', 'quotas', 'resource-optimizer', 'resource-pools', 'service-map', 'snapshot-manager', 'snapshots', 'storage-manager',
+  'storage-pools', 'system-health', 'timeline', 'upload-disk', 'vm-browser', 'vm-compare', 'vm-healthcheck', 'vm-pools', 'vm-wizard',
+  'webhooks', 'zones',
+]
+export const PAGES = [...SEEDED_PAGES, ...EMPTY_STATE_PAGES]
 /** Pages whose mock data is not seeded yet: with the mock's empty `{}` they throw and show the error boundary, so axe has
     nothing real to check, and `openPage` fails them. Seed each one (see mock-data.mjs) and move it into PAGES. */
-export const UNSEEDED_PAGES = []
+export const UNSEEDED_PAGES = ['certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery']
 /** Pages whose tabs hide whole screens: the gate clicks each tab (a button with exactly this text) and checks again, because axe only
     sees the tab that is open when the page loads. A name with no matching button on the page is skipped. */
 export const PAGE_TABS = {
@@ -55,10 +69,10 @@ export async function newConsolePage(browser, theme, [width, height]) {
   return page
 }
 
-export async function openPage(page, name, port = 3111) {
+export async function openPage(page, name, port = 3111, settleMs = 1800) {
   await page.goto(`http://localhost:${port}/app/${name}`, { waitUntil: 'load', timeout: 30000 })
   // the stagger/page-in animations take about a second to settle
-  await new Promise((r) => setTimeout(r, 1800))
+  await new Promise((r) => setTimeout(r, settleMs))
   // A crashed page shows the error boundary, which has no violations of its own: without this the gate "passes" it.
   const crashed = await page.evaluate(() => document.body.innerText.includes('Section error') || document.body.innerText.includes('Something went wrong'))
   if (crashed) throw new Error(`/app/${name} rendered an error boundary instead of the page (the mock data probably misses an endpoint)`)

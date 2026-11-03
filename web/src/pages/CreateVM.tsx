@@ -710,7 +710,7 @@ export default function CreateVM() {
                             <button
                               type="button"
                               onClick={() => removePortForwardRow(i)}
-                              className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-red-600 hover:bg-red-50 transition-colors"
+                              className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)] hover:bg-red-50 transition-colors"
                               title="Remove"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -1152,7 +1152,7 @@ function DownloadImageModal({ existingImages, onClose, onDownloaded }: {
                     <p className="text-sm font-medium text-[var(--zf-ink)] truncate capitalize">{img.distro}</p>
                     <p className="text-xs text-[var(--zf-muted)]">{img.version} · {img.arch}</p>
                     {onDisk && (
-                      <p className="text-xs font-medium text-emerald-600 mt-1">Already on disk</p>
+                      <p className="text-xs font-medium text-[var(--zf-proof-text)] mt-1">Already on disk</p>
                     )}
                   </button>
                 )

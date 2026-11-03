@@ -268,7 +268,7 @@ export default function ScheduleDialog({ mode, schedule, onClose, onSuccess }: S
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-[var(--zf-muted)]">Status</p>
-                  <p className={schedule.enabled ? 'text-emerald-600' : 'text-[var(--zf-muted)]'}>
+                  <p className={schedule.enabled ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-muted)]'}>
                     {schedule.enabled ? 'Enabled' : 'Disabled'}
                   </p>
                 </div>

@@ -143,7 +143,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                   <p className="font-medium">{quota.used_vms} active</p>
                 </div>
               </div>
-              <p className="text-xs text-amber-600 mt-3">
+              <p className="text-xs text-[var(--zf-warn-text)] mt-3">
                 Warning: Setting limits below current usage may prevent new VM creation
               </p>
             </div>
@@ -165,7 +165,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                 required
               />
               {mode === 'edit' && formData.max_cpus < quota.used_cpus ? (
-                <p className="text-xs text-red-600 mt-1">
+                <p className="text-xs text-[var(--zf-danger-text)] mt-1">
                   Below current usage ({quota.used_cpus})
                 </p>
               ) : (
@@ -188,7 +188,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                 required
               />
               {mode === 'edit' && formData.max_memory < quota.used_memory ? (
-                <p className="text-xs text-red-600 mt-1">
+                <p className="text-xs text-[var(--zf-danger-text)] mt-1">
                   Below current usage ({quota.used_memory}MB)
                 </p>
               ) : (
@@ -213,7 +213,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                 required
               />
               {mode === 'edit' && formData.max_disk < quota.used_disk ? (
-                <p className="text-xs text-red-600 mt-1">
+                <p className="text-xs text-[var(--zf-danger-text)] mt-1">
                   Below current usage ({quota.used_disk}GB)
                 </p>
               ) : (
@@ -235,7 +235,7 @@ export default function QuotaDialog({ mode, quota, onClose, onSuccess }: QuotaDi
                 required
               />
               {mode === 'edit' && formData.max_vms < quota.used_vms ? (
-                <p className="text-xs text-red-600 mt-1">
+                <p className="text-xs text-[var(--zf-danger-text)] mt-1">
                   Below current usage ({quota.used_vms} VMs)
                 </p>
               ) : (

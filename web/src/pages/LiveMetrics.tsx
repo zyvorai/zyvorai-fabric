@@ -112,9 +112,9 @@ export default function LiveMetrics() {
     { label: 'CPU Usage', value: `${latest.cpu.toFixed(1)}%`, data: cpuData, color: 'var(--zf-link)', icon: <Cpu className="w-4 h-4 text-[var(--zf-link)]" />, max: 100 },
     { label: 'Memory Usage', value: `${latest.memory.toFixed(1)}%`, data: memData, color: '#a855f7', icon: <Database className="w-4 h-4 text-purple-400" />, max: 100 },
     { label: 'Disk Read', value: `${fmtB(latest.disk_read)}/s`, data: diskReadData, color: '#06b6d4', icon: <HardDrive className="w-4 h-4 text-cyan-400" /> },
-    { label: 'Disk Write', value: `${fmtB(latest.disk_write)}/s`, data: diskWriteData, color: 'var(--zf-warning)', icon: <HardDrive className="w-4 h-4 text-amber-600" /> },
-    { label: 'Network RX', value: `${fmtB(latest.net_rx)}/s`, data: netRxData, color: 'var(--zf-success)', icon: <Network className="w-4 h-4 text-emerald-600" /> },
-    { label: 'Network TX', value: `${fmtB(latest.net_tx)}/s`, data: netTxData, color: 'var(--zf-danger)', icon: <Network className="w-4 h-4 text-red-600" /> },
+    { label: 'Disk Write', value: `${fmtB(latest.disk_write)}/s`, data: diskWriteData, color: 'var(--zf-warning)', icon: <HardDrive className="w-4 h-4 text-[var(--zf-warn-text)]" /> },
+    { label: 'Network RX', value: `${fmtB(latest.net_rx)}/s`, data: netRxData, color: 'var(--zf-success)', icon: <Network className="w-4 h-4 text-[var(--zf-proof-text)]" /> },
+    { label: 'Network TX', value: `${fmtB(latest.net_tx)}/s`, data: netTxData, color: 'var(--zf-danger)', icon: <Network className="w-4 h-4 text-[var(--zf-danger-text)]" /> },
   ]
 
   return (

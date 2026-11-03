@@ -32,9 +32,9 @@ interface ComplianceSummary {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 90) return 'text-emerald-600'
-  if (score >= 70) return 'text-amber-600'
-  return 'text-red-600'
+  if (score >= 90) return 'text-[var(--zf-proof-text)]'
+  if (score >= 70) return 'text-[var(--zf-warn-text)]'
+  return 'text-[var(--zf-danger-text)]'
 }
 
 function scoreBorder(score: number): string {
@@ -45,9 +45,9 @@ function scoreBorder(score: number): string {
 
 function statusIcon(status: string) {
   switch (status) {
-    case 'pass': return <CheckCircle className="w-5 h-5 text-emerald-600" />
-    case 'warning': return <AlertTriangle className="w-5 h-5 text-amber-600" />
-    case 'fail': return <XCircle className="w-5 h-5 text-red-600" />
+    case 'pass': return <CheckCircle className="w-5 h-5 text-[var(--zf-proof-text)]" />
+    case 'warning': return <AlertTriangle className="w-5 h-5 text-[var(--zf-warn-text)]" />
+    case 'fail': return <XCircle className="w-5 h-5 text-[var(--zf-danger-text)]" />
     default: return null
   }
 }

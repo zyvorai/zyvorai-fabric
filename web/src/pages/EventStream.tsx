@@ -92,7 +92,7 @@ export default function EventStream() {
 
       <div className="flex flex-wrap items-center gap-3">
         <span
-          className={`inline-flex items-center gap-2 text-sm ${connected ? 'text-emerald-600' : 'text-amber-600'}`}
+          className={`inline-flex items-center gap-2 text-sm ${connected ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-warn-text)]'}`}
         >
           <span className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
           {connected ? 'Connected' : 'Reconnecting…'}
@@ -116,6 +116,7 @@ export default function EventStream() {
         <div className="flex items-center gap-2 text-sm text-[var(--zf-muted)]">
           <Filter className="w-4 h-4" />
           <select
+            aria-label="Filter by level"
             value={levelFilter}
             onChange={(e) => setLevelFilter(e.target.value)}
             className="input-field text-sm py-1"

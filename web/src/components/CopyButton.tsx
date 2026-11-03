@@ -47,7 +47,7 @@ export default function CopyButton({
         title="Copy to clipboard"
         className={`inline-flex items-center justify-center p-1 rounded text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-black/[0.04] transition-colors ${className}`}
       >
-        {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+        {copied ? <Check className="w-3.5 h-3.5 text-[var(--zf-proof-text)]" /> : <Copy className="w-3.5 h-3.5" />}
       </button>
     )
   }
@@ -58,7 +58,7 @@ export default function CopyButton({
       onClick={handleClick}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:bg-[var(--zf-surface)] text-xs transition ${className}`}
     >
-      {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+      {copied ? <Check className="w-3.5 h-3.5 text-[var(--zf-proof-text)]" /> : <Copy className="w-3.5 h-3.5" />}
       {label}
     </button>
   )

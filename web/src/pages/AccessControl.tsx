@@ -180,7 +180,7 @@ export default function AccessControl() {
               </div>
             </div>
           </div>
-          {addError && <p className="text-sm text-red-600">{addError}</p>}
+          {addError && <p className="text-sm text-[var(--zf-danger-text)]">{addError}</p>}
           <div className="flex gap-2">
             <button onClick={handleAdd} disabled={adding} className="zf-btn zf-btn-primary zf-btn-sm">{adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}{adding ? 'Adding...' : 'Add'}</button>
             <button onClick={() => { setShowAdd(false); setAddError('') }} className="zf-btn zf-btn-ghost zf-btn-sm">Cancel</button>
@@ -215,7 +215,7 @@ export default function AccessControl() {
                   <td className="px-5 py-3 text-xs text-[var(--zf-muted)]">{user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
                   <td className="px-5 py-3 text-xs text-[var(--zf-muted)]">{user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
                   <td className="px-5 py-3 text-right">
-                    <button onClick={() => handleDelete(user.id, user.username)} className="p-1.5 text-[var(--zf-muted)] hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete user"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => handleDelete(user.id, user.username)} className="p-1.5 text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)] hover:bg-red-500/10 rounded-lg transition-colors" title="Delete user"><Trash2 className="w-4 h-4" /></button>
                   </td>
                 </tr>
               ))}

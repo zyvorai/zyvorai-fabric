@@ -547,7 +547,7 @@ export default function EdgeDataplane() {
                           type="button"
                           disabled={busy}
                           onClick={() => void removeService(s.name)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-[var(--zf-danger-text)] hover:text-red-700"
                           aria-label={`Delete ${s.name}`}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -624,7 +624,7 @@ export default function EdgeDataplane() {
                           type="button"
                           disabled={busy}
                           onClick={() => void removeGroup(g.name)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-[var(--zf-danger-text)] hover:text-red-700"
                           aria-label={`Delete ${g.name}`}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -675,7 +675,7 @@ export default function EdgeDataplane() {
                       type="button"
                       disabled={busy}
                       onClick={() => void removeCnp(name)}
-                      className="text-red-600" aria-label={`Delete ${name}`} title={`Delete ${name}`}>
+                      className="text-[var(--zf-danger-text)]" aria-label={`Delete ${name}`} title={`Delete ${name}`}>
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}

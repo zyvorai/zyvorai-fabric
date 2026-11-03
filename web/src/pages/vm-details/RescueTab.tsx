@@ -65,7 +65,7 @@ export default function RescueTab({ vm }: { vm: VM }) {
 
       <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5 space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)]">
-          <Key className="w-4 h-4 text-emerald-600" />
+          <Key className="w-4 h-4 text-[var(--zf-proof-text)]" />
           Inject SSH Key
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -124,7 +124,7 @@ export default function RescueTab({ vm }: { vm: VM }) {
 
       <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5 space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)]">
-          <Lock className="w-4 h-4 text-red-600" />
+          <Lock className="w-4 h-4 text-[var(--zf-danger-text)]" />
           Reset Password
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

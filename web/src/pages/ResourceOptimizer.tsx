@@ -130,8 +130,8 @@ export default function ResourceOptimizer() {
 
       {optimizations.length === 0 ? (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-10 text-center">
-          <CheckCircle className="w-10 h-10 text-emerald-600 mx-auto mb-3" />
-          <p className="text-sm text-emerald-600 font-medium">All VMs are optimally configured</p>
+          <CheckCircle className="w-10 h-10 text-[var(--zf-proof-text)] mx-auto mb-3" />
+          <p className="text-sm text-[var(--zf-proof-text)] font-medium">All VMs are optimally configured</p>
           <p className="text-xs text-[var(--zf-muted)] mt-1">No right-sizing recommendations at this time</p>
         </div>
       ) : (

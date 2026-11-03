@@ -183,7 +183,7 @@ export function CreateMirrorModal({ onClose, onCreated }: { onClose: () => void;
             <InputField label="CIDR" value={filterCidr} onChange={setFilterCidr} placeholder="10.0.0.0/8" />
           </div>
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Session'}
         </button>
@@ -270,7 +270,7 @@ export function EditMirrorModal({ id, onClose, onUpdated }: { id: string; onClos
   if (loadErr) {
     return (
       <ModalWrapper title="Edit Mirror Session" onClose={onClose}>
-        <p className="text-red-600 text-sm">{loadErr}</p>
+        <p className="text-[var(--zf-danger-text)] text-sm">{loadErr}</p>
       </ModalWrapper>
     )
   }
@@ -301,7 +301,7 @@ export function EditMirrorModal({ id, onClose, onUpdated }: { id: string; onClos
             <InputField label="CIDR" value={filterCidr} onChange={setFilterCidr} placeholder="10.0.0.0/8" />
           </div>
         </div>
-        {err && <p className="text-red-600 text-sm">{err}</p>}
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>

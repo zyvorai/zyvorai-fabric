@@ -130,7 +130,7 @@ export default function SiteRecovery() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
             <div className="bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">Protected VMs</div>
-              <div className="text-2xl font-bold text-emerald-600">{dashboard.total_protected_vms}</div>
+              <div className="text-2xl font-bold text-[var(--zf-proof-text)]">{dashboard.total_protected_vms}</div>
               <div className="text-xs text-[var(--zf-muted)] mt-1">{dashboard.total_unprotected_vms} unprotected</div>
             </div>
             <div className="bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
@@ -144,7 +144,7 @@ export default function SiteRecovery() {
             <div className="bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-4 py-3">
               <div className="text-[var(--zf-muted)] text-sm mb-1">Plans Ready</div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-emerald-600">{dashboard.plans_tested}</span>
+                <span className="text-2xl font-bold text-[var(--zf-proof-text)]">{dashboard.plans_tested}</span>
                 <span className="text-[var(--zf-muted)]">/</span>
                 <span className="text-xl text-[var(--zf-muted)]">{dashboard.total_plans}</span>
               </div>
@@ -227,7 +227,7 @@ export default function SiteRecovery() {
                       <button onClick={() => setShowExecute(plan.id)} className="text-[var(--zf-link)] hover:text-[var(--zf-link-hover)] p-1" title="Execute">
                         <Play className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDeletePlan(plan.id)} className="text-red-600 hover:text-red-800 p-1" aria-label={`Delete ${plan.name}`} title={`Delete ${plan.name}`}>
+                      <button onClick={() => handleDeletePlan(plan.id)} className="text-[var(--zf-danger-text)] hover:text-red-800 p-1" aria-label={`Delete ${plan.name}`} title={`Delete ${plan.name}`}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
