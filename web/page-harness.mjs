@@ -10,7 +10,8 @@ import { mockBody, SEEDED_SESSION_ID } from './mock-data.mjs'
 /** Pages the mock feeds with data (see mock-data.mjs): they render populated, so tables, cards and charts are checked too. */
 export const SEEDED_PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
   'schedules', 'settings', 'alerts', 'security-dashboard', 'access-control',
-  'backups', 'analytics', 'audit', 'system', 'migrations', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'ui-kit']
+  'backups', 'analytics', 'audit', 'system', 'migrations',
+  'certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'ui-kit']
 /** Pages that render fine against the mock's empty answers but have no seed data yet. They are checked as empty states (structure,
     labels, contrast of what is drawn), not populated. Seed one in mock-data.mjs and move it to SEEDED_PAGES to check it with data. */
 export const EMPTY_STATE_PAGES = [
@@ -26,7 +27,7 @@ export const EMPTY_STATE_PAGES = [
 export const PAGES = [...SEEDED_PAGES, ...EMPTY_STATE_PAGES]
 /** Pages whose mock data is not seeded yet: with the mock's empty `{}` they throw and show the error boundary, so axe has
     nothing real to check, and `openPage` fails them. Seed each one (see mock-data.mjs) and move it into PAGES. */
-export const UNSEEDED_PAGES = ['certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery']
+export const UNSEEDED_PAGES = []
 /** Pages whose tabs hide whole screens: the gate clicks each tab (a button with exactly this text) and checks again, because axe only
     sees the tab that is open when the page loads. A name with no matching button on the page is skipped. */
 export const PAGE_TABS = {

@@ -152,12 +152,12 @@ export default function MigrationReport() {
               <div className="text-2xl font-bold text-[var(--zf-ink)]">{report.total}</div>
             </div>
             <div className="bg-[var(--zf-canvas)] rounded-xl px-4 py-3 border border-emerald-200">
-              <div className="text-xs text-emerald-700 mb-1">Successful</div>
-              <div className="text-2xl font-bold text-emerald-700">{report.successful}</div>
+              <div className="text-xs text-[var(--zf-proof-text)] mb-1">Successful</div>
+              <div className="text-2xl font-bold text-[var(--zf-proof-text)]">{report.successful}</div>
             </div>
             <div className="bg-[var(--zf-canvas)] rounded-xl px-4 py-3 border border-red-200">
-              <div className="text-xs text-red-700 mb-1">Failed</div>
-              <div className="text-2xl font-bold text-red-700">{report.failed}</div>
+              <div className="text-xs text-[var(--zf-danger-text)] mb-1">Failed</div>
+              <div className="text-2xl font-bold text-[var(--zf-danger-text)]">{report.failed}</div>
             </div>
             <div className="bg-[var(--zf-canvas)] rounded-xl px-4 py-3 border border-[var(--zf-hairline)]">
               <div className="text-xs text-[var(--zf-link)] mb-1">Running</div>
@@ -182,7 +182,7 @@ export default function MigrationReport() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-black/[0.04] text-xs font-semibold text-[var(--zf-muted)] uppercase tracking-wider">
+                    <tr className="bg-black/[0.04] text-xs font-semibold uppercase tracking-wider">
                       <th className="text-left px-4 py-3">Name</th>
                       <th className="text-left px-4 py-3">VM</th>
                       <th className="text-left px-4 py-3">Status</th>
@@ -209,7 +209,7 @@ export default function MigrationReport() {
                         <td className="px-4 py-3 text-[var(--zf-muted)] font-mono text-xs max-w-[200px] truncate">
                           {m.output_path || '--'}
                         </td>
-                        <td className="px-4 py-3 text-red-700 text-xs max-w-[200px] truncate">
+                        <td className="px-4 py-3 text-[var(--zf-danger-text)] text-xs max-w-[200px] truncate">
                           {m.error || '--'}
                         </td>
                       </tr>

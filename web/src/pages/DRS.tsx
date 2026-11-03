@@ -148,7 +148,7 @@ export default function DRS() {
             </div>
             <div>
               <label className="block text-sm text-[var(--zf-muted)] mb-1">Migration Threshold</label>
-              <input type="range" min={1} max={5} value={config.migration_threshold}
+              <input aria-label="Migration threshold" type="range" min={1} max={5} value={config.migration_threshold}
                 onChange={e => handleConfigUpdate({ migration_threshold: Number(e.target.value) })}
                 className="w-full" />
               <span className="text-xs text-[var(--zf-muted)]">{config.migration_threshold}/5</span>
@@ -202,7 +202,7 @@ export default function DRS() {
                       <span>{host.cpu_usage_pct.toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-[var(--zf-surface)] rounded-full h-4">
-                      <div className={`h-4 rounded-full text-xs text-center leading-4 text-white ${host.cpu_usage_pct > 80 ? 'bg-[var(--zf-danger)]' : host.cpu_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'}`}
+                      <div className={`h-4 rounded-full text-xs text-center leading-4 ${host.cpu_usage_pct > 60 && host.cpu_usage_pct <= 80 ? 'text-slate-900' : 'text-white'} ${host.cpu_usage_pct > 80 ? 'bg-[var(--zf-danger-fill)]' : host.cpu_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'}`}
                         style={{ width: `${Math.min(host.cpu_usage_pct, 100)}%` }}>
                         {host.cpu_usage_pct > 20 ? `${host.cpu_usage_pct.toFixed(0)}%` : ''}
                       </div>
@@ -214,7 +214,7 @@ export default function DRS() {
                       <span>{host.memory_usage_pct.toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-[var(--zf-surface)] rounded-full h-4">
-                      <div className={`h-4 rounded-full text-xs text-center leading-4 text-white ${host.memory_usage_pct > 80 ? 'bg-[var(--zf-danger)]' : host.memory_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-ink)]'}`}
+                      <div className={`h-4 rounded-full text-xs text-center leading-4 ${host.memory_usage_pct > 60 && host.memory_usage_pct <= 80 ? 'text-slate-900' : 'text-white'} ${host.memory_usage_pct > 80 ? 'bg-[var(--zf-danger-fill)]' : host.memory_usage_pct > 60 ? 'bg-[var(--zf-warning)]' : 'bg-[var(--zf-link-fill)]'}`}
                         style={{ width: `${Math.min(host.memory_usage_pct, 100)}%` }}>
                         {host.memory_usage_pct > 20 ? `${host.memory_usage_pct.toFixed(0)}%` : ''}
                       </div>
