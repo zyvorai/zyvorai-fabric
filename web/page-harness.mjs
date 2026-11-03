@@ -8,8 +8,11 @@ import { extname, join } from 'node:path'
 import { mockBody, SEEDED_SESSION_ID } from './mock-data.mjs'
 
 export const PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
-  'schedules', 'backups', 'settings', 'alerts', 'analytics', 'audit', 'system', 'security-dashboard',
-  'migrations', 'access-control', `merion/${SEEDED_SESSION_ID}`, 'ui-kit']
+  'schedules', 'settings', 'alerts', 'security-dashboard', 'access-control', `merion/${SEEDED_SESSION_ID}`, 'ui-kit']
+/** Pages whose mock data is not seeded yet: with the mock's empty `{}` they throw and show the error boundary, so axe
+    has nothing real to check. They were in PAGES before, and "passed" because an error page has no violations. Seed each
+    one (see mock-data.mjs) and move it back to PAGES. */
+export const UNSEEDED_PAGES = ['backups', 'analytics', 'audit', 'system', 'migrations']
 export const SIZES = { desktop: [1440, 900], phone: [390, 844] }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.woff2': 'font/woff2', '.png': 'image/png' }
@@ -51,4 +54,7 @@ export async function openPage(page, name, port = 3111) {
   await page.goto(`http://localhost:${port}/app/${name}`, { waitUntil: 'load', timeout: 30000 })
   // the stagger/page-in animations take about a second to settle
   await new Promise((r) => setTimeout(r, 1800))
+  // A crashed page shows the error boundary, which has no violations of its own: without this the gate "passes" it.
+  const crashed = await page.evaluate(() => document.body.innerText.includes('Section error') || document.body.innerText.includes('Something went wrong'))
+  if (crashed) throw new Error(`/app/${name} rendered an error boundary instead of the page (the mock data probably misses an endpoint)`)
 }

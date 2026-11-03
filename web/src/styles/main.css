@@ -37,6 +37,7 @@
   --zf-proof: #0d7a4a;
   --zf-proof-text: #0b6b40; /* proof/success as text on a pale green tint: 5.3 to 5.6:1 */
   --zf-warn-text: #7a4100; /* 5.7 to 7:1 on a pale tint of amber or red */
+  --zf-danger-fill: #d92d20; /* solid danger button: white text is 4.8:1 (the plain danger red is 3.5:1) */
   --zf-danger-text: #b42318; /* 4.6 to 5:1 on a pale tint of red, and on the canvas */
   --zf-radius-lg: 18px;
   --zf-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.04);
@@ -806,7 +807,7 @@ a:hover {
   background: var(--zf-hover-tint);
 }
 .zf-btn-danger {
-  background: var(--zf-danger);
+  background: var(--zf-danger-fill, var(--zf-danger));
   color: #fff;
 }
 .zf-btn-sm {

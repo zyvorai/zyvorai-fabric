@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from 'vitest'
-import { changeCount, formatRemaining, secondsUntilExpiry, summarizeChangeset } from './changeset'
+import { changeCount, changeShares, formatRemaining, secondsUntilExpiry, summarizeChangeset } from './changeset'
 
 describe('summarizeChangeset', () => {
   it('reads a changeset approval as the runtime writes it', () => {
@@ -23,6 +23,7 @@ describe('summarizeChangeset', () => {
       deleted: [],
       unstaged: ['/tmp/big'],
       egress: 'blocked',
+      replayable: [],
       nonReplayable: ['sent mail'],
       expiresAt: 1000,
     })
@@ -60,5 +61,17 @@ describe('expiry', () => {
     expect(formatRemaining(125)).toBe('2m 05s left')
     expect(formatRemaining(9)).toBe('9s left')
     expect(formatRemaining(0)).toBe('expired')
+  })
+})
+
+describe('changeShares', () => {
+  const base = { command: '', exitCode: 0, unstaged: [], egress: null, replayable: [], nonReplayable: [], expiresAt: null }
+  it('splits the bar in proportion to what changed', () => {
+    const sh = changeShares({ ...base, added: ['a', 'b'], modified: ['c'], deleted: ['d'] })
+    expect(sh).toEqual({ added: 0.5, modified: 0.25, deleted: 0.25 })
+    expect(sh.added + sh.modified + sh.deleted).toBe(1)
+  })
+  it('is all zero for an empty changeset, with no division by zero', () => {
+    expect(changeShares({ ...base, added: [], modified: [], deleted: [] })).toEqual({ added: 0, modified: 0, deleted: 0 })
   })
 })

@@ -114,6 +114,27 @@ const COCKPIT = (s) => ({
   security_profile: 'measured',
 })
 
+const REPORT = (s) => ({
+  session_id: s.id,
+  agent: s.agent,
+  status: s.status,
+  generated_at: ago(30),
+  did: [
+    { at: ago(3300), type: 'session.created', summary: 'Session started for asha on invoice-check', source: 'journal' },
+    { at: ago(3240), type: 'model.call', summary: 'Asked the model to classify 12 invoices (1,840 tokens)', source: 'journal' },
+    { at: ago(3000), type: 'approval.changeset', summary: 'Proposed 4 file changes under /work for review', source: 'journal' },
+    { at: ago(1700), type: 'approval.approved', summary: 'asha approved the changeset', source: 'journal' },
+    { at: ago(1690), type: 'changeset.apply', summary: 'FluxVM could not apply it: the changeset was already rejected', source: 'journal' },
+  ],
+  checked: [
+    { check: 'Egress: no connection left the cell (0 CONNECT)', result: 'passed', source: 'sentinel' },
+    { check: 'Changeset applied to the cell', result: 'failed', source: 'journal' },
+  ],
+  not_checked: ['The content of the files in the changeset is masked on the host and was not inspected'],
+  remaining: [{ what: 'Retry or re-run the failed apply' }],
+  rollback: [{ item: '/work/out/invoice-summary.md', state: 'not applied', note: 'nothing in the cell changed' }],
+})
+
 const AGENTS = ['invoice-check', 'pdf-brief', 'csv-clean', 'contract-clauses', 'log-triage'].map((name) => ({
   name,
   version: '15ab785375eb',
@@ -144,6 +165,17 @@ export function mockBody(path) {
   if (p === '/agents') return { items: AGENTS }
   m = p.match(/^\/sessions\/([^/]+)$/)
   if (m) return SESSIONS.find((s) => s.id === m[1]) ?? SESSIONS[0]
+  m = p.match(/^\/users\/([^/]+)\/changeset-policies\/([^/]+)$/)
+  if (m) {
+    return {
+      user_id: m[1],
+      agent: m[2],
+      updated_at: ago(86400),
+      policy: { id: m[2], version: 2, paths: ['/work/out'], kinds: ['added'], max_files: 20, max_bytes: 1048576, deny_globs: ['*.env'] },
+    }
+  }
+  m = p.match(/^\/sessions\/([^/]+)\/report$/)
+  if (m) return REPORT(SESSIONS.find((s) => s.id === m[1]) ?? SESSIONS[0])
   m = p.match(/^\/sessions\/([^/]+)\/cockpit$/)
   if (m) return COCKPIT(SESSIONS.find((s) => s.id === m[1]) ?? SESSIONS[0])
   return undefined
