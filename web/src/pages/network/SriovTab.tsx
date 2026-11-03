@@ -33,7 +33,7 @@ function SriovTabContent({ sriov, onDelete, onAdopt, onCreate }: SriovTabProps) 
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">SR-IOV</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Configure SR-IOV
         </button>}
       </div>
@@ -110,8 +110,8 @@ export function CreateSriovModal({ onClose, onCreated }: { onClose: () => void; 
       <div className="space-y-4">
         <InputField label="Physical Function (PF)" value={pfName} onChange={setPfName} placeholder="eno2" />
         <InputField label="Number of VFs" value={numVfs} onChange={setNumVfs} placeholder="4" type="number" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Configure SR-IOV'}
         </button>
       </div>

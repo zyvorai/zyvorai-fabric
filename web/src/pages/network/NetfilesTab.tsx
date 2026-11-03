@@ -90,6 +90,7 @@ function NetfilesTabContent({ netfiles, onDelete, onAdopt, onCreate }: NetfilesT
         <h2 className="text-xl font-semibold">Interface Configuration (.network)</h2>
         <div className="flex items-center gap-2">
           <select
+            aria-label="Sort interfaces"
             value={sortBy}
             onChange={e => setSortBy(e.target.value as 'name' | 'state')}
             className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-2 py-1.5 text-xs text-[var(--zf-ink)]"
@@ -97,7 +98,7 @@ function NetfilesTabContent({ netfiles, onDelete, onAdopt, onCreate }: NetfilesT
             <option value="name">Sort by name</option>
             <option value="state">Sort by state</option>
           </select>
-          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
             <Plus className="w-4 h-4" /> Configure Interface
           </button>}
         </div>
@@ -237,8 +238,8 @@ export function CreateNetfileModal({ onClose, onCreated }: { onClose: () => void
         <InputField label="Bridge (attach to)" value={bridge} onChange={setBridge} placeholder="br0" />
         <InputField label="Bond (attach to)" value={bond} onChange={setBond} placeholder="bond0" />
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="1500" type="number" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Configure Interface'}
         </button>
       </div>

@@ -39,7 +39,7 @@ function VlansTabContent({ vlans, onDelete, onAdopt, onCreate, onEdit }: VlansTa
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">VLANs</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create VLAN
         </button>}
       </div>
@@ -141,8 +141,8 @@ export function CreateVlanModal({ onClose, onCreated }: { onClose: () => void; o
         <InputField label="Parent Interface" value={parent} onChange={setParent} placeholder="eth0" />
         <InputField label="Addresses (comma-separated)" value={addresses} onChange={setAddresses} placeholder="192.168.100.1/24" />
         <InputField label="Gateway" value={gateway} onChange={setGateway} placeholder="192.168.100.254" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create VLAN'}
         </button>
       </div>
@@ -188,8 +188,8 @@ export function EditVlanModal({ vlan, onClose, onUpdated }: { vlan: VlanConfig; 
         <InputField label="Parent Interface" value={parent} onChange={setParent} placeholder="eth0" />
         <InputField label="Addresses (comma-separated)" value={addresses} onChange={setAddresses} placeholder="192.168.100.1/24" />
         <InputField label="Gateway" value={gateway} onChange={setGateway} placeholder="192.168.100.254" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>

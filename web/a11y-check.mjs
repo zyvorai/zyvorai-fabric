@@ -4,7 +4,7 @@
 // Run: npx vite build && node a11y-check.mjs [--verbose]
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { PAGES, UNSEEDED_PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
+import { PAGES, PAGE_TABS, UNSEEDED_PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
 
 const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 const verbose = process.argv.includes('--verbose')
@@ -31,19 +31,33 @@ for (const theme of ['light', 'dark']) {
       if (ring) focusFailures.push(`${name || 'dashboard'} ${theme} ${size}: ${ring}`)
       // settle every animation first: axe reads the colours of elements that are mid-fade
       await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' })
-      await page.evaluate(axeSource)
-      const { violations } = await page.evaluate(() =>
-        // eslint-disable-next-line no-undef
-        axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'], resultTypes: ['violations'] }),
-      )
-      for (const v of violations) {
-        const entry = found.get(v.id) ?? { impact: v.impact, help: v.help, nodes: [] }
-        for (const n of v.nodes) {
-          const d = n.any[0]?.data
-          const ratio = v.id === 'color-contrast' && d ? ` {${d.fgColor} on ${d.bgColor} = ${d.contrastRatio}}` : ''
-          entry.nodes.push(`${name || 'dashboard'} ${theme} ${size}: ${n.target.join(' ')}${ratio}`)
+      const scan = async (label) => {
+        await page.evaluate(axeSource)
+        const { violations } = await page.evaluate(() =>
+          // eslint-disable-next-line no-undef
+          axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'], resultTypes: ['violations'] }),
+        )
+        for (const v of violations) {
+          const entry = found.get(v.id) ?? { impact: v.impact, help: v.help, nodes: [] }
+          for (const n of v.nodes) {
+            const d = n.any[0]?.data
+            const ratio = v.id === 'color-contrast' && d ? ` {${d.fgColor} on ${d.bgColor} = ${d.contrastRatio}}` : ''
+            entry.nodes.push(`${label} ${theme} ${size}: ${n.target.join(' ')}${ratio}`)
+          }
+          found.set(v.id, entry)
         }
-        found.set(v.id, entry)
+      }
+      await scan(name || 'dashboard')
+      for (const tab of PAGE_TABS[name] ?? []) {
+        const clicked = await page.evaluate((t) => {
+          const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === t)
+          if (!b) return false
+          b.click()
+          return true
+        }, tab)
+        if (!clicked) continue
+        await new Promise((r) => setTimeout(r, 400))
+        await scan(`${name} [${tab}]`)
       }
     }
     await page.close()

@@ -247,6 +247,34 @@ const RUNTIME_CAPS = {
   snapshot: [{ backend: 'qemu', memory: true, disk: true, portable: false }],
 }
 
+const NETD_LINKS = [
+  { index: 2, name: 'eth0', kind: 'ether', operational_state: 'carrier', setup_state: 'configured' },
+  { index: 3, name: 'eth1', kind: 'ether', operational_state: 'carrier', setup_state: 'configured' },
+  { index: 4, name: 'eth2', kind: 'ether', operational_state: 'no-carrier', setup_state: 'configured' },
+]
+const netd = (o) => ({ created: ago(86400 * 9), updated: ago(86400), managed: true, operational_state: 'routable', ...o })
+const NETD_BONDS = [netd({ id: 'bond-1', name: 'bond0', mode: '802.3ad', slave_interfaces: ['eth0', 'eth1'], addresses: [], dns: [], dhcp: 'no', mtu: 9000 })]
+const NETD_BRIDGES = [
+  netd({ id: 'br-1', name: 'br0', stp: true, addresses: ['10.20.0.1/24'], dns: ['10.20.0.2'], dhcp: 'no', mtu: 1500 }),
+  netd({ id: 'br-2', name: 'br-mgmt', stp: false, addresses: ['10.30.0.1/24'], dns: [], dhcp: 'no', mtu: 1500 }),
+]
+const NETD_VLANS = [
+  netd({ id: 'vl-1', name: 'vlan100', vlan_id: 100, parent_interface: 'bond0', addresses: [], dns: [], dhcp: 'no' }),
+  netd({ id: 'vl-2', name: 'vlan200', vlan_id: 200, parent_interface: 'bond0', addresses: [], dns: [], dhcp: 'no' }),
+]
+const NETD_MACVTAPS = [netd({ id: 'mv-1', name: 'mv0', parent_interface: 'eth2', mode: 'bridge', operational_state: 'no-carrier' })]
+const NETD_TAPS = [
+  netd({ id: 'tp-1', name: 'tap-web-01', bridge: 'br0', operational_state: 'carrier' }),
+  netd({ id: 'tp-2', name: 'tap-web-02', bridge: 'br0', operational_state: 'carrier' }),
+  netd({ id: 'tp-3', name: 'tap-db', bridge: 'br-mgmt', operational_state: 'degraded' }),
+]
+const NETD_VXLANS = [netd({ id: 'vx-1', name: 'vx100', vni: 100, parent_interface: 'bond0', remote: '10.40.0.9', addresses: [], dns: [], dhcp: 'no' })]
+const NETD_NETFILES = [
+  netd({ id: 'nf-1', match_name: 'vlan100', bridge: 'br0', addresses: [], dns: [], dhcp: 'no', routes: [] }),
+  netd({ id: 'nf-2', match_name: 'vlan200', bridge: 'br-mgmt', addresses: [], dns: [], dhcp: 'no', routes: [] }),
+]
+const NETD_PORT_FORWARDS = [netd({ id: 'pf-1', name: 'web-https', protocol: 'tcp', host_port: 443, guest_ip: '10.20.0.11', guest_port: 443, enabled: true, description: 'HTTPS to web-01' })]
+
 const AGENTS = ['invoice-check', 'pdf-brief', 'csv-clean', 'contract-clauses', 'log-triage'].map((name) => ({
   name,
   version: '15ab785375eb',
@@ -289,6 +317,15 @@ export function mockBody(path) {
   if (p === '/system/optimization/recommendations') return RECOMMENDATIONS
   if (p === '/migrations') return MIGRATIONS
   if (p === '/runtime/capabilities') return RUNTIME_CAPS
+  if (p === '/networkd/links') return NETD_LINKS
+  if (p === '/networkd/bonds') return NETD_BONDS
+  if (p === '/networkd/bridges') return NETD_BRIDGES
+  if (p === '/networkd/vlans') return NETD_VLANS
+  if (p === '/networkd/macvtaps') return NETD_MACVTAPS
+  if (p === '/networkd/taps') return NETD_TAPS
+  if (p === '/networkd/vxlans') return NETD_VXLANS
+  if (p === '/networkd/network-files') return NETD_NETFILES
+  if (p === '/networkd/port-forwards') return NETD_PORT_FORWARDS
   if (p === '/sessions') return { items: SESSIONS }
   if (p === '/artifacts') return { items: ARTIFACTS }
   if (p === '/approvals') return { items: APPROVALS }

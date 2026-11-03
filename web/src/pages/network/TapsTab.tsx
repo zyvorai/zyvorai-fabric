@@ -52,7 +52,7 @@ function TapsTabContent({ taps, onDelete, onAdopt, onCreate }: TapsTabProps) {
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Tap Devices</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create Tap
         </button>}
       </div>
@@ -79,8 +79,8 @@ function TapsTabContent({ taps, onDelete, onAdopt, onCreate }: TapsTabProps) {
                   <td className="p-4 font-medium">{t.name}{isHostManaged(t) && <HostBadge />}</td>
                   <td className="p-4 text-[var(--zf-muted)]">{t.bridge ?? '-'}</td>
                   <td className="p-4 text-[var(--zf-muted)]">{t.user ?? '-'}</td>
-                  <td className="p-4">{t.multi_queue ? <span className="text-emerald-600">yes</span> : <span className="text-[var(--zf-muted)]">no</span>}</td>
-                  <td className="p-4">{t.vnet_hdr ? <span className="text-emerald-600">yes</span> : <span className="text-[var(--zf-muted)]">no</span>}</td>
+                  <td className="p-4">{t.multi_queue ? <span className="text-[var(--zf-proof-text)]">yes</span> : <span className="text-[var(--zf-secondary)]">no</span>}</td>
+                  <td className="p-4">{t.vnet_hdr ? <span className="text-[var(--zf-proof-text)]">yes</span> : <span className="text-[var(--zf-secondary)]">no</span>}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-1">
                       <button onClick={() => handleView(t.id)} className="p-2 hover:bg-white/[0.06] rounded transition" title="View details" type="button">
@@ -151,8 +151,8 @@ export function CreateTapModal({ onClose, onCreated }: { onClose: () => void; on
         <InputField label="Group" value={group} onChange={setGroup} placeholder="kvm" />
         <CheckboxField label="Multi-queue" checked={multiQueue} onChange={setMultiQueue} />
         <CheckboxField label="VNet header" checked={vnetHdr} onChange={setVnetHdr} />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Tap'}
         </button>
       </div>

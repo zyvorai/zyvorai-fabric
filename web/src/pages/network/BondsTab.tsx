@@ -39,7 +39,7 @@ function BondsTabContent({ bonds, onDelete, onAdopt, onCreate, onEdit }: BondsTa
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Bonds</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create Bond
         </button>}
       </div>
@@ -76,7 +76,7 @@ function BondsTabContent({ bonds, onDelete, onAdopt, onCreate, onEdit }: BondsTa
                 <tr key={b.id} className="hover:bg-white/[0.03] transition">
                   <td className="p-4 font-medium">{b.name}{isHostManaged(b) && <HostBadge />}</td>
                   <td className="p-4">
-                    <span className="px-2 py-1 rounded text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">{b.mode}</span>
+                    <span className="px-2 py-1 rounded text-xs font-medium bg-cyan-500/10 text-[var(--zf-ink)] border border-cyan-500/30">{b.mode}</span>
                   </td>
                   <td className="p-4 text-[var(--zf-muted)] font-mono text-sm">{b.slave_interfaces.join(', ') || '-'}</td>
                   <td className="p-4 text-[var(--zf-muted)] font-mono text-sm">{b.addresses.join(', ') || '-'}</td>
@@ -157,8 +157,8 @@ export function CreateBondModal({ onClose, onCreated }: { onClose: () => void; o
         <InputField label="MII Monitor (ms)" value={miiMonitor} onChange={setMiiMonitor} placeholder="100" type="number" />
         <InputField label="Addresses (comma-separated)" value={addresses} onChange={setAddresses} placeholder="10.0.0.1/24" />
         <InputField label="Gateway" value={gateway} onChange={setGateway} placeholder="10.0.0.254" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Bond'}
         </button>
       </div>
@@ -218,8 +218,8 @@ export function EditBondModal({ bond, onClose, onUpdated }: { bond: BondConfig; 
         <InputField label="MII Monitor (ms)" value={miiMonitor} onChange={setMiiMonitor} placeholder="100" type="number" />
         <InputField label="Addresses (comma-separated)" value={addresses} onChange={setAddresses} placeholder="10.0.0.1/24" />
         <InputField label="Gateway" value={gateway} onChange={setGateway} placeholder="10.0.0.254" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>

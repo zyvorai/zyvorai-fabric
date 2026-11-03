@@ -81,7 +81,7 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
           {!readOnly && <button onClick={onSync} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync Rules
           </button>}
-          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition text-sm">
+          {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
             <Plus className="w-4 h-4" /> Add Port Forward
           </button>}
         </div>
@@ -115,7 +115,7 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
                 onClick={() => { setOriginFilter(key); setPage(1) }}
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
                   originFilter === key
-                    ? 'bg-red-600/30 text-red-300 border border-red-500/40'
+                    ? 'bg-red-600/10 text-[var(--zf-danger-text)] border border-red-500/40'
                     : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border border-[var(--zf-hairline)] hover:text-[var(--zf-ink)]'
                 }`}
               >
@@ -148,11 +148,11 @@ function PortForwardsTabContent({ portForwards, onDelete, onAdopt, onCreate, onS
                     )}
                   </td>
                   <td className="p-4">
-                    <span className="px-2 py-1 rounded text-xs font-medium bg-red-500/10 text-red-600 border border-red-500/20">{pf.protocol}</span>
+                    <span className="px-2 py-1 rounded text-xs font-medium bg-red-500/10 text-[var(--zf-danger-text)] border border-red-500/20">{pf.protocol}</span>
                   </td>
                   <td className="p-4 font-mono text-sm text-[var(--zf-link)]">{pf.host_port}</td>
                   <td className="p-4 font-mono text-sm text-[var(--zf-muted)]">{pf.guest_ip}:{pf.guest_port}</td>
-                  <td className="p-4">{pf.enabled ? <span className="text-emerald-600">yes</span> : <span className="text-[var(--zf-muted)]">no</span>}</td>
+                  <td className="p-4">{pf.enabled ? <span className="text-[var(--zf-proof-text)]">yes</span> : <span className="text-[var(--zf-muted)]">no</span>}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-1">
                       <button onClick={() => handleView(pf.id)} className="p-2 hover:bg-white/[0.06] rounded transition" title="View details" type="button">
@@ -239,8 +239,8 @@ export function CreatePortForwardModal({ onClose, onCreated }: { onClose: () => 
         <InputField label="Guest IP" value={guestIp} onChange={setGuestIp} placeholder="192.168.100.10" />
         <InputField label="Guest Port" value={guestPort} onChange={setGuestPort} placeholder="80" type="number" />
         <InputField label="Interface (optional)" value={iface} onChange={setIface} placeholder="eth0" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Add Port Forward'}
         </button>
       </div>

@@ -71,7 +71,7 @@ export function ListControls({
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                   typeFilter === t
-                    ? 'bg-yellow-600/30 text-yellow-300 border border-yellow-500/40'
+                    ? 'bg-[var(--zf-warning)]/20 text-[var(--zf-warn-text)] border border-[var(--zf-warning)]/40'
                     : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border border-[var(--zf-hairline)] hover:text-[var(--zf-ink)]'
                 }`}
               >

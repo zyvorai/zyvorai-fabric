@@ -15,9 +15,9 @@ interface StatusTabProps {
 
 function operStateClasses(state: string): string {
   const s = state.toLowerCase()
-  if (s === 'routable' || s === 'up') return 'bg-green-500/10 text-emerald-600'
+  if (s === 'routable' || s === 'up') return 'bg-green-500/10 text-[var(--zf-proof-text)]'
   if (s === 'carrier' || s === 'unknown') return 'bg-blue-500/10 text-[var(--zf-link)]'
-  if (s === 'degraded' || s === 'dormant') return 'bg-yellow-500/10 text-amber-600'
+  if (s === 'degraded' || s === 'dormant') return 'bg-yellow-500/10 text-[var(--zf-warn-text)]'
   if (s === 'down' || s === 'lowerlayerdown' || s === 'no-carrier') return 'bg-black/[0.04] text-[var(--zf-muted)]'
   return 'bg-black/[0.04] text-[var(--zf-muted)]'
 }
@@ -113,8 +113,8 @@ function StatusTabContent({ links, onRefresh }: StatusTabProps) {
                     </td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        l.setup_state === 'configured' ? 'bg-green-500/10 text-emerald-600' :
-                        l.setup_state === 'configuring' ? 'bg-yellow-500/10 text-amber-600' :
+                        l.setup_state === 'configured' ? 'bg-green-500/10 text-[var(--zf-proof-text)]' :
+                        l.setup_state === 'configuring' ? 'bg-yellow-500/10 text-[var(--zf-warn-text)]' :
                         'bg-black/[0.04] text-[var(--zf-muted)]'
                       }`}>{l.setup_state || '-'}</span>
                     </td>

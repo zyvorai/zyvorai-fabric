@@ -52,7 +52,7 @@ function MacvtapTabContent({ macvtaps, onDelete, onAdopt, onCreate }: MacvtapTab
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Macvtap Devices</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create Macvtap
         </button>}
       </div>
@@ -79,7 +79,7 @@ function MacvtapTabContent({ macvtaps, onDelete, onAdopt, onCreate }: MacvtapTab
                   <td className="p-4 font-medium">{m.name}{isHostManaged(m) && <HostBadge />}</td>
                   <td className="p-4 text-[var(--zf-muted)]">{m.parent_interface}</td>
                   <td className="p-4">
-                    <span className="px-2 py-1 rounded text-xs font-medium bg-green-500/10 text-emerald-600 border border-green-500/20">{m.mode}</span>
+                    <span className="px-2 py-1 rounded text-xs font-medium bg-green-500/10 text-[var(--zf-proof-text)] border border-green-500/20">{m.mode}</span>
                   </td>
                   <td className="p-4 text-[var(--zf-muted)] font-mono text-sm">{m.mac_address ?? '-'}</td>
                   <td className="p-4 text-[var(--zf-muted)]">{m.mtu ?? '-'}</td>
@@ -156,8 +156,8 @@ export function CreateMacvtapModal({ onClose, onCreated }: { onClose: () => void
           </select>
         </div>
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="1500" type="number" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Macvtap'}
         </button>
       </div>

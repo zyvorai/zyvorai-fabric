@@ -13,6 +13,11 @@ export const PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templa
 /** Pages whose mock data is not seeded yet: with the mock's empty `{}` they throw and show the error boundary, so axe has
     nothing real to check, and `openPage` fails them. Seed each one (see mock-data.mjs) and move it into PAGES. */
 export const UNSEEDED_PAGES = []
+/** Pages whose tabs hide whole screens: the gate clicks each tab (a button with exactly this text) and checks again, because axe only
+    sees the tab that is open when the page loads. A name with no matching button on the page is skipped. */
+export const PAGE_TABS = {
+  network: ['Bridges', 'Bonds', 'VLANs', 'Macvtap', 'Tap', 'Interfaces', 'Link Files', 'Port Forwards', 'VXLAN', 'SR-IOV', 'Floating IPs', 'Status'],
+}
 export const SIZES = { desktop: [1440, 900], phone: [390, 844] }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.woff2': 'font/woff2', '.png': 'image/png' }

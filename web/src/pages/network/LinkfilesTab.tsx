@@ -51,7 +51,7 @@ function ManagedFilesPanel() {
       {open && (
         <div className="px-6 pb-4">
           {loading && <p className="text-[var(--zf-muted)] text-sm">Loading…</p>}
-          {err && <p className="text-red-600 text-sm">{err}</p>}
+          {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
           {files && files.length === 0 && <p className="text-[var(--zf-muted)] text-sm">No managed config files found.</p>}
           {files && files.length > 0 && (
             <ul className="space-y-1 max-h-64 overflow-y-auto">
@@ -88,7 +88,7 @@ function LinkfilesTabContent({ linkfiles, onDelete, onCreate }: LinkfilesTabProp
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
       <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Link Configuration (.link)</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create Link File
         </button>}
       </div>
@@ -177,8 +177,8 @@ export function CreateLinkfileModal({ onClose, onCreated }: { onClose: () => voi
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="9000" type="number" />
         <InputField label="Override MAC Address" value={macAddress} onChange={setMacAddress} placeholder="52:54:00:aa:bb:cc" />
         <InputField label="Wake-on-LAN" value={wol} onChange={setWol} placeholder="magic" />
-        {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-pink-600 hover:bg-pink-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
+        {err && <p className="text-[var(--zf-danger-text)] text-sm">{err}</p>}
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Link File'}
         </button>
       </div>
