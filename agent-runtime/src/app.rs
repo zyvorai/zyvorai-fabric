@@ -3706,8 +3706,10 @@ async fn create_approval(
     Ok((StatusCode::CREATED, Json(record)))
 }
 
-/// Longest command a speculative run accepts. FluxVM runs it in a shell, so
-/// this only bounds what lands in the audit journal and the approval card.
+/// Longest grant lifetime and host list a session may request.
+const MAX_GRANT_TTL_SECONDS: i64 = 24 * 60 * 60;
+const MAX_GRANT_HOSTS: usize = 32;
+
 /// Why `name` may not be handed to FluxVM's credential broker, if it may not.
 ///
 /// A FluxVM grant attaches one `Authorization` value to every request for its hosts. It has no
@@ -3774,6 +3776,25 @@ async fn create_session_grant(
     let session = require_session(&state, id).await?;
     if session.status != SessionStatus::Running {
         return Err(ApiError::conflict("only running sessions can hold grants"));
+    }
+    if let Some(msg) = crate::attestation::host_channel_forbidden(session.confidential.as_ref()) {
+        return Err(ApiError::forbidden(msg));
+    }
+    if req
+        .ttl_seconds
+        .is_some_and(|t| !(1..=MAX_GRANT_TTL_SECONDS).contains(&t))
+    {
+        return Err(ApiError::bad_request(format!(
+            "ttl_seconds must be between 1 and {MAX_GRANT_TTL_SECONDS}"
+        )));
+    }
+    let mut req = req;
+    req.hosts.sort();
+    req.hosts.dedup();
+    if req.hosts.len() > MAX_GRANT_HOSTS {
+        return Err(ApiError::bad_request(format!(
+            "at most {MAX_GRANT_HOSTS} hosts per grant"
+        )));
     }
     let agent = state
         .store
@@ -3881,6 +3902,8 @@ async fn revoke_for(
     Ok(Json(out))
 }
 
+/// Longest command a speculative run accepts. FluxVM runs it in a shell, so
+/// this only bounds what lands in the audit journal and the approval card.
 const MAX_SPECULATE_COMMAND_BYTES: usize = 8 * 1024;
 
 #[derive(Debug, serde::Deserialize)]
@@ -3905,6 +3928,9 @@ async fn speculate_session(
     let session = require_session(&state, id).await?;
     if session.status != SessionStatus::Running {
         return Err(ApiError::conflict("only running sessions can speculate"));
+    }
+    if let Some(msg) = crate::attestation::host_channel_forbidden(session.confidential.as_ref()) {
+        return Err(ApiError::forbidden(msg));
     }
     let command = req.command.trim();
     if command.is_empty() {
@@ -4691,6 +4717,69 @@ mod tests {
         let err = speculate_session(State(state), Path(running.id), speculate_req(&long))
             .await
             .unwrap_err();
+        assert_eq!(err.status, StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn confidential_sessions_cannot_speculate_or_hold_grants() {
+        let state = crate::goals::tests::test_state().await;
+        let mut session = running_session(&state, SessionStatus::Running).await;
+        session.confidential = Some(crate::model::ConfidentialStatus {
+            active: true,
+            tech: None,
+            reason: String::new(),
+        });
+        state.store.save_session(session.clone()).await.unwrap();
+        let err = speculate_session(State(state.clone()), Path(session.id), speculate_req("ls"))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::FORBIDDEN);
+        let err = create_session_grant(
+            State(state),
+            Path(session.id),
+            Json(CreateSessionGrantRequest {
+                credential: "c".into(),
+                hosts: vec!["example.com".into()],
+                ttl_seconds: None,
+            }),
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(err.status, StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn grant_ttl_and_host_count_are_bounded() {
+        let state = crate::goals::tests::test_state().await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        for ttl in [0, -5, MAX_GRANT_TTL_SECONDS + 1] {
+            let err = create_session_grant(
+                State(state.clone()),
+                Path(session.id),
+                Json(CreateSessionGrantRequest {
+                    credential: "c".into(),
+                    hosts: vec!["example.com".into()],
+                    ttl_seconds: Some(ttl),
+                }),
+            )
+            .await
+            .unwrap_err();
+            assert_eq!(err.status, StatusCode::BAD_REQUEST, "ttl {ttl}");
+        }
+        let hosts = (0..=MAX_GRANT_HOSTS)
+            .map(|i| format!("h{i}.example.com"))
+            .collect();
+        let err = create_session_grant(
+            State(state),
+            Path(session.id),
+            Json(CreateSessionGrantRequest {
+                credential: "c".into(),
+                hosts,
+                ttl_seconds: None,
+            }),
+        )
+        .await
+        .unwrap_err();
         assert_eq!(err.status, StatusCode::BAD_REQUEST);
     }
 }
