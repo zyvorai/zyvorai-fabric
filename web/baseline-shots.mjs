@@ -13,7 +13,7 @@ for (const theme of ['light', 'dark']) {
     for (const name of PAGES) {
       await openPage(page, name)
       const sideways = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
-      await page.screenshot({ path: `${out}/${name || 'dashboard'}-${theme}-${size}.png` })
+      await page.screenshot({ path: `${out}/${(name || 'dashboard').replace(/\//g, '-').slice(0, 24)}-${theme}-${size}.png` })
       if (sideways) console.log('SIDEWAYS', size, theme, name || 'dashboard')
     }
     await page.close()

@@ -282,7 +282,7 @@ export default function Dashboard() {
               <TrendingUp className="w-4 h-4 text-[var(--zf-ink)]" />
             </div>
             <h3 className="text-base font-semibold text-[var(--zf-ink)]">CPU Usage</h3>
-            <span className={`ml-auto text-lg font-semibold tabular-nums ${latestCpu > 80 ? 'text-red-600' : latestCpu > 50 ? 'text-amber-700' : 'text-[var(--zf-link)]'}`}>
+            <span className={`ml-auto text-lg font-semibold tabular-nums ${latestCpu > 80 ? 'text-[var(--zf-danger-text)]' : latestCpu > 50 ? 'text-[var(--zf-warn-text)]' : 'text-[var(--zf-link)]'}`}>
               {metricsHistory.length > 0 ? `${latestCpu}%` : '--'}
             </span>
           </div>
@@ -310,7 +310,7 @@ export default function Dashboard() {
               <HardDrive className="w-4 h-4 text-[var(--zf-ink)]" />
             </div>
             <h3 className="text-base font-semibold text-[var(--zf-ink)]">Memory Usage</h3>
-            <span className={`ml-auto text-lg font-semibold tabular-nums ${latestMem > 80 ? 'text-red-600' : latestMem > 50 ? 'text-amber-700' : 'text-[var(--zf-success-text)]'}`}>
+            <span className={`ml-auto text-lg font-semibold tabular-nums ${latestMem > 80 ? 'text-[var(--zf-danger-text)]' : latestMem > 50 ? 'text-[var(--zf-warn-text)]' : 'text-[var(--zf-success-text)]'}`}>
               {metricsHistory.length > 0 ? `${latestMem}%` : '--'}
             </span>
           </div>
