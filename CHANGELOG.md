@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **Virtual Machines page.** A proportional status bar with a count per state replaces the text line (which left failed VMs out
+  and drew stopped red), running VM cards show live CPU and memory bars, a failed VM's card has a red edge, and the empty state
+  has an illustration. The dashboard and this page share one place for the load maths.
 - **Five more console pages are covered by the accessibility gate** (backups, analytics, audit, system, migrations), with seeded mock
   data. That found and fixed low-contrast text on the audit page, an unlabelled time-range select on analytics, and a badge that
   failed contrast in dark theme.

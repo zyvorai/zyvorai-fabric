@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from 'vitest'
-import { fabricNodes, fleetCounts, fleetSummary, loadPercent, loadTone, stateTone } from './fleet'
+import { fabricNodes, fleetCounts, fleetSegments, fleetSummary, loadPercent, loadTone, stateTone, vmLoadFrom } from './fleet'
 
 const vm = (name: string, state: string) => ({ name, state })
 
@@ -61,5 +61,31 @@ describe('loadPercent and loadTone', () => {
   })
   it('turns amber at 50 and red at 80', () => {
     expect([10, 49, 50, 79, 80, 100].map(loadTone)).toEqual(['proof', 'proof', 'warn', 'warn', 'danger', 'danger'])
+  })
+})
+
+describe('vmLoadFrom', () => {
+  it('sets memory use in bytes against the memory the VM was given, in MiB', () => {
+    const l = vmLoadFrom({ memory: 4096 }, { cpu_usage: 37, memory_usage: 1024 * 1024 * 1024 })
+    expect(l.cpu).toBe(37)
+    expect(l.mem).toBeCloseTo(25)
+  })
+  it('has no memory share for a VM with no allocation, never zero or infinity', () => {
+    expect(vmLoadFrom({ memory: 0 }, { cpu_usage: 5, memory_usage: 1000 }).mem).toBeNull()
+  })
+})
+
+describe('fleetSegments', () => {
+  it('lists only the states that have VMs, in a fixed order, with shares that sum to 1', () => {
+    const segs = fleetSegments(fleetCounts([vm('a', 'running'), vm('b', 'running'), vm('c', 'failed'), vm('d', 'stopped')]))
+    expect(segs.map((s) => s.key)).toEqual(['running', 'stopped', 'failed'])
+    expect(segs.map((s) => s.count)).toEqual([2, 1, 1])
+    expect(segs.reduce((a, s) => a + s.share, 0)).toBeCloseTo(1)
+  })
+  it('has no segments for an empty fleet', () => {
+    expect(fleetSegments(fleetCounts([]))).toEqual([])
+  })
+  it('keeps a failed VM visible: the old summary line left failed VMs out entirely', () => {
+    expect(fleetSegments(fleetCounts([vm('a', 'failed')])).map((s) => s.key)).toEqual(['failed'])
   })
 })

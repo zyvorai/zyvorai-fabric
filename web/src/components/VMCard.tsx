@@ -9,6 +9,7 @@ import { useVMActions } from '../hooks/useVMActions'
 import { usePermissions } from '../hooks/usePermissions'
 import { getTagColor } from './TagEditor'
 import { StatusBadge } from './ui'
+import { VMLoad } from './VMLoad'
 import CloneVMDialog from './CloneVMDialog'
 import ConfirmDialog from './ConfirmDialog'
 import TagEditor from './TagEditor'
@@ -16,9 +17,11 @@ import TagEditor from './TagEditor'
 interface VMCardProps {
   vm: VM
   onUpdate: () => void
+  /** The latest CPU and memory reading, for a running VM. */
+  load?: { cpu: number; mem: number | null }
 }
 
-export default function VMCard({ vm, onUpdate }: VMCardProps) {
+export default function VMCard({ vm, onUpdate, load }: VMCardProps) {
   const [showCloneDialog, setShowCloneDialog] = useState(false)
   const [showTagEditor, setShowTagEditor] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -58,7 +61,7 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
       <div
         onDoubleClick={handleCardDoubleClick}
         title="Double-click to open console"
-        className={`group bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)] card-hover gradient-border state-bar state-bar-${vm.state}`}
+        className={`group ${vm.state === 'failed' ? '!border-[var(--zf-danger)]/50' : ''} bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)] card-hover gradient-border state-bar state-bar-${vm.state}`}
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-3">
@@ -148,6 +151,9 @@ export default function VMCard({ vm, onUpdate }: VMCardProps) {
               <span className="text-[var(--zf-muted)] font-mono text-xs">{vm.ip}</span>
             )}
           </div>
+          {vm.state === 'running' && load && (
+            <div className="mt-3"><VMLoad name={vm.name} state={vm.state} load={load} /></div>
+          )}
         </div>
 
         {/* Tags */}

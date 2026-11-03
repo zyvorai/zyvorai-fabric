@@ -3,12 +3,15 @@
 
 import { useEffect, useState, useMemo, useCallback, type MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { listVMs, startVM, stopVM, deleteVM, VM } from '../api/vm'
+import { listVMs, getMetrics, startVM, stopVM, deleteVM, VM } from '../api/vm'
 import { createBackup } from '../api/backup'
-import { Search, X, Tag, Layers, Monitor, LayoutGrid, List, Play, Square, Pause, Terminal, MoreVertical, Cpu, HardDrive, CheckSquare, Trash2, Archive } from 'lucide-react'
+import { Search, X, Tag, Layers, LayoutGrid, List, Play, Square, Pause, Terminal, MoreVertical, Cpu, HardDrive, CheckSquare, Trash2, Archive } from 'lucide-react'
 import VMCard from '../components/VMCard'
 import { getTagColor } from '../components/TagEditor'
-import { PageHeader, EmptyState, StatusBadge } from '../components/ui'
+import { PageHeader, EmptyState, StatusBadge, Illustration } from '../components/ui'
+import { FleetBar } from '../components/FleetBar'
+import { fleetCounts, vmLoadFrom } from '../lib/fleet'
+import { useSilentPoll } from '../hooks/useSilentPoll'
 import ErrorBanner from '../components/ErrorBanner'
 import { formatUserError } from '../utils/apiError'
 import { toastFailure } from '../utils/toastError'
@@ -137,6 +140,8 @@ function VMTableRow({ vm, onUpdate, selected, onSelect, canWrite }: { vm: VM; on
 
 export default function VMList() {
   const [vms, setVMs] = useState<VM[]>([])
+  // The latest CPU and memory reading per running VM, polled with the same cadence as the dashboard's charts.
+  const [vmLoad, setVmLoad] = useState<Record<string, { cpu: number; mem: number | null }>>({})
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [refreshError, setRefreshError] = useState<string | null>(null)
@@ -176,6 +181,26 @@ export default function VMList() {
       setLoading(false)
     }
   }
+
+  const loadMetrics = async () => {
+    const running = vms.filter((v) => v.state === 'running')
+    if (running.length === 0) {
+      setVmLoad({})
+      return
+    }
+    const results = await Promise.allSettled(running.map((vm) => getMetrics(vm.name).then((m) => [vm, m] as const)))
+    setVmLoad(
+      Object.fromEntries(
+        results
+          .filter((r): r is PromiseFulfilledResult<readonly [VM, Awaited<ReturnType<typeof getMetrics>>]> => r.status === 'fulfilled')
+          .map((r) => [r.value[0].name, vmLoadFrom(r.value[0], r.value[1])]),
+      ),
+    )
+  }
+  const runningKey = vms.filter((v) => v.state === 'running').map((v) => v.name).join(',')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void loadMetrics() }, [runningKey])
+  useSilentPoll(loadMetrics, 10000)
 
   const allTags = useMemo(
     () => Array.from(new Set(vms.flatMap((vm) => vm.tags || []))).sort(),
@@ -288,12 +313,6 @@ export default function VMList() {
   const selectedRunning = vms.filter((vm) => selectedVMs.has(vm.name) && vm.state === 'running').length
   const selectedStopped = vms.filter((vm) => selectedVMs.has(vm.name) && vm.state === 'stopped').length
 
-  const statCounts = useMemo(() => ({
-    total: vms.length,
-    running: vms.filter((vm) => vm.state === 'running').length,
-    stopped: vms.filter((vm) => vm.state === 'stopped').length,
-    paused: vms.filter((vm) => vm.state === 'paused').length,
-  }), [vms])
 
   if (loading) {
     return (
@@ -361,29 +380,8 @@ export default function VMList() {
         }
       />
 
-      {/* Stats bar */}
-      {vms.length > 0 && (
-        <div className="flex items-center gap-4 mb-5 text-sm">
-          <span className="text-[var(--zf-muted)]">
-            {filteredVMs.length === vms.length ? `${vms.length} VMs` : `${filteredVMs.length} of ${vms.length} VMs`}
-          </span>
-          <div className="h-3 w-px bg-[var(--zf-hairline)]" />
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[var(--zf-success)]" />
-            <span className="text-[var(--zf-muted)]">{statCounts.running} running</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[var(--zf-danger)]" />
-            <span className="text-[var(--zf-muted)]">{statCounts.stopped} stopped</span>
-          </span>
-          {statCounts.paused > 0 && (
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[var(--zf-warning)]" />
-              <span className="text-[var(--zf-muted)]">{statCounts.paused} paused</span>
-            </span>
-          )}
-        </div>
-      )}
+      {/* Fleet status */}
+      {vms.length > 0 && <FleetBar counts={fleetCounts(vms)} shown={filteredVMs.length} />}
 
       {/* Search + Select All */}
       {vms.length > 0 && (
@@ -452,7 +450,7 @@ export default function VMList() {
       {vms.length === 0 ? (
         <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)]">
           <EmptyState
-            icon={<Monitor className="w-16 h-16" />}
+            illustration={<Illustration name="no-vms" size={160} />}
             title="No virtual machines"
             description="Create your first virtual machine to get started"
             action={
@@ -476,7 +474,7 @@ export default function VMList() {
               </div>
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {vmsInGroup.map((vm) => (<VMCard key={`${tag}-${vm.name}`} vm={vm} onUpdate={loadVMs} />))}
+                  {vmsInGroup.map((vm) => (<VMCard key={`${tag}-${vm.name}`} vm={vm} onUpdate={loadVMs} load={vmLoad[vm.name]} />))}
                 </div>
               ) : (
                 <VMTable vms={vmsInGroup} onUpdate={loadVMs} selectedVMs={selectedVMs} onSelect={toggleSelect} canWrite={canWrite} />
@@ -486,7 +484,7 @@ export default function VMList() {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filteredVMs.map((vm) => (<VMCard key={vm.name} vm={vm} onUpdate={loadVMs} />))}
+          {filteredVMs.map((vm) => (<VMCard key={vm.name} vm={vm} onUpdate={loadVMs} load={vmLoad[vm.name]} />))}
         </div>
       ) : (
         <VMTable vms={filteredVMs} onUpdate={loadVMs} selectedVMs={selectedVMs} onSelect={toggleSelect} canWrite={canWrite} />

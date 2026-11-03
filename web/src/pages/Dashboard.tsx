@@ -16,8 +16,8 @@ import { toastFailure } from '../utils/toastError'
 import { hintsForError } from '../utils/daemonHints'
 import { GettingStarted } from '../components/GettingStarted'
 import { LiveFabric } from '../components/LiveFabric'
-import { LoadBar } from '../components/LoadBar'
-import { fleetCounts } from '../lib/fleet'
+import { VMLoad } from '../components/VMLoad'
+import { fleetCounts, vmLoadFrom } from '../lib/fleet'
 import { StatTile } from '../components/StatTile'
 import { apiFetch } from '../api/client'
 import { listStoragePools } from '../api/storage'
@@ -118,14 +118,7 @@ export default function Dashboard() {
       const metrics = results
         .filter((r): r is PromiseFulfilledResult<{ vm: VM; m: VMMetrics }> => r.status === 'fulfilled')
         .map((r) => r.value)
-      setVmLoad(
-        Object.fromEntries(
-          metrics.map(({ vm, m }) => [
-            vm.name,
-            { cpu: m.cpu_usage, mem: vm.memory > 0 ? (m.memory_usage / (vm.memory * 1024 * 1024)) * 100 : null },
-          ]),
-        ),
-      )
+      setVmLoad(Object.fromEntries(metrics.map(({ vm, m }) => [vm.name, vmLoadFrom(vm, m)])))
       const avgCpu = metrics.length > 0 ? metrics.reduce((s, { m }) => s + m.cpu_usage, 0) / metrics.length : 0
       // memory_usage is raw bytes, not a percentage (unlike cpu_usage) — express it
       // as a percentage of each VM's own allocated memory (`vm.memory`, in MiB) so
@@ -414,14 +407,8 @@ export default function Dashboard() {
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={vm.state} /></td>
                   <td className="px-4 py-3">
-                    {vm.state === 'running' && vmLoad[vm.name] ? (
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2"><span className="w-7 text-xs text-[var(--zf-muted)]">CPU</span><LoadBar label={`${vm.name} CPU`} value={vmLoad[vm.name].cpu} /></div>
-                        <div className="flex items-center gap-2"><span className="w-7 text-xs text-[var(--zf-muted)]">Mem</span><LoadBar label={`${vm.name} memory`} value={vmLoad[vm.name].mem} /></div>
-                      </div>
-                    ) : (
-                      <span className="text-[var(--zf-muted)]">–</span>
-                    )}
+                    <VMLoad name={vm.name} state={vm.state} load={vmLoad[vm.name]} />
+                    {(vm.state !== 'running' || !vmLoad[vm.name]) && <span className="text-[var(--zf-muted)]">–</span>}
                   </td>
                   <td className="px-4 py-3 text-[var(--zf-muted)] tabular-nums">{vm.cpus} vCPU</td>
                   <td className="px-4 py-3 text-[var(--zf-muted)] tabular-nums">{vm.memory >= 1024 ? `${(vm.memory / 1024).toFixed(1)} GB` : `${vm.memory} MB`}</td>
