@@ -18,8 +18,8 @@ function operStateClasses(state: string): string {
   if (s === 'routable' || s === 'up') return 'bg-green-500/10 text-[var(--zf-proof-text)]'
   if (s === 'carrier' || s === 'unknown') return 'bg-blue-500/10 text-[var(--zf-link)]'
   if (s === 'degraded' || s === 'dormant') return 'bg-yellow-500/10 text-[var(--zf-warn-text)]'
-  if (s === 'down' || s === 'lowerlayerdown' || s === 'no-carrier') return 'bg-black/[0.04] text-[var(--zf-muted)]'
-  return 'bg-black/[0.04] text-[var(--zf-muted)]'
+  if (s === 'down' || s === 'lowerlayerdown' || s === 'no-carrier') return 'bg-black/[0.04] text-[var(--zf-secondary)]'
+  return 'bg-black/[0.04] text-[var(--zf-secondary)]'
 }
 
 function StatusTabContent({ links, onRefresh }: StatusTabProps) {
@@ -115,7 +115,7 @@ function StatusTabContent({ links, onRefresh }: StatusTabProps) {
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
                         l.setup_state === 'configured' ? 'bg-green-500/10 text-[var(--zf-proof-text)]' :
                         l.setup_state === 'configuring' ? 'bg-yellow-500/10 text-[var(--zf-warn-text)]' :
-                        'bg-black/[0.04] text-[var(--zf-muted)]'
+                        'bg-black/[0.04] text-[var(--zf-secondary)]'
                       }`}>{l.setup_state || '-'}</span>
                     </td>
                   </tr>

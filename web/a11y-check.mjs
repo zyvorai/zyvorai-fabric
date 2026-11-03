@@ -11,16 +11,19 @@ const verbose = process.argv.includes('--verbose')
 // `--theme=light|dark` checks one theme and `--port=N` serves on that port, so `a11y-parallel.mjs` can run the two themes at once.
 const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1]
 const only = arg('theme')
+const onlyPages = arg('pages')?.split(',') // e.g. --pages=network,system: check just those pages while fixing them
 const port = Number(arg('port') ?? 3111)
 if (UNSEEDED_PAGES.length) console.log(`not covered (no mock data yet, see page-harness.mjs): ${UNSEEDED_PAGES.join(', ')}`)
 const server = serveDist(port)
 const browser = await launch()
 const focusFailures = []
+const crashedTabs = new Set() // a tab whose click threw the page into the error boundary, which axe cannot see
+const missingTabs = new Set() // a configured tab the page did not have: the list in page-harness.mjs is stale, which must not pass silently
 const found = new Map() // rule id -> { impact, help, nodes: Set<"page theme size: selector"> }
 for (const theme of only ? [only] : ['light', 'dark']) {
   for (const [size, dims] of Object.entries(SIZES)) {
     const page = await newConsolePage(browser, theme, dims)
-    for (const name of PAGES) {
+    for (const name of onlyPages ?? PAGES) {
       // an empty page has nothing to wait for; a populated one has charts and polls that need the longer settle
       await openPage(page, name, port, EMPTY_STATE_PAGES.includes(name) ? 700 : 1800)
       // keyboard focus must be visible: the skip link is first, so the second Tab lands on a real control
@@ -55,13 +58,26 @@ for (const theme of only ? [only] : ['light', 'dark']) {
       await scan(name || 'dashboard')
       for (const tab of PAGE_TABS[name] ?? []) {
         const clicked = await page.evaluate((t) => {
-          const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === t)
+          // a tab's label may carry a count ("Rules (3)", "Optimization1"): compare without it
+          const norm = (x) => x.trim().replace(/\s*\(\d*\)$/, '').replace(/\d+$/, '')
+          const b = [...document.querySelectorAll('button')].find((x) => norm(x.textContent) === t)
           if (!b) return false
           b.click()
           return true
         }, tab)
-        if (!clicked) continue
+        if (!clicked) {
+          missingTabs.add(`${name} [${tab}]`)
+          continue
+        }
         await new Promise((r) => setTimeout(r, 400))
+        const crashed = await page.evaluate(() => document.body.innerText.includes('Section error') || document.body.innerText.includes('Something went wrong'))
+        if (crashed) {
+          // an error page has no axe violations, so without this a crashing tab would pass; reopen the page to carry on with the rest
+          crashedTabs.add(`${name} [${tab}]`)
+          await openPage(page, name, port, EMPTY_STATE_PAGES.includes(name) ? 700 : 1800)
+          await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' })
+          continue
+        }
         await scan(`${name} [${tab}]`)
       }
     }
@@ -88,5 +104,9 @@ for (const [id, v] of [...found].sort((a, b) => b[1].nodes.length - a[1].nodes.l
 }
 for (const f of focusFailures) console.log(`FAIL focus ${f}`)
 blocking += focusFailures.length
+for (const t of crashedTabs) console.log(`FAIL tab crashed the page: ${t}`)
+blocking += crashedTabs.size
+for (const t of missingTabs) console.log(`FAIL tab not found: ${t} (update PAGE_TABS in page-harness.mjs)`)
+blocking += missingTabs.size
 console.log(blocking ? `\n${blocking} serious/critical or focus violations` : '\naxe: no serious or critical violations')
 process.exit(blocking ? 1 : 0)

@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **The accessibility gate clicks through the tabs of 16 pages** (it was Network only) and fails on a stale tab label or a tab that
+  crashes the page. That found and fixed unnamed terminal editors and selects, dark-theme text on cards, a light-theme packet-flow
+  panel with near-white text on white, and two mock gaps that had been hiding tabs behind a crash.
 - **The accessibility gate now covers the last eight pages** (certificates, compliance, DRS, federation, lifecycle, migration report,
   replication, site recovery), with seeded data, so every console page that has a plain route is checked. Populating them fixed
   low-contrast progress bars, an unlabelled slider, an unreadable dark-theme panel, white text on theme-coloured chips, and table

@@ -77,11 +77,11 @@ export default function Replication() {
     const m: Record<string, string> = {
       connected: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
       disconnected: 'text-red-700 bg-red-50 border border-red-200',
-      syncing: 'text-[var(--zf-link)] bg-blue-50 border border-blue-100',
+      syncing: 'text-blue-800 bg-blue-50 border border-blue-100',
       active: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
       paused: 'text-amber-800 bg-amber-50 border border-amber-200',
       error: 'text-red-700 bg-red-50 border border-red-200',
-      initial_sync: 'text-[var(--zf-link)] bg-blue-50 border border-blue-100',
+      initial_sync: 'text-blue-800 bg-blue-50 border border-blue-100',
     }
     return m[status] || 'text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]'
   }

@@ -102,6 +102,8 @@ export function TerminalTextarea({
   return (
     <AppleTerminalFrame title={title} trailing={trailing} bodyClassName="p-0" className={frameClassName}>
       <textarea
+        // the frame's title names the editor for assistive tech unless the caller gives a more specific label
+        aria-label={title}
         {...textareaProps}
         spellCheck={spellCheck}
         className={`${TERM_TEXTAREA_CLASS} ${className}`.trim()}
