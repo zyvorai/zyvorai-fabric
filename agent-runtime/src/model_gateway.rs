@@ -253,7 +253,14 @@ pub struct Budget {
     /// A cap for one goal: all the sessions started for it (its steps and its planning session) together.
     #[serde(default)]
     pub goal: Option<Limit>,
+    /// The share of any cap (0 to 1, not 0) at which the cockpit starts to warn. Default 0.8. It only changes what is
+    /// shown; a call is refused at the cap, never at the warning.
+    #[serde(default)]
+    pub warn_at: Option<f64>,
 }
+
+/// The warning share used when the budget does not set `warn_at`.
+pub const DEFAULT_WARN_AT: f64 = 0.8;
 
 /// A cap on model calls and cost with no time window, for a run or a goal.
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
@@ -284,6 +291,13 @@ impl Prices {
             })
         {
             return Err("prices file: prices and budgets must be finite and not negative".into());
+        }
+        if p.budgets
+            .values()
+            .chain(p.default_budget.iter())
+            .any(|b| b.warn_at.is_some_and(|w| !(w > 0.0 && w <= 1.0)))
+        {
+            return Err("prices file: warn_at must be above 0 and at most 1".into());
         }
         Ok(Some(p))
     }
@@ -351,6 +365,7 @@ pub fn budget_status(
 ) -> Option<Value> {
     use crate::audit::AuditPhase;
     let b = prices.budget_for(agent)?;
+    let warn_at = b.warn_at.unwrap_or(DEFAULT_WARN_AT);
     let scope = |name: &str,
                  max_calls: Option<u64>,
                  max_cost: Option<f64>,
@@ -368,11 +383,22 @@ pub fn budget_status(
             .filter_map(|r| call_cost(Some(prices), r))
             .sum();
         let reached = max_calls.is_some_and(|m| calls >= m) || max_cost.is_some_and(|m| spent >= m);
+        // The closest any set cap is to its limit. A cap of 0 is already reached.
+        let share = |used: f64, max: f64| if max <= 0.0 { 1.0 } else { used / max };
+        let fraction = [
+            max_calls.map(|m| share(calls as f64, m as f64)),
+            max_cost.map(|m| share(spent, m)),
+        ]
+        .into_iter()
+        .flatten()
+        .fold(0.0_f64, f64::max);
         Some(serde_json::json!({
             "scope": name,
             "calls": {"used": calls, "max": max_calls},
             "cost": {"used": spent, "max": max_cost, "currency": prices.currency},
+            "fraction": fraction,
             "reached": reached,
+            "warn": !reached && fraction >= warn_at,
         }))
     };
     let day_rows: Vec<&crate::audit::AuditEntry> = rows.iter().filter(|r| r.at >= since).collect();
@@ -393,7 +419,10 @@ pub fn budget_status(
         return None;
     }
     let reached = scopes.iter().any(|s| s["reached"] == true);
-    Some(serde_json::json!({"agent": agent, "reached": reached, "scopes": scopes}))
+    let warn = !reached && scopes.iter().any(|s| s["warn"] == true);
+    Some(
+        serde_json::json!({"agent": agent, "reached": reached, "warn": warn, "warn_at": warn_at, "scopes": scopes}),
+    )
 }
 
 /// Refuse a model call when `rows` (the journal rows of one run, or of every session of one goal) already reach `limit`.
@@ -756,6 +785,64 @@ mod tests {
             summarize(&rows, None)["items"][0].get("cost").is_none(),
             "no price file, no cost figure"
         );
+    }
+
+    #[test]
+    fn the_warning_starts_at_the_set_share_and_never_changes_what_is_refused() {
+        use crate::audit::AuditPhase::Performed;
+        let since = chrono::Utc::now() - chrono::Duration::hours(24);
+        let calls = |n: usize| {
+            (0..n)
+                .map(|_| call("m", None, Performed))
+                .collect::<Vec<_>>()
+        };
+        let day = |p: &Prices, n: usize| {
+            let v = budget_status(p, "a", &calls(n), since, None, None).unwrap();
+            (
+                v["warn"].clone(),
+                v["reached"].clone(),
+                v["scopes"][0]["fraction"].clone(),
+            )
+        };
+        // Default 0.8 of 10 calls: quiet at 7, warns at 8 and 9, reached at 10 (a warning is not a refusal there).
+        let p = prices(serde_json::json!({"budgets":{"a":{"max_calls_per_day":10}}}));
+        assert_eq!(day(&p, 7).0, false);
+        assert_eq!(day(&p, 8).0, true);
+        assert_eq!(day(&p, 9), (true.into(), false.into(), 0.9.into()));
+        let at_cap = day(&p, 10);
+        assert_eq!(
+            (at_cap.0, at_cap.1),
+            (false.into(), true.into()),
+            "reached replaces the warning"
+        );
+        assert!(
+            over_budget(&p, "a", &calls(9), since).is_none(),
+            "a warning never refuses a call"
+        );
+        // The operator can move it.
+        let p = prices(serde_json::json!({"budgets":{"a":{"max_calls_per_day":10,"warn_at":0.5}}}));
+        assert_eq!(day(&p, 5).0, true);
+        // A cost cap warns too, off the spent share.
+        let p = prices(serde_json::json!({
+            "prices":{"m":{"input_per_mtok":1.0,"output_per_mtok":1.0}},
+            "budgets":{"a":{"max_cost_per_day":2.0}}}));
+        let rows = vec![call("m", Some((1_000_000, 700_000)), Performed)];
+        let v = budget_status(&p, "a", &rows, since, None, None).unwrap();
+        assert_eq!(v["warn"], true, "1.7 of 2.0 is 0.85");
+        // A bad share is refused when the file loads, not ignored.
+        let dir = tempfile::tempdir().unwrap();
+        let f = dir.path().join("p.json");
+        for bad in [0.0, 1.5, -0.2] {
+            std::fs::write(
+                &f,
+                serde_json::json!({"budgets":{"a":{"warn_at":bad}}}).to_string(),
+            )
+            .unwrap();
+            assert!(
+                Prices::load(Some(&f)).unwrap_err().contains("warn_at"),
+                "{bad}"
+            );
+        }
     }
 
     #[test]

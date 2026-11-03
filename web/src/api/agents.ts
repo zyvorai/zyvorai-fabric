@@ -101,11 +101,17 @@ export interface MerionCockpit {
     error?: string
     agent?: string
     reached?: boolean
+    /** True when a cap is at or past the operator's warning share but not yet reached. */
+    warn?: boolean
+    warn_at?: number
     scopes?: Array<{
       scope: 'day' | 'run' | 'goal'
       calls: { used: number; max: number | null }
       cost: { used: number; max: number | null; currency?: string }
+      /** The closest any cap in this scope is to its limit, 0 to 1. */
+      fraction?: number
       reached: boolean
+      warn?: boolean
     }>
   } | null
   last_decisions?: Array<{
