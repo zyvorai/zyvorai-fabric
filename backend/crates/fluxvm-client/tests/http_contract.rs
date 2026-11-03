@@ -669,3 +669,76 @@ async fn keyed_restore_sends_key_and_delete_errors_carry_the_body() {
     let err = client.delete_vm(id).await.unwrap_err().to_string();
     assert!(err.contains("409") && err.contains("vm is busy"), "{err}");
 }
+
+/// `contracts/fluxvm-vm-calls.json` lists the `/v1/vms/{id}/...` requests this client and
+/// `agent-runtime/src/fluxvm.rs` both make. The agent-runtime tests replay the same file.
+#[tokio::test]
+async fn shared_vm_calls_match_the_cross_client_contract() {
+    use wiremock::matchers::any;
+    let server = MockServer::start().await;
+    Mock::given(any())
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
+        .mount(&server)
+        .await;
+    let c = FluxVmClient::new(server.uri()).unwrap();
+    let id = Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap();
+
+    let contract: serde_json::Value =
+        serde_json::from_str(include_str!("../../../../contracts/fluxvm-vm-calls.json")).unwrap();
+    let calls = contract["calls"].as_array().unwrap();
+    for entry in calls {
+        server.reset().await;
+        Mock::given(any())
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({})))
+            .mount(&server)
+            .await;
+        let name = entry["call"].as_str().unwrap();
+        // Only the request is under test; the reply is an empty object, so results are ignored.
+        match name {
+            "pause" => drop(c.pause_vm(id).await),
+            "resume" => drop(c.resume_vm(id).await),
+            "snapshot" => drop(c.snapshot_vm(id, "t1", None).await),
+            "restore" => drop(c.restore_vm(id, "t1").await),
+            "freeze" => drop(c.freeze(id).await),
+            "thaw" => drop(c.thaw(id).await),
+            "delete" => drop(c.delete_vm(id).await),
+            "set_network_policy" => drop(
+                c.set_network_policy(id, &zyvor_fabric_fluxvm_client::VmNetworkPolicy::default())
+                    .await,
+            ),
+            other => panic!("contract lists `{other}` but this test does not call it"),
+        }
+        let got = server.received_requests().await.unwrap();
+        assert_eq!(got.len(), 1, "{name}: expected exactly one request");
+        let r = &got[0];
+        assert_eq!(
+            r.method.as_str(),
+            entry["method"].as_str().unwrap(),
+            "{name} method"
+        );
+        let want_path = entry["path"]
+            .as_str()
+            .unwrap()
+            .replace("{id}", &id.to_string());
+        assert_eq!(r.url.path(), want_path, "{name} path");
+        match &entry["body"] {
+            serde_json::Value::Null => assert!(r.body.is_empty(), "{name}: expected no body"),
+            serde_json::Value::String(s) if s == "object" => assert!(
+                serde_json::from_slice::<serde_json::Value>(&r.body)
+                    .unwrap()
+                    .is_object(),
+                "{name} body"
+            ),
+            want => assert_eq!(
+                &serde_json::from_slice::<serde_json::Value>(&r.body).unwrap(),
+                want,
+                "{name} body"
+            ),
+        }
+    }
+    assert_eq!(
+        calls.len(),
+        8,
+        "update both clients' tests when adding a shared call"
+    );
+}
