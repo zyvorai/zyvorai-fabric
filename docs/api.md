@@ -743,7 +743,7 @@ Proxied FluxVM Network Fabric schema v4 and guest QGA. Operator detail: [fluxvm-
 | POST | `/dataplane/refresh-dns` | Re-resolve FQDN allowlists |
 | POST | `/vms/{name}/live-fork` | Fork a *running* VM into 1-32 children from one memory snapshot (flux-vm KVM engine). `{"count": N, "name_prefix": "..", "ready": true, "idempotency_key": ".."}`; `ready` returns FluxVM's measured `first_command_ms` |
 | GET | `/vms/{name}/memory` | VMM-process PSS/private/shared and balloon |
-| GET/POST | `/vms/{name}/balloon` | Memory balloon (**Beta**: FluxVM lists it unit-tested, not live-verified; flux-vm KVM engine only). POST `{"balloon_mib": N}` is admin; 0 deflates |
+| GET/POST | `/vms/{name}/balloon` | Memory balloon (**Beta**: FluxVM lists it unit-tested, not live-verified; flux-vm KVM engine only). POST `{"balloon_mib": N}` is admin; 0 deflates Distinct from the older `/vms/{name}/memory/balloon` route, (enable/disable ballooning via the QEMU monitor), not FluxVM's balloon target |
 | POST | `/vms/{name}/qga/ping` | QGA ping |
 | POST | `/vms/{name}/qga/exec` | QGA exec |
 | * | `/vms/{name}/qga/firewall/*` | QGA firewall helpers |

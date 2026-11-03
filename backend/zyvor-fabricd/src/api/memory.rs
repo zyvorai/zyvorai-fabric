@@ -100,6 +100,22 @@ fn one() -> u32 {
 /// Children one fork may start. FluxVM enforces the same limit; checking here gives a clear 400.
 pub const MAX_FORK_COUNT: u32 = 32;
 
+/// Reject a bad fork request before FluxVM sees it, so the caller gets a 400 and not a 502.
+fn check_fork_body(body: &ForkBody) -> Result<(), ApiErr> {
+    let bad = |msg: String| (StatusCode::BAD_REQUEST, Json(json!({ "error": msg })));
+    if body.count == 0 || body.count > MAX_FORK_COUNT {
+        return Err(bad(format!("count must be 1-{MAX_FORK_COUNT}")));
+    }
+    if let Some(prefix) = &body.name_prefix {
+        checked(prefix)?;
+    }
+    if let Some(key) = &body.idempotency_key {
+        zyvor_fabric_fluxvm_client::validate_idempotency_key(key)
+            .map_err(|e| bad(e.to_string()))?;
+    }
+    Ok(())
+}
+
 /// POST /api/vms/{name}/live-fork  `{"count": N, "name_prefix": "...", "ready": true}`
 ///
 /// Unlike `POST /api/vms/{name}/fork` (a disk copy-on-write clone), this forks the *running* VM's
@@ -111,15 +127,7 @@ pub async fn live_fork_vm(
     Json(body): Json<ForkBody>,
 ) -> Result<Json<serde_json::Value>, ApiErr> {
     checked(&name)?;
-    if body.count == 0 || body.count > MAX_FORK_COUNT {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            Json(json!({ "error": format!("count must be 1-{MAX_FORK_COUNT}") })),
-        ));
-    }
-    if let Some(prefix) = &body.name_prefix {
-        checked(prefix)?;
-    }
+    check_fork_body(&body)?;
     let client = fluxvm_client(&state)?;
     let id = resolve_id(&client, &name).await?;
     let out = client
@@ -142,4 +150,34 @@ pub async fn live_fork_vm(
         "elapsed_ms": out.elapsed_ms,
         "first_command_ms": out.first_command_ms,
     })))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn body(count: u32, prefix: Option<&str>, key: Option<&str>) -> ForkBody {
+        ForkBody {
+            count,
+            name_prefix: prefix.map(Into::into),
+            ready: false,
+            idempotency_key: key.map(Into::into),
+        }
+    }
+
+    #[test]
+    fn fork_request_is_validated_before_fluxvm() {
+        assert!(check_fork_body(&body(1, None, None)).is_ok());
+        assert!(check_fork_body(&body(MAX_FORK_COUNT, Some("kid"), Some("retry-1"))).is_ok());
+        for bad in [
+            body(0, None, None),
+            body(MAX_FORK_COUNT + 1, None, None),
+            body(1, Some("bad name!"), None),
+            body(1, None, Some("")),
+            body(1, None, Some("has space")),
+        ] {
+            let (status, _) = check_fork_body(&bad).unwrap_err();
+            assert_eq!(status, StatusCode::BAD_REQUEST);
+        }
+    }
 }
