@@ -10,6 +10,8 @@ export interface ChangesetSummary {
   deleted: string[]
   unstaged: string[]
   egress: string | null
+  /** What re-applying the changeset does again: the file changes. From `side_effects.replayable`. */
+  replayable: string[]
   nonReplayable: string[]
   /** Unix seconds after which FluxVM drops the changeset, if reported. */
   expiresAt: number | null
@@ -39,6 +41,7 @@ export function summarizeChangeset(planned: unknown): ChangesetSummary | null {
     deleted: strings(changes.deleted),
     unstaged: strings(p.unstaged),
     egress: typeof effects.egress === 'string' ? effects.egress : null,
+    replayable: strings(effects.replayable),
     nonReplayable: strings(effects.non_replayable),
     expiresAt: typeof p.expires_at === 'number' && p.expires_at > 0 ? p.expires_at : null,
   }
@@ -59,4 +62,12 @@ export function formatRemaining(seconds: number): string {
   const m = Math.floor(seconds / 60)
   const sec = seconds % 60
   return m > 0 ? `${m}m ${String(sec).padStart(2, '0')}s left` : `${sec}s left`
+}
+
+/** The share of the changeset that is added, modified and deleted (each 0 to 1, summing to 1; all 0 when empty), for a
+    proportional bar. A person reads the counts too: the bar is a glance, not the only signal. */
+export function changeShares(s: ChangesetSummary): { added: number; modified: number; deleted: number } {
+  const n = changeCount(s)
+  if (n === 0) return { added: 0, modified: 0, deleted: 0 }
+  return { added: s.added.length / n, modified: s.modified.length / n, deleted: s.deleted.length / n }
 }

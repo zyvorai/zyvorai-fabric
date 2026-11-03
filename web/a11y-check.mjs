@@ -4,10 +4,11 @@
 // Run: npx vite build && node a11y-check.mjs [--verbose]
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
+import { PAGES, UNSEEDED_PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
 
 const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 const verbose = process.argv.includes('--verbose')
+console.log(`not covered (no mock data yet, see page-harness.mjs): ${UNSEEDED_PAGES.join(', ')}`)
 const server = serveDist()
 const browser = await launch()
 const focusFailures = []

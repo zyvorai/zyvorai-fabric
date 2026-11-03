@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- **Merion session page redesign.** Two columns with the approval first; the 0 CONNECT proof is a seal that never claims
+  "sealed" when no count was reported; the changeset diff has a proportional change bar and shows what is replayed next to what
+  is only recorded; the model budget is a set of meters; the run is a timeline that words every outcome (a failed apply is
+  Failed, not Held). The accessibility gate now fails a page that renders the error boundary, and the Deny button and the
+  failed-apply text were fixed for contrast. See `docs/merion/design/ux-bold.md`.
 - **Bold UX foundation (console).** Dark is now the default theme for a first visit (a stored choice still wins). New tokens (brand
   orange, shadow and glow scale, state text colours), a small set of primitives (`GlowCard`, `AuroraBackdrop`, `StatusPulse`,
   `AnimatedNumber`, `Donut`, `FlowLine`, `Illustration`) and a `/app/ui-kit` gallery. The dev mock now serves seed data, so pages

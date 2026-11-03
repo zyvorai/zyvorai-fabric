@@ -1,6 +1,6 @@
 # Bold, dark-first UX: foundation
 
-**Status:** phase 0 built (tokens, primitives, seeded mock, gate). Phases 1 to 3 (Merion pages, console shell and dashboard, sign-in and marketing) are still to do.
+**Status:** phase 0 (tokens, primitives, seeded mock, gate) and phase 1 (the Merion session page) are built. Phases 2 and 3 (console shell and dashboard, sign-in and marketing) are still to do.
 
 The [UX plan](ux-plan.md) made the console calm and consistent. This work makes it bold: dark first, depth and glow, graphics that carry meaning, and motion that is purposeful. It builds on the same token system, motion variables and accessibility gate.
 
@@ -23,6 +23,22 @@ Brand orange (`--zf-brand`) and a cool secondary (`--zf-cool`); state colours fo
 ## Seeded mock
 
 `web/mock-data.mjs` is shared by `npm run dev:mock` and the screenshot/a11y harness, so pages render populated: six VMs, five sessions, and a session cockpit with a pending changeset, a failed apply and a budget near its cap. The baseline images used to be all empty states, which hid how tables and cards look. With data, the gate found real contrast failures in the VM cards (tags, Start, Stop and Pause buttons, error text, CPU and memory percentages), now fixed.
+
+## Phase 1: the Merion session page
+
+The page used to be one 3,200 px column of plain cards with the approval near the bottom. Now it is two columns: what needs a person first (the approval, then failed applies, then what happened), and a rail of proof and context (egress seal, model budget, attestation, goal, evidence). On a phone the proof and budget move up under the approval.
+
+- **`EgressSeal`**: "0 CONNECT, sealed" in the proof colour for a reported zero, red and "not sealed" with the count otherwise, and grey "not reported" when the runtime did not send a count, which is never shown as sealed. Drop reasons are bars when the runtime sends them in a known shape.
+- **`ChangesetDiff`**: command and exit code, a proportional added/modified/deleted bar with counts, the files by kind, "Replayed on approval" next to "Recorded, never replayed", the masking note, and the expiry. The summary now carries `replayable` from `side_effects`.
+- **`BudgetGauges`**: one meter per cap (`role="meter"`), amber from the warning share, red at the cap, with the reading in text.
+- **`RunTimeline`**: the run as a vertical timeline from the report. Each entry is worded Done, Held or Failed as well as coloured; failure wins, so "FluxVM could not apply it" is never drawn as done.
+- Pure helpers (`lib/merionView.ts`, `lib/changeset.ts`) have their own tests; the components are rendered with `react-dom/server` in `components/merion/__tests__`.
+
+Not done: an expiry countdown ring (the runtime sends a deadline but not the full lifetime, so there is nothing to draw the ring against), a content diff (contents are masked on the host by design), and the replay scrubber, history table and Merion home, which are the next part of phase 1.
+
+## The gate and crashed pages
+
+`openPage` in `page-harness.mjs` now fails when a page renders the error boundary. Before that, a page that threw looked clean to axe, because an error page has no violations. Five pages (`backups`, `analytics`, `audit`, `system`, `migrations`) throw against the mock's empty answers; they are listed in `UNSEEDED_PAGES`, are not checked, and `npm run a11y` prints that. Seed each one and move it back into `PAGES`.
 
 ## Checks
 
