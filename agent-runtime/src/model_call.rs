@@ -441,19 +441,20 @@ pub(crate) async fn check_agent_budget(
     result
 }
 
-async fn check_agent_budget_inner(
+/// The journal rows a budget is counted from: every session of `agent` plus, when a goal cap is set, every session of
+/// the goal `session` belongs to. Shared by the check and the status view so the two always count the same rows.
+async fn budget_rows(
     state: &AppState,
     agent: &str,
     session: Option<uuid::Uuid>,
-) -> Result<(), String> {
-    let Some(prices) =
-        crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())?
-    else {
-        return Ok(());
-    };
-    let Some(budget) = prices.budget_for(agent) else {
-        return Ok(());
-    };
+    budget: crate::model_gateway::Budget,
+) -> Result<
+    (
+        Vec<crate::audit::AuditEntry>,
+        std::collections::HashSet<uuid::Uuid>,
+    ),
+    String,
+> {
     // Every session of the goal this run belongs to, so one goal's cap spans its steps and its planner.
     let mut goal_sessions: std::collections::HashSet<uuid::Uuid> = Default::default();
     if let (Some(limit), Some(id)) = (budget.goal, session) {
@@ -479,13 +480,30 @@ async fn check_agent_budget_inner(
         .map(|s| s.id)
         .collect();
     ids.extend(&goal_sessions);
-    let since = chrono::Utc::now() - chrono::Duration::hours(24);
     let rows = state
         .store
         .audit
         .list_for_sessions(&ids, usize::MAX)
         .await
         .map_err(|e| e.to_string())?;
+    Ok((rows, goal_sessions))
+}
+
+async fn check_agent_budget_inner(
+    state: &AppState,
+    agent: &str,
+    session: Option<uuid::Uuid>,
+) -> Result<(), String> {
+    let Some(prices) =
+        crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())?
+    else {
+        return Ok(());
+    };
+    let Some(budget) = prices.budget_for(agent) else {
+        return Ok(());
+    };
+    let (rows, goal_sessions) = budget_rows(state, agent, session, budget).await?;
+    let since = chrono::Utc::now() - chrono::Duration::hours(24);
     if let Some(why) = crate::model_gateway::over_budget(&prices, agent, &rows, since) {
         return Err(why);
     }
@@ -505,6 +523,41 @@ async fn check_agent_budget_inner(
         }
     }
     Ok(())
+}
+
+/// What the operator's budget for `agent` has used so far, for the cockpit. `None` when no prices file or no budget
+/// applies. A prices file that cannot be read is an `Err` here, as it refuses a call in `check_agent_budget`.
+pub(crate) async fn budget_status_for(
+    state: &AppState,
+    agent: &str,
+    session: uuid::Uuid,
+) -> Result<Option<Value>, String> {
+    let Some(prices) =
+        crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())?
+    else {
+        return Ok(None);
+    };
+    let Some(budget) = prices.budget_for(agent) else {
+        return Ok(None);
+    };
+    let (rows, goal_sessions) = budget_rows(state, agent, Some(session), budget).await?;
+    let since = chrono::Utc::now() - chrono::Duration::hours(24);
+    let run: Vec<&crate::audit::AuditEntry> = rows
+        .iter()
+        .filter(|r| r.session_id == Some(session))
+        .collect();
+    let goal: Vec<&crate::audit::AuditEntry> = rows
+        .iter()
+        .filter(|r| r.session_id.is_some_and(|s| goal_sessions.contains(&s)))
+        .collect();
+    Ok(crate::model_gateway::budget_status(
+        &prices,
+        agent,
+        &rows,
+        since,
+        Some(&run),
+        (!goal_sessions.is_empty()).then_some(goal.as_slice()),
+    ))
 }
 
 async fn audit_failover(

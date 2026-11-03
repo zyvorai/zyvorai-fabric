@@ -724,6 +724,36 @@ export default function MerionSession() {
           )}
         </Card>
 
+        {cockpit?.budget && (
+          <Card className="p-4 space-y-2 text-sm">
+            <h2 className="text-base font-semibold text-[var(--zf-ink)]">Model budget</h2>
+            {cockpit.budget.error ? (
+              <div className="text-xs text-[var(--zf-danger,#b42318)]">
+                The budget could not be read, so model calls are refused: {cockpit.budget.error}
+              </div>
+            ) : (
+              (cockpit.budget.scopes ?? []).map((sc) => (
+                <div key={sc.scope} className="flex flex-wrap items-baseline gap-x-3">
+                  <span className="font-medium">
+                    {sc.scope === 'day' ? 'Last 24 hours' : sc.scope === 'run' ? 'This run' : 'This goal'}
+                  </span>
+                  {sc.calls.max != null && (
+                    <span>
+                      {sc.calls.used} of {sc.calls.max} calls
+                    </span>
+                  )}
+                  {sc.cost.max != null && (
+                    <span>
+                      {sc.cost.used.toFixed(4)} of {sc.cost.max} {sc.cost.currency ?? ''}
+                    </span>
+                  )}
+                  {sc.reached && <span className="text-xs text-[var(--zf-danger,#b42318)]">limit reached: further calls are refused</span>}
+                </div>
+              ))
+            )}
+          </Card>
+        )}
+
         {failedApplies.length > 0 && (
           <Card className="p-4 space-y-3 text-sm">
             <h2 className="text-base font-semibold text-[var(--zf-ink)]">Approved, but not applied</h2>
