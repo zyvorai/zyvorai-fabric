@@ -1,6 +1,6 @@
 # Design: branch a Merion session with FluxVM fork
 
-Status: **proposal, nothing implemented.** It exists so the decision is made on the facts, not on the
+Status: **proposal, nothing implemented; a first spike (below) found that QEMU-backed Merion cells cannot be forked.** It exists so the decision is made on the facts, not on the
 demo appeal of "16 agents from one".
 
 ## What it would give
@@ -50,6 +50,30 @@ So a branch is **not** safe to hand to an agent as-is. It needs, at minimum:
   no speed claim should be made until it is measured on one.
 - Whether the Merion runtime's own cell security profile (software-test, hardware attestation) can be
   claimed for a fork. Likely not: say so in the session's honesty badge.
+
+## Spike results (2026-11-03, lab host, FluxVM 127.0.0.1:7788)
+
+Step 1 of the order of work below was started on the lab host. What it showed, and what it did not:
+
+- **A Merion cell on the QEMU backend cannot be forked.** A `keep-cdp-stub` session (template `node22-agent`) was running, and
+  `POST /v1/vms/{id}/fork?ready=exec` with `{"count":1,"namePrefix":"spike"}` came back in 0.4 s with
+  `400 {"error":"fork supports the flux-vm backend only (backend=Qemu)"}`. No child was created. So branching needs the cell to be
+  on FluxVM's own backend, which the shipped Merion templates on this host are not. The earlier ~106 s fork of 2 children was a
+  plain `flux-vm` VM, not a Merion cell.
+- **The copied-identity table above is confirmed for the parent.** Inside the running cell, the worker's environment holds
+  `ZYVOR_SESSION_ID=<the session id>`, the guest has one global address (`169.254.0.3/16`) and a `boot_id`. A fork would copy all
+  three, as the table says.
+- **Not answered.** Whether a forked VM can be driven through `/v1/sandboxes/{id}/process`; whether the guest agent and worker
+  survive a fork; the fork cost on a host with reflinks (this host is ext4 without reflinks, so it could not say); and whether a
+  flux-vm-backend Merion cell exists to try. The only template that might be on that backend, `node22-fc` (agent `keep-fc`), runs
+  one command and completes, so there was never a running cell to fork. A long-running Merion agent on `node22-fc` is the missing
+  piece for the next attempt.
+- **A side observation, not about forks.** One of three session starts that day failed with FluxVM
+  `400 ... bpftool prog load ... can't pin BPF object: path '/sys/fs/bpf/fluxvm/vms/<id>/progs/fluxvm_egress' already exists`
+  while applying the cell's network policy. The next start worked and nothing was left pinned afterwards. It looks like the
+  policy being applied twice for one VM; that is a guess, not a finding.
+
+The recommendation is unchanged, and now has a first fact behind it: do not build branching on the QEMU cells.
 
 ## Recommendation
 
