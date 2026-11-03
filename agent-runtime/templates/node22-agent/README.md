@@ -1,16 +1,16 @@
 # node22-agent
 
-The cell template every Keep use case runs in: Ubuntu 24.04, Node 22, `poppler-utils` (for `pdftotext`), `tesseract-ocr` with the English data (for photos and screenshots) and the
+The cell template every Merion use case runs in: Ubuntu 24.04, Node 22, `poppler-utils` (for `pdftotext`), `tesseract-ocr` with the English data (for photos and screenshots) and the
 FluxVM guest agent. Nothing else. Node runs the fixed extractor scripts for `.docx`, `.xlsx`, `.pptx`, `.html`,
 `.eml` / `.mbox`; poppler reads PDFs; tesseract reads images. A template baked before OCR was added still works for everything else: an image
 run is refused with "The template has no tesseract". All of the one-click use cases and the scenario packs in
-[`examples/keep-agents/`](../../../examples/keep-agents/) run in it.
+[`examples/merion-agents/`](../../../examples/merion-agents/) run in it.
 
 ## Bake it (one command, on the FluxVM host)
 
 ```bash
-./scripts/keep-bake-node22-agent.sh            # download Node, build the image, register the template
-./scripts/keep-bake-node22-agent.sh --dry-run  # show the plan and what is missing; change nothing
+./scripts/merion-bake-node22-agent.sh            # download Node, build the image, register the template
+./scripts/merion-bake-node22-agent.sh --dry-run  # show the plan and what is missing; change nothing
 ```
 
 Needs on the host: `fluxvm` (or `fluxctl`) on the PATH with the control plane running, `sudo`, `curl`, `python3`,
@@ -21,12 +21,12 @@ Overrides (environment):
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `KEEP_NODE_VERSION` | `22.11.0` | Node release to bake in |
-| `KEEP_NODE_TAR` | `/tmp/node.tar.xz` | Where the Node tarball is cached (downloaded if missing) |
-| `KEEP_NODE_BASE_IMG` | the Ubuntu noble URL in `build.json` | Use a local base image instead of downloading one |
-| `KEEP_NODE_GUEST_AGENT` | `/usr/local/bin/fluxvm-guest-agent` | Guest agent binary to bake in |
-| `KEEP_NODE_OUT` | `/var/lib/fluxvm/images/node22-agent.qcow2` | Image to write |
-| `KEEP_NODE_TEMPLATE_DIR` | `/var/lib/fluxvm/templates/node22-agent` | Where the template is registered |
+| `MERION_NODE_VERSION` | `22.11.0` | Node release to bake in |
+| `MERION_NODE_TAR` | `/tmp/node.tar.xz` | Where the Node tarball is cached (downloaded if missing) |
+| `MERION_NODE_BASE_IMG` | the Ubuntu noble URL in `build.json` | Use a local base image instead of downloading one |
+| `MERION_NODE_GUEST_AGENT` | `/usr/local/bin/fluxvm-guest-agent` | Guest agent binary to bake in |
+| `MERION_NODE_OUT` | `/var/lib/fluxvm/images/node22-agent.qcow2` | Image to write |
+| `MERION_NODE_TEMPLATE_DIR` | `/var/lib/fluxvm/templates/node22-agent` | Where the template is registered |
 
 Re-running skips the build if the image already exists (add `--force` to rebuild) and re-registers the template.
 
@@ -43,7 +43,7 @@ Re-running skips the build if the image already exists (add `--force` to rebuild
 
 ## Related
 
-- Firecracker cells: `./scripts/keep-bake-fc-rootfs.sh` turns this image into a flat rootfs (`node22-fc`).
+- Firecracker cells: `./scripts/merion-bake-fc-rootfs.sh` turns this image into a flat rootfs (`node22-fc`).
 - Browser cells: [`../browser-agent/`](../browser-agent/README.md).
 
 ## Guest networking

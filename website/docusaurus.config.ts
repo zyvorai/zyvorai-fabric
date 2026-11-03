@@ -62,6 +62,8 @@ const config: Config = {
         indexPages: false,
         docsRouteBasePath: '/docs',
         language: 'en',
+        // press / anywhere to search (the default is Cmd/Ctrl+K)
+        searchBarShortcutKeymap: '/',
       },
     ],
   ],
@@ -76,16 +78,18 @@ const config: Config = {
           path: '../docs',
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
+          // "Last updated" under each page, from git history (CI must check out full history)
+          showLastUpdateTime: true,
           editUrl: 'https://github.com/zyvorai/zyvorai-fabric/tree/main/docs/',
-          // docs/keep/README.md is the GitHub landing page for Keep. The site
-          // already has /keep and docs/keep/KEEP.md (the folder index), so
+          // docs/merion/README.md is the GitHub landing page for Merion. The site
+          // already has /keep and docs/merion/MERION.md (the folder index), so
           // keep the README out of the docs build to avoid a duplicate route.
           exclude: [
             '**/_*.{js,jsx,ts,tsx,md,mdx}',
             '**/_*/**',
             '**/*.test.{js,jsx,ts,tsx}',
             '**/__tests__/**',
-            'keep/README.md',
+            'merion/README.md',
           ],
         },
         blog: false,
@@ -111,26 +115,27 @@ const config: Config = {
       hideOnScroll: false,
       items: [
         {
-          to: '/keep',
-          label: 'Keep',
+          to: '/merion',
+          label: 'Merion',
           position: 'right',
         },
         {
-          to: '/keep/phones',
+          to: '/merion/phones',
           label: 'Phones',
           position: 'right',
         },
         {
-          to: '/#matrix',
+          to: '/compare',
           label: 'Matrix',
           position: 'right',
         },
         {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
-          position: 'right',
+          to: '/start',
           label: 'Docs',
+          position: 'right',
+          activeBaseRegex: '^/(zyvorai-fabric/)?(start|docs)',
         },
+        {to: '/support', label: 'Support', position: 'right'},
         {
           href: 'https://github.com/zyvorai/zyvorai-fabric',
           label: 'GitHub',
@@ -145,12 +150,12 @@ const config: Config = {
           title: 'Docs',
           items: [
             {label: 'Quick start', to: '/docs/getting-started/Quick-Start'},
-            {label: 'Keep', to: '/keep'},
-            {label: 'Keep for phone makers', to: '/keep/phones'},
-            {label: 'Keep use cases', to: '/keep/packs'},
-            {label: 'Fabric vs the field', to: '/#matrix'},
-            {label: 'Keep docs', to: '/docs/keep/'},
-            {label: 'Tutorial 17 — PDF brief', to: '/docs/tutorials/keep-pdf-brief'},
+            {label: 'Merion', to: '/merion'},
+            {label: 'Merion for phone makers', to: '/merion/phones'},
+            {label: 'Merion use cases', to: '/merion/packs'},
+            {label: 'Fabric vs the field', to: '/compare'},
+            {label: 'Merion docs', to: '/docs/merion/'},
+            {label: 'Tutorial 17 — PDF brief', to: '/docs/tutorials/merion-pdf-brief'},
             {label: 'Product overview', to: '/docs/PRODUCT_OVERVIEW'},
             {label: 'FAQ', to: '/docs/quick-reference/faq'},
           ],
@@ -159,6 +164,7 @@ const config: Config = {
           title: 'Project',
           items: [
             {label: 'GitHub', href: 'https://github.com/zyvorai/zyvorai-fabric'},
+            {label: 'Support', to: '/support'},
             {
               label: 'Changelog',
               href: 'https://github.com/zyvorai/zyvorai-fabric/blob/main/CHANGELOG.md',
@@ -173,7 +179,7 @@ const config: Config = {
           title: 'Zyvor Enterprise',
           items: [
             {label: 'zyvor.dev', href: 'https://zyvor.dev'},
-            {label: 'Keep on zyvor.dev', href: 'https://zyvor.dev/keep'},
+            {label: 'Merion on zyvor.dev', href: 'https://zyvor.dev/merion'},
             {label: 'sales@zyvor.dev', href: 'mailto:sales@zyvor.dev'},
           ],
         },

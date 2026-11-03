@@ -167,7 +167,7 @@ export default function NotificationCenter() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-semibold ${typeTextColor[n.type]}`}>{cfg.label}</span>
-                    {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-[var(--zf-link)]" />}
+                    {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-[var(--zf-link-fill)]" />}
                   </div>
                   <p className="text-sm text-[var(--zf-ink)] mt-0.5">{n.message}</p>
                   {n.detail && <p className="text-xs text-[var(--zf-muted)] mt-0.5 truncate">{n.detail}</p>}

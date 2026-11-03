@@ -40,14 +40,14 @@ export default function RescueTab({ vm }: { vm: VM }) {
 
   return (
     <div className="max-w-3xl space-y-4">
-      <div className="flex items-start gap-2 text-sm text-[#6e6e73] bg-[#f5f5f7] rounded-lg border border-[#d2d2d7] px-4 py-3">
+      <div className="flex items-start gap-2 text-sm text-[var(--zf-muted)] bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)] px-4 py-3">
         <Wrench className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
         <div>
           Offline guest configuration via GuestKit — mounts this VM's disk directly, no network or
           in-guest agent needed. Two things GuestKit doesn't support on Linux, so they're not offered
           here: static IP/gateway (Windows-only), and creating a brand-new user account — SSH key
           injection and password reset both require the target user to already exist on the image
-          (e.g. <code className="text-[#6e6e73]">root</code>, or a user your image/cloud-init already created).
+          (e.g. <code className="text-[var(--zf-muted)]">root</code>, or a user your image/cloud-init already created).
         </div>
       </div>
 
@@ -63,8 +63,8 @@ export default function RescueTab({ vm }: { vm: VM }) {
         </p>
       )}
 
-      <div className="bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] p-5 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#1d1d1f]">
+      <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)]">
           <Key className="w-4 h-4 text-emerald-600" />
           Inject SSH Key
         </div>
@@ -72,19 +72,19 @@ export default function RescueTab({ vm }: { vm: VM }) {
           <input
             value={sshUser} onChange={(e) => setSshUser(e.target.value)} disabled={disabled}
             placeholder="Existing Linux user (e.g. root)"
-            className="bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+            className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
           />
           <input
             value={sshKey} onChange={(e) => setSshKey(e.target.value)} disabled={disabled}
             placeholder="ssh-ed25519 AAAA..."
-            className="md:col-span-2 bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] font-mono disabled:opacity-50"
+            className="md:col-span-2 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] font-mono disabled:opacity-50"
           />
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => run('inject-key', () => rescueVM(vm.name, { operation: 'inject-ssh-key', user: sshUser, key: sshKey }), 'SSH key injected')}
             disabled={disabled || !sshUser || !sshKey || busy !== null}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0066cc] hover:bg-[#0077ed] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
           >
             {busy === 'inject-key' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             Inject Key
@@ -92,7 +92,7 @@ export default function RescueTab({ vm }: { vm: VM }) {
           <button
             onClick={() => run('enable-ssh', () => rescueVM(vm.name, { operation: 'enable-ssh' }), 'SSH enabled')}
             disabled={disabled || busy !== null}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#e8e8ed] hover:bg-[#d2d2d7] rounded-lg text-sm font-medium text-[#1d1d1f] disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-canvas-alt)] hover:bg-[var(--zf-hairline)] rounded-lg text-sm font-medium text-[var(--zf-ink)] disabled:opacity-50"
           >
             {busy === 'enable-ssh' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             Enable SSH Service
@@ -100,8 +100,8 @@ export default function RescueTab({ vm }: { vm: VM }) {
         </div>
       </div>
 
-      <div className="bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] p-5 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#1d1d1f]">
+      <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)]">
           <Tag className="w-4 h-4 text-cyan-400" />
           Set Hostname
         </div>
@@ -109,12 +109,12 @@ export default function RescueTab({ vm }: { vm: VM }) {
           <input
             value={hostname} onChange={(e) => setHostname(e.target.value)} disabled={disabled}
             placeholder="new-hostname"
-            className="flex-1 bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+            className="flex-1 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
           />
           <button
             onClick={() => run('hostname', () => rescueVM(vm.name, { operation: 'set-hostname', hostname }), 'Hostname set')}
             disabled={disabled || !hostname || busy !== null}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0066cc] hover:bg-[#0077ed] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
           >
             {busy === 'hostname' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             Apply
@@ -122,8 +122,8 @@ export default function RescueTab({ vm }: { vm: VM }) {
         </div>
       </div>
 
-      <div className="bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] p-5 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#1d1d1f]">
+      <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)]">
           <Lock className="w-4 h-4 text-red-600" />
           Reset Password
         </div>
@@ -131,35 +131,35 @@ export default function RescueTab({ vm }: { vm: VM }) {
           <input
             value={pwUser} onChange={(e) => setPwUser(e.target.value)} disabled={disabled}
             placeholder="Existing Linux user"
-            className="bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+            className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
           />
           <input
             value={password} onChange={(e) => setPassword(e.target.value)} disabled={disabled} type="password"
             placeholder="New password"
-            className="bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+            className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
           />
         </div>
         <button
           onClick={() => run('reset-pw', () => rescueVM(vm.name, { operation: 'reset-password', user: pwUser, password }), 'Password reset')}
           disabled={disabled || !pwUser || !password || busy !== null}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0066cc] hover:bg-[#0077ed] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
         >
           {busy === 'reset-pw' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           Reset Password
         </button>
       </div>
 
-      <div className="bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] p-5 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#1d1d1f]">
+      <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)]">
           <Package className="w-4 h-4 text-amber-400" />
           Install Packages
         </div>
         <input
           value={packages} onChange={(e) => setPackages(e.target.value)} disabled={disabled}
           placeholder="package-one, package-two"
-          className="w-full bg-white border border-[#d2d2d7] rounded-lg px-3 py-2 text-sm text-[#1d1d1f] disabled:opacity-50"
+          className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] disabled:opacity-50"
         />
-        <label className="flex items-center gap-2 text-sm text-[#6e6e73]">
+        <label className="flex items-center gap-2 text-sm text-[var(--zf-muted)]">
           <input type="checkbox" checked={allowNetwork} onChange={(e) => setAllowNetwork(e.target.checked)} disabled={disabled} />
           Allow network access during install (uses the host's DNS, restored afterward)
         </label>
@@ -170,16 +170,16 @@ export default function RescueTab({ vm }: { vm: VM }) {
             network: allowNetwork,
           }), 'Packages installed')}
           disabled={disabled || !packages.trim() || busy !== null}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0066cc] hover:bg-[#0077ed] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] rounded-lg text-sm font-medium text-white disabled:opacity-50"
         >
           {busy === 'install-pkgs' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           Install
         </button>
       </div>
 
-      <div className="bg-[#f5f5f7] rounded-xl border border-[#d2d2d7] p-5 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-[#1d1d1f]">
-          <Search className="w-4 h-4 text-[#6e6e73]" />
+      <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] p-5 space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-[var(--zf-ink)]">
+          <Search className="w-4 h-4 text-[var(--zf-muted)]" />
           Pull Guest Info
         </div>
         <button
@@ -194,7 +194,7 @@ export default function RescueTab({ vm }: { vm: VM }) {
             }
           }}
           disabled={!stopped || busy !== null}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#e8e8ed] hover:bg-[#d2d2d7] rounded-lg text-sm font-medium text-[#1d1d1f] disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-canvas-alt)] hover:bg-[var(--zf-hairline)] rounded-lg text-sm font-medium text-[var(--zf-ink)] disabled:opacity-50"
         >
           {busy === 'inspect' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           <Terminal className="w-3.5 h-3.5" />

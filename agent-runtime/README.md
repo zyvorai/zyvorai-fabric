@@ -31,12 +31,12 @@ Deploy JavaScript/TypeScript agents like serverless functions while giving every
 - cron schedules, HMAC webhooks, and bounded loops
 - an MCP endpoint for listing agents, listing executions, and chatting
 - GitHub session CI that runs those paths with no FluxVM and no model key
-- **Keep** product surface (0.1 live proof): Keep mode fail-closed signed
-  `keep.policy.yaml`, BYO `model_socket`, credential `authorize_resolve`, session
-  cockpit + browser live view, measured/`software-test` labeling, `scripts/keepctl`,
-  scoped export tokens, `./scripts/keep-live-lab.sh` —
-  [docs/keep/KEEP.md](../docs/keep/KEEP.md) · [PRODUCTION.md](../docs/keep/PRODUCTION.md) ·
-  [Tutorial 16](../docs/tutorials/16-keep-workstation.md) · [CI](../.github/workflows/keep.yml)
+- **Merion** product surface (0.1 live proof): Merion mode fail-closed signed
+  `merion.policy.yaml`, BYO `model_socket`, credential `authorize_resolve`, session
+  cockpit + browser live view, measured/`software-test` labeling, `scripts/merionctl`,
+  scoped export tokens, `./scripts/merion-live-lab.sh` —
+  [docs/merion/MERION.md](../docs/merion/MERION.md) · [PRODUCTION.md](../docs/merion/PRODUCTION.md) ·
+  [Tutorial 16](../docs/tutorials/16-merion-workstation.md) · [CI](../.github/workflows/merion.yml)
 
 The runtime is intentionally a standalone component in the Fabric repository. It consumes FluxVM's existing `/v1/sandboxes` API directly and does not alter the existing `zyvor-fabricd` VM API or backend workspace.
 
@@ -176,7 +176,7 @@ Changing `egress_mode` or the timeout changes the agent's version, like any mani
 - Deploy refuses combinations that cannot work: it needs `"cell_backend": "qemu"` (only QEMU cells can be given a device), and it cannot be combined with `confidential`, `warm_pool_size` or `idle_hibernate_seconds`.
 - FluxVM must already have the GPUs bound to `vfio-pci` (`POST /v1/host/gpus/bind`); see `docs/gpu-passthrough.md`. A GPU in use by another VM is not picked.
 - **No free GPU is a 503** on session create, with FluxVM's count of how many are free. There is no queue; the caller retries. The `503` message starts `no GPU is free for this agent`.
-- **A CPU-only cell is never started by mistake.** After the create, the runtime reads the devices FluxVM assigned from the returned record. If there are fewer than the manifest asked for (an older FluxVM ignores `gpus`), the cell is deleted and the session fails with 502. The assigned addresses are journaled as `keep.cell.gpus`.
+- **A CPU-only cell is never started by mistake.** After the create, the runtime reads the devices FluxVM assigned from the returned record. If there are fewer than the manifest asked for (an older FluxVM ignores `gpus`), the cell is deleted and the session fails with 502. The assigned addresses are journaled as `merion.cell.gpus`.
 - The egress and credential policy are unchanged: a GPU cell still reaches the network only through the broker.
 - Not verified on real GPUs: the runtime's part is tested against a stand-in FluxVM, and FluxVM's picking logic is tested on its own. A passed-through device sits outside what the runtime can attest or snapshot, and the cell's own workload sees the GPU directly.
 
@@ -218,7 +218,7 @@ A credential descriptor can require a decision per request: `"requires_approval"
 
 ### Inside the sandbox: a contained worker
 
-`"inner_container": "strict"` starts the worker (and so any browser it launches) through `/opt/zyvor/contain.sh`, which the runtime writes into the guest: an unprivileged `agent` user in a bubblewrap container with a read-only view of the guest (the agent cannot edit its own bundle, the worker or the launcher), a private `/tmp`, its writable home, no capabilities and no new privileges. The template needs `bubblewrap` and `util-linux` (`templates/browser-agent/build.json` has both), and it fails closed: without them the worker never starts. A seccomp filter (`/opt/zyvor/seccomp.bpf`, written next to the launcher and loaded with `bwrap --seccomp`) answers `EPERM` to the syscalls an agent has no business making: `ptrace`, `process_vm_*`, `mount` and the new mount API, `pivot_root`, `chroot`, module loading, `kexec`, `bpf`, `perf_event_open`, `userfaultfd`, kernel keyrings, clock and port changes, and `io_uring` (the list is `DENIED_SYSCALLS` in `src/contain.rs`). It is x86_64 only, kills other architectures and the x32 ABI, and the launcher refuses to run if the filter file is missing or the CPU is not x86_64. It leaves `unshare`, `clone`, `setns`, `memfd_create`, `seccomp` and `prctl` alone, because Chromium, V8 and Node use them. The VM stays the outer boundary; this limits what an escape from the agent's own process gets. It shares the network namespace on purpose, since the agent must reach the broker, so pair it with `confinement: strict`. Known gap: the guest agent's vsock channel is reachable from that namespace, so set a guest-agent token for an untrusted agent. There is deliberately no Landlock layer: see `docs/keep/REMAINING.md` §6 for why. Not exercised against a live FluxVM guest yet; the launcher's logic is tested with stand-in binaries. The filter itself was run under a real `bwrap` on a Linux x86_64 host (denied calls returned `EPERM`, ordinary process, socket and file work was unaffected, every syscall number matched the kernel header), but not through `contain.sh` in a cell, and not with Chromium.
+`"inner_container": "strict"` starts the worker (and so any browser it launches) through `/opt/zyvor/contain.sh`, which the runtime writes into the guest: an unprivileged `agent` user in a bubblewrap container with a read-only view of the guest (the agent cannot edit its own bundle, the worker or the launcher), a private `/tmp`, its writable home, no capabilities and no new privileges. The template needs `bubblewrap` and `util-linux` (`templates/browser-agent/build.json` has both), and it fails closed: without them the worker never starts. A seccomp filter (`/opt/zyvor/seccomp.bpf`, written next to the launcher and loaded with `bwrap --seccomp`) answers `EPERM` to the syscalls an agent has no business making: `ptrace`, `process_vm_*`, `mount` and the new mount API, `pivot_root`, `chroot`, module loading, `kexec`, `bpf`, `perf_event_open`, `userfaultfd`, kernel keyrings, clock and port changes, and `io_uring` (the list is `DENIED_SYSCALLS` in `src/contain.rs`). It is x86_64 only, kills other architectures and the x32 ABI, and the launcher refuses to run if the filter file is missing or the CPU is not x86_64. It leaves `unshare`, `clone`, `setns`, `memfd_create`, `seccomp` and `prctl` alone, because Chromium, V8 and Node use them. The VM stays the outer boundary; this limits what an escape from the agent's own process gets. It shares the network namespace on purpose, since the agent must reach the broker, so pair it with `confinement: strict`. Known gap: the guest agent's vsock channel is reachable from that namespace, so set a guest-agent token for an untrusted agent. There is deliberately no Landlock layer: see `docs/merion/REMAINING.md` §6 for why. Not exercised against a live FluxVM guest yet; the launcher's logic is tested with stand-in binaries. The filter itself was run under a real `bwrap` on a Linux x86_64 host (denied calls returned `EPERM`, ordinary process, socket and file work was unaffected, every syscall number matched the kernel header), but not through `contain.sh` in a cell, and not with Chromium.
 
 ### Always-on workstations
 
@@ -229,8 +229,8 @@ Deploy with `"persistent": true`, then declare a workstation: `PUT /v1/workstati
 With `"browser_port": 9222` (Chromium started with remote debugging on that port, bound so FluxVM's sandbox proxy can reach it), an operator can:
 
 - `GET /v1/sessions/{id}/browser/json/list` (also `json`, `json/version`, `json/protocol`) — raw DevTools listings with WebSocket/frontend URLs stripped
-- `GET /v1/sessions/{id}/browser/view` — Keep 0.1 live tab summary (title + URL)
-- `GET /keep/browser?session=<uuid>` — HTML that polls the live view
+- `GET /v1/sessions/{id}/browser/view` — Merion 0.1 live tab summary (title + URL)
+- `GET /merion/browser?session=<uuid>` — HTML that polls the live view
 
 Only listing paths are forwarded, plus a screenshot and a read-only screencast through the host CDP bridge. **Input takeover is not implemented.**
 
@@ -345,10 +345,10 @@ Configuration:
 | `ZYVOR_AGENT_FLUXVM_URL` | `http://127.0.0.1:7788` | FluxVM API |
 | `ZYVOR_AGENT_FLUXVM_TOKEN` | unset | FluxVM bearer token |
 | `ZYVOR_AGENT_API_TOKEN` | unset | public Agent Runtime bearer token |
-| `ZYVOR_AGENT_KEEP_MODE` | unset | `1` = Keep 0.1 fail-closed: trusted signers required; unsigned policy refused |
-| `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS` | unset | comma-separated hex Ed25519 public keys for `keep.policy.yaml` |
-| `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE` | auto | ignored when Keep mode is on; otherwise `1`/`0` |
-| `ZYVOR_AGENT_SECURITY_PROFILE` | unset / `measured` in Keep mode | passed to FluxVM on sandbox create |
+| `ZYVOR_AGENT_MERION_MODE` | unset | `1` = Merion 0.1 fail-closed: trusted signers required; unsigned policy refused |
+| `ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS` | unset | comma-separated hex Ed25519 public keys for `merion.policy.yaml` |
+| `ZYVOR_AGENT_POLICY_REQUIRE_SIGNATURE` | auto | ignored when Merion mode is on; otherwise `1`/`0` |
+| `ZYVOR_AGENT_SECURITY_PROFILE` | unset / `measured` in Merion mode | passed to FluxVM on sandbox create |
 | `ZYVOR_AGENT_CONFINE` | unset | `1` forces `confinement: strict` for every agent |
 | `ZYVOR_AGENT_SKILL_SCOPES_FILE` | unset | JSON policy: which skill scopes each agent `skill_scope` may mount (see Skills) |
 | `ZYVOR_AGENT_ALLOW_NO_AUTH` | unset | explicit opt-out to start without `ZYVOR_AGENT_API_TOKEN` |
@@ -571,19 +571,19 @@ Session metadata, TTL deadlines, warm-pool claims and the host event journal sur
 
 `.github/workflows/agent-runtime.yml` typechecks the crate, builds the example bundles, and runs a real session on the GitHub runner. Runners have no FluxVM, so [`agent-runtime/tests/sandbox_stub.py`](tests/sandbox_stub.py) stores the guest files and starts `worker.mjs` or `harness.mjs` with Node on the runner. Provider APIs are not called.
 
-**Keep** (policy YAML, cockpit routes, keepctl, docs) has its own workflow:
-[`.github/workflows/keep.yml`](../.github/workflows/keep.yml). Locally:
+**Merion** (policy YAML, cockpit routes, merionctl, docs) has its own workflow:
+[`.github/workflows/merion.yml`](../.github/workflows/merion.yml). Locally:
 
 ```bash
 cargo test --manifest-path agent-runtime/Cargo.toml --lib
 cargo test --manifest-path agent-runtime/Cargo.toml policy -- --nocapture
-./scripts/keep-e2e.sh
-./scripts/keep-live-lab.sh   # FluxVM host; guest boot needs KEEP_E2E_TEMPLATE
-./scripts/keepctl --help
+./scripts/merion-e2e.sh
+./scripts/merion-live-lab.sh   # FluxVM host; guest boot needs MERION_E2E_TEMPLATE
+./scripts/merionctl --help
 ```
 
-Tutorial: [docs/tutorials/16-keep-workstation.md](../docs/tutorials/16-keep-workstation.md).  
-Production gate: [docs/keep/PRODUCTION.md](../docs/keep/PRODUCTION.md).
+Tutorial: [docs/tutorials/16-merion-workstation.md](../docs/tutorials/16-merion-workstation.md).  
+Production gate: [docs/merion/PRODUCTION.md](../docs/merion/PRODUCTION.md).
 
 [`agent-runtime/tests/session-ci.sh`](tests/session-ci.sh) deploys four agents and checks each path:
 

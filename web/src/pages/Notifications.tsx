@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Bell, Plus, Trash2, Power, PowerOff, Send, Mail, MessageSquare, Webhook } from 'lucide-react'
 import {
@@ -136,7 +137,7 @@ export default function Notifications() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading notifications...</div>
+    return <PageLoading />
   }
 
   return (
@@ -520,12 +521,12 @@ function CreateChannelModal({ onClose, onCreated }: { onClose: () => void; onCre
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
+          <input aria-label="Name" type="text" value={name} onChange={(e) => setName(e.target.value)} required
             className="input-field" placeholder="e.g. ops-slack" />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Type</label>
-          <select value={type} onChange={(e) => setType(e.target.value as ChannelType)}
+          <select aria-label="Type" value={type} onChange={(e) => setType(e.target.value as ChannelType)}
             className="input-field">
             <option value="webhook">Webhook</option>
             <option value="slack">Slack</option>
@@ -537,7 +538,7 @@ function CreateChannelModal({ onClose, onCreated }: { onClose: () => void; onCre
         {type === 'webhook' && (
           <div>
             <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Webhook URL</label>
-            <input type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} required
+            <input aria-label="Webhook URL" type="url" value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} required
               className="input-field" placeholder="https://..." />
           </div>
         )}
@@ -545,7 +546,7 @@ function CreateChannelModal({ onClose, onCreated }: { onClose: () => void; onCre
         {type === 'slack' && (
           <div>
             <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Slack Webhook URL</label>
-            <input type="url" value={slackWebhookUrl} onChange={(e) => setSlackWebhookUrl(e.target.value)} required
+            <input aria-label="Slack Webhook URL" type="url" value={slackWebhookUrl} onChange={(e) => setSlackWebhookUrl(e.target.value)} required
               className="input-field" placeholder="https://hooks.slack.com/services/..." />
           </div>
         )}
@@ -553,7 +554,7 @@ function CreateChannelModal({ onClose, onCreated }: { onClose: () => void; onCre
         {type === 'teams' && (
           <div>
             <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Teams Webhook URL</label>
-            <input type="url" value={teamsWebhookUrl} onChange={(e) => setTeamsWebhookUrl(e.target.value)} required
+            <input aria-label="Teams Webhook URL" type="url" value={teamsWebhookUrl} onChange={(e) => setTeamsWebhookUrl(e.target.value)} required
               className="input-field" placeholder="https://xxx.webhook.office.com/..." />
           </div>
         )}
@@ -563,23 +564,23 @@ function CreateChannelModal({ onClose, onCreated }: { onClose: () => void; onCre
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">SMTP Host</label>
-                <input type="text" value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} required
+                <input aria-label="SMTP Host" type="text" value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} required
                   className="input-field" placeholder="smtp.example.com" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">SMTP Port</label>
-                <input type="number" value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} required
+                <input aria-label="SMTP Port" type="number" value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} required
                   className="input-field" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">From Address</label>
-              <input type="email" value={fromAddress} onChange={(e) => setFromAddress(e.target.value)} required
+              <input aria-label="From Address" type="email" value={fromAddress} onChange={(e) => setFromAddress(e.target.value)} required
                 className="input-field" placeholder="alerts@example.com" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">To Address</label>
-              <input type="email" value={toAddress} onChange={(e) => setToAddress(e.target.value)} required
+              <input aria-label="To Address" type="email" value={toAddress} onChange={(e) => setToAddress(e.target.value)} required
                 className="input-field" placeholder="oncall@example.com" />
             </div>
           </div>
@@ -648,12 +649,12 @@ function CreateRuleModal({ channels, onClose, onCreated }: { channels: Notificat
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Name</label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
+          <input aria-label="Name" type="text" value={name} onChange={(e) => setName(e.target.value)} required
             className="input-field" placeholder="e.g. vm-failures-to-oncall" />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1 text-[var(--zf-ink)]">Description (optional)</label>
-          <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
+          <input aria-label="Description (optional)" type="text" value={description} onChange={(e) => setDescription(e.target.value)}
             className="input-field" />
         </div>
         <div>
@@ -661,7 +662,7 @@ function CreateRuleModal({ channels, onClose, onCreated }: { channels: Notificat
           <div className="flex flex-wrap gap-2">
             {RULE_EVENT_TYPES.map((et) => (
               <button type="button" key={et} onClick={() => toggle(eventTypes, et, setEventTypes)}
-                className={`px-2.5 py-1 rounded text-xs font-mono transition border ${eventTypes.includes(et) ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
+                className={`px-2.5 py-1 rounded text-xs font-mono transition border ${eventTypes.includes(et) ? 'bg-[var(--zf-link-fill)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
                 {et}
               </button>
             ))}
@@ -672,7 +673,7 @@ function CreateRuleModal({ channels, onClose, onCreated }: { channels: Notificat
           <div className="flex gap-2">
             {RULE_SEVERITIES.map((sev) => (
               <button type="button" key={sev} onClick={() => toggle(severityLevels, sev, setSeverityLevels)}
-                className={`px-3 py-1.5 rounded text-sm capitalize transition border ${severityLevels.includes(sev) ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
+                className={`px-3 py-1.5 rounded text-sm capitalize transition border ${severityLevels.includes(sev) ? 'bg-[var(--zf-link-fill)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
                 {sev}
               </button>
             ))}
@@ -686,7 +687,7 @@ function CreateRuleModal({ channels, onClose, onCreated }: { channels: Notificat
             <div className="flex flex-wrap gap-2">
               {channels.map((ch) => (
                 <button type="button" key={ch.id} onClick={() => toggle(selectedChannels, ch.id, setSelectedChannels)}
-                  className={`px-3 py-1.5 rounded text-sm transition border ${selectedChannels.includes(ch.id) ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
+                  className={`px-3 py-1.5 rounded text-sm transition border ${selectedChannels.includes(ch.id) ? 'bg-[var(--zf-link-fill)] text-white border-[var(--zf-link)]' : 'bg-[var(--zf-surface)] text-[var(--zf-muted)] border-[var(--zf-hairline)]'}`}>
                   {ch.name}
                 </button>
               ))}

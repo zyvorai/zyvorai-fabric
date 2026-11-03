@@ -5,7 +5,7 @@ import styles from './CockpitMock.module.css';
 
 type Step = 'pending' | 'running' | 'blocked' | 'done';
 
-/* Plan-step states are the ones in docs/keep/goals/README.md. The session
+/* Plan-step states are the ones in docs/merion/goals/README.md. The session
  * itself is illustrative — no real run is being streamed. */
 const STEPS = ['Read the vendor SOW', 'Summarise the risks', 'Delete the draft notes'];
 
@@ -103,10 +103,10 @@ export default function CockpitMock(): ReactNode {
     <div className={styles.mock} ref={ref}>
       <div
         role="img"
-        aria-label="Illustrative Keep cockpit: a goal advances, pauses for approval, then finishes with zero egress connects.">
+        aria-label="Illustrative Merion cockpit: a goal advances, pauses for approval, then finishes with zero egress connects.">
       <div className={styles.chrome} aria-hidden>
         <i /><i /><i />
-        <span>/app/keep · session</span>
+        <span>/app/merion · session</span>
         <em>Illustrative</em>
       </div>
 
@@ -169,7 +169,7 @@ export default function CockpitMock(): ReactNode {
       </div>
 
       <div className={styles.foot}>
-        <span>Scripted for illustration — real cockpit: <code>/app/keep</code></span>
+        <span>Scripted for illustration — real cockpit: <code>/app/merion</code></span>
         {frame >= LAST && (
           <button type="button" onClick={play}>
             Replay

@@ -164,7 +164,7 @@ test("Keep evidence requests encode filters and keep export capability in a head
   assert.equal(calls[0].url, "https://keep.example/v1/sessions/session%2Fone/cockpit");
   assert.equal(new URL(calls[1].url).searchParams.get("session_id"), "session/one");
   assert.equal(new URL(calls[2].url).searchParams.get("user_id"), "alice+bob");
-  assert.equal(calls[3].init.headers["x-keep-export-token"], "secret-capability");
+  assert.equal(calls[3].init.headers["x-merion-export-token"], "secret-capability");
   assert.ok(!calls[3].url.includes("secret-capability"));
   assert.equal(calls[3].init.headers.authorization, "Bearer operator-token");
   assert.equal(new URL(calls[4].url).searchParams.get("since"), "2026-09-29T00:00:00Z");

@@ -490,6 +490,63 @@ pub async fn session_cockpit(
     .await
 }
 
+/// The run report: what the session did, what the host checked and did not, what remains, how to roll back.
+pub async fn session_report(
+    RequireRead(claims): RequireRead,
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> Response {
+    if let Err(resp) = session_owned(&state, &claims, &id).await {
+        return resp;
+    }
+    proxy(
+        &state,
+        Method::GET,
+        &format!("/v1/sessions/{id}/report"),
+        None,
+        None,
+        None,
+    )
+    .await
+}
+
+/// The signed, masked recording of a session (404 from the runtime when recording is off). Only the session's owner can ask.
+pub async fn session_recording(
+    RequireRead(claims): RequireRead,
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> Response {
+    if let Err(resp) = session_owned(&state, &claims, &id).await {
+        return resp;
+    }
+    proxy(
+        &state,
+        Method::GET,
+        &format!("/v1/sessions/{id}/recording"),
+        None,
+        None,
+        None,
+    )
+    .await
+}
+
+/// Check a signed recording's digest and signature. Holds no secret and reads no session.
+pub async fn recording_verify(
+    RequireRead(_claims): RequireRead,
+    State(state): State<Arc<AppState>>,
+    Json(body): Json<Value>,
+) -> Response {
+    proxy(
+        &state,
+        Method::POST,
+        "/v1/recordings/verify",
+        None,
+        Some(body),
+        None,
+    )
+    .await
+}
+
 /// The one-click Keep demos the console can offer (`pdf-brief`, `csv-clean`, ...).
 pub async fn demo_list(
     RequireRead(_claims): RequireRead,
@@ -498,23 +555,23 @@ pub async fn demo_list(
     proxy(&state, Method::GET, "/v1/demos", None, None, None).await
 }
 
-/// Keep readiness for the console and `keepctl doctor`: Keep mode, signers,
+/// Keep readiness for the console and `merionctl doctor`: Keep mode, signers,
 /// FluxVM readiness and demo counts.
-pub async fn keep_status(
+pub async fn merion_status(
     RequireRead(_claims): RequireRead,
     State(state): State<Arc<AppState>>,
 ) -> Response {
     proxy(&state, Method::GET, "/v1/keep/status", None, None, None).await
 }
 
-/// A signed pack made by `fabric-agent pack bundle` / `keepctl bundle`.
+/// A signed pack made by `fabric-agent pack bundle` / `merionctl bundle`.
 ///
 /// `deploy_json` is the exact string that was signed. It is forwarded as raw
 /// bytes, never parsed and re-serialised, so the Ed25519 signature still
 /// matches in Keep mode. The signer seed never leaves the author's machine:
 /// the console only uploads the result.
 #[derive(Debug)]
-struct KeepPack {
+struct MerionPack {
     name: String,
     deploy_json: String,
     signature: Option<String>,
@@ -522,10 +579,10 @@ struct KeepPack {
     policy_signature: Option<String>,
 }
 
-fn parse_keep_pack(bytes: &[u8]) -> Result<KeepPack, String> {
+fn parse_merion_pack(bytes: &[u8]) -> Result<MerionPack, String> {
     let v: Value = serde_json::from_slice(bytes).map_err(|e| format!("not valid JSON: {e}"))?;
-    if v.get("format").and_then(Value::as_str) != Some("keeppack/1") {
-        return Err("not a keeppack/1 file".into());
+    if v.get("format").and_then(Value::as_str) != Some("merionpack/1") {
+        return Err("not a merionpack/1 file".into());
     }
     let text = |k: &str| v.get(k).and_then(Value::as_str).map(str::to_string);
     let name = text("name").ok_or("missing name")?;
@@ -542,7 +599,7 @@ fn parse_keep_pack(bytes: &[u8]) -> Result<KeepPack, String> {
     if deployed_name.as_deref() != Some(name.as_str()) {
         return Err("pack name does not match the name inside deploy_json".into());
     }
-    Ok(KeepPack {
+    Ok(MerionPack {
         name,
         deploy_json,
         signature: text("signature").filter(|s| !s.is_empty()),
@@ -569,7 +626,7 @@ pub async fn pack_deploy(
                 .into_response();
         }
     };
-    let pack = match parse_keep_pack(&bytes) {
+    let pack = match parse_merion_pack(&bytes) {
         Ok(p) => p,
         Err(e) => {
             return (StatusCode::BAD_REQUEST, Json(json!({ "error": e }))).into_response();
@@ -589,7 +646,7 @@ pub async fn pack_deploy(
         req = req.header(header::AUTHORIZATION, format!("Bearer {tok}"));
     }
     if let Some(sig) = &pack.signature {
-        req = req.header("x-keep-manifest-signature", sig);
+        req = req.header("x-merion-manifest-signature", sig);
     }
     let resp = match req.send().await {
         Ok(r) => r,
@@ -621,7 +678,7 @@ pub async fn pack_deploy(
             req = req.header(header::AUTHORIZATION, format!("Bearer {tok}"));
         }
         if let Some(sig) = &pack.policy_signature {
-            req = req.header("x-keep-policy-signature", sig);
+            req = req.header("x-merion-policy-signature", sig);
         }
         match req.send().await {
             Ok(r) if r.status().is_success() => policy_state = json!("applied"),
@@ -946,6 +1003,66 @@ pub async fn session_host_recover(
         &format!("/v1/sessions/{id}/host-recover"),
         None,
         Some(body),
+        None,
+    )
+    .await
+}
+
+/// Run a command in the session's VM without keeping its file changes.
+///
+/// Keep returns a `changeset` approval; a person settles it through
+/// `POST /approvals/{id}`. The agent cannot approve its own changeset.
+pub async fn session_speculate(
+    RequireWrite(claims): RequireWrite,
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+    Json(body): Json<Value>,
+) -> Response {
+    if let Err(resp) = session_owned(&state, &claims, &id).await {
+        return resp;
+    }
+    proxy(
+        &state,
+        Method::POST,
+        &format!("/v1/sessions/{id}/speculate"),
+        None,
+        Some(body),
+        None,
+    )
+    .await
+}
+
+/// The Merion auto-approve policy for one user's agent (admin only; the runtime also refuses non-operator writes).
+/// `GET` reads it, `PUT` sets it (the body is the policy), `DELETE` removes it.
+pub async fn changeset_policy(
+    RequireAdmin(_claims): RequireAdmin,
+    State(state): State<Arc<AppState>>,
+    method: Method,
+    Path((user, agent)): Path<(String, String)>,
+    body: Option<Json<Value>>,
+) -> Response {
+    let ok = |s: &str| {
+        !s.is_empty()
+            && s.len() <= 128
+            && s.bytes()
+                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.'))
+    };
+    if !ok(&user) || !ok(&agent) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "invalid user or agent name" })),
+        )
+            .into_response();
+    }
+    if !matches!(method, Method::GET | Method::PUT | Method::DELETE) {
+        return StatusCode::METHOD_NOT_ALLOWED.into_response();
+    }
+    proxy(
+        &state,
+        method,
+        &format!("/v1/users/{user}/changeset-policies/{agent}"),
+        None,
+        body.map(|Json(v)| v),
         None,
     )
     .await
@@ -1406,14 +1523,14 @@ mod keep_pack_tests {
 
     fn pack(extra: &str) -> Vec<u8> {
         format!(
-            r#"{{"format":"keeppack/1","name":"my-agent","deploy_json":"{{\"name\":\"my-agent\",\"bundle_base64\":\"AA==\"}}"{extra}}}"#
+            r#"{{"format":"merionpack/1","name":"my-agent","deploy_json":"{{\"name\":\"my-agent\",\"bundle_base64\":\"AA==\"}}"{extra}}}"#
         )
         .into_bytes()
     }
 
     #[test]
     fn a_pack_keeps_the_signed_bytes_and_optional_parts() {
-        let p = parse_keep_pack(&pack(
+        let p = parse_merion_pack(&pack(
             r#","signature":"ab","policy":"version: 1\n","policy_signature":"cd""#,
         ))
         .unwrap();
@@ -1426,21 +1543,23 @@ mod keep_pack_tests {
         assert_eq!(p.signature.as_deref(), Some("ab"));
         assert_eq!(p.policy.as_deref(), Some("version: 1\n"));
         assert_eq!(p.policy_signature.as_deref(), Some("cd"));
-        let bare = parse_keep_pack(&pack("")).unwrap();
+        let bare = parse_merion_pack(&pack("")).unwrap();
         assert!(bare.signature.is_none() && bare.policy.is_none());
     }
 
     #[test]
     fn a_bad_pack_is_refused() {
-        assert!(parse_keep_pack(b"nope").is_err());
-        assert!(parse_keep_pack(br#"{"format":"other"}"#).is_err());
+        assert!(parse_merion_pack(b"nope").is_err());
+        assert!(parse_merion_pack(br#"{"format":"other"}"#).is_err());
         // Name in the envelope must match the signed deploy body.
-        let mismatched = br#"{"format":"keeppack/1","name":"a","deploy_json":"{\"name\":\"b\"}"}"#;
-        assert!(parse_keep_pack(mismatched)
+        let mismatched =
+            br#"{"format":"merionpack/1","name":"a","deploy_json":"{\"name\":\"b\"}"}"#;
+        assert!(parse_merion_pack(mismatched)
             .unwrap_err()
             .contains("does not match"));
         // Path-shaped names never reach the upstream URL.
-        let evil = br#"{"format":"keeppack/1","name":"../x","deploy_json":"{\"name\":\"../x\"}"}"#;
-        assert!(parse_keep_pack(evil).is_err());
+        let evil =
+            br#"{"format":"merionpack/1","name":"../x","deploy_json":"{\"name\":\"../x\"}"}"#;
+        assert!(parse_merion_pack(evil).is_err());
     }
 }

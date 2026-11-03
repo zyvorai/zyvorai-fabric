@@ -11,22 +11,32 @@
 # Needs: node 20+, python3, curl. PDF demos also need pdftotext (poppler);
 # they are skipped, and said to be skipped, when it is missing.
 
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
+[ -n "${MERION_BASE+x}" ] || [ -z "${KEEP_BASE:-}" ] || export MERION_BASE="$KEEP_BASE"
+[ -n "${MERION_EGRESS+x}" ] || [ -z "${KEEP_EGRESS:-}" ] || export MERION_EGRESS="$KEEP_EGRESS"
+[ -n "${MERION_POLICY_SEED+x}" ] || [ -z "${KEEP_POLICY_SEED:-}" ] || export MERION_POLICY_SEED="$KEEP_POLICY_SEED"
+[ -n "${MERION_PORT+x}" ] || [ -z "${KEEP_PORT:-}" ] || export MERION_PORT="$KEEP_PORT"
+[ -n "${MERION_TOKEN+x}" ] || [ -z "${KEEP_TOKEN:-}" ] || export MERION_TOKEN="$KEEP_TOKEN"
+[ -n "${MERION_TOKEN_VALUE+x}" ] || [ -z "${KEEP_TOKEN_VALUE:-}" ] || export MERION_TOKEN_VALUE="$KEEP_TOKEN_VALUE"
+[ -n "${MERION_WATCH_STATE+x}" ] || [ -z "${KEEP_WATCH_STATE:-}" ] || export MERION_WATCH_STATE="$KEEP_WATCH_STATE"
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/zyvor-demos-ci.XXXXXX")"
 BIN="${ZYVOR_AGENT_BIN:-$ROOT/agent-runtime/target/debug/zyvor-fabric-agent-runtime}"
 CLI="$ROOT/sdk/agent-runtime/src/cli.js"
-DEMO="$ROOT/scripts/keep-demo.sh"
-KEEPCTL="$ROOT/scripts/keepctl"
+DEMO="$ROOT/scripts/merion-demo.sh"
+KEEPCTL="$ROOT/scripts/merionctl"
 # Free ports, so a busy developer machine or CI runner cannot break the test.
 free_port() { python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1])'; }
 STUB_PORT=$(free_port)
 RT_PORT=$(free_port); RT_EGRESS=$(free_port)
-KEEP_PORT=$(free_port); KEEP_EGRESS=$(free_port)
+MERION_PORT=$(free_port); MERION_EGRESS=$(free_port)
 BASE="http://127.0.0.1:$RT_PORT"
-KEEP_BASE="http://127.0.0.1:$KEEP_PORT"
-KEEP_TOKEN_VALUE="demos-ci-token"
+MERION_BASE="http://127.0.0.1:$MERION_PORT"
+MERION_TOKEN_VALUE="demos-ci-token"
 PIDS=()
 PASSED=0
 
@@ -97,7 +107,7 @@ cat >"$WORK/creds.json" <<JSON
 JSON
 start_runtime runtime "$RT_PORT" "$RT_EGRESS" ZYVOR_AGENT_GOAL_TICK_MS=300 ZYVOR_AGENT_GOAL_RETRY_BASE_SECS=1 ZYVOR_AGENT_ALLOW_NO_AUTH=1 ZYVOR_AGENT_WATCH_ROOT="$WORK/watch" ZYVOR_AGENT_CREDENTIALS_FILE="$WORK/creds.json"
 wait_http "$BASE/healthz" || fail "runtime did not start"
-export KEEP_API="$BASE"
+export MERION_API="$BASE"
 
 echo "demos-ci: built-in use cases"
 n=$(curl -sf "$BASE/v1/demos" | python3 -c 'import json,sys; d=json.load(sys.stdin)["demos"]; print(sum(1 for x in d if x["builtin"]))')
@@ -120,7 +130,7 @@ for c in "${CASES[@]}"; do
   case "$id" in pdf-brief|contract-clauses|security-questionnaire)
     if [[ "$HAVE_PDF" == "0" ]]; then echo "  skip $id (pdftotext not installed)"; continue; fi ;;
   esac
-  sample=$(ls "$ROOT"/examples/keep-agents/"$id"/sample.* | head -1)
+  sample=$(ls "$ROOT"/examples/merion-agents/"$id"/sample.* | head -1)
   resp=$(curl -sf -X POST -F "file=@$sample" "$BASE/v1/demos/$id") || fail "$id: request failed"
   [[ "$(echo "$resp" | json egress_connects)" == "0" ]] || fail "$id: egress_connects is not 0: $resp"
   aid=$(echo "$resp" | json artifacts.0.id)
@@ -136,12 +146,12 @@ if [[ "$HAVE_PDF" == "1" ]]; then
   [[ "$(echo "$resp" | json egress_connects)" == "0" ]] || fail "pdf-brief sample: egress_connects not 0"
   ok "pdf-brief with its built-in sample"
 fi
-out="$("$DEMO" csv-clean 2>&1)" || fail "keep-demo.sh csv-clean: $out"
+out="$("$DEMO" csv-clean 2>&1)" || fail "merion-demo.sh csv-clean: $out"
 # this script runs against the simulator, which must say so rather than present its count as proof
-echo "$out" | grep -q "SIMULATED, not sealed" || fail "keep-demo.sh did not say the run is simulated: $out"
-echo "$out" | grep -q "0 CONNECT" && fail "keep-demo.sh claimed 0 CONNECT for a simulated run: $out"
-"$DEMO" list | grep -q "^csv-clean" || fail "keep-demo.sh list missing csv-clean"
-ok "keep-demo.sh run and list"
+echo "$out" | grep -q "SIMULATED, not sealed" || fail "merion-demo.sh did not say the run is simulated: $out"
+echo "$out" | grep -q "0 CONNECT" && fail "merion-demo.sh claimed 0 CONNECT for a simulated run: $out"
+"$DEMO" list | grep -q "^csv-clean" || fail "merion-demo.sh list missing csv-clean"
+ok "merion-demo.sh run and list"
 # every run in the simulator is labelled: evidence 'simulated', not sealed, and an honesty line that does not borrow the sealed wording
 resp=$(curl -sf -X POST -F "note=none" "$BASE/v1/demos/csv-clean") || fail "csv-clean sample run failed"
 [[ "$(echo "$resp" | json badge.evidence)" == "simulated" ]] || fail "a simulated run must not carry software-test evidence: $resp"
@@ -149,35 +159,35 @@ resp=$(curl -sf -X POST -F "note=none" "$BASE/v1/demos/csv-clean") || fail "csv-
 echo "$resp" | json honesty | grep -q "^SIMULATED, not sealed" || fail "honesty line does not say SIMULATED: $resp"
 ok "a run in the simulator is labelled simulated and not sealed"
 
-# keepctl init: the scaffold is a valid pack whose sample runs (in the stub cell) with no edits
-SCAF="$WORK/scaffold"; "$ROOT/scripts/keepctl" init scaffold-pack --dir "$SCAF" >/dev/null || fail "keepctl init failed"
+# merionctl init: the scaffold is a valid pack whose sample runs (in the stub cell) with no edits
+SCAF="$WORK/scaffold"; "$ROOT/scripts/merionctl" init scaffold-pack --dir "$SCAF" >/dev/null || fail "merionctl init failed"
 out=$(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy "$SCAF" --test 2>&1) || fail "the scaffolded pack did not deploy and pass its sample: $out"
 grep -q "test passed: scaffold-pack.md, 0 CONNECT" <<<"$out" || fail "the scaffolded pack's test did not report a pass: $out"
 curl -sf -X DELETE "$BASE/v1/demos/scaffold-pack" >/dev/null || fail "delete scaffold-pack"
-"$ROOT/scripts/keepctl" init scaffold-pack --dir "$SCAF" >/dev/null 2>&1 && fail "keepctl init must not overwrite an existing directory"
-"$ROOT/scripts/keepctl" init "Bad Name" >/dev/null 2>&1 && fail "keepctl init must refuse a bad name"
-ok "keepctl init scaffolds a valid pack that deploys and passes its own sample; it refuses to overwrite and refuses bad names"
+"$ROOT/scripts/merionctl" init scaffold-pack --dir "$SCAF" >/dev/null 2>&1 && fail "merionctl init must not overwrite an existing directory"
+"$ROOT/scripts/merionctl" init "Bad Name" >/dev/null 2>&1 && fail "merionctl init must refuse a bad name"
+ok "merionctl init scaffolds a valid pack that deploys and passes its own sample; it refuses to overwrite and refuses bad names"
 
-echo "demos-ci: run history, diff and keepctl verbs"
+echo "demos-ci: run history, diff and merionctl verbs"
 printf 'name,qty\nAnn,1\nBob,2\n' > "$WORK/h1.csv"
 printf 'name,qty\nAnn,1\nBob,3\nCy,4\n' > "$WORK/h2.csv"
-"$KEEPCTL" run csv-clean "$WORK/h1.csv" >/dev/null || fail "keepctl run (first)"
+"$KEEPCTL" run csv-clean "$WORK/h1.csv" >/dev/null || fail "merionctl run (first)"
 sleep 1
-"$KEEPCTL" run csv-clean "$WORK/h2.csv" >/dev/null || fail "keepctl run (second)"
-"$KEEPCTL" list | grep -q "^csv-clean" || fail "keepctl list missing csv-clean"
+"$KEEPCTL" run csv-clean "$WORK/h2.csv" >/dev/null || fail "merionctl run (second)"
+"$KEEPCTL" list | grep -q "^csv-clean" || fail "merionctl list missing csv-clean"
 ids=$("$KEEPCTL" artifacts --use-case csv-clean | grep " clean.csv" | awk '{print $1}')
 [[ "$(echo "$ids" | wc -l | tr -d ' ')" -ge 2 ]] || fail "expected at least 2 clean.csv artifacts for csv-clean: $ids"
 [[ -z "$("$KEEPCTL" artifacts --use-case no-such-use-case)" ]] || fail "use-case filter leaked other artifacts"
 [[ -z "$("$KEEPCTL" artifacts --since 2999-01-01T00:00:00Z)" ]] || fail "since filter returned artifacts from the past"
-ok "keepctl run/list/artifacts with use-case and since filters"
+ok "merionctl run/list/artifacts with use-case and since filters"
 newer=$(echo "$ids" | sed -n 1p); older=$(echo "$ids" | sed -n 2p)
 "$KEEPCTL" diff "$older" "$newer" | tee "$WORK/diff.out" >/dev/null
 grep -q "added" "$WORK/diff.out" && grep -q "^+ " "$WORK/diff.out" || fail "diff shows no added line: $(cat "$WORK/diff.out")"
-ok "keepctl diff compares two runs"
-"$KEEPCTL" audit --limit 5 2>"$WORK/chain.err" | grep -q . || fail "keepctl audit printed no rows"
-grep -q "chain:" "$WORK/chain.err" || fail "keepctl audit did not report the chain"
-"$KEEPCTL" approvals >/dev/null || fail "keepctl approvals failed"
-ok "keepctl audit (with chain check) and approvals"
+ok "merionctl diff compares two runs"
+"$KEEPCTL" audit --limit 5 2>"$WORK/chain.err" | grep -q . || fail "merionctl audit printed no rows"
+grep -q "chain:" "$WORK/chain.err" || fail "merionctl audit did not report the chain"
+"$KEEPCTL" approvals >/dev/null || fail "merionctl approvals failed"
+ok "merionctl audit (with chain check) and approvals"
 code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' \
   -d '{"kind":"note","title":"t","body":"x","ttl_seconds":0}' "$BASE/v1/artifacts")
 [[ "$code" == "400" ]] || fail "ttl_seconds=0 should be 400, got $code"
@@ -233,10 +243,10 @@ sleep 12
 runs=$(curl -sf "$BASE/v1/triggers" | python3 -c 'import json,sys; print([t for t in json.load(sys.stdin)["items"] if t["id"]=="'"$fid"'"][0]["runs"])')
 [[ "$runs" == "1" ]] || fail "the same file must not run twice, runs=$runs"
 ok "folder trigger: a dropped file ran once, wrong type ignored, no repeat"
-"$KEEPCTL" trigger list | grep -q "$fid" || fail "keepctl trigger list missing the folder trigger"
-"$KEEPCTL" trigger rm "$fid" && "$KEEPCTL" trigger rm "$tid" || fail "keepctl trigger rm"
+"$KEEPCTL" trigger list | grep -q "$fid" || fail "merionctl trigger list missing the folder trigger"
+"$KEEPCTL" trigger rm "$fid" && "$KEEPCTL" trigger rm "$tid" || fail "merionctl trigger rm"
 [[ -z "$("$KEEPCTL" trigger list 2>/dev/null)" ]] || fail "triggers still listed after rm"
-ok "keepctl trigger list and rm"
+ok "merionctl trigger list and rm"
 
 echo "demos-ci: more file types, new rules, zip"
 python3 - "$WORK" <<'PY'
@@ -275,7 +285,7 @@ body_of() { # use-case file
 b=$(body_of docx-check "$WORK/t.docx");  echo "$b" | grep -qF "1× 4,200" || fail "docx: $b"; ok "docx extracted, regex_extract found the amount"
 b=$(body_of xlsx-check "$WORK/t.xlsx");  echo "$b" | grep -qF "north (2)" || fail "xlsx: $b"; echo "$b" | grep -qF "| region |" || fail "xlsx table: $b"; ok "xlsx extracted, csv_columns and table rules work"
 b=$(body_of pptx-check "$WORK/t.pptx");  echo "$b" | grep -qF "1× 50,000" || fail "pptx amount: $b"; echo "$b" | grep -qF "Notes: Say the number twice" || fail "pptx notes: $b"; echo "$b" | grep -qF "owner TBD" || fail "pptx open point: $b"; ok "pptx extracted: slide text, speaker notes and an amount read, 0 CONNECT"
-(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/keep-agents/deck-outline) > "$WORK/pack-deck.out" 2>&1 || fail "deck-outline: pack deploy failed: $(cat "$WORK/pack-deck.out")"
+(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/merion-agents/deck-outline) > "$WORK/pack-deck.out" 2>&1 || fail "deck-outline: pack deploy failed: $(cat "$WORK/pack-deck.out")"
 b=$(body_of deck-outline "$WORK/t.pptx"); echo "$b" | grep -qF "2 slides" && echo "$b" | grep -qF "Say the number twice" && echo "$b" | grep -qF "1× 50,000 EUR" || fail "deck-outline: slide count, notes or amount missing: $b"
 ok "deck-outline: slide count, amounts, open points and speaker notes read from a pptx, 0 CONNECT"
 # OCR: needs tesseract and Pillow on the runner (the stub runs the same fixed command a cell would). Skipped where either is missing.
@@ -288,7 +298,7 @@ img = Image.new("RGB", (1000, 70 + len(lines) * 52), "white"); d = ImageDraw.Dra
 for i, l in enumerate(lines): d.text((30, 30 + i * 52), l, fill="black", font=f)
 img.save(sys.argv[1])
 PY
-  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/keep-agents/receipt-photo) > "$WORK/pack-ocr.out" 2>&1 || fail "receipt-photo: pack deploy failed: $(cat "$WORK/pack-ocr.out")"
+  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/merion-agents/receipt-photo) > "$WORK/pack-ocr.out" 2>&1 || fail "receipt-photo: pack deploy failed: $(cat "$WORK/pack-ocr.out")"
   b=$(body_of receipt-photo "$WORK/receipt.png"); echo "$b" | grep -qF "437.22" && echo "$b" | grep -qiF "Returns accepted" || fail "receipt-photo: total or return terms not read from the image: $b"
   ok "receipt-photo: a photo read by OCR in the cell, total and return terms found, 0 CONNECT"
   # An image that has no text is refused, never guessed.
@@ -306,9 +316,9 @@ img = Image.new("RGB", (1000, 70 + len(lines) * 52), "white"); d = ImageDraw.Dra
 for i, l in enumerate(lines): d.text((30, 30 + i * 52), l, fill="black", font=f)
 img.save(sys.argv[1])
 PY
-  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/keep-agents/fuel-receipt-photo) > "$WORK/pack-fuel.out" 2>&1 || fail "fuel-receipt-photo: pack deploy failed: $(cat "$WORK/pack-fuel.out")"
+  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/merion-agents/fuel-receipt-photo) > "$WORK/pack-fuel.out" 2>&1 || fail "fuel-receipt-photo: pack deploy failed: $(cat "$WORK/pack-fuel.out")"
   b=$(body_of fuel-receipt-photo "$WORK/fuel.png"); echo "$b" | grep -qiF "30.00" && echo "$b" | grep -qF "3000.00" || fail "fuel-receipt-photo: litres or total not read from the image: $b"
-  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/keep-agents/school-fee-receipt-photo) > "$WORK/pack-school.out" 2>&1 || fail "school-fee-receipt-photo: pack deploy failed: $(cat "$WORK/pack-school.out")"
+  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/merion-agents/school-fee-receipt-photo) > "$WORK/pack-school.out" 2>&1 || fail "school-fee-receipt-photo: pack deploy failed: $(cat "$WORK/pack-school.out")"
   ok "fuel-receipt-photo reads litres and total from an image by OCR; school-fee-receipt-photo deploys"
   for p in fuel-receipt-photo school-fee-receipt-photo; do curl -sf -X DELETE "$BASE/v1/demos/$p" >/dev/null || fail "delete $p"; done
 else
@@ -401,16 +411,16 @@ code=$(curl -s -o "$WORK/nocred.json" -w '%{http_code}' -X POST -F "file=@$WORK/
 [[ "$code" == "403" ]] && grep -q "refused by the vault" "$WORK/nocred.json" || fail "a credential the vault lacks should be refused (403): $code $(cat "$WORK/nocred.json")"
 ok "an endpoint the vault does not allow is refused before any approval"
 
-"$KEEPCTL" grants list | grep -q "model-brief" || fail "keepctl grants list is missing the approved grant"
+"$KEEPCTL" grants list | grep -q "model-brief" || fail "merionctl grants list is missing the approved grant"
 gkey=$("$KEEPCTL" grants list | awk '/model-brief/{print $1}')
-"$KEEPCTL" grants revoke "$gkey" || fail "keepctl grants revoke"
+"$KEEPCTL" grants revoke "$gkey" || fail "merionctl grants revoke"
 [[ -z "$("$KEEPCTL" grants list | grep model-brief)" ]] || fail "grant still listed after revoke"
-ok "keepctl grants list and revoke"
+ok "merionctl grants list and revoke"
 for id in model-brief model-other model-nocred; do curl -sf -X DELETE "$BASE/v1/demos/$id" >/dev/null || fail "delete $id"; done
 
-echo "demos-ci: scenario packs (examples/keep-agents)"
+echo "demos-ci: scenario packs (examples/merion-agents)"
 pack_test() { # dir artifact
-  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy "examples/keep-agents/$1" --test) > "$WORK/pack-$1.out" 2>&1 || fail "$1: pack deploy --test failed: $(cat "$WORK/pack-$1.out")"
+  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy "examples/merion-agents/$1" --test) > "$WORK/pack-$1.out" 2>&1 || fail "$1: pack deploy --test failed: $(cat "$WORK/pack-$1.out")"
   grep -q "test passed: $2, 0 CONNECT" "$WORK/pack-$1.out" || fail "$1: expected '$2, 0 CONNECT': $(cat "$WORK/pack-$1.out")"
   # the sample run again, to read the artifact
   local r; r=$(curl -sf -X POST -F note=none "$BASE/v1/demos/$1") || fail "$1: sample run failed"
@@ -422,18 +432,18 @@ echo "$b" | grep -qF "pageview" && fail "status-page-watch: page script leaked i
 echo "$b" | grep -qF "09:40 UTC" || fail "status-page-watch: times not extracted: $b"
 ok "status-page-watch: html sample ran, script dropped, times extracted, 0 CONNECT"
 
-# keep-watch: the page is fetched on this machine, read by a use case, and a change is the runtime's own diff between two summaries
+# merion-watch: the page is fetched on this machine, read by a use case, and a change is the runtime's own diff between two summaries
 SITE="$WORK/site"; mkdir -p "$SITE"; SITE_PORT=$(free_port)
 printf '<html><body><h1>Status</h1><p>All systems operational</p></body></html>' > "$SITE/index.html"
 (cd "$SITE" && exec python3 -m http.server "$SITE_PORT" --bind 127.0.0.1 >/dev/null 2>&1) &
 PIDS+=($!)
 wait_http "http://127.0.0.1:$SITE_PORT/index.html" || fail "the watch test page did not start"
-WATCH="$ROOT/scripts/keep-watch.sh"; export KEEP_WATCH_STATE="$WORK/watch-state"; PAGE="http://127.0.0.1:$SITE_PORT/index.html"
+WATCH="$ROOT/scripts/merion-watch.sh"; export MERION_WATCH_STATE="$WORK/watch-state"; PAGE="http://127.0.0.1:$SITE_PORT/index.html"
 w() { set +e; out=$("$WATCH" "$PAGE" "$@" 2>&1); rc=$?; set -e; }
-w; [[ $rc == 0 ]] && grep -q "^BASELINE" <<<"$out" || fail "keep-watch first run should record a baseline (rc=$rc): $out"
-w; [[ $rc == 0 ]] && grep -q "^UNCHANGED" <<<"$out" || fail "keep-watch on an unchanged page should say UNCHANGED (rc=$rc): $out"
+w; [[ $rc == 0 ]] && grep -q "^BASELINE" <<<"$out" || fail "merion-watch first run should record a baseline (rc=$rc): $out"
+w; [[ $rc == 0 ]] && grep -q "^UNCHANGED" <<<"$out" || fail "merion-watch on an unchanged page should say UNCHANGED (rc=$rc): $out"
 printf '<html><body><h1>Status</h1><p>Object storage is down since 09:00 UTC</p></body></html>' > "$SITE/index.html"
-w; [[ $rc == 3 ]] && grep -q "^CHANGED" <<<"$out" && grep -q "is down" <<<"$out" || fail "keep-watch should report the change and exit 3 (rc=$rc): $out"
+w; [[ $rc == 3 ]] && grep -q "^CHANGED" <<<"$out" && grep -q "is down" <<<"$out" || fail "merion-watch should report the change and exit 3 (rc=$rc): $out"
 w; [[ $rc == 0 ]] && grep -q "^UNCHANGED" <<<"$out" || fail "the change should be reported once, not every run (rc=$rc): $out"
 w --match "all systems operational"; [[ $rc == 0 ]] || fail "--match with no change should not alert (rc=$rc): $out"
 printf '<html><body><h1>Status</h1><p>The incident is resolved. All systems operational</p></body></html>' > "$SITE/index.html"
@@ -442,12 +452,12 @@ printf '<html><body><h1>Status</h1><p>Compute: degraded performance</p></body></
 w --match "all systems operational"; [[ $rc == 0 ]] && grep -q "did not newly appear" <<<"$out" || fail "--match should not alert on an unrelated change (rc=$rc): $out"
 BAD=$(free_port)
 rc1=0; rc2=0
-KEEP_WATCH_STATE="$WORK/watch-state2" "$WATCH" "http://127.0.0.1:$BAD/x" --max-failures 2 >/dev/null 2>&1 || rc1=$?
-KEEP_WATCH_STATE="$WORK/watch-state2" "$WATCH" "http://127.0.0.1:$BAD/x" --max-failures 2 >/dev/null 2>&1 || rc2=$?
+MERION_WATCH_STATE="$WORK/watch-state2" "$WATCH" "http://127.0.0.1:$BAD/x" --max-failures 2 >/dev/null 2>&1 || rc1=$?
+MERION_WATCH_STATE="$WORK/watch-state2" "$WATCH" "http://127.0.0.1:$BAD/x" --max-failures 2 >/dev/null 2>&1 || rc2=$?
 [[ $rc1 == 2 && $rc2 == 4 ]] || fail "an unreachable page should exit 2, then 4 after --max-failures (got $rc1, $rc2)"
 "$WATCH" "http://user:pw@example.com/" >/dev/null 2>&1 && fail "a URL with credentials must be refused"
 "$WATCH" "ftp://example.com/" >/dev/null 2>&1 && fail "a non-http URL must be refused"
-ok "keep-watch: baseline, unchanged, a change reported once, --match alerts only on new text, repeated failures escalate, bad URLs refused"
+ok "merion-watch: baseline, unchanged, a change reported once, --match alerts only on new text, repeated failures escalate, bad URLs refused"
 
 # more everyday packs: each sample runs in the stub cell and the summary carries what the pack promises (asserted from the real engine's output)
 b=$(pack_test payslip-text payslip.md)
@@ -619,7 +629,7 @@ ok "upi-dispute-mail: references (repeats counted), amounts and escalation, 0 CO
 for p in neft-rtgs-returns nach-return-report recon-exceptions upi-dispute-mail; do curl -sf -X DELETE "$BASE/v1/demos/$p" >/dev/null || fail "delete $p"; done
 
 for p in expense-sheet nda-review loan-sanction-letter rbi-circular-brief receipt-pdf sales-register-sheet inventory-sheet attendance-sheet invoice-model-brief meeting-notes-model; do
-  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy "examples/keep-agents/$p") > "$WORK/pack-$p.out" 2>&1 || fail "$p: pack deploy failed: $(cat "$WORK/pack-$p.out")"
+  (cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy "examples/merion-agents/$p") > "$WORK/pack-$p.out" 2>&1 || fail "$p: pack deploy failed: $(cat "$WORK/pack-$p.out")"
 done
 ok "expense-sheet, nda-review, receipt-pdf and both model packs deploy (specs validate on the server)"
 python3 - "$WORK" <<'PY'
@@ -683,7 +693,7 @@ ok "both model packs are refused (403) until an operator allows their endpoint"
 for p in status-page-watch mailbox-triage api-facts loan-sanction-letter rbi-circular-brief chat-export-digest bank-sms-ledger card-statement calendar-week contacts-audit travel-itinerary subscription-finder mac-system-report homebrew-audit mac-log-triage mac-update-history windows-systeminfo windows-hotfixes windows-installed-software windows-event-log receivables-ageing po-line-items employee-ledger reimbursement-claims github-prs github-issues github-actions-log dependabot-alerts git-log-digest xcodebuild-log xcode-crash-log vscode-extensions vscode-settings-audit bookmarks-digest browser-history-takeout mac-apps-inventory mac-launch-items windows-services windows-scheduled-tasks expense-sheet nda-review receipt-pdf sales-register-sheet inventory-sheet attendance-sheet invoice-model-brief meeting-notes-model; do curl -sf -X DELETE "$BASE/v1/demos/$p" >/dev/null || fail "delete $p"; done
 
 echo "demos-ci: an agent uses the model socket"
-MA="$WORK/model-agent"; cp -R "$ROOT/examples/keep-agents/model-agent" "$MA"
+MA="$WORK/model-agent"; cp -R "$ROOT/examples/merion-agents/model-agent" "$MA"
 python3 - "$MA/pack.json" "$MODEL_PORT" <<'PY'
 import json, sys
 p = json.load(open(sys.argv[1]))
@@ -720,7 +730,7 @@ PY
 ok "an agent called ctx.model.chat(): runtime env -> worker -> egress broker -> the socket's endpoint, and the reply came back"
 
 echo "demos-ci: a goal is planned by an agent, and nothing runs until the person accepts the plan"
-GP="$WORK/goal-planner"; cp -R "$ROOT/examples/keep-agents/goal-planner" "$GP"
+GP="$WORK/goal-planner"; cp -R "$ROOT/examples/merion-agents/goal-planner" "$GP"
 python3 - "$GP/pack.json" "$MODEL_PORT" <<'PY'
 import json, sys
 p = json.load(open(sys.argv[1]))
@@ -743,7 +753,7 @@ assert [s["title"] for s in p["steps"]]==["Two invoices found","<b>Total</b> due
 assert p["steps"][0]["input"]=={"message":"Two invoices found"} and p["tainted"] is False, p
 assert g["plan"]==[] and g["autorun"] is False, g' || fail "the goal should hold the planner's proposal and nothing else: $(curl -s "$BASE/v1/goals/$PGID")"
 ok "the planner agent proposed steps (from the model socket) and they wait on the goal; the plan is still empty"
-curl -sf "$BASE/v1/audit?limit=500" | python3 -c 'import sys; t=sys.stdin.read(); assert "keep.goal.plan_requested" in t and "keep.goal.plan_proposed" in t; assert "Two invoices found" not in t.replace("Sort the invoices","")' || fail "the journal should record the request and the proposal, not the steps"
+curl -sf "$BASE/v1/audit?limit=500" | python3 -c 'import sys; t=sys.stdin.read(); assert "merion.goal.plan_requested" in t and "merion.goal.plan_proposed" in t; assert "Two invoices found" not in t.replace("Sort the invoices","")' || fail "the journal should record the request and the proposal, not the steps"
 curl -sf -X POST "$BASE/v1/goals/$PGID/plan/accept" | python3 -c 'import json,sys
 g=json.load(sys.stdin)
 assert len(g["plan"])==2 and g["plan"][0]["id"]=="s1" and g["plan"][0]["status"]=="pending" and "proposed_plan" not in g, g' || fail "accepting should turn the proposal into the plan"
@@ -805,17 +815,17 @@ assert users == ["What is the total due?", "What is the total due?"], users
 PY
 ok "an AG-UI thread continues after its session ended, sends the stored conversation, keeps it in /v1/threads, and a retried run adds nothing twice"
 
-# keep-chat: the web chat's proxy talks AG-UI to a real runtime and a stub cell, with the agent fixed and no token in the browser's reach
-(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/keep-agents/echo-agent) >"$WORK/echo-agent.out" 2>&1 || fail "echo-agent deploy failed: $(cat "$WORK/echo-agent.out")"
+# merion-chat: the web chat's proxy talks AG-UI to a real runtime and a stub cell, with the agent fixed and no token in the browser's reach
+(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/merion-agents/echo-agent) >"$WORK/echo-agent.out" 2>&1 || fail "echo-agent deploy failed: $(cat "$WORK/echo-agent.out")"
 CHAT_PORT=$(free_port)
-KEEP_API="$BASE" KEEP_TOKEN="" python3 "$ROOT/scripts/keep-chat.py" --agent echo-agent --port "$CHAT_PORT" >"$WORK/chat.log" 2>&1 &
+MERION_API="$BASE" MERION_TOKEN="" python3 "$ROOT/scripts/merion-chat.py" --agent echo-agent --port "$CHAT_PORT" >"$WORK/chat.log" 2>&1 &
 PIDS+=($!)
-wait_http "http://127.0.0.1:$CHAT_PORT/" || fail "keep-chat did not start: $(cat "$WORK/chat.log")"
+wait_http "http://127.0.0.1:$CHAT_PORT/" || fail "merion-chat did not start: $(cat "$WORK/chat.log")"
 curl -sN --max-time 60 -X POST "http://127.0.0.1:$CHAT_PORT/agui" -H 'content-type: application/json' \
-  -d '{"threadId":"chat-1","runId":"r1","messages":[{"id":"m","role":"user","content":"hello chat"}],"forwardedProps":{"agent":"some-other-agent"}}' > "$WORK/chat.sse" || fail "keep-chat request failed"
-grep -q "You said: hello chat" "$WORK/chat.sse" && grep -q "RUN_FINISHED" "$WORK/chat.sse" || fail "keep-chat did not stream the echo agent's reply: $(head -c 600 "$WORK/chat.sse")"
-[[ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$CHAT_PORT/v1/agents")" == "404" ]] || fail "keep-chat must not proxy anything but /agui"
-ok "keep-chat: a browser message reaches the echo agent through the proxy (agent fixed server-side) and the reply streams back; other routes are not proxied"
+  -d '{"threadId":"chat-1","runId":"r1","messages":[{"id":"m","role":"user","content":"hello chat"}],"forwardedProps":{"agent":"some-other-agent"}}' > "$WORK/chat.sse" || fail "merion-chat request failed"
+grep -q "You said: hello chat" "$WORK/chat.sse" && grep -q "RUN_FINISHED" "$WORK/chat.sse" || fail "merion-chat did not stream the echo agent's reply: $(head -c 600 "$WORK/chat.sse")"
+[[ "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$CHAT_PORT/v1/agents")" == "404" ]] || fail "merion-chat must not proxy anything but /agui"
+ok "merion-chat: a browser message reaches the echo agent through the proxy (agent fixed server-side) and the reply streams back; other routes are not proxied"
 
 echo "demos-ci: goal worker (a goal that runs its own plan)"
 FAILPACK="$WORK/fail-agent"; mkdir -p "$FAILPACK"
@@ -946,7 +956,7 @@ curl -sf "$BASE/v1/artifacts/$aid" | json body | grep -qF ",-3.5" || fail "signe
 ok "formula cell neutralised, plain negative number untouched"
 
 echo "demos-ci: user-defined use case"
-(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/keep-agents/invoice-check --test) | tee "$WORK/pack.out"
+(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/merion-agents/invoice-check --test) | tee "$WORK/pack.out"
 grep -q "test passed: invoice-summary.md, 0 CONNECT" "$WORK/pack.out" || fail "pack deploy --test did not pass"
 ok "pack deploy --test: saved, ran on its sample, 0 CONNECT"
 curl -sf "$BASE/v1/demos" | python3 -c 'import json,sys; d=[x for x in json.load(sys.stdin)["demos"] if x["id"]=="invoice-check"]; sys.exit(0 if d and d[0]["builtin"] is False else 1)' || fail "custom demo not listed as custom"
@@ -965,7 +975,7 @@ code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -F note=none "$BASE/v1/dem
 [[ "$code" == "404" ]] || fail "deleted use case should be 404, got $code"; ok "custom use case deleted"
 
 echo "demos-ci: inbox-digest example pack"
-(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/keep-agents/inbox-digest --test) | tee "$WORK/inbox.out"
+(cd "$ROOT" && FABRIC_AGENT_URL="$BASE" node "$CLI" pack deploy examples/merion-agents/inbox-digest --test) | tee "$WORK/inbox.out"
 grep -q "test passed: inbox-digest.md, 0 CONNECT" "$WORK/inbox.out" || fail "inbox-digest pack deploy --test did not pass"
 ok "inbox-digest: saved, ran on its sample, 0 CONNECT"
 body=$(curl -sf -X POST -F note=none "$BASE/v1/demos/inbox-digest")
@@ -977,10 +987,10 @@ ok "inbox-digest: the digest groups reply, money and meeting lines"
 code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE/v1/demos/inbox-digest")
 [[ "$code" == "204" ]] || fail "deleting the inbox-digest use case should be 204, got $code"
 
-echo "demos-ci: keepctl doctor"
-"$KEEPCTL" doctor | tee "$WORK/doctor.out" >/dev/null || fail "keepctl doctor failed"
+echo "demos-ci: merionctl doctor"
+"$KEEPCTL" doctor | tee "$WORK/doctor.out" >/dev/null || fail "merionctl doctor failed"
 grep -q "FluxVM ready" "$WORK/doctor.out" && grep -q "7 built-in" "$WORK/doctor.out" || fail "doctor output unexpected"
-ok "keepctl doctor reports FluxVM ready and 7 built-ins"
+ok "merionctl doctor reports FluxVM ready and 7 built-ins"
 
 echo "demos-ci: signed pack deploy in Keep mode"
 SEED=$(python3 -c 'print("07"*32)')
@@ -989,10 +999,10 @@ RELAY_PORT=$(free_port)
 RELAY_STUB_LOG="$WORK/relay.log" python3 "$ROOT/agent-runtime/tests/relay_stub.py" "$RELAY_PORT" >"$WORK/relay-stub.log" 2>&1 &
 PIDS+=($!)
 : >"$WORK/relay.log"
-start_runtime keep-runtime "$KEEP_PORT" "$KEEP_EGRESS" \
-  ZYVOR_AGENT_KEEP_MODE=1 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" ZYVOR_AGENT_API_TOKEN="$KEEP_TOKEN_VALUE" ZYVOR_AGENT_USER_MAX_RUNS_PER_DAY=3 ZYVOR_AGENT_REQUIRE_DEVICE_SIGNATURE=1 ZYVOR_AGENT_PUSH_RELAYS="{\"fcm\":\"http://127.0.0.1:$RELAY_PORT/push\"}" ZYVOR_AGENT_PUSH_RELAY_SECRET=relay-e2e-secret
-wait_http "$KEEP_BASE/healthz" || fail "keep-mode runtime did not start"
-export KEEP_TOKEN="$KEEP_TOKEN_VALUE"
+start_runtime keep-runtime "$MERION_PORT" "$MERION_EGRESS" \
+  ZYVOR_AGENT_MERION_MODE=1 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" ZYVOR_AGENT_API_TOKEN="$MERION_TOKEN_VALUE" ZYVOR_AGENT_USER_MAX_RUNS_PER_DAY=3 ZYVOR_AGENT_REQUIRE_DEVICE_SIGNATURE=1 ZYVOR_AGENT_PUSH_RELAYS="{\"fcm\":\"http://127.0.0.1:$RELAY_PORT/push\"}" ZYVOR_AGENT_PUSH_RELAY_SECRET=relay-e2e-secret
+wait_http "$MERION_BASE/healthz" || fail "keep-mode runtime did not start"
+export MERION_TOKEN="$MERION_TOKEN_VALUE"
 PACK="$WORK/my-agent"; mkdir -p "$PACK"
 cat > "$PACK/agent.ts" <<'TS'
 import { defineAgent } from "@zyvor/fabric-agent";
@@ -1003,33 +1013,33 @@ cat > "$PACK/pack.json" <<'JSON'
   "manifest": { "template": "ci", "egress_mode": "deny", "confinement": "strict" },
   "goal": { "title": "Say hello", "text": "Say hello." } }
 JSON
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$PACK/keep.policy.yaml"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$PACK/merion.policy.yaml"
 
-st=$(curl -sf -H "Authorization: Bearer $KEEP_TOKEN_VALUE" "$KEEP_BASE/v1/keep/status")
-[[ "$(echo "$st" | json keep_mode)" == "True" && "$(echo "$st" | json trusted_signers)" == "1" ]] || fail "keep status unexpected: $st"
-ok "/v1/keep/status: Keep mode on, 1 trusted signer"
+st=$(curl -sf -H "Authorization: Bearer $MERION_TOKEN_VALUE" "$MERION_BASE/v1/merion/status")
+[[ "$(echo "$st" | json merion_mode)" == "True" && "$(echo "$st" | json trusted_signers)" == "1" ]] || fail "keep status unexpected: $st"
+ok "/v1/merion/status: Keep mode on, 1 trusted signer"
 
-if FABRIC_AGENT_URL="$KEEP_BASE" node "$CLI" pack deploy "$PACK" >"$WORK/unsigned.out" 2>&1; then
+if FABRIC_AGENT_URL="$MERION_BASE" node "$CLI" pack deploy "$PACK" >"$WORK/unsigned.out" 2>&1; then
   fail "an unsigned agent deploy must be refused in Keep mode"
 fi
 grep -qi "signature" "$WORK/unsigned.out" || fail "unsigned refusal should mention the signature: $(cat "$WORK/unsigned.out")"
 ok "unsigned deploy refused in Keep mode"
 
-KEEP_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$KEEP_BASE" node "$CLI" pack deploy "$PACK" --run | tee "$WORK/signed.out" >/dev/null \
+MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MERION_BASE" node "$CLI" pack deploy "$PACK" --run | tee "$WORK/signed.out" >/dev/null \
   || fail "signed deploy failed: $(cat "$WORK/signed.out")"
-grep -q "deploy agent my-agent (signed)" "$WORK/signed.out" && grep -q "/app/keep/" "$WORK/signed.out" || fail "signed deploy output unexpected: $(cat "$WORK/signed.out")"
+grep -q "deploy agent my-agent (signed)" "$WORK/signed.out" && grep -q "/app/merion/" "$WORK/signed.out" || fail "signed deploy output unexpected: $(cat "$WORK/signed.out")"
 ok "signed deploy + policy + session started (Node signature accepted by the Rust runtime)"
 
 # What fabricd does for a console upload: forward the exact signed bytes with the header.
-KEEP_POLICY_SEED="$SEED" node "$CLI" pack bundle "$PACK" --out "$WORK/my-agent.keeppack.json" >/dev/null
-python3 - "$WORK/my-agent.keeppack.json" "$WORK" <<'PY'
+MERION_POLICY_SEED="$SEED" node "$CLI" pack bundle "$PACK" --out "$WORK/my-agent.merionpack.json" >/dev/null
+python3 - "$WORK/my-agent.merionpack.json" "$WORK" <<'PY'
 import json, sys
 e = json.load(open(sys.argv[1]))
 open(sys.argv[2] + "/deploy.bytes", "w", newline="").write(e["deploy_json"])
 open(sys.argv[2] + "/deploy.sig", "w").write(e["signature"])
 open(sys.argv[2] + "/deploy.tampered", "w", newline="").write(e["deploy_json"] + " ")
 PY
-post() { curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $KEEP_TOKEN_VALUE" -H 'content-type: application/json' -H "x-keep-manifest-signature: $(cat "$WORK/deploy.sig")" --data-binary "@$1" "$KEEP_BASE/v1/agents"; }
+post() { curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" -H 'content-type: application/json' -H "x-merion-manifest-signature: $(cat "$WORK/deploy.sig")" --data-binary "@$1" "$MERION_BASE/v1/agents"; }
 [[ "$(post "$WORK/deploy.bytes")" == "201" ]] || fail "exact signed bytes should deploy (201)"
 [[ "$(post "$WORK/deploy.tampered")" =~ ^40[13]$ ]] || fail "tampered bytes must be refused"
 ok "bundle bytes verify; a one-byte change is refused"
@@ -1041,12 +1051,12 @@ NOTICE_RELAY_PORT=$(free_port)
 RELAY_STUB_LOG="$WORK/notice-relay.log" python3 "$ROOT/agent-runtime/tests/relay_stub.py" "$NOTICE_RELAY_PORT" >"$WORK/notice-relay-stub.log" 2>&1 &
 PIDS+=($!)
 : >"$WORK/notice-relay.log"
-start_runtime mem-runtime "$MEM_PORT" "$MEM_EGRESS" ZYVOR_AGENT_PUSH_RELAYS="{\"fcm\":\"http://127.0.0.1:$NOTICE_RELAY_PORT/push\"}" ZYVOR_AGENT_PUSH_RELAY_SECRET=notice-relay-secret ZYVOR_AGENT_GOAL_TICK_MS=300 ZYVOR_AGENT_KEEP_MODE=1 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" ZYVOR_AGENT_API_TOKEN="$KEEP_TOKEN_VALUE"
+start_runtime mem-runtime "$MEM_PORT" "$MEM_EGRESS" ZYVOR_AGENT_PUSH_RELAYS="{\"fcm\":\"http://127.0.0.1:$NOTICE_RELAY_PORT/push\"}" ZYVOR_AGENT_PUSH_RELAY_SECRET=notice-relay-secret ZYVOR_AGENT_GOAL_TICK_MS=300 ZYVOR_AGENT_MERION_MODE=1 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" ZYVOR_AGENT_API_TOKEN="$MERION_TOKEN_VALUE"
 wait_http "$MEM_BASE/healthz" || fail "the memory-test runtime did not start: $(tail -5 "$WORK/mem-runtime.log")"
-MEMPACK="$WORK/memory-agent"; cp -R "$ROOT/examples/keep-agents/memory-agent" "$MEMPACK"
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$MEMPACK/keep.policy.yaml"
-KEEP_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MEM_BASE" node "$CLI" pack deploy "$MEMPACK" >"$WORK/memory-agent.out" 2>&1 || fail "memory-agent deploy failed: $(cat "$WORK/memory-agent.out")"
-cmint() { curl -s -X POST -H "Authorization: Bearer $KEEP_TOKEN_VALUE" -H 'content-type: application/json' -d "{\"user_id\":\"$1\",\"ttl_seconds\":600}" "$MEM_BASE/v1/user-tokens" | json token; }
+MEMPACK="$WORK/memory-agent"; cp -R "$ROOT/examples/merion-agents/memory-agent" "$MEMPACK"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$MEMPACK/merion.policy.yaml"
+MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MEM_BASE" node "$CLI" pack deploy "$MEMPACK" >"$WORK/memory-agent.out" 2>&1 || fail "memory-agent deploy failed: $(cat "$WORK/memory-agent.out")"
+cmint() { curl -s -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" -H 'content-type: application/json' -d "{\"user_id\":\"$1\",\"ttl_seconds\":600}" "$MEM_BASE/v1/user-tokens" | json token; }
 CAM=$(cmint cam); DAN=$(cmint dan)
 mem_chat() {   # $1 token, $2 thread id, $3 text: the agent's reply text (what an AG-UI client shows)
   local body; body=$(python3 -c 'import json,sys; print(json.dumps({"threadId":sys.argv[2],"runId":"r-"+sys.argv[2],"messages":[{"id":"m","role":"user","content":sys.argv[3]}],"forwardedProps":{"agent":"memory-agent"}}))' "$1" "$2" "$3")
@@ -1089,7 +1099,7 @@ echo "demos-ci: push notices (a suggestion and a finished goal reach the person'
 NPHONE="node $ROOT/sdk/agent-runtime/src/phone-cli.js"
 $NPHONE keygen "$WORK/cam.key" p256 >/dev/null
 $NPHONE enrol "$WORK/cam.key" cam-phone --push-kind fcm --push-token CAMTOKEN > "$WORK/cam-enrol.json"
-[[ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $KEEP_TOKEN_VALUE" -H 'content-type: application/json' --data-binary @"$WORK/cam-enrol.json" "$MEM_BASE/v1/users/cam/devices")" == "201" ]] || fail "enrolling cam's phone should be 201"
+[[ "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" -H 'content-type: application/json' --data-binary @"$WORK/cam-enrol.json" "$MEM_BASE/v1/users/cam/devices")" == "201" ]] || fail "enrolling cam's phone should be 201"
 : >"$WORK/notice-relay.log"
 mem_api "$CAM" PUT /v1/memory/settings -d '{"enabled":true}' >/dev/null
 r=$(mem_chat "$CAM" mem-notice "remember I like the window seat") || fail "the suggesting run failed"
@@ -1138,7 +1148,7 @@ openssl x509 -req -in "$G/api.csr" -CA "$G/ca.pem" -CAkey "$G/ca.key" -CAcreates
 GOOGLE_STUB_LOG="$G/api.log" TOKEN_STUB_LOG="$G/token.log" python3 "$ROOT/agent-runtime/tests/google_stub.py" "$GAPI" "$GTOK" "$G/api.pem" "$G/api.key" >"$G/stub.log" 2>&1 &
 PIDS+=($!)
 # the shipped per-person descriptors, pointed at the fake
-python3 - "$ROOT/docs/keep/connectors" "$G/creds.json" "$GAPI" "$GTOK" <<'PY'
+python3 - "$ROOT/docs/merion/connectors" "$G/creds.json" "$GAPI" "$GTOK" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1] + "/google.per-person.credentials.json"))
 m = json.load(open(sys.argv[1] + "/microsoft.per-person.credentials.json"))
@@ -1154,22 +1164,22 @@ for v in d.values():
     v["oauth"]["token_url"] = "http://127.0.0.1:%s/token" % sys.argv[4]
 json.dump(d, open(sys.argv[2], "w"))
 PY
-start_runtime google-runtime "$GRT" "$GREG" ZYVOR_AGENT_GOAL_TICK_MS=300 ZYVOR_AGENT_KEEP_MODE=1 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" ZYVOR_AGENT_API_TOKEN="$KEEP_TOKEN_VALUE" \
+start_runtime google-runtime "$GRT" "$GREG" ZYVOR_AGENT_GOAL_TICK_MS=300 ZYVOR_AGENT_MERION_MODE=1 ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS="$PUB" ZYVOR_AGENT_API_TOKEN="$MERION_TOKEN_VALUE" \
   ZYVOR_AGENT_CREDENTIALS_FILE="$G/creds.json" ZYVOR_AGENT_EXTRA_CA_FILE="$G/ca.pem" GE_CLIENT_ID=ci-client GE_CLIENT_SECRET=ci-secret GE_MS_CLIENT_ID=ms-app
 wait_http "$GBASE/healthz" || fail "the google-test runtime did not start: $(tail -5 "$WORK/google-runtime.log")"
 for a in gmail-triage mail-compose calendar-agent outlook-triage outlook-compose outlook-calendar; do
-  cp -R "$ROOT/examples/keep-agents/$a" "$G/$a"
+  cp -R "$ROOT/examples/merion-agents/$a" "$G/$a"
   python3 - "$G/$a/pack.json" <<'PY'
 import json, sys
 p = json.load(open(sys.argv[1]))
 p["manifest"].update({"egress_allow_hosts": ["127.0.0.1"], "allow_private_networks": True})
 json.dump(p, open(sys.argv[1], "w"), indent=2)
 PY
-  printf 'version: 1\ndefault_egress: deny\nallow:\n  - host: "127.0.0.1"\n    methods: [GET, POST]\n    action: google\n    ask: never\n' > "$G/$a/keep.policy.yaml"
-  KEEP_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$GBASE" node "$CLI" pack deploy "$G/$a" >"$G/$a.out" 2>&1 || fail "$a deploy failed: $(cat "$G/$a.out")"
+  printf 'version: 1\ndefault_egress: deny\nallow:\n  - host: "127.0.0.1"\n    methods: [GET, POST]\n    action: google\n    ask: never\n' > "$G/$a/merion.policy.yaml"
+  MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$GBASE" node "$CLI" pack deploy "$G/$a" >"$G/$a.out" 2>&1 || fail "$a deploy failed: $(cat "$G/$a.out")"
 done
-gop() { curl -s -H "Authorization: Bearer $KEEP_TOKEN_VALUE" "$@"; }
-gmint() { curl -s -X POST -H "Authorization: Bearer $KEEP_TOKEN_VALUE" -H 'content-type: application/json' -d "{\"user_id\":\"$1\",\"ttl_seconds\":900}" "$GBASE/v1/user-tokens" | json token; }
+gop() { curl -s -H "Authorization: Bearer $MERION_TOKEN_VALUE" "$@"; }
+gmint() { curl -s -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" -H 'content-type: application/json' -d "{\"user_id\":\"$1\",\"ttl_seconds\":900}" "$GBASE/v1/user-tokens" | json token; }
 gas() { local tok=$1; shift; curl -s -H "Authorization: Bearer $tok" "$@"; }
 GINA=$(gmint gina); HAL=$(gmint hal)
 GH="https://127.0.0.1:$GAPI"   # the agents' Gmail and Calendar base: in real use the default, https://gmail.googleapis.com
@@ -1306,8 +1316,8 @@ cat > "$PROBE/pack.json" <<JSON
   "manifest": { "template": "ci", "egress_mode": "deny", "egress_allow_hosts": ["127.0.0.1"], "allow_private_networks": true, "egress_approval_timeout_seconds": 60, "credentials": ["gmail-draft"], "confinement": "strict" },
   "goal": { "title": "Draft from chat", "text": "Save a fixed draft." } }
 JSON
-cp "$G/mail-compose/keep.policy.yaml" "$PROBE/keep.policy.yaml"
-KEEP_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$GBASE" node "$CLI" pack deploy "$PROBE" >"$G/probe.out" 2>&1 || fail "chat-probe deploy failed: $(cat "$G/probe.out")"
+cp "$G/mail-compose/merion.policy.yaml" "$PROBE/merion.policy.yaml"
+MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$GBASE" node "$CLI" pack deploy "$PROBE" >"$G/probe.out" 2>&1 || fail "chat-probe deploy failed: $(cat "$G/probe.out")"
 PB=$(python3 -c 'import json; print(json.dumps({"threadId":"probe-1","runId":"r-probe-1","messages":[{"id":"m","role":"user","content":"draft it"}],"forwardedProps":{"agent":"chat-probe"}}))')
 curl -sN --max-time 120 -X POST -H "Authorization: Bearer $GINA" -H 'content-type: application/json' -d "$PB" "$GBASE/v1/agui" > "$G/probe.sse" &
 CHPID=$!
@@ -1336,12 +1346,12 @@ assert ev[-1]["type"] == "RUN_FINISHED" and ev[-1]["result"] == "drafted", ev[-1
 PY
 ok "a chat client is shown the held approval with the host's preview while the agent waits, then the decision, and never a way to decide it"
 
-# the terminal stand-in phone (scripts/keep-approve.py) shows what the host read and signs the decision like a phone
+# the terminal stand-in phone (scripts/merion-approve.py) shows what the host read and signs the decision like a phone
 DRAFTS_BEFORE=$(api_lines POST /drafts)
 g_run "$GINA" mail-compose "$(mail_in draft "zoe@example.com" "Approver test" "Sent through the terminal approver.")" > "$G/ap.out" &
 APPID=$!
 wait_pending || fail "the draft for the terminal approver did not open an approval"
-KEEP_API="$GBASE" KEEP_TOKEN="$GINA" python3 "$ROOT/scripts/keep-approve.py" --key "$G/gina.key" --device gina-phone --once --decision approved > "$G/approver.out" 2>&1 || fail "the approver failed: $(cat "$G/approver.out")"
+MERION_API="$GBASE" MERION_TOKEN="$GINA" python3 "$ROOT/scripts/merion-approve.py" --key "$G/gina.key" --device gina-phone --once --decision approved > "$G/approver.out" 2>&1 || fail "the approver failed: $(cat "$G/approver.out")"
 wait "$APPID" || fail "the draft run after the approver failed"
 grep -q "zoe@example.com" "$G/approver.out" && grep -q "Approver test" "$G/approver.out" && grep -q "Sent through the terminal approver." "$G/approver.out" && grep -q "approved." "$G/approver.out" || fail "the approver should show the recipients, subject and text and say approved: $(cat "$G/approver.out")"
 [[ "$(api_lines POST /drafts)" == "$((DRAFTS_BEFORE + 1))" ]] || fail "the draft approved through the terminal approver should have reached Google once"
@@ -1439,9 +1449,9 @@ wait "$OCPID" || fail "the Outlook event run failed"
 ok "an Outlook event with guests is refused until you say they may be emailed, then waits for the phone and shows who Microsoft will email"
 
 echo "demos-ci: suggestions (an agent that asked, a person who turned them on, a goal only when accepted)"
-SUGPACK="$WORK/suggestion-example"; cp -R "$ROOT/examples/keep-agents/suggestion-example" "$SUGPACK"
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$SUGPACK/keep.policy.yaml"
-KEEP_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MEM_BASE" node "$CLI" pack deploy "$SUGPACK" >"$WORK/suggestion-example.out" 2>&1 || fail "suggestion-example deploy failed: $(cat "$WORK/suggestion-example.out")"
+SUGPACK="$WORK/suggestion-example"; cp -R "$ROOT/examples/merion-agents/suggestion-example" "$SUGPACK"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$SUGPACK/merion.policy.yaml"
+MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MEM_BASE" node "$CLI" pack deploy "$SUGPACK" >"$WORK/suggestion-example.out" 2>&1 || fail "suggestion-example deploy failed: $(cat "$WORK/suggestion-example.out")"
 sug_run() {   # $1 token: runs the agent and waits; prints its session id
   local sid; sid=$(mem_api "$1" POST /v1/sessions -d '{"agent":"suggestion-example","input":{"suggestions":[{"title":"Review last month\u0027s expenses","reason":"the month just ended","agent":"memory-agent"}]}}' | json id) || return 1
   for _ in $(seq 1 100); do [[ "$(mem_api "$1" GET "/v1/sessions/$sid" | json status)" == "completed" ]] && break; sleep 0.3; done
@@ -1486,24 +1496,24 @@ sid=$(sug_run "$CAM") || fail "cam's third suggestion run failed"
 ok "accepting makes an ordinary goal (no plan, not running); the same suggestion is not made again"
 
 echo "demos-ci: two users on one shard (user tokens, isolation, quota, revocation)"
-mint() { curl -s -X POST -H "Authorization: Bearer $KEEP_TOKEN_VALUE" -H 'content-type: application/json' -d "{\"user_id\":\"$1\",\"ttl_seconds\":600}" "$KEEP_BASE/v1/user-tokens" | json token; }
+mint() { curl -s -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" -H 'content-type: application/json' -d "{\"user_id\":\"$1\",\"ttl_seconds\":600}" "$MERION_BASE/v1/user-tokens" | json token; }
 as() { local tok=$1; shift; curl -s -H "Authorization: Bearer $tok" "$@"; }
 ANA=$(mint ana); BEN=$(mint ben)
 [[ "$ANA" == kut1.* && "$BEN" == kut1.* ]] || fail "user tokens were not minted"
 printf 'name,qty\nAna,1\n' > "$WORK/ua.csv"; printf 'name,qty\nBen,2\n' > "$WORK/ub.csv"
-ra=$(as "$ANA" -X POST -F "file=@$WORK/ua.csv" "$KEEP_BASE/v1/demos/csv-clean"); rb=$(as "$BEN" -X POST -F "file=@$WORK/ub.csv" "$KEEP_BASE/v1/demos/csv-clean")
+ra=$(as "$ANA" -X POST -F "file=@$WORK/ua.csv" "$MERION_BASE/v1/demos/csv-clean"); rb=$(as "$BEN" -X POST -F "file=@$WORK/ub.csv" "$MERION_BASE/v1/demos/csv-clean")
 SA=$(echo "$ra" | json session_id); SB=$(echo "$rb" | json session_id)
 AA=$(echo "$ra" | json artifacts.0.id); AB=$(echo "$rb" | json artifacts.0.id)
 [[ "$(echo "$ra" | json egress_connects)" == "0" && "$(echo "$rb" | json egress_connects)" == "0" ]] || fail "user runs must keep 0 CONNECT: $ra"
 ok "each user ran csv-clean with their own token, 0 CONNECT"
 # A use-case run ends its session, and the cleanup loop then deletes the cell (it used to linger for 30 minutes).
-for _ in $(seq 1 50); do [[ "$(as "$ANA" "$KEEP_BASE/v1/sessions/$SA" | json status)" == "completed" ]] && break; sleep 0.2; done
-[[ "$(as "$ANA" "$KEEP_BASE/v1/sessions/$SA" | json status)" == "completed" ]] || fail "a finished use-case run should leave a completed session"
-for _ in $(seq 1 50); do [[ "$(as "$ANA" "$KEEP_BASE/v1/sessions/$SA" | json sandbox_released)" == "True" ]] && break; sleep 0.2; done
-[[ "$(as "$ANA" "$KEEP_BASE/v1/sessions/$SA" | json sandbox_released)" == "True" ]] || fail "the finished run's cell should have been released"
+for _ in $(seq 1 50); do [[ "$(as "$ANA" "$MERION_BASE/v1/sessions/$SA" | json status)" == "completed" ]] && break; sleep 0.2; done
+[[ "$(as "$ANA" "$MERION_BASE/v1/sessions/$SA" | json status)" == "completed" ]] || fail "a finished use-case run should leave a completed session"
+for _ in $(seq 1 50); do [[ "$(as "$ANA" "$MERION_BASE/v1/sessions/$SA" | json sandbox_released)" == "True" ]] && break; sleep 0.2; done
+[[ "$(as "$ANA" "$MERION_BASE/v1/sessions/$SA" | json sandbox_released)" == "True" ]] || fail "the finished run's cell should have been released"
 ok "a finished use-case run completes its session and releases its cell"
 # The cell is confined on the host before any guest work: deny-all, needing no gateway (the host reaches it over vsock).
-sbx=$(as "$ANA" "$KEEP_BASE/v1/sessions/$SA" | json sandbox_id)
+sbx=$(as "$ANA" "$MERION_BASE/v1/sessions/$SA" | json sandbox_id)
 python3 - "$WORK/sandboxes/policies.jsonl" "$sbx" <<'PY' || fail "a use-case cell must be given a deny-all policy on the host before it is used"
 import json, sys
 rows = [json.loads(l) for l in open(sys.argv[1])]
@@ -1529,31 +1539,31 @@ PY
 [[ -z "$(curl -sf "$BASE/v1/sessions" | python3 -c 'import json,sys; print([s["id"] for s in json.load(sys.stdin)["items"] if s["agent"]=="noconfine-check"])' | grep -v '^\[\]$')" ]] || fail "a run that could not be confined must not leave a session"
 curl -s -o /dev/null -X DELETE "$BASE/v1/demos/noconfine-check"
 ok "a cell that cannot be confined is deleted and the run fails closed (502)"
-[[ "$(as "$ANA" "$KEEP_BASE/v1/sessions" | python3 -c 'import json,sys; print(",".join(s["id"] for s in json.load(sys.stdin)["items"]))')" == "$SA" ]] || fail "ana should list only her own session"
-[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$KEEP_BASE/v1/sessions/$SB")" == "404" ]] || fail "ana must not read ben's session"
-[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$KEEP_BASE/v1/sessions/$SB/cockpit")" == "404" ]] || fail "ana must not read ben's cockpit"
-[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$KEEP_BASE/v1/artifacts/$AB")" == "404" ]] || fail "ana must not read ben's artifact"
-[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$KEEP_BASE/v1/artifacts/$AA/diff/$AB")" == "404" ]] || fail "ana must not diff against ben's artifact"
-as "$ANA" "$KEEP_BASE/v1/artifacts" | python3 -c 'import json,sys; ids=[a["id"] for a in json.load(sys.stdin)["items"]]; assert "'"$AA"'" in ids and "'"$AB"'" not in ids, ids' || fail "ana's artifact list is wrong"
-as "$ANA" "$KEEP_BASE/v1/audit?limit=500" | python3 -c 'import json,sys; d=json.load(sys.stdin); t=json.dumps(d["items"]); assert "'"$SA"'" in t and "'"$SB"'" not in t and "entries" not in d["chain"], d["chain"]' || fail "ana's audit slice is wrong"
+[[ "$(as "$ANA" "$MERION_BASE/v1/sessions" | python3 -c 'import json,sys; print(",".join(s["id"] for s in json.load(sys.stdin)["items"]))')" == "$SA" ]] || fail "ana should list only her own session"
+[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$MERION_BASE/v1/sessions/$SB")" == "404" ]] || fail "ana must not read ben's session"
+[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$MERION_BASE/v1/sessions/$SB/cockpit")" == "404" ]] || fail "ana must not read ben's cockpit"
+[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$MERION_BASE/v1/artifacts/$AB")" == "404" ]] || fail "ana must not read ben's artifact"
+[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$MERION_BASE/v1/artifacts/$AA/diff/$AB")" == "404" ]] || fail "ana must not diff against ben's artifact"
+as "$ANA" "$MERION_BASE/v1/artifacts" | python3 -c 'import json,sys; ids=[a["id"] for a in json.load(sys.stdin)["items"]]; assert "'"$AA"'" in ids and "'"$AB"'" not in ids, ids' || fail "ana's artifact list is wrong"
+as "$ANA" "$MERION_BASE/v1/audit?limit=500" | python3 -c 'import json,sys; d=json.load(sys.stdin); t=json.dumps(d["items"]); assert "'"$SA"'" in t and "'"$SB"'" not in t and "entries" not in d["chain"], d["chain"]' || fail "ana's audit slice is wrong"
 ok "ana sees only her session, artifacts and audit rows; ben's are 404 or absent"
-[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$KEEP_BASE/v1/keep/status")" == "403" && "$(as "$ANA" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{"user_id":"ben"}' "$KEEP_BASE/v1/user-tokens")" == "403" ]] || fail "operator routes must be closed to user tokens"
-[[ "$(curl -s -o /dev/null -w '%{http_code}' "$KEEP_BASE/v1/sessions?token=$ANA")" == "401" ]] || fail "a user token in a query string must be refused"
+[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$MERION_BASE/v1/merion/status")" == "403" && "$(as "$ANA" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{"user_id":"ben"}' "$MERION_BASE/v1/user-tokens")" == "403" ]] || fail "operator routes must be closed to user tokens"
+[[ "$(curl -s -o /dev/null -w '%{http_code}' "$MERION_BASE/v1/sessions?token=$ANA")" == "401" ]] || fail "a user token in a query string must be refused"
 ok "operator routes are 403 for a user token; a token in the URL is 401"
-[[ "$(as "$ANA" "$KEEP_BASE/v1/usage" | json usage.runs)" == "1" ]] || fail "usage should show 1 run for ana"
-as "$ANA" -X POST -F "file=@$WORK/ua.csv" "$KEEP_BASE/v1/demos/csv-clean" | json egress_connects >/dev/null || fail "ana's second run"
-as "$ANA" -X POST -F "file=@$WORK/ua.csv" "$KEEP_BASE/v1/demos/csv-clean" | json egress_connects >/dev/null || fail "ana's third run"
-code=$(as "$ANA" -o "$WORK/quota.out" -w '%{http_code}' -X POST -F "file=@$WORK/ua.csv" "$KEEP_BASE/v1/demos/csv-clean")
+[[ "$(as "$ANA" "$MERION_BASE/v1/usage" | json usage.runs)" == "1" ]] || fail "usage should show 1 run for ana"
+as "$ANA" -X POST -F "file=@$WORK/ua.csv" "$MERION_BASE/v1/demos/csv-clean" | json egress_connects >/dev/null || fail "ana's second run"
+as "$ANA" -X POST -F "file=@$WORK/ua.csv" "$MERION_BASE/v1/demos/csv-clean" | json egress_connects >/dev/null || fail "ana's third run"
+code=$(as "$ANA" -o "$WORK/quota.out" -w '%{http_code}' -X POST -F "file=@$WORK/ua.csv" "$MERION_BASE/v1/demos/csv-clean")
 [[ "$code" == "429" ]] && grep -q "quota reached" "$WORK/quota.out" || fail "the 4th run should hit the quota (429), got $code $(cat "$WORK/quota.out")"
-[[ "$(as "$BEN" -X POST -F "file=@$WORK/ub.csv" "$KEEP_BASE/v1/demos/csv-clean" | json egress_connects)" == "0" ]] || fail "ben must not be limited by ana's usage"
+[[ "$(as "$BEN" -X POST -F "file=@$WORK/ub.csv" "$MERION_BASE/v1/demos/csv-clean" | json egress_connects)" == "0" ]] || fail "ben must not be limited by ana's usage"
 ok "ana hits her run quota (429) after 3; ben is unaffected; usage reports the runs"
-curl -s -o /dev/null -X POST -H "Authorization: Bearer $KEEP_TOKEN_VALUE" "$KEEP_BASE/v1/users/ana/revoke-tokens"
-[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$KEEP_BASE/v1/sessions")" == "401" && "$(as "$BEN" -o /dev/null -w '%{http_code}' "$KEEP_BASE/v1/sessions")" == "200" ]] || fail "revoking ana must cut off ana only"
+curl -s -o /dev/null -X POST -H "Authorization: Bearer $MERION_TOKEN_VALUE" "$MERION_BASE/v1/users/ana/revoke-tokens"
+[[ "$(as "$ANA" -o /dev/null -w '%{http_code}' "$MERION_BASE/v1/sessions")" == "401" && "$(as "$BEN" -o /dev/null -w '%{http_code}' "$MERION_BASE/v1/sessions")" == "200" ]] || fail "revoking ana must cut off ana only"
 ok "revoking a user's tokens cuts off that user only"
 
 echo "demos-ci: phone-signed approvals (enrol, push relay, sign, refuse forgeries)"
 PHONE="node $ROOT/sdk/agent-runtime/src/phone-cli.js"
-op() { curl -s -H "Authorization: Bearer $KEEP_TOKEN_VALUE" "$@"; }
+op() { curl -s -H "Authorization: Bearer $MERION_TOKEN_VALUE" "$@"; }
 CAROL=$(mint carol)
 # A use case's session ends with its run, so approvals need a real agent session that is still waiting:
 # a signed "waiter" agent that takes two steers (each decision steers it), started as carol.
@@ -1571,18 +1581,18 @@ cat > "$WPACK/pack.json" <<'JSON'
   "manifest": { "template": "ci", "egress_mode": "deny", "confinement": "strict" },
   "goal": { "title": "Wait", "text": "Wait for two decisions." } }
 JSON
-printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$WPACK/keep.policy.yaml"
-KEEP_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$KEEP_BASE" node "$CLI" pack deploy "$WPACK" >"$WORK/waiter.out" 2>&1 || fail "waiter agent deploy failed: $(cat "$WORK/waiter.out")"
-SC=$(as "$CAROL" -X POST -H 'content-type: application/json' -d '{"agent":"waiter","input":{}}' "$KEEP_BASE/v1/sessions" | json id) || fail "start carol's waiter session"
+printf 'version: 1\ndefault_egress: deny\nallow: []\n' > "$WPACK/merion.policy.yaml"
+MERION_POLICY_SEED="$SEED" FABRIC_AGENT_URL="$MERION_BASE" node "$CLI" pack deploy "$WPACK" >"$WORK/waiter.out" 2>&1 || fail "waiter agent deploy failed: $(cat "$WORK/waiter.out")"
+SC=$(as "$CAROL" -X POST -H 'content-type: application/json' -d '{"agent":"waiter","input":{}}' "$MERION_BASE/v1/sessions" | json id) || fail "start carol's waiter session"
 for _ in $(seq 1 100); do
-  [[ "$(as "$CAROL" "$KEEP_BASE/v1/sessions/$SC" | json status)" == "waiting" || "$(as "$CAROL" "$KEEP_BASE/v1/sessions/$SC" | json status)" == "running" ]] && break; sleep 0.2
+  [[ "$(as "$CAROL" "$MERION_BASE/v1/sessions/$SC" | json status)" == "waiting" || "$(as "$CAROL" "$MERION_BASE/v1/sessions/$SC" | json status)" == "running" ]] && break; sleep 0.2
 done
 $PHONE keygen "$WORK/carol.key" p256 >/dev/null
 $PHONE enrol "$WORK/carol.key" carol-phone --push-kind fcm --push-token PUSH123 > "$WORK/enrol.json"
-[[ "$(op -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/enrol.json" "$KEEP_BASE/v1/users/carol/devices")" == "201" ]] || fail "operator enrolment should be 201"
-[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/enrol.json" "$KEEP_BASE/v1/users/carol/devices")" == "403" ]] || fail "a user token must not enrol a device"
+[[ "$(op -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/enrol.json" "$MERION_BASE/v1/users/carol/devices")" == "201" ]] || fail "operator enrolment should be 201"
+[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/enrol.json" "$MERION_BASE/v1/users/carol/devices")" == "403" ]] || fail "a user token must not enrol a device"
 ok "the operator enrols carol's phone key; carol's own token cannot"
-mkapp() { op -X POST -H 'content-type: application/json' -d "{\"session_id\":\"$SC\",\"kind\":\"send\",\"subject\":\"mail.example\",\"prompt\":\"$1\",\"planned_action\":{\"method\":\"POST\",\"body_sha256\":\"$2\"}}" "$KEEP_BASE/v1/approvals" | json id; }
+mkapp() { op -X POST -H 'content-type: application/json' -d "{\"session_id\":\"$SC\",\"kind\":\"send\",\"subject\":\"mail.example\",\"prompt\":\"$1\",\"planned_action\":{\"method\":\"POST\",\"body_sha256\":\"$2\"}}" "$MERION_BASE/v1/approvals" | json id; }
 A1=$(mkapp "send report" aaa)
 for _ in $(seq 1 50); do [[ -s "$WORK/relay.log" ]] && break; sleep 0.1; done
 python3 - "$WORK/relay.log" "$A1" <<'PY' || fail "the push relay did not get a valid signed message for the approval"
@@ -1595,34 +1605,34 @@ want = "sha256=" + hmac.new(b"relay-e2e-secret", r["body"].encode(), hashlib.sha
 assert hmac.compare_digest(r["sig"], want), "relay signature mismatch"
 b = json.loads(r["body"])
 assert b["device"]["id"] == "carol-phone" and b["device"]["push"]["token"] == "PUSH123", b["device"]
-assert b["approval"]["id"] == sys.argv[2] and b["sign"]["format"] == "keep-approval-v1" and len(b["sign"]["challenge"]) == 32
+assert b["approval"]["id"] == sys.argv[2] and b["sign"]["format"] == "merion-approval-v1" and len(b["sign"]["challenge"]) == 32
 assert "planned_action" not in b["approval"] and "relay-e2e-secret" not in r["body"]
 PY
 ok "opening an approval pushes a signed message to carol's device through the relay, with no request details"
 
-as "$CAROL" "$KEEP_BASE/v1/inbox" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=[a for a in d["pending_approvals"] if a["id"]=="'"$A1"'"]; assert len(p)==1 and "sign" in p[0]; json.dump(p[0], open("'"$WORK"'/appr1.json","w"))' || fail "carol's inbox should list the approval with signing info"
-[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{"decision":"approved"}' "$KEEP_BASE/v1/approvals/$A1")" == "403" ]] || fail "an unsigned decision by a user token must be refused when signatures are required"
+as "$CAROL" "$MERION_BASE/v1/inbox" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=[a for a in d["pending_approvals"] if a["id"]=="'"$A1"'"]; assert len(p)==1 and "sign" in p[0]; json.dump(p[0], open("'"$WORK"'/appr1.json","w"))' || fail "carol's inbox should list the approval with signing info"
+[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{"decision":"approved"}' "$MERION_BASE/v1/approvals/$A1")" == "403" ]] || fail "an unsigned decision by a user token must be refused when signatures are required"
 $PHONE decide "$WORK/carol.key" carol-phone "$WORK/appr1.json" approved > "$WORK/decide-ok.json"
 $PHONE decide "$WORK/carol.key" carol-phone "$WORK/appr1.json" denied > "$WORK/decide-denied.json"
 # Signed "denied" but sent as "approved": the signature must not carry over.
 python3 -c 'import json; d=json.load(open("'"$WORK"'/decide-denied.json")); d["decision"]="approved"; json.dump(d, open("'"$WORK"'/decide-flipped.json","w"))'
-[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/decide-flipped.json" "$KEEP_BASE/v1/approvals/$A1")" == "403" ]] || fail "a flipped decision must be refused"
+[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/decide-flipped.json" "$MERION_BASE/v1/approvals/$A1")" == "403" ]] || fail "a flipped decision must be refused"
 $PHONE keygen "$WORK/intruder.key" p256 >/dev/null
 $PHONE decide "$WORK/intruder.key" carol-phone "$WORK/appr1.json" approved > "$WORK/decide-forged.json"
-[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/decide-forged.json" "$KEEP_BASE/v1/approvals/$A1")" == "403" ]] || fail "a signature from another key must be refused"
-[[ "$(op "$KEEP_BASE/v1/approvals" | python3 -c 'import json,sys; print([a for a in json.load(sys.stdin)["items"] if a["id"]=="'"$A1"'"][0]["status"])')" == "pending" ]] || fail "refused decisions must leave the approval pending"
+[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/decide-forged.json" "$MERION_BASE/v1/approvals/$A1")" == "403" ]] || fail "a signature from another key must be refused"
+[[ "$(op "$MERION_BASE/v1/approvals" | python3 -c 'import json,sys; print([a for a in json.load(sys.stdin)["items"] if a["id"]=="'"$A1"'"][0]["status"])')" == "pending" ]] || fail "refused decisions must leave the approval pending"
 ok "unsigned, flipped and forged decisions are refused (403) and the approval stays pending"
-code=$(as "$CAROL" -o "$WORK/decide-ok.out" -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/decide-ok.json" "$KEEP_BASE/v1/approvals/$A1")
+code=$(as "$CAROL" -o "$WORK/decide-ok.out" -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/decide-ok.json" "$MERION_BASE/v1/approvals/$A1")
 [[ "$code" == "200" ]] || fail "the phone-signed decision should be accepted, got $code: $(cat "$WORK/decide-ok.out")"
-[[ "$(op "$KEEP_BASE/v1/approvals" | python3 -c 'import json,sys; print([a for a in json.load(sys.stdin)["items"] if a["id"]=="'"$A1"'"][0]["status"])')" == "approved" ]] || fail "the approval should be approved"
-[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/decide-ok.json" "$KEEP_BASE/v1/approvals/$A1")" =~ ^(409|403)$ ]] || fail "a replay of a decided approval must be refused"
+[[ "$(op "$MERION_BASE/v1/approvals" | python3 -c 'import json,sys; print([a for a in json.load(sys.stdin)["items"] if a["id"]=="'"$A1"'"][0]["status"])')" == "approved" ]] || fail "the approval should be approved"
+[[ "$(as "$CAROL" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/decide-ok.json" "$MERION_BASE/v1/approvals/$A1")" =~ ^(409|403)$ ]] || fail "a replay of a decided approval must be refused"
 ok "the phone-signed decision is accepted once; replaying it is refused"
-op "$KEEP_BASE/v1/audit?limit=500&session_id=$SC" | python3 -c 'import json,sys; rows=json.load(sys.stdin)["items"]; assert any(r["action"]=="approval.device_signature" and r["phase"]=="performed" and r["detail"]["device_id"]=="carol-phone" for r in rows), [r["action"] for r in rows]; assert sum(1 for r in rows if r["action"]=="approval.device_signature" and r["phase"]=="failed")>=2' || fail "the audit journal should record the signed decision and the refused ones"
+op "$MERION_BASE/v1/audit?limit=500&session_id=$SC" | python3 -c 'import json,sys; rows=json.load(sys.stdin)["items"]; assert any(r["action"]=="approval.device_signature" and r["phase"]=="performed" and r["detail"]["device_id"]=="carol-phone" for r in rows), [r["action"] for r in rows]; assert sum(1 for r in rows if r["action"]=="approval.device_signature" and r["phase"]=="failed")>=2' || fail "the audit journal should record the signed decision and the refused ones"
 ok "the journal records the accepted signature and the refused attempts"
 A2=$(mkapp "delete file" bbb)
-code=$(op -o "$WORK/op-decide.out" -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{"decision":"denied"}' "$KEEP_BASE/v1/approvals/$A2")
+code=$(op -o "$WORK/op-decide.out" -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{"decision":"denied"}' "$MERION_BASE/v1/approvals/$A2")
 [[ "$code" == "200" ]] || fail "the operator may decide unsigned, got $code: $(cat "$WORK/op-decide.out")"
-[[ "$(op "$KEEP_BASE/v1/approvals" | python3 -c 'import json,sys; print([a for a in json.load(sys.stdin)["items"] if a["id"]=="'"$A2"'"][0]["status"])')" == "denied" ]] || fail "the operator's unsigned decision should be recorded"
+[[ "$(op "$MERION_BASE/v1/approvals" | python3 -c 'import json,sys; print([a for a in json.load(sys.stdin)["items"] if a["id"]=="'"$A2"'"][0]["status"])')" == "denied" ]] || fail "the operator's unsigned decision should be recorded"
 ok "the operator can still decide without a phone"
 
 echo "demos-ci: the reference vendor gateway in front of a shard"
@@ -1630,7 +1640,7 @@ GW_PORT=$(free_port)
 GW_ADMIN=$(python3 -c 'import secrets; print(secrets.token_hex(8))')   # a throwaway key for this run
 cat > "$WORK/gw.json" <<JSON
 {"jwtSecret":"gw-login-secret","relaySecret":"gw-relay-secret","adminKey":"$GW_ADMIN","defaultRegion":"eu","port":$GW_PORT,
- "stateFile":"$WORK/gw-users.json","shards":[{"id":"eu-1","region":"eu","url":"$KEEP_BASE","token":"$KEEP_TOKEN_VALUE"}]}
+ "stateFile":"$WORK/gw-users.json","shards":[{"id":"eu-1","region":"eu","url":"$MERION_BASE","token":"$MERION_TOKEN_VALUE"}]}
 JSON
 node "$ROOT/reference/vendor-gateway/src/main.js" "$WORK/gw.json" >"$WORK/gw.log" 2>&1 &
 PIDS+=($!)
@@ -1656,10 +1666,10 @@ ok "through the gateway users are isolated, and operator routes are not exposed"
 $PHONE keygen "$WORK/dora.key" p256 >/dev/null; $PHONE enrol "$WORK/dora.key" dora-phone > "$WORK/dora-enrol.json"
 [[ "$(gw "$DORA_STRONG" -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$WORK/dora-enrol.json" "$GW/api/devices")" == "201" ]] || fail "a strong login should enrol a device"
 [[ "$(gw "$DORA" "$GW/api/devices" | python3 -c 'import json,sys; print(",".join(d["device_id"] for d in json.load(sys.stdin)["items"]))')" == "dora-phone" ]] || fail "the enrolled device should be listed"
-[[ "$(op "$KEEP_BASE/v1/users/dora/devices" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["items"]))')" == "1" ]] || fail "the shard should hold dora's device"
+[[ "$(op "$MERION_BASE/v1/users/dora/devices" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["items"]))')" == "1" ]] || fail "the shard should hold dora's device"
 ok "enrolling a device needs a strong login; the gateway enrols it on the shard for the right user"
 gwa() { curl -s -H "x-admin-key: $GW_ADMIN" "$@"; }
-[[ "$(gwa -o /dev/null -w '%{http_code}' "$GW/admin/shards")" == "200" && "$(gwa "$GW/admin/shards" | grep -c "$KEEP_TOKEN_VALUE")" == "0" ]] || fail "the admin view must not leak the operator token"
+[[ "$(gwa -o /dev/null -w '%{http_code}' "$GW/admin/shards")" == "200" && "$(gwa "$GW/admin/shards" | grep -c "$MERION_TOKEN_VALUE")" == "0" ]] || fail "the admin view must not leak the operator token"
 [[ "$(gwa "$GW/admin/usage?user_id=dora" | json usage.runs)" == "1" ]] || fail "usage rollup should report dora's run"
 ok "the gateway's admin view hides operator tokens and rolls up usage per user"
 

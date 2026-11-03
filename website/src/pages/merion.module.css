@@ -1,0 +1,86 @@
+/* Merion-only bits. Everything else comes from components/marketing/Shell.module.css. */
+
+.cardBody {
+  margin: 0;
+  color: var(--c-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.features {
+  list-style: none;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.9rem;
+}
+
+.rows {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 1.5rem;
+  align-items: baseline;
+  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  line-height: 1.45;
+}
+
+.rowLabel {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.rowMuse {
+  color: var(--c-muted);
+  font-size: 0.95rem;
+}
+
+.rowMerion {
+  color: var(--c-ink);
+  font-weight: 500;
+}
+
+.more {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-weight: 600;
+}
+
+@media (max-width: 996px) {
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+.phonesFigure {
+  overflow-x: auto;
+  border-radius: 24px;
+  border: 1px solid var(--c-line);
+  background: #fff;
+}
+
+.phonesFigure img {
+  display: block;
+  width: 100%;
+  min-width: 720px;
+  height: auto;
+}

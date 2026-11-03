@@ -296,7 +296,7 @@ async fn stop_running_session(state: &Arc<AppState>, goal: &GoalRecord) {
                 journal(
                     state,
                     Some(sid),
-                    "keep.goal.step.cancelled",
+                    "merion.goal.step.cancelled",
                     goal,
                     json!({ "step_id": step.id }),
                 )
@@ -350,7 +350,7 @@ async fn apply(
                 journal(
                     state,
                     Some(sid),
-                    "keep.goal.step.started",
+                    "merion.goal.step.started",
                     goal,
                     json!({ "step_id": step_id, "attempt": attempt }),
                 )
@@ -372,7 +372,7 @@ async fn apply(
             journal(
                 state,
                 step.session_id,
-                "keep.goal.step.done",
+                "merion.goal.step.done",
                 goal,
                 json!({ "step_id": step_id }),
             )
@@ -387,7 +387,7 @@ async fn apply(
                 journal(
                     state,
                     step.session_id,
-                    "keep.goal.step.approval",
+                    "merion.goal.step.approval",
                     goal,
                     json!({ "step_id": step_id, "approval_id": aid }),
                 )
@@ -403,7 +403,7 @@ async fn apply(
             journal(
                 state,
                 step.session_id,
-                "keep.goal.step.retry",
+                "merion.goal.step.retry",
                 goal,
                 json!({ "step_id": step_id, "attempt": step.attempts }),
             )
@@ -416,7 +416,7 @@ async fn apply(
             journal(
                 state,
                 step.session_id,
-                "keep.goal.step.blocked",
+                "merion.goal.step.blocked",
                 goal,
                 json!({ "step_id": step_id, "reason": reason }),
             )

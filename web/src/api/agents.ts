@@ -1,7 +1,8 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-import { apiDelete, apiFetch, apiGet, apiPost } from './client'
+import { apiDelete, apiFetch, apiGet, apiPost, apiPut } from './client'
+import type { StoredPolicy } from '../lib/changesetPolicy'
 import type { UseCaseSpec } from '../lib/useCaseSpec'
 import { formatHttpErrorBody } from '../utils/apiError'
 import { parseJsonResponse } from '../utils/parseJsonResponse'
@@ -16,7 +17,7 @@ export interface AgentManifest {
   max_concurrent_sessions?: number
   idle_hibernate_seconds?: number
   warm_pool_size?: number
-  /** Per-user home disk — sessions must pass user_id (multi-tenant Keep). */
+  /** Per-user home disk — sessions must pass user_id (multi-tenant Merion). */
   home_volume?: { per_user?: boolean; name?: string }
   /** node runs worker.mjs. claude, codex, and gemini run that CLI inside the template. */
   runtime?: 'node' | 'claude' | 'codex' | 'gemini'
@@ -70,7 +71,7 @@ export async function getSession(id: string): Promise<SessionView> {
   return apiGet(`/api/sessions/${encodeURIComponent(id)}`)
 }
 
-export interface KeepCockpit {
+export interface MerionCockpit {
   session_id: string
   agent: string
   status: string
@@ -231,7 +232,7 @@ export interface BatchResult {
 /** Kept for existing imports; the PDF brief is one demo among several. */
 export type PdfBriefDemoResult = DemoResult
 
-/** The one-click Keep demos this runtime can run. */
+/** The one-click Merion demos this runtime can run. */
 export async function listDemos(): Promise<DemoInfo[]> {
   const out = await apiGet<{ demos: DemoInfo[] }>('/api/demos')
   return out.demos ?? []
@@ -249,8 +250,8 @@ export async function deleteDemo(id: string): Promise<void> {
   return apiDelete(`/api/demos/${encodeURIComponent(id)}`)
 }
 
-export interface KeepStatus {
-  keep_mode: boolean
+export interface MerionStatus {
+  merion_mode: boolean
   signature_required: boolean
   trusted_signers: number
   fluxvm: { ready: boolean; error?: string | null }
@@ -258,13 +259,13 @@ export interface KeepStatus {
   demos: { builtin: number; custom: number }
 }
 
-/** Keep readiness: Keep mode, trusted signers, FluxVM, demo counts. */
-export function keepStatus(): Promise<KeepStatus> {
-  return apiGet<KeepStatus>('/api/keep/status')
+/** Merion readiness: Merion mode, trusted signers, FluxVM, demo counts. */
+export function merionStatus(): Promise<MerionStatus> {
+  return apiGet<MerionStatus>('/api/merion/status')
 }
 
 /**
- * Deploy a signed `.keeppack.json` (admin). The file text is sent untouched:
+ * Deploy a signed `.merionpack.json` (admin). The file text is sent untouched:
  * its `deploy_json` is the exact string that was signed.
  */
 export async function deployPackFile(
@@ -334,8 +335,24 @@ export interface BrowserScreenshot {
   honesty?: string
 }
 
-export async function getSessionCockpit(id: string): Promise<KeepCockpit> {
+export async function getSessionCockpit(id: string): Promise<MerionCockpit> {
   return apiGet(`/api/sessions/${encodeURIComponent(id)}/cockpit`)
+}
+
+export interface RunReport {
+  session_id: string
+  agent: string
+  status: string
+  generated_at: string
+  did: Array<{ at: string; type: string; summary: string; source: string }>
+  checked: Array<{ check: string; result: 'passed' | 'failed'; source: string }>
+  not_checked: string[]
+  remaining: Array<{ what: string }>
+  rollback: Array<{ item: string; state: string; note?: string }>
+}
+
+export async function getSessionReport(id: string): Promise<RunReport> {
+  return apiGet(`/api/sessions/${encodeURIComponent(id)}/report`)
 }
 
 export async function getSessionBrowserView(id: string): Promise<BrowserView> {
@@ -351,6 +368,46 @@ export async function decideApproval(
   body: { decision: 'approved' | 'denied'; comment?: string },
 ): Promise<unknown> {
   return apiPost(`/api/approvals/${encodeURIComponent(id)}`, body)
+}
+
+export interface SpeculateResult {
+  approval: { id: string } | null
+  changeset: { id: string; state: string; command: string; exit_code?: number | null }
+}
+
+/** Run `command` in the session VM and stage its file changes for approval. */
+export async function speculateSession(
+  id: string,
+  body: { command: string; paths: string[]; ttl_seconds?: number },
+): Promise<SpeculateResult> {
+  return apiPost(`/api/sessions/${encodeURIComponent(id)}/speculate`, body)
+}
+
+/** Admin only. `null` when the user has no policy for that agent. */
+export async function getChangesetPolicy(user: string, agent: string): Promise<StoredPolicy | null> {
+  try {
+    return await apiGet<StoredPolicy>(
+      `/api/users/${encodeURIComponent(user)}/changeset-policies/${encodeURIComponent(agent)}`,
+    )
+  } catch (e) {
+    if (e instanceof Error && /404|no policy/i.test(e.message)) return null
+    throw e
+  }
+}
+
+export async function setChangesetPolicy(
+  user: string,
+  agent: string,
+  body: Record<string, unknown>,
+): Promise<StoredPolicy> {
+  return apiPut(
+    `/api/users/${encodeURIComponent(user)}/changeset-policies/${encodeURIComponent(agent)}`,
+    body,
+  )
+}
+
+export async function removeChangesetPolicy(user: string, agent: string): Promise<void> {
+  return apiDelete(`/api/users/${encodeURIComponent(user)}/changeset-policies/${encodeURIComponent(agent)}`)
 }
 
 export async function createSession(body: {
@@ -479,4 +536,13 @@ export async function createTrigger(body: {
 
 export async function deleteTrigger(id: string): Promise<void> {
   return apiDelete(`/api/triggers/${encodeURIComponent(id)}`)
+}
+
+/** The signed, masked recording of a session. A 404 means the host has recording off. */
+export async function getSessionRecording(id: string): Promise<import('../lib/recording').SignedRecording> {
+  return apiGet(`/api/sessions/${encodeURIComponent(id)}/recording`)
+}
+
+export async function verifyRecording(signed: unknown): Promise<{ valid: boolean; signer?: string; reason?: string }> {
+  return apiPost('/api/recordings/verify', signed)
 }

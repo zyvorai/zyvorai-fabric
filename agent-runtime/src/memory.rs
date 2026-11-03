@@ -13,7 +13,7 @@
 //! * **No secrets.** Text that looks like a credential (`l7::scan`) is refused.
 //!
 //! Every route is scoped to the caller: a user token reaches only its own memory. The operator must name `user_id` and every operator
-//! access is journaled (`keep.memory.operator_access`, without the text).
+//! access is journaled (`merion.memory.operator_access`, without the text).
 
 use crate::{
     app::ApiError, audit::AuditPhase, authz::Principal, model::validate_user_id,
@@ -474,7 +474,7 @@ pub async fn context_for_session(
             .append(
                 Some(session.id),
                 AuditPhase::Performed,
-                "keep.memory.context",
+                "merion.memory.context",
                 Some(session.agent.clone()),
                 json!({ "user_id": user, "entries": items.len() }),
             )
@@ -557,7 +557,7 @@ pub async fn record_proposal(
                 .append(
                     Some(session.id),
                     AuditPhase::Planned,
-                    "keep.memory.proposed",
+                    "merion.memory.proposed",
                     Some(session.agent.clone()),
                     json!({ "user_id": user, "proposal_id": item.id, "tainted": tainted }),
                 )
@@ -647,7 +647,7 @@ async fn subject(
                 .append(
                     None,
                     AuditPhase::Performed,
-                    "keep.memory.operator_access",
+                    "merion.memory.operator_access",
                     None,
                     json!({ "user_id": user, "action": what }),
                 )
@@ -775,7 +775,7 @@ pub(crate) async fn forget_all(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.memory.forget_all",
+            "merion.memory.forget_all",
             None,
             json!({ "user_id": user, "entries": removed }),
         )
@@ -1178,7 +1178,7 @@ mod tests {
         context_for_session(&state, &session, &m).await;
         let text =
             serde_json::to_string(&state.store.audit.list(None, 100).await.unwrap()).unwrap();
-        assert!(text.contains("keep.memory.context"));
+        assert!(text.contains("merion.memory.context"));
         assert!(
             !text.contains("vegetarian") && !text.contains("6am"),
             "no memory text in the journal"
@@ -1244,7 +1244,7 @@ mod tests {
         let text =
             serde_json::to_string(&state.store.audit.list(None, 100).await.unwrap()).unwrap();
         assert!(
-            text.contains("keep.memory.proposed") && !text.contains("window seats"),
+            text.contains("merion.memory.proposed") && !text.contains("window seats"),
             "the journal records the fact, not the text"
         );
     }

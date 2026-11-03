@@ -18,16 +18,16 @@ export default defineAgent(async (ctx) => {
 
 See `../../agent-runtime/README.md` for runtime deployment, credentials, session APIs, hibernation and security details.
 
-## Keep approvals and evidence
+## Merion approvals and evidence
 
-The SDK exposes Keep's existing operator APIs. Supply a runtime API token; a user token is
+The SDK exposes Merion's existing operator APIs. Supply a runtime API token; a user token is
 restricted to its own sessions and needs the `approve` scope to decide an approval.
 An agent's sandbox token cannot call these operator routes.
 
 ```ts
 import { Fabric } from "@zyvor/fabric-agent";
 
-const keep = new Fabric({ baseUrl: "https://keep.example", token: process.env.KEEP_API_TOKEN });
+const keep = new Fabric({ baseUrl: "https://keep.example", token: process.env.MERION_API_TOKEN });
 const session = await keep.agent("research").run({ question: "Investigate this issue" },
   { user_id: "alice", request_id: "ticket-1042" });
 
@@ -35,7 +35,7 @@ const pending = (await keep.approvals.list()).filter(
   (a) => a.session_id === session.id && a.status === "pending",
 );
 // Show prompt, subject and planned_action to an authorized human before deciding.
-// Keep itself never approves an action on the agent's behalf.
+// Merion itself never approves an action on the agent's behalf.
 if (pending.length) await keep.approvals.decide(pending[0].id, "denied", { comment: "Review first" });
 
 const cockpit = await keep.evidence.cockpit(session.id);
@@ -48,7 +48,7 @@ console.log(cockpit, audit.chain.chain_ok, receipts.length, metering.usage.runs)
 `audit()` reads a bounded recent view, including the chain verification result.
 For a full audit export, an operator must separately mint an export token scoped to
 `audit`; call `keep.evidence.exportAudit({ exportToken, sessionId })`. The SDK sends
-that capability in `X-Keep-Export-Token`, never in a URL. Receipts record brokered
+that capability in `X-Merion-Export-Token`, never in a URL. Receipts record brokered
 approved actions, not every agent action; see `agent-runtime/src/receipts.rs`.
 
 An operator can create a restricted client token and later revoke its user's
@@ -74,7 +74,7 @@ approved-action receipts into **one private JSON file**. An operator token and a
 separately minted audit export token are required:
 
 ```bash
-export KEEP_API_TOKEN='operator-token' KEEP_EXPORT_TOKEN='audit-scoped-export-token'
+export MERION_API_TOKEN='operator-token' MERION_EXPORT_TOKEN='audit-scoped-export-token'
 keep-evidence collect --url https://keep.example \
   --session d564e4fe-3658-4b13-9336-45cbbe1a89d1 --out ./incident-1042.json
 keep-evidence verify ./incident-1042.json
@@ -135,15 +135,15 @@ Standby VMs are single-use. Fabric never returns a sandbox to the pool after use
 
 ## Packs: one-command deploy
 
-`fabric-agent pack` deploys a directory with a `pack.json` (see [docs/keep/PACKS.md](../../docs/keep/PACKS.md)):
+`fabric-agent pack` deploys a directory with a `pack.json` (see [docs/merion/PACKS.md](../../docs/merion/PACKS.md)):
 
 ```bash
-export KEEP_POLICY_SEED=$(openssl rand -hex 32)       # your signing key (Keep mode)
+export MERION_POLICY_SEED=$(openssl rand -hex 32)       # your signing key (Merion mode)
 fabric-agent pack keys                                # public key to register on the runtime
 fabric-agent pack deploy ./my-pack --run              # build, sign, deploy, apply policy, start a session
 fabric-agent pack deploy ./my-usecase --test          # declarative use case: save, run on its sample, need 0 CONNECT
-fabric-agent pack bundle ./my-pack                    # <name>.keeppack.json for the console's Deploy a pack
+fabric-agent pack bundle ./my-pack                    # <name>.merionpack.json for the console's Deploy a pack
 ```
 
-Signing uses Node's built-in Ed25519, byte-compatible with `keep_sign_policy`, so no Rust toolchain
+Signing uses Node's built-in Ed25519, byte-compatible with `merion_sign_policy`, so no Rust toolchain
 is needed. `--dry-run` prints the plan without contacting the runtime.

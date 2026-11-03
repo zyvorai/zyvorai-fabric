@@ -10,7 +10,7 @@ guest driver setup are all done by hand, outside the platform.
 
 ---
 
-> **Keep cells.** For an agent runtime session you do not attach devices by hand: set `"gpus": N` and `"cell_backend":
+> **Merion cells.** For an agent runtime session you do not attach devices by hand: set `"gpus": N` and `"cell_backend":
 > "qemu"` in the agent manifest and FluxVM picks free GPUs that are already bound to `vfio-pci` (see
 > `agent-runtime/README.md`, "GPUs"). The binding steps below still apply.
 

@@ -1,11 +1,11 @@
 name: Use case request
-description: Ask for a new Keep use case (a pack that reads a file and summarises it)
+description: Ask for a new Merion use case (a pack that reads a file and summarises it)
 labels: ["use-case"]
 body:
   - type: markdown
     attributes:
       value: |
-        A use case is one small JSON file, so this is the easiest thing to contribute. See docs/keep/CONTRIBUTING-PACKS.md.
+        A use case is one small JSON file, so this is the easiest thing to contribute. See docs/merion/CONTRIBUTING-PACKS.md.
         **Do not paste real personal or financial data.** Describe the layout or attach a synthetic example.
   - type: input
     id: file

@@ -12,7 +12,7 @@
 //! A [`Severity::High`] finding makes `PUT …/policy` refuse the change unless
 //! the caller acknowledges it (see `put_agent_policy`).
 
-use crate::policy::KeepPolicy;
+use crate::policy::MerionPolicy;
 use serde::Serialize;
 use std::collections::BTreeSet;
 use std::net::IpAddr;
@@ -152,7 +152,7 @@ fn host_findings(host: &str, out: &mut Vec<Finding>) {
 
 /// Review a policy change. `old` is `None` for a first policy, in which case
 /// every allowed host counts as new.
-pub fn review_change(old: Option<&KeepPolicy>, new: &KeepPolicy) -> Vec<Finding> {
+pub fn review_change(old: Option<&MerionPolicy>, new: &MerionPolicy) -> Vec<Finding> {
     let mut out = Vec::new();
 
     if new.default_egress == "allow" && old.is_none_or(|o| o.default_egress != "allow") {
@@ -334,8 +334,8 @@ pub fn summarize_high(findings: &[Finding]) -> String {
 mod tests {
     use super::*;
 
-    fn pol(yaml: &str) -> KeepPolicy {
-        KeepPolicy::from_yaml(yaml).unwrap()
+    fn pol(yaml: &str) -> MerionPolicy {
+        MerionPolicy::from_yaml(yaml).unwrap()
     }
 
     fn codes(f: &[Finding]) -> Vec<&'static str> {
@@ -500,7 +500,7 @@ mod tests {
                 .header("authorization", format!("Bearer {token}"))
                 .header("content-type", "application/x-yaml");
             if ack {
-                b = b.header("x-keep-policy-ack-risk", "1");
+                b = b.header("x-merion-policy-ack-risk", "1");
             }
             let app = app.clone();
             let req = b.body(Body::from(yaml)).unwrap();
@@ -534,7 +534,7 @@ mod tests {
         let (st, body) = put(wide, false).await;
         assert_eq!(st, 409, "{body}");
         assert!(body.contains("methods_widened"), "{body}");
-        assert!(body.contains("X-Keep-Policy-Ack-Risk"), "{body}");
+        assert!(body.contains("X-Merion-Policy-Ack-Risk"), "{body}");
 
         // The same change with the acknowledgement is applied and reports its risks.
         let (st, body) = put(wide, true).await;

@@ -1229,7 +1229,20 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/sessions/{id}/cockpit",
             get(api::agent_runtime::session_cockpit),
         )
-        .route("/keep/status", get(api::agent_runtime::keep_status))
+        .route(
+            "/sessions/{id}/report",
+            get(api::agent_runtime::session_report),
+        )
+        .route(
+            "/sessions/{id}/recording",
+            get(api::agent_runtime::session_recording),
+        )
+        .route(
+            "/recordings/verify",
+            post(api::agent_runtime::recording_verify),
+        )
+        .route("/merion/status", get(api::agent_runtime::merion_status))
+        .route("/keep/status", get(api::agent_runtime::merion_status))
         .route("/packs", post(api::agent_runtime::pack_deploy))
         .route(
             "/demos",
@@ -1242,6 +1255,16 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route(
             "/sessions/{id}/host-recover",
             post(api::agent_runtime::session_host_recover),
+        )
+        .route(
+            "/sessions/{id}/speculate",
+            post(api::agent_runtime::session_speculate),
+        )
+        .route(
+            "/users/{user}/changeset-policies/{agent}",
+            get(api::agent_runtime::changeset_policy)
+                .put(api::agent_runtime::changeset_policy)
+                .delete(api::agent_runtime::changeset_policy),
         )
         .route(
             "/sessions/{id}/browser/view",
@@ -1543,6 +1566,24 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         // ========================================================================
         // Enterprise feature routes (vSphere feature parity)
         // ========================================================================
+        // Federation: one inventory across several daemons
+        .route(
+            "/federation/peers",
+            get(api::federation::list_peers).post(api::federation::register_peer),
+        )
+        .route(
+            "/federation/peers/{id}",
+            delete(api::federation::delete_peer),
+        )
+        .route(
+            "/federation/peers/{id}/token",
+            put(api::federation::set_peer_token),
+        )
+        .route(
+            "/federation/peers/{id}/hosts/{host_id}/maintenance/{action}",
+            post(api::federation::peer_host_maintenance),
+        )
+        .route("/federation/overview", get(api::federation::overview))
         // Datacenter routes
         .route(
             "/datacenters",

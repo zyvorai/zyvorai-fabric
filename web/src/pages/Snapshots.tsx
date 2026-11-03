@@ -84,11 +84,11 @@ export default function Snapshots() {
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-2">VM Name</label>
-            <input
+            <input aria-label="VM Name"
               type="text"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-4 py-2"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"
               placeholder="Enter VM name"
             />
           </div>
@@ -138,7 +138,7 @@ export default function Snapshots() {
                 </tr>
               ) : (
                 snapshots.map((snap) => (
-                  <tr key={snap.id} className="border-t border-[var(--zf-hairline)] hover:bg-white">
+                  <tr key={snap.id} className="border-t border-[var(--zf-hairline)] hover:bg-[var(--zf-surface)]">
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <Camera className="w-4 h-4 text-[var(--zf-link)]" />
@@ -243,11 +243,11 @@ function CreateSnapshotDialog({
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">Snapshot Name</label>
-            <input
+            <input aria-label="Snapshot Name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-4 py-2"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"
               placeholder="my-snapshot"
               required
               disabled={submitting}
@@ -255,21 +255,21 @@ function CreateSnapshotDialog({
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">Description</label>
-            <input
+            <input aria-label="Description"
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-4 py-2"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"
               placeholder="Optional description"
               disabled={submitting}
             />
           </div>
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Type</label>
-            <select
+            <select aria-label="Type"
               value={snapshotType}
               onChange={(e) => setSnapshotType(e.target.value as 'Disk' | 'Full')}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded px-4 py-2"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded px-4 py-2"
               disabled={submitting}
             >
               <option value="Disk">Disk Only</option>

@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Search, Download, Filter, X, AlertCircle, CheckCircle, FileText } from 'lucide-react'
 import {
@@ -107,7 +108,7 @@ export default function AuditLogs() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>
+    return <PageLoading />
   }
 
   return (
@@ -129,7 +130,7 @@ export default function AuditLogs() {
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
                 showFilters
-                  ? 'bg-[var(--zf-link)] text-white'
+                  ? 'bg-[var(--zf-link-fill)] text-white'
                   : 'bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
               }`}
             >
@@ -233,8 +234,7 @@ export default function AuditLogs() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition"
-            >
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition" aria-label="Close" title="Close">
               <X className="w-5 h-5" />
             </button>
           )}
@@ -247,7 +247,7 @@ export default function AuditLogs() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Status</label>
-              <select
+              <select aria-label="Status"
                 value={filters.status || ''}
                 onChange={(e) => setFilters({ ...filters, status: e.target.value as any || undefined })}
                 className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]"
@@ -259,7 +259,7 @@ export default function AuditLogs() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Resource Type</label>
-              <select
+              <select aria-label="Resource Type"
                 value={filters.resource_type || ''}
                 onChange={(e) => setFilters({ ...filters, resource_type: e.target.value || undefined })}
                 className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-[var(--zf-ink)] focus:outline-none focus:border-[var(--zf-link)]"
@@ -276,7 +276,7 @@ export default function AuditLogs() {
             <div className="flex items-end">
               <button
                 onClick={handleClearFilters}
-                className="w-full px-4 py-2 bg-white hover:bg-[var(--zf-hairline)] rounded-lg transition"
+                className="w-full px-4 py-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] rounded-lg transition"
               >
                 Clear Filters
               </button>
@@ -295,7 +295,7 @@ export default function AuditLogs() {
             </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-white">
+              <thead className="bg-[var(--zf-surface)]">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">
                     Timestamp
@@ -319,7 +319,7 @@ export default function AuditLogs() {
               </thead>
               <tbody className="divide-y divide-[var(--zf-hairline)]">
                 {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-white">
+                  <tr key={log.id} className="hover:bg-[var(--zf-surface)]">
                     <td className="px-4 py-3 text-sm text-[var(--zf-muted)]">
                       <RelativeTime date={log.timestamp} />
                     </td>

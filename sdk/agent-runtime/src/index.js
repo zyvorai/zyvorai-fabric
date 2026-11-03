@@ -56,7 +56,7 @@ export class Fabric {
       exportAudit: ({ exportToken, sessionId, limit } = {}) => {
         if (!exportToken) throw new TypeError("exportToken is required");
         return this.request("GET", `/v1/export/audit${query({ session_id: sessionId, limit })}`, undefined,
-          { "x-keep-export-token": exportToken });
+          { "x-merion-export-token": exportToken });
       },
     };
     this.usage = ({ userId, since } = {}) =>

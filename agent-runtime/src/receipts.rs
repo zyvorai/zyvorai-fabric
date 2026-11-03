@@ -7,7 +7,7 @@
 //! write from a tainted session), it records a **receipt**: who, which agent and session, which credential, the method, the URL without its
 //! query, the size and digest of the body (never the body), the approval that allowed it, and the status the upstream answered. Receipts are
 //! append-only on the host (`receipts.jsonl`), a person sees their own (`GET /v1/receipts`), and each one is also journaled
-//! (`keep.action.performed`, without any body).
+//! (`merion.action.performed`, without any body).
 //!
 //! An agent that sets an `Idempotency-Key` header on such a request gets **at-most-once** behaviour, which matters when a retry (a goal
 //! step tried again, a network timeout) would otherwise send the same email twice:
@@ -274,8 +274,8 @@ pub fn replay_response(r: &Receipt) -> Value {
     });
     json!({
         "status": r.status,
-        "headers": { "x-keep-replayed": "true", "x-keep-receipt": r.id.to_string(), "content-type": "application/json" },
-        "header_list": [["x-keep-replayed", "true"], ["x-keep-receipt", r.id.to_string()], ["content-type", "application/json"]],
+        "headers": { "x-merion-replayed": "true", "x-merion-receipt": r.id.to_string(), "content-type": "application/json" },
+        "header_list": [["x-merion-replayed", "true"], ["x-merion-receipt", r.id.to_string()], ["content-type", "application/json"]],
         "body_base64": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, note.to_string()),
         "replayed": true,
     })
@@ -447,7 +447,7 @@ mod tests {
         let r = receipt(Some("ana"), Some("k"), "fp", 201);
         let v = replay_response(&r);
         assert_eq!(v["status"], 201);
-        assert_eq!(v["headers"]["x-keep-replayed"], "true");
+        assert_eq!(v["headers"]["x-merion-replayed"], "true");
         let body = String::from_utf8(
             base64::Engine::decode(
                 &base64::engine::general_purpose::STANDARD,

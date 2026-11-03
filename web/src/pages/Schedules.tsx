@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PageLoading } from '../components/Skeleton'
 import { useEffect, useState } from 'react'
 import { Plus, Edit, Trash2, Power, PowerOff, Play, Clock, Calendar } from 'lucide-react'
 import {
@@ -130,7 +131,7 @@ export default function Schedules() {
   }
 
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>
+    return <PageLoading />
   }
 
   return (
@@ -297,7 +298,7 @@ export default function Schedules() {
               </div>
             ) : (
               <table className="w-full">
-                <thead className="bg-white">
+                <thead className="bg-[var(--zf-surface)]">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--zf-muted)] uppercase">
                       Schedule
@@ -318,7 +319,7 @@ export default function Schedules() {
                 </thead>
                 <tbody className="divide-y divide-[var(--zf-hairline)]">
                   {history.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-white">
+                    <tr key={idx} className="hover:bg-[var(--zf-surface)]">
                       <td className="px-4 py-3 text-sm">{item.schedule_name}</td>
                       <td className="px-4 py-3 text-sm font-medium">{item.vm_name}</td>
                       <td className="px-4 py-3">

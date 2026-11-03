@@ -142,7 +142,7 @@ export default function APIPlayground() {
                   onClick={() => handlePreset(ep)}
                   className="flex items-center gap-2 w-full px-2 py-1.5 text-xs text-[var(--zf-ink)] hover:bg-black/[0.04] rounded-lg transition-colors text-left"
                 >
-                  <span className={`font-mono font-bold px-1.5 py-0.5 rounded text-[10px] ${methodColors[ep.method]}`}>
+                  <span className={`font-mono font-bold px-1.5 py-0.5 rounded text-xs ${methodColors[ep.method]}`}>
                     {ep.method}
                   </span>
                   <span className="truncate">{ep.label}</span>
@@ -170,11 +170,11 @@ export default function APIPlayground() {
                     onClick={() => { setMethod(h.method); setUrl(h.url) }}
                     className="flex items-center gap-2 w-full px-2 py-1.5 text-xs text-[var(--zf-muted)] hover:bg-black/[0.04] rounded-lg transition-colors text-left"
                   >
-                    <span className={`font-mono font-bold px-1 py-0.5 rounded text-[10px] ${methodColors[h.method]}`}>
+                    <span className={`font-mono font-bold px-1 py-0.5 rounded text-xs ${methodColors[h.method]}`}>
                       {h.method}
                     </span>
                     <span className="truncate flex-1 font-mono">{h.url}</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${statusColor(h.status)}`}>{h.status}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-xs ${statusColor(h.status)}`}>{h.status}</span>
                   </button>
                 ))}
               </div>

@@ -81,7 +81,7 @@ pub fn browser_tools_allowed(
         return Err("browser tools require confinement: strict");
     }
     if browser.is_some_and(|b| !b.enabled) {
-        return Err("browser tools disabled by keep.policy.yaml browser.enabled=false");
+        return Err("browser tools disabled by merion.policy.yaml browser.enabled=false");
     }
     Ok(())
 }
@@ -140,7 +140,7 @@ pub(crate) async fn driver_call(
     // Dead-man: too many taint events → browser tools 403 until policy reset.
     if session.browse.limits.taint_events >= 8 {
         return Err(ApiError::forbidden(
-            "browser tools locked after repeated taint events — keepctl policy / untaint",
+            "browser tools locked after repeated taint events — merionctl policy / untaint",
         ));
     }
 
@@ -1243,7 +1243,7 @@ pub(crate) async fn browser_doctor(
         "confinement": agent.manifest.confinement,
         "network_identity": session.browse.network_identity,
         "warnings": warnings,
-        "advice": "FluxVM veth should carry identity keep-browser/tenant/session; Service Fabric may CONNECT only to egress_allow_hosts.",
+        "advice": "FluxVM veth should carry identity merion-browser/tenant/session; Service Fabric may CONNECT only to egress_allow_hosts.",
     })))
 }
 

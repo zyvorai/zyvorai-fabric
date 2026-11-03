@@ -211,7 +211,7 @@ export default function BulkOperations() {
             type="button"
             onClick={() => runBulkAction('snapshot')}
             disabled={running}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--zf-ink)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] hover:bg-white transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--zf-ink)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] hover:bg-[var(--zf-surface)] transition-colors disabled:opacity-50"
           >
             <Camera className="w-3.5 h-3.5" /> Snapshot
           </button>
@@ -234,13 +234,13 @@ export default function BulkOperations() {
             onChange={(e) => setSearchFilter(e.target.value)}
             placeholder="Filter VMs…"
             aria-label="Filter VMs"
-            className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg pl-10 pr-4 py-2 text-sm text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--zf-link)]"
+            className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg pl-10 pr-4 py-2 text-sm text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--zf-link)]"
           />
         </div>
         <button
           type="button"
           onClick={allFilteredSelected ? deselectAll : selectAll}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-white transition-colors"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-[var(--zf-surface)] transition-colors"
         >
           {allFilteredSelected ? <MinusSquare className="w-4 h-4" /> : <CheckSquare className="w-4 h-4" />}
           {allFilteredSelected ? 'Deselect All' : 'Select All'}

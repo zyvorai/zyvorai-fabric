@@ -47,6 +47,9 @@ pub struct AgentManifest {
     /// Taint the session when it reads content from a host outside `trusted_hosts`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub taint: Option<TaintPolicy>,
+    /// Limits over the order and number of a session's brokered writes (see [`SequencePolicy`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sequence: Option<SequencePolicy>,
     /// Chromium's remote-debugging port inside the guest. Lets an operator list
     /// the agent's open tabs (read-only). See [`crate::browser`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -76,6 +79,15 @@ pub struct AgentManifest {
     /// `idle_hibernate_seconds`. See [`AgentManifest::validate_gpus`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub gpus: Option<u8>,
+    /// A check the host runs in the cell after a changeset is applied (a test command, say). Its exit code and the
+    /// last lines of its output go in the run report. Part of the deployed manifest, so an agent cannot add one at run
+    /// time. See [`AgentManifest::validate_verify_command`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verify_command: Option<String>,
+    /// Take a FluxVM snapshot of the cell just before an approved changeset is applied, so the operator can restore
+    /// the cell to that moment. Off by default: it costs time and disk. See `run_report` for what a restore does.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub snapshot_before_apply: bool,
     /// How long an `ask` request waits for a decision before it is refused.
     /// `None` uses [`DEFAULT_EGRESS_APPROVAL_SECONDS`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -138,6 +150,11 @@ pub struct ModelSocket {
     /// Vault credential name that holds the API key (surrogate at egress).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub credential: Option<String>,
+    /// Name of an operator-written fallback chain (`ZYVOR_AGENT_MODEL_CHAINS_FILE`). When the endpoint above is down,
+    /// rate limited or answers 5xx, the egress broker retries the chain's endpoints. The pack names the chain; only
+    /// the operator decides where it leads.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fallback_chain: Option<String>,
 }
 
 /// Preferred isolation for the untrusted agent cell.
@@ -253,6 +270,13 @@ impl AgentManifest {
         {
             return Err("model_socket.model must be 1-80 plain characters".into());
         }
+        if let Some(chain) = &s.fallback_chain {
+            if !crate::model_gateway::valid_chain_name(chain) {
+                return Err(
+                    "model_socket.fallback_chain must be 1-40 letters, digits, '-' or '_'".into(),
+                );
+            }
+        }
         if let Some(cred) = &s.credential {
             if !self.credentials.iter().any(|c| c == cred) {
                 return Err(format!(
@@ -320,6 +344,9 @@ impl AgentManifest {
                 return Err("taint.trusted_hosts may not contain an empty host".into());
             }
         }
+        if self.sequence.as_ref().and_then(|s| s.max_writes) == Some(0) {
+            return Err("sequence.max_writes must be at least 1".into());
+        }
         Ok(())
     }
 
@@ -349,6 +376,17 @@ impl AgentManifest {
             ),
             _ => Ok(()),
         }
+    }
+
+    /// Deploy-time checks for `verify_command`: one plain line, so what a person approves with the pack is what runs.
+    pub fn validate_verify_command(&self) -> Result<(), String> {
+        let Some(c) = &self.verify_command else {
+            return Ok(());
+        };
+        if c.trim().is_empty() || c.len() > 500 || c.chars().any(|ch| ch.is_control()) {
+            return Err("verify_command must be one line of 1-500 plain characters".into());
+        }
+        Ok(())
     }
 
     /// Deploy-time checks for `gpus`. FluxVM re-checks the backend, but the combinations that
@@ -506,6 +544,17 @@ pub struct EgressRule {
 pub struct TaintPolicy {
     #[serde(default)]
     pub trusted_hosts: Vec<String>,
+}
+
+/// Rules over a session's history rather than one request. Evaluated on the host, on the brokered path only
+/// (the CONNECT proxy cannot see a method).
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct SequencePolicy {
+    /// After this many brokered writes (any method but GET and HEAD) in one session, each further write is held
+    /// for a person's decision. At least 1.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_writes: Option<u32>,
 }
 
 /// Brokered browser controls (Keep). Model tools use the a11y driver; CONNECT
@@ -805,6 +854,9 @@ pub struct SessionRecord {
     /// [`TaintPolicy`]. Cleared only by an operator.
     #[serde(default)]
     pub tainted_by: Vec<String>,
+    /// Brokered writes this session has made (see [`SequencePolicy`]).
+    #[serde(default)]
+    pub writes: u32,
     /// How the sandbox was launched, when the agent asked for `confidential`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub confidential: Option<ConfidentialStatus>,
@@ -1307,11 +1359,28 @@ pub struct DelegateRequest {
 mod home_volume_tests {
     use super::*;
 
+    #[test]
+    fn a_zero_write_limit_is_refused_at_deploy() {
+        let mut m = manifest(None);
+        m.sequence = Some(SequencePolicy {
+            max_writes: Some(0),
+        });
+        assert!(m
+            .validate_egress_policy()
+            .unwrap_err()
+            .contains("max_writes"));
+        m.sequence = Some(SequencePolicy {
+            max_writes: Some(1),
+        });
+        assert!(m.validate_egress_policy().is_ok());
+    }
+
     fn manifest(home: Option<HomeVolume>) -> AgentManifest {
         AgentManifest {
             egress_rules: vec![],
             dlp: false,
             taint: None,
+            sequence: None,
             confinement: Default::default(),
             resources: None,
             confidential: Default::default(),
@@ -1340,6 +1409,8 @@ mod home_volume_tests {
             model_socket: None,
             cell_backend: None,
             gpus: None,
+            verify_command: None,
+            snapshot_before_apply: false,
         }
     }
 

@@ -9,7 +9,7 @@ Apple-hybrid React UI for Zyvor Fabric: public marketing pages plus a light auth
 | Surface | Routes |
 |---------|--------|
 | Marketing | `/`, `/product`, `/platform`, `/security` |
-| Sign-in | `/sign-in` (legacy `/login` redirects here) — two-step: username → **Continue** → password |
+| Sign-in | `/sign-in` (legacy `/login` redirects here) — two-step: username → **Continue** → password; design tokens in both themes, animated aurora and grid backdrop (static under reduced-motion); no default password is printed |
 | Console | `/app/*` (dashboard, VMs, network, storage, ops, …) |
 | Container Groups | `/app/container-groups` — FluxVM Secure Containers workloads; see [container-groups.md](container-groups.md) |
 | Agents / Sessions | `/app/agents`, `/app/sessions` — agent-runtime proxy (503 unless `[agent_runtime]` configured) |

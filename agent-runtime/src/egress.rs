@@ -30,6 +30,10 @@ use std::{collections::BTreeMap, sync::Arc};
 pub fn broker_router(state: Arc<AppState>) -> axum::Router {
     axum::Router::new()
         .route("/v1/egress", axum::routing::post(proxy))
+        .route(
+            "/v1/mcp/{server}",
+            axum::routing::post(crate::mcp_gateway::relay),
+        )
         .with_state(state)
 }
 
@@ -59,8 +63,8 @@ pub async fn proxy(
     headers: HeaderMap,
     Json(request): Json<EgressRequest>,
 ) -> Response {
-    let target = AuditTarget::from_request(&headers, &request);
-    match proxy_inner(&state, &headers, request, peer).await {
+    let mut target = AuditTarget::from_request(&headers, &request);
+    match proxy_with_chain(&state, &headers, request, peer, &mut target).await {
         Ok(value) => {
             target
                 .record(
@@ -89,6 +93,211 @@ pub async fn proxy(
     }
 }
 
+/// A failover-class outcome: the upstream could not be reached, or answered 429 or 5xx.
+fn failover_outcome(r: &Result<Value, (StatusCode, String)>) -> bool {
+    match r {
+        Ok(v) => v
+            .get("status")
+            .and_then(Value::as_u64)
+            .is_some_and(|s| crate::model_gateway::failover_status(s as u16)),
+        Err((code, _)) => matches!(*code, StatusCode::BAD_GATEWAY | StatusCode::GATEWAY_TIMEOUT),
+    }
+}
+
+/// Send the request; if it is the agent's chat call to a `model_socket` that names a fallback chain and the endpoint
+/// is down, rate limited or answering 5xx, try the operator's chain. Every attempt goes through the full broker
+/// path (egress policy, vault, audit row), so a chain endpoint the cell may not reach is refused like any other. A
+/// refusal never counts as a reason to fail over to a different place; only an unreachable or failing endpoint does.
+/// `target` is left describing the attempt whose result is returned.
+async fn proxy_with_chain(
+    state: &AppState,
+    headers: &HeaderMap,
+    request: EgressRequest,
+    peer: Option<std::net::SocketAddr>,
+    target: &mut AuditTarget,
+) -> Result<Value, (StatusCode, String)> {
+    let Some((agent, socket)) = socket_call(state, headers, &request).await else {
+        return proxy_inner(state, headers, request, peer).await;
+    };
+    // The operator's budget for this agent, over both model paths, before anything is sent.
+    let session = header(headers, "x-zyvor-session-id")
+        .ok()
+        .and_then(|id| uuid::Uuid::parse_str(id).ok());
+    if let Err(why) = crate::model_call::check_agent_budget(state, &agent, session).await {
+        return Err((StatusCode::TOO_MANY_REQUESTS, why));
+    }
+    let targets = match socket.fallback_chain.as_deref() {
+        // A chain that cannot be read means no failover, never a different behaviour: the request is sent as
+        // written and the problem is logged.
+        Some(name) => match crate::model_gateway::chain_targets(
+            state.config.model_chains_file.as_deref(),
+            name,
+        ) {
+            Ok(t) => t,
+            Err(e) => {
+                tracing::warn!(chain = %name, error = %e, "model_socket fallback chain unavailable; sending without failover");
+                Vec::new()
+            }
+        },
+        None => Vec::new(),
+    };
+    let now = std::time::Instant::now;
+    let primary_key = crate::model_gateway::endpoint_key(
+        &socket.base_url,
+        socket.model.as_deref().unwrap_or(""),
+        socket.credential.as_deref().unwrap_or(""),
+    );
+    let mut attempts: Vec<(EgressRequest, Option<String>, String)> =
+        vec![(request.clone(), None, primary_key)];
+    for t in &targets {
+        if let Some(r) = crate::model_gateway::retarget(&request, &socket, t) {
+            let key = crate::model_gateway::endpoint_key(&t.base_url, &t.model, &t.credential);
+            attempts.push((r, Some(t.credential.clone()), key));
+        }
+    }
+    // Skip endpoints whose breaker is open; if all are, still try the pack's own rather than fail unsent.
+    let mut open: Vec<bool> = attempts
+        .iter()
+        .map(|(_, _, k)| crate::model_gateway::is_open(k, now()))
+        .collect();
+    if open.iter().all(|o| *o) {
+        open[0] = false;
+    }
+    let mut last = None;
+    let mut from: Vec<String> = Vec::new();
+    for (index, (req, cred, key)) in attempts.into_iter().enumerate() {
+        if open[index] {
+            continue;
+        }
+        let attempt_target = AuditTarget::from_request(headers, &req);
+        let started = std::time::Instant::now();
+        let used = req.clone();
+        let result = proxy_attempt(state, headers, req, peer, cred.as_deref()).await;
+        journal_model_call(state, &attempt_target, &used, &result, started.elapsed()).await;
+        let unreachable = failover_outcome(&result);
+        crate::model_gateway::record(&key, !unreachable, now());
+        // A fallback that is refused (policy, vault) is skipped like one that is down; the pack's own endpoint
+        // being refused is final, since another place would be a different decision.
+        let failed = unreachable || (index > 0 && result.is_err());
+        if !failed {
+            if index > 0 {
+                if let Some(id) = attempt_target.session_id {
+                    let _ = state
+                        .store
+                        .audit
+                        .append(
+                            Some(id),
+                            AuditPhase::Performed,
+                            "model.failover",
+                            attempt_target.host.clone(),
+                            json!({ "from": from, "to": attempt_target.host, "target_index": index, "path": "model_socket" }),
+                        )
+                        .await;
+                }
+            }
+            *target = attempt_target;
+            return result;
+        }
+        // This endpoint failed in a way the next may not: journal it, then go on.
+        let detail = match &result {
+            Ok(v) => json!({ "status": v.get("status"), "target_index": index, "failover": true }),
+            Err((_, m)) => json!({ "reason": m, "target_index": index, "failover": true }),
+        };
+        attempt_target
+            .record(state, AuditPhase::Failed, detail)
+            .await;
+        from.push(attempt_target.host.clone().unwrap_or_default());
+        // Report the pack's own endpoint's failure, not a later refusal.
+        if last.is_none() {
+            last = Some((attempt_target, result));
+        }
+    }
+    // Every endpoint that was tried failed: report the first failure.
+    let (t, result) = last.expect("at least one attempt ran");
+    *target = t;
+    result
+}
+
+/// A `model.call` row for one attempt at the agent's model socket, the same shape the use-case step writes, so usage,
+/// cost and budgets see both paths. Tokens are read from the reply when the provider reports them; the text is never kept.
+async fn journal_model_call(
+    state: &AppState,
+    at: &AuditTarget,
+    req: &EgressRequest,
+    result: &Result<Value, (StatusCode, String)>,
+    took: std::time::Duration,
+) {
+    let model = req
+        .body_base64
+        .as_deref()
+        .and_then(|b| base64::engine::general_purpose::STANDARD.decode(b).ok())
+        .and_then(|raw| serde_json::from_slice::<Value>(&raw).ok())
+        .and_then(|v| v.get("model").and_then(Value::as_str).map(str::to_string));
+    let mut detail = json!({
+        "host": at.host, "model": model, "path": "model_socket", "latency_ms": took.as_millis() as u64,
+    });
+    let ok = match result {
+        Ok(v) => {
+            let status = v.get("status").and_then(Value::as_u64).unwrap_or(0);
+            detail["status"] = json!(status);
+            if let Some(body) = v
+                .get("body_base64")
+                .and_then(Value::as_str)
+                .and_then(|b| base64::engine::general_purpose::STANDARD.decode(b).ok())
+            {
+                let (p, c) = crate::model_gateway::tokens(&body);
+                detail["prompt_tokens"] = json!(p);
+                detail["completion_tokens"] = json!(c);
+            }
+            (200..300).contains(&status)
+        }
+        Err((code, _)) => {
+            detail["status"] = json!(code.as_u16());
+            false
+        }
+    };
+    let _ = state
+        .store
+        .audit
+        .append(
+            at.session_id,
+            if ok {
+                AuditPhase::Performed
+            } else {
+                AuditPhase::Failed
+            },
+            "model.call",
+            at.host.clone(),
+            detail,
+        )
+        .await;
+}
+
+/// The calling agent and its `model_socket`, if this request is that agent's chat call to its own socket:
+/// a POST of JSON to `<base_url>/chat/completions` with the socket's credential. Anything else is not a model call.
+async fn socket_call(
+    state: &AppState,
+    headers: &HeaderMap,
+    request: &EgressRequest,
+) -> Option<(String, crate::model::ModelSocket)> {
+    let id = uuid::Uuid::parse_str(header(headers, "x-zyvor-session-id").ok()?).ok()?;
+    let session = state.store.get_session(id).await?;
+    let agent = state
+        .store
+        .get_agent_version(&session.agent, &session.agent_version)
+        .await
+        .ok()?;
+    let socket = agent.manifest.model_socket?;
+    // Cheap shape check, so ordinary traffic does no further work.
+    let probe = crate::model_gateway::Target {
+        credential: socket.credential.clone().unwrap_or_default(),
+        base_url: socket.base_url.clone(),
+        model: String::new(),
+    };
+    crate::model_gateway::retarget(request, &socket, &probe)?;
+    Some((session.agent, socket))
+}
+
 /// What an egress call is about, captured before the request is consumed.
 /// Query strings and credentials are deliberately excluded: they often carry secrets.
 struct AuditTarget {
@@ -96,6 +305,8 @@ struct AuditTarget {
     method: String,
     host: Option<String>,
     path: String,
+    /// The credential the request names, if any. Only its name is kept; it decides the `identity` of the row.
+    credential: Option<String>,
 }
 
 impl AuditTarget {
@@ -108,6 +319,23 @@ impl AuditTarget {
             method: request.method.to_ascii_uppercase(),
             host: url.as_ref().and_then(|u| u.host_str().map(str::to_string)),
             path: url.map(|u| u.path().to_string()).unwrap_or_default(),
+            credential: request.credential.clone(),
+        }
+    }
+
+    /// Whose authority the request carried: `autonomous` (no credential, the agent's own reach), `delegated` (a person's own
+    /// connection, with `acting_for` naming them) or `service` (a credential the operator holds for the whole host).
+    async fn identity(&self, state: &AppState) -> Value {
+        match self.credential.as_deref() {
+            None => json!({ "identity": "autonomous" }),
+            Some(name) if state.credentials.is_per_person(name) => {
+                let user = match self.session_id {
+                    Some(id) => state.store.get_session(id).await.and_then(|s| s.user_id),
+                    None => None,
+                };
+                json!({ "identity": "delegated", "acting_for": user })
+            }
+            Some(_) => json!({ "identity": "service" }),
         }
     }
 
@@ -115,6 +343,10 @@ impl AuditTarget {
         if let Some(object) = detail.as_object_mut() {
             object.insert("method".into(), json!(self.method));
             object.insert("path".into(), json!(self.path));
+        }
+        let identity = self.identity(state).await;
+        if let (Some(object), Some(extra)) = (detail.as_object_mut(), identity.as_object()) {
+            object.extend(extra.clone());
         }
         if let Err(error) = state
             .store
@@ -141,6 +373,14 @@ pub(crate) async fn proxy_inner(
     request: EgressRequest,
     peer: Option<std::net::SocketAddr>,
 ) -> Result<Value, (StatusCode, String)> {
+    proxy_attempt(state, headers, request, peer, None).await
+}
+
+/// The session the caller proves it owns with its egress capability, or why not.
+pub(crate) async fn authenticate_session(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<SessionRecord, (StatusCode, String)> {
     let session_id = header(headers, "x-zyvor-session-id")?;
     let capability = header(headers, "x-zyvor-egress-capability")?;
     let id = uuid::Uuid::parse_str(session_id)
@@ -156,6 +396,19 @@ pub(crate) async fn proxy_inner(
     if session.status.is_terminal() {
         return Err((StatusCode::FORBIDDEN, "session is no longer active".into()));
     }
+    Ok(session)
+}
+
+/// `chain_credential` names a credential the operator's fallback chain uses for this one request. It stands in for the
+/// manifest's grant of that single name; the vault, the egress policy and every other check still apply to it.
+async fn proxy_attempt(
+    state: &AppState,
+    headers: &HeaderMap,
+    request: EgressRequest,
+    peer: Option<std::net::SocketAddr>,
+    chain_credential: Option<&str>,
+) -> Result<Value, (StatusCode, String)> {
+    let session = authenticate_session(state, headers).await?;
 
     let agent = state
         .store
@@ -358,7 +611,7 @@ pub(crate) async fn proxy_inner(
     let mut needs_approval: Option<(ApprovalKind, String)> = None;
     let mut preview: Option<crate::preview::Preview> = None;
     if let Some(name) = request.credential.as_deref() {
-        if !agent.manifest.credentials.iter().any(|c| c == name) {
+        if !agent.manifest.credentials.iter().any(|c| c == name) && chain_credential != Some(name) {
             return Err((
                 StatusCode::FORBIDDEN,
                 format!("credential '{name}' is not granted to this agent"),
@@ -498,6 +751,21 @@ pub(crate) async fn proxy_inner(
             }
         }
     }
+    let is_write = !matches!(method, reqwest::Method::GET | reqwest::Method::HEAD);
+    if is_write {
+        if let Some(max) = agent.manifest.sequence.as_ref().and_then(|s| s.max_writes) {
+            let made = state
+                .store
+                .get_session(session.id)
+                .await
+                .map_or(0, |s| s.writes);
+            if made >= max {
+                reasons.push(format!(
+                    "{made} writes already made in this session (limit {max})"
+                ));
+            }
+        }
+    }
     let gated = needs_approval.is_some() || !reasons.is_empty();
     let mut approval_id = None;
     let mut _in_flight = None;
@@ -533,7 +801,7 @@ pub(crate) async fn proxy_inner(
                         .append(
                             Some(session.id),
                             AuditPhase::Performed,
-                            "keep.action.replayed",
+                            "merion.action.replayed",
                             Some(session.agent.clone()),
                             json!({ "receipt_id": receipt.id, "credential": receipt.credential, "method": receipt.method, "host": host.to_ascii_lowercase() }),
                         )
@@ -571,6 +839,15 @@ pub(crate) async fn proxy_inner(
         )
     })?;
     let status = response.status().as_u16();
+    if is_write && agent.manifest.sequence.is_some() {
+        if let Err(error) = state
+            .store
+            .update_session(session.id, |s| s.writes = s.writes.saturating_add(1))
+            .await
+        {
+            tracing::error!(%error, "failed to count a write");
+        }
+    }
     taint_on_read(state, &session, &agent.manifest, host).await;
     let mut out_headers = BTreeMap::new();
     // `headers` collapses repeats (fine for a JSON caller); `header_list` keeps
@@ -597,7 +874,7 @@ pub(crate) async fn proxy_inner(
         ));
     }
 
-    tracing::info!(session = %id, agent = %session.agent, %host, credential = ?request.credential, status, "agent egress");
+    tracing::info!(session = %session.id, agent = %session.agent, %host, credential = ?request.credential, status, "agent egress");
     // A receipt for what a person approved: recorded when the upstream answered with anything below 500 (a 5xx or a network error may be retried).
     let mut receipt_id = None;
     if gated && status < 500 {
@@ -631,7 +908,7 @@ pub(crate) async fn proxy_inner(
                     .append(
                         Some(session.id),
                         AuditPhase::Performed,
-                        "keep.action.performed",
+                        "merion.action.performed",
                         Some(session.agent.clone()),
                         json!({ "receipt_id": receipt.id, "approval_id": approval_id, "credential": receipt.credential, "method": receipt.method, "host": host.to_ascii_lowercase(), "status": status, "keyed": idem.is_some() }),
                     )
@@ -1162,6 +1439,9 @@ pub(crate) mod ask_tests {
             fluxvm_token: None,
             api_token: None,
             credentials_file: None,
+            model_chains_file: None,
+            model_prices_file: None,
+            model_cache_secs: None,
             skill_scopes_file: None,
             sentinel: None,
             guard: None,
@@ -1187,6 +1467,7 @@ pub(crate) mod ask_tests {
             goal_retry_base_secs: 15,
             planner_agent: None,
             event_retention_days: None,
+            recording_key: None,
             idle_scan_interval_ms: 1000,
             warm_pool_reconcile_interval_ms: 2000,
             warm_pool_max_create_per_tick: 2,
@@ -1218,6 +1499,7 @@ pub(crate) mod ask_tests {
             parent_session_id: None,
             user_id: None,
             tainted_by: vec![],
+            writes: 0,
             confidential: None,
             agent_paused_reason: None,
             browse: Default::default(),
@@ -1231,6 +1513,7 @@ pub(crate) mod ask_tests {
             egress_rules: vec![],
             dlp: false,
             taint: None,
+            sequence: None,
             confinement: Default::default(),
             resources: None,
             confidential: Default::default(),
@@ -1259,6 +1542,8 @@ pub(crate) mod ask_tests {
             model_socket: None,
             cell_backend: None,
             gpus: None,
+            verify_command: None,
+            snapshot_before_apply: false,
         }
     }
 
@@ -1805,7 +2090,8 @@ pub(crate) mod ask_tests {
         let journal =
             serde_json::to_string(&state.store.audit.list(None, 100).await.unwrap()).unwrap();
         assert!(
-            journal.contains("keep.action.performed") && journal.contains("keep.action.replayed")
+            journal.contains("merion.action.performed")
+                && journal.contains("merion.action.replayed")
         );
         assert!(
             !journal.contains("send this once"),
@@ -2130,6 +2416,79 @@ pub(crate) mod ask_tests {
         let token_port = listener.local_addr().unwrap().port();
         tokio::spawn(async move { axum::serve(listener, token).await.unwrap() });
         (api_port, token_port, ca, seen)
+    }
+
+    #[tokio::test]
+    async fn the_journal_says_whose_authority_a_request_carried_and_the_token_is_asked_for_one_service(
+    ) {
+        std::env::set_var("EG_ID_ID", "cid");
+        std::env::set_var("EG_ID_SECRET", "csecret");
+        std::env::set_var("EG_ID_KEY", "k");
+        let forms = Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
+        let sink = forms.clone();
+        let token = axum::Router::new().route(
+            "/token",
+            axum::routing::post(move |body: String| {
+                let sink = sink.clone();
+                async move {
+                    sink.lock().unwrap().push(body);
+                    axum::Json(json!({"access_token": "at", "expires_in": 3600}))
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        tokio::spawn(async move { axum::serve(listener, token).await.unwrap() });
+        let file = std::env::temp_dir().join(format!("zyvor-cred-{}.json", uuid::Uuid::new_v4()));
+        std::fs::write(
+            &file,
+            json!({
+                "mine": {"host": "127.0.0.1", "header": "authorization", "kind": "oauth-refresh",
+                    "oauth": {"token_url": format!("http://127.0.0.1:{port}/token"), "client_id_env": "EG_ID_ID",
+                              "client_secret_env": "EG_ID_SECRET", "connection": "google", "audience": "https://api.example.com"}},
+                "shared": {"host": "127.0.0.1", "header": "x-api-key", "env": "EG_ID_KEY"},
+            })
+            .to_string(),
+        )
+        .unwrap();
+        let (state, mut session) = state_and_session_cfg(|c| c.credentials_file = Some(file)).await;
+        session.user_id = Some("ana".into());
+        state.store.save_session(session.clone()).await.unwrap();
+        let target = |credential: Option<&str>| AuditTarget {
+            session_id: Some(session.id),
+            method: "GET".into(),
+            host: Some("127.0.0.1".into()),
+            path: "/".into(),
+            credential: credential.map(str::to_string),
+        };
+        assert_eq!(
+            target(None).identity(&state).await,
+            json!({"identity": "autonomous"})
+        );
+        assert_eq!(
+            target(Some("shared")).identity(&state).await,
+            json!({"identity": "service"})
+        );
+        assert_eq!(
+            target(Some("mine")).identity(&state).await,
+            json!({"identity": "delegated", "acting_for": "ana"})
+        );
+        target(Some("mine"))
+            .record(&state, AuditPhase::Performed, json!({}))
+            .await;
+        let rows = state.store.audit.list(Some(session.id), 10).await.unwrap();
+        assert_eq!(rows.last().unwrap().detail["identity"], "delegated");
+
+        state
+            .credentials
+            .ensure_user_token("mine", "ana", Some("rt"), &state.egress_http)
+            .await
+            .unwrap();
+        let form = forms.lock().unwrap().remove(0);
+        assert!(
+            form.contains("resource=https%3A%2F%2Fapi.example.com"),
+            "{form}"
+        );
     }
 
     #[tokio::test]
@@ -2575,6 +2934,248 @@ pub(crate) mod ask_tests {
         assert_eq!(hits(&counter), 1);
     }
 
+    /// A stub chat endpoint answering `status`; records each request body it receives.
+    async fn chat_stub(status: u16) -> (u16, Arc<std::sync::Mutex<Vec<String>>>) {
+        let seen: Arc<std::sync::Mutex<Vec<String>>> = Arc::default();
+        let sink = seen.clone();
+        let app = axum::Router::new().route(
+            "/v1/chat/completions",
+            axum::routing::post(move |body: axum::body::Bytes| {
+                let sink = sink.clone();
+                async move {
+                    sink.lock()
+                        .unwrap()
+                        .push(String::from_utf8_lossy(&body).into_owned());
+                    (
+                        StatusCode::from_u16(status).unwrap(),
+                        axum::Json(json!({"choices": [{"message": {"content": "hi"}}], "usage": {"prompt_tokens": 1000000, "completion_tokens": 500000}})),
+                    )
+                }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+        (port, seen)
+    }
+
+    /// A state whose operator wrote chain `main` over `chain_ports` (credential `llm`, kind fabric), and a session
+    /// whose agent's model socket points at `primary` and names that chain (or none).
+    async fn socket_agent(
+        primary: u16,
+        chain_ports: &[u16],
+        named: bool,
+        chain_host: &str,
+        prices: Option<Value>,
+    ) -> (Arc<AppState>, SessionRecord) {
+        let dir = std::env::temp_dir().join(format!("zyvor-sock-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let creds = dir.join("creds.json");
+        std::fs::write(
+            &creds,
+            json!({"llm": {"host": "127.0.0.1", "header": "authorization", "kind": "fabric", "allowed_ports": chain_ports}}).to_string(),
+        )
+        .unwrap();
+        let targets: Vec<Value> = chain_ports
+            .iter()
+            .map(|p| json!({"credential": "llm", "base_url": format!("http://{chain_host}:{p}/v1"), "model": format!("fb-{p}")}))
+            .collect();
+        let chains = dir.join("chains.json");
+        std::fs::write(
+            &chains,
+            json!({"chains": {"main": {"targets": targets}}}).to_string(),
+        )
+        .unwrap();
+        let prices_file = prices.map(|p| {
+            let f = dir.join("prices.json");
+            std::fs::write(&f, p.to_string()).unwrap();
+            f
+        });
+        let (state, session) = state_and_session_cfg(|c| {
+            c.credentials_file = Some(creds);
+            c.model_chains_file = Some(chains);
+            c.model_prices_file = prices_file;
+        })
+        .await;
+        let session = deploy_local_agent(&state, &session, |m| {
+            m.model_socket = Some(crate::model::ModelSocket {
+                base_url: format!("http://127.0.0.1:{primary}/v1"),
+                model: Some("primary-m".into()),
+                credential: None,
+                fallback_chain: named.then(|| "main".to_string()),
+            });
+        })
+        .await;
+        (state, session)
+    }
+
+    async fn chat(
+        state: &Arc<AppState>,
+        session: &SessionRecord,
+        primary: u16,
+    ) -> Result<Value, (StatusCode, String)> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "x-zyvor-session-id",
+            session.id.to_string().parse().unwrap(),
+        );
+        headers.insert("x-zyvor-egress-capability", "cap".parse().unwrap());
+        let body =
+            json!({"model": "primary-m", "messages": [{"role": "user", "content": "hello"}]})
+                .to_string();
+        let request = EgressRequest {
+            url: format!("http://127.0.0.1:{primary}/v1/chat/completions"),
+            method: "POST".into(),
+            headers: Default::default(),
+            body_base64: Some(base64::engine::general_purpose::STANDARD.encode(body)),
+            credential: None,
+        };
+        let mut target = AuditTarget::from_request(&headers, &request);
+        proxy_with_chain(state, &headers, request, None, &mut target).await
+    }
+
+    #[tokio::test]
+    async fn a_failing_model_socket_hands_over_to_the_chain_with_only_the_model_changed() {
+        let (p1, seen1) = chat_stub(503).await;
+        let (p2, seen2) = chat_stub(200).await;
+        let (state, session) = socket_agent(p1, &[p2], true, "127.0.0.1", None).await;
+        let out = chat(&state, &session, p1).await.unwrap();
+        assert_eq!(out["status"], 200);
+        assert_eq!(seen1.lock().unwrap().len(), 1);
+        let sent: Value = serde_json::from_str(&seen2.lock().unwrap()[0]).unwrap();
+        assert_eq!(sent["model"], format!("fb-{p2}"));
+        assert_eq!(sent["messages"][0]["content"], "hello");
+        let rows = state
+            .store
+            .audit
+            .list(Some(session.id), 50)
+            .await
+            .unwrap_or_default();
+        assert!(rows
+            .iter()
+            .any(|r| r.action == "model.failover" && r.detail["path"] == "model_socket"));
+    }
+
+    #[tokio::test]
+    async fn socket_calls_are_journaled_with_tokens_and_priced_in_the_usage_summary() {
+        let (p1, _) = chat_stub(200).await;
+        let prices = json!({"currency": "USD", "prices": {"primary-m": {"input_per_mtok": 2.0, "output_per_mtok": 4.0}}});
+        let (state, session) = socket_agent(p1, &[], false, "127.0.0.1", Some(prices)).await;
+        chat(&state, &session, p1).await.unwrap();
+        let rows = state.store.audit.list(Some(session.id), 50).await.unwrap();
+        let row = rows
+            .iter()
+            .find(|r| r.action == "model.call")
+            .expect("a model.call row");
+        assert_eq!(row.detail["prompt_tokens"], 1_000_000);
+        assert_eq!(row.detail["path"], "model_socket");
+        let p =
+            crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref()).unwrap();
+        let s = crate::model_gateway::summarize(&rows, p.as_ref());
+        assert!(
+            (s["items"][0]["cost"].as_f64().unwrap() - 4.0).abs() < 1e-9,
+            "{s}"
+        );
+    }
+
+    #[tokio::test]
+    async fn an_agent_over_its_budget_is_refused_before_anything_is_sent() {
+        let (p1, seen) = chat_stub(200).await;
+        let prices = json!({"budgets": {"a": {"max_calls_per_day": 2}}});
+        let (state, session) = socket_agent(p1, &[], false, "127.0.0.1", Some(prices)).await;
+        chat(&state, &session, p1).await.unwrap();
+        chat(&state, &session, p1).await.unwrap();
+        let err = chat(&state, &session, p1).await.unwrap_err();
+        assert_eq!(err.0, StatusCode::TOO_MANY_REQUESTS);
+        assert!(err.1.contains("budget reached"), "{}", err.1);
+        assert_eq!(
+            seen.lock().unwrap().len(),
+            2,
+            "the refused call must never be sent"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_run_and_a_goal_each_have_their_own_model_call_cap() {
+        // Per run: this session stops at 2 calls, a second session of the same agent is not affected.
+        let (p1, seen) = chat_stub(200).await;
+        let prices = json!({"budgets": {"a": {"run": {"max_calls": 2}}}});
+        let (state, session) = socket_agent(p1, &[], false, "127.0.0.1", Some(prices)).await;
+        chat(&state, &session, p1).await.unwrap();
+        chat(&state, &session, p1).await.unwrap();
+        let err = chat(&state, &session, p1).await.unwrap_err();
+        assert_eq!(err.0, StatusCode::TOO_MANY_REQUESTS);
+        assert!(err.1.contains("this run"), "{}", err.1);
+        assert_eq!(
+            seen.lock().unwrap().len(),
+            2,
+            "the refused call is never sent"
+        );
+        let mut other = session.clone();
+        other.id = uuid::Uuid::new_v4();
+        state.store.save_session(other.clone()).await.unwrap();
+        chat(&state, &other, p1).await.unwrap();
+
+        // Per goal: two sessions of one goal share the cap.
+        let (p2, seen2) = chat_stub(200).await;
+        let prices = json!({"budgets": {"a": {"goal": {"max_calls": 2}}}});
+        let (state, first) = socket_agent(p2, &[], false, "127.0.0.1", Some(prices)).await;
+        let mut second = first.clone();
+        second.id = uuid::Uuid::new_v4();
+        state.store.save_session(second.clone()).await.unwrap();
+        let goal: crate::goals::GoalRecord = serde_json::from_value(json!({
+            "id": uuid::Uuid::new_v4(), "title": "g", "agent": "a", "status": "open",
+            "created_at": chrono::Utc::now(), "updated_at": chrono::Utc::now(),
+            "plan": [{"id": "s1", "title": "one", "session_id": first.id},
+                     {"id": "s2", "title": "two", "session_id": second.id}],
+        }))
+        .unwrap();
+        state.store.save_goal(goal).await.unwrap();
+        chat(&state, &first, p2).await.unwrap();
+        chat(&state, &second, p2).await.unwrap();
+        let err = chat(&state, &first, p2).await.unwrap_err();
+        assert!(err.1.contains("this goal"), "{}", err.1);
+        assert_eq!(seen2.lock().unwrap().len(), 2);
+        let rows = state.store.audit.list(Some(first.id), 100).await.unwrap();
+        let refused = rows
+            .iter()
+            .find(|r| r.action == "model.budget_refused")
+            .expect("a refusal row");
+        assert!(refused.detail["reason"]
+            .as_str()
+            .unwrap()
+            .contains("this goal"));
+    }
+
+    #[tokio::test]
+    async fn without_a_named_chain_or_with_a_healthy_primary_nothing_changes() {
+        let (p1, seen1) = chat_stub(503).await;
+        let (p2, seen2) = chat_stub(200).await;
+        let (state, session) = socket_agent(p1, &[p2], false, "127.0.0.1", None).await;
+        assert_eq!(chat(&state, &session, p1).await.unwrap()["status"], 503);
+        assert!(seen2.lock().unwrap().is_empty());
+        let (good, _) = chat_stub(200).await;
+        let (state, session) = socket_agent(good, &[p2], true, "127.0.0.1", None).await;
+        assert_eq!(chat(&state, &session, good).await.unwrap()["status"], 200);
+        assert!(seen2.lock().unwrap().is_empty());
+        assert_eq!(seen1.lock().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn a_chain_endpoint_the_cell_may_not_reach_is_refused_and_the_primarys_failure_is_reported(
+    ) {
+        let (p1, _) = chat_stub(503).await;
+        let (p2, seen2) = chat_stub(200).await;
+        // The chain names `localhost`, but the vault binds credential `llm` to 127.0.0.1 only.
+        let (state, session) = socket_agent(p1, &[p2], true, "localhost", None).await;
+        let out = chat(&state, &session, p1).await;
+        assert!(
+            seen2.lock().unwrap().is_empty(),
+            "the refused fallback must never be sent"
+        );
+        assert!(matches!(&out, Ok(v) if v["status"] == 503), "{out:?}");
+    }
+
     #[tokio::test]
     async fn body_rules_refuse_a_disallowed_mcp_call_before_it_is_sent() {
         let (port, counter) = upstream_counter().await;
@@ -2963,6 +3564,150 @@ pub(crate) mod ask_tests {
             .unwrap();
         assert!(waiter.await.unwrap().is_err());
         assert_eq!(hits(&counter), 1);
+    }
+
+    async fn mcp_call(state: &Arc<AppState>, session: &SessionRecord, body: Value) -> StatusCode {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "x-zyvor-session-id",
+            session.id.to_string().parse().unwrap(),
+        );
+        headers.insert("x-zyvor-egress-capability", "cap".parse().unwrap());
+        axum::response::IntoResponse::into_response(
+            crate::mcp_gateway::relay(
+                axum::extract::State(state.clone()),
+                axum::extract::Path("files".to_string()),
+                headers,
+                MaybePeer(None),
+                Json(body),
+            )
+            .await,
+        )
+        .status()
+    }
+
+    #[tokio::test]
+    async fn the_mcp_gateway_relays_listed_tools_only_and_journals_names_not_arguments() {
+        let (port, counter) = upstream_counter().await;
+        let (state, session) = state_and_session().await;
+        let session = deploy_local_agent(&state, &session, |_| {}).await;
+        let text = format!(
+            r#"{{"url":"http://127.0.0.1:{port}/send","tools":["read_file"],"max_calls_per_minute":3}}"#
+        );
+        let server = crate::mcp_gateway::McpServer::parse("files", &text).unwrap();
+        state.store.save_mcp_server(server).await.unwrap();
+        let call = |tool: &str| {
+            json!({"jsonrpc":"2.0","id":1,"method":"tools/call",
+                   "params":{"name":tool,"arguments":{"path":"/secret-path-1234"}}})
+        };
+        // A listed tool is relayed to the server.
+        assert_eq!(
+            mcp_call(&state, &session, call("read_file")).await,
+            StatusCode::OK
+        );
+        assert_eq!(hits(&counter), 1);
+        // An unlisted tool and an unrelayed method never leave the host.
+        assert_eq!(
+            mcp_call(&state, &session, call("delete_all")).await,
+            StatusCode::FORBIDDEN
+        );
+        let sampling = json!({"jsonrpc":"2.0","id":2,"method":"sampling/createMessage"});
+        assert_eq!(
+            mcp_call(&state, &session, sampling).await,
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(hits(&counter), 1);
+        // The third relayed call in the minute is the last; the fourth is rate limited.
+        assert_eq!(
+            mcp_call(&state, &session, call("read_file")).await,
+            StatusCode::OK
+        );
+        assert_eq!(
+            mcp_call(&state, &session, call("read_file")).await,
+            StatusCode::OK
+        );
+        assert_eq!(
+            mcp_call(&state, &session, call("read_file")).await,
+            StatusCode::TOO_MANY_REQUESTS
+        );
+        assert_eq!(hits(&counter), 3);
+        // An unknown server and a wrong capability are refused.
+        let mut other = HeaderMap::new();
+        other.insert(
+            "x-zyvor-session-id",
+            session.id.to_string().parse().unwrap(),
+        );
+        other.insert("x-zyvor-egress-capability", "wrong".parse().unwrap());
+        let status = axum::response::IntoResponse::into_response(
+            crate::mcp_gateway::relay(
+                axum::extract::State(state.clone()),
+                axum::extract::Path("files".to_string()),
+                other,
+                MaybePeer(None),
+                Json(call("read_file")),
+            )
+            .await,
+        )
+        .status();
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+        // The journal names the tool and the outcome, and never the arguments.
+        let entries = state.store.audit.list(Some(session.id), 100).await.unwrap();
+        let mcp: Vec<_> = entries.iter().filter(|e| e.action == "mcp.call").collect();
+        assert!(mcp.iter().any(|e| e.detail["tool"] == "read_file"));
+        assert!(mcp.iter().any(|e| e.detail["reason"]
+            .as_str()
+            .is_some_and(|r| r.contains("delete_all"))));
+        assert!(!serde_json::to_string(&entries)
+            .unwrap()
+            .contains("secret-path-1234"));
+    }
+
+    #[tokio::test]
+    async fn writes_past_the_sequence_limit_are_held_for_a_person() {
+        let (port, counter) = upstream_counter().await;
+        let (state, session) = state_and_session().await;
+        let session = deploy_local_agent(&state, &session, |m| {
+            m.sequence = Some(crate::model::SequencePolicy {
+                max_writes: Some(2),
+            });
+        })
+        .await;
+        // Reads never count, and the first two writes flow.
+        assert!(plain_call(&state, &session, port, "GET", None)
+            .await
+            .is_ok());
+        assert!(plain_call(&state, &session, port, "POST", Some("a"))
+            .await
+            .is_ok());
+        assert!(plain_call(&state, &session, port, "PUT", Some("b"))
+            .await
+            .is_ok());
+        assert_eq!(state.store.get_session(session.id).await.unwrap().writes, 2);
+        // The third is held, and nothing reaches the upstream until a person approves.
+        let before = hits(&counter);
+        let waiter = {
+            let (state, session) = (state.clone(), session.clone());
+            tokio::spawn(async move { plain_call(&state, &session, port, "POST", Some("c")).await })
+        };
+        let pending = wait_pending(&state, session.id).await;
+        assert!(
+            pending.prompt.contains("2 writes already made"),
+            "{}",
+            pending.prompt
+        );
+        assert_eq!(hits(&counter), before);
+        state
+            .store
+            .transition_approval(
+                pending.id,
+                ApprovalStatus::Approved,
+                None,
+                Some(GrantScope::Once),
+            )
+            .await
+            .unwrap();
+        assert!(waiter.await.unwrap().is_ok());
+        assert_eq!(state.store.get_session(session.id).await.unwrap().writes, 3);
     }
 
     #[tokio::test]

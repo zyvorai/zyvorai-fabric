@@ -17,7 +17,7 @@
 //! * Always, with no setting: memory entries whose **expiry** the user set have passed are deleted from disk (until now they were only
 //!   hidden). Accepted entries without an expiry are never removed by the sweep.
 //!
-//! Each sweep that removes something is journaled with counts only (`keep.retention.sweep`), never with names or text.
+//! Each sweep that removes something is journaled with counts only (`merion.retention.sweep`), never with names or text.
 
 use crate::{audit::AuditPhase, AppState};
 use chrono::{DateTime, Duration as Days, Utc};
@@ -110,7 +110,7 @@ pub async fn sweep(state: &AppState, now: DateTime<Utc>) -> anyhow::Result<Swept
             .append(
                 None,
                 AuditPhase::Performed,
-                "keep.retention.sweep",
+                "merion.retention.sweep",
                 None,
                 json!({ "threads": swept.threads, "messages": swept.messages, "event_logs": swept.event_logs, "receipts": swept.receipts, "memory_expired": swept.memory_expired, "memory_proposals": swept.memory_proposals, "suggestions_undecided": swept.suggestions_undecided, "suggestions_decided": swept.suggestions_decided }),
             )
@@ -239,7 +239,7 @@ mod tests {
         let entries = state.store.audit.list(None, 100).await.unwrap();
         let text = serde_json::to_string(&entries).unwrap();
         assert!(
-            text.contains("keep.retention.sweep"),
+            text.contains("merion.retention.sweep"),
             "the sweep is journaled: {text}"
         );
         assert!(

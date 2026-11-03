@@ -43,7 +43,7 @@ fn create_concurrency() -> usize {
 #[derive(Debug, Clone, Deserialize)]
 pub struct SandboxRecord {
     pub id: Uuid,
-    /// Set by the local simulator (`agent-runtime/sim/`, `scripts/keep-demo-local.sh`), never by FluxVM. A simulated cell runs the
+    /// Set by the local simulator (`agent-runtime/sim/`, `scripts/merion-demo-local.sh`), never by FluxVM. A simulated cell runs the
     /// extractors on the operator's own machine with no VM and no network policy, so a run in it must not claim to be sealed.
     #[serde(default)]
     pub simulated: bool,
@@ -134,6 +134,9 @@ pub struct Changeset {
     pub changes: Value,
     #[serde(default)]
     pub side_effects: Value,
+    /// Files FluxVM kept, by path, with their `size` and `mode`.
+    #[serde(default)]
+    pub staged: Value,
     /// Changed files whose contents could not be kept; FluxVM refuses to apply while any.
     #[serde(default)]
     pub unstaged: Vec<String>,
@@ -526,6 +529,29 @@ impl FluxVm {
     pub async fn resume(&self, id: Uuid) -> Result<()> {
         let response = self
             .auth(self.http.post(self.url(&format!("/v1/vms/{id}/resume"))?))
+            .send()
+            .await?;
+        let _: Value = self.parse(response).await?;
+        Ok(())
+    }
+
+    /// Save a named snapshot of the VM (`POST /v1/vms/{id}/snapshot`, the same call the Fabric client makes).
+    pub async fn snapshot_tag(&self, id: Uuid, tag: &str) -> Result<()> {
+        let response = self
+            .auth(self.http.post(self.url(&format!("/v1/vms/{id}/snapshot"))?))
+            .json(&json!({"tag": tag}))
+            .send()
+            .await?;
+        let _: Value = self.parse(response).await?;
+        Ok(())
+    }
+
+    /// Restore the running VM in place from snapshot `tag` (`POST /v1/vms/{id}/restore`). Everything the cell did after
+    /// the snapshot is gone: files, memory and the agent process.
+    pub async fn restore_tag(&self, id: Uuid, tag: &str) -> Result<()> {
+        let response = self
+            .auth(self.http.post(self.url(&format!("/v1/vms/{id}/restore"))?))
+            .json(&json!({"tag": tag}))
             .send()
             .await?;
         let _: Value = self.parse(response).await?;

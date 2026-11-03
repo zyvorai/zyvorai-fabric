@@ -2,10 +2,13 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 #
-# Narrated Keep speculate -> review -> approve demo. It runs against the live Keep runtime that
-# scripts/keep-e2e.sh starts (KEEP_E2E_DEMO=scripts/demo/speculate-demo.sh), so every HTTP call
+# Narrated Merion speculate -> review -> approve demo. It runs against the live Merion runtime that
+# scripts/merion-e2e.sh starts (MERION_E2E_DEMO=scripts/demo/speculate-demo.sh), so every HTTP call
 # below is real. FluxVM itself is the CI stub: no VM boots, and the changeset body is a response
 # captured from a real FluxVM. The banner says so, because a recording must not imply more.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_E2E_DEMO+x}" ] || [ -z "${KEEP_E2E_DEMO:-}" ] || export MERION_E2E_DEMO="$KEEP_E2E_DEMO"
+
 set -euo pipefail
 : "${API:?}" "${TOKEN:?}" "${SID:?}" "${STUB_OPS:?}"
 
@@ -18,11 +21,11 @@ jq_()  { python3 -c 'import json,sys;d=json.load(sys.stdin);cur=d
 for p in sys.argv[1].split("."): cur=cur[p]
 print(cur if not isinstance(cur,(dict,list)) else json.dumps(cur))' "$1"; }
 
-say "${B}Keep: an agent proposes a change. A person decides.${R}"
-say "${D}real Keep runtime · FluxVM is a test stub (no VM)${R}"
+say "${B}Merion: an agent proposes a change. A person decides.${R}"
+say "${D}real Merion runtime · FluxVM is a test stub (no VM)${R}"
 echo
 say "${Y}agent wants to run:${R} echo hello > /tmp/specdir/a.txt"
-cmd "curl -X POST \$KEEP/v1/sessions/\$SID/speculate -d '{command, paths:[\"/tmp\"]}'"
+cmd "curl -X POST \$MERION/v1/sessions/\$SID/speculate -d '{command, paths:[\"/tmp\"]}'"
 R1=$(curl -s "${auth[@]}" -X POST "$API/v1/sessions/$SID/speculate" \
   -d '{"command":"echo hello > /tmp/specdir/a.txt","paths":["/tmp"]}')
 AID=$(printf '%s' "$R1" | jq_ approval.id)
@@ -33,7 +36,7 @@ echo
 say "${B}Nothing has been applied.${R}  FluxVM saw: $(ops)"
 echo
 say "${Y}the person reviews the diff and approves${R}"
-cmd "curl -X POST \$KEEP/v1/approvals/${AID%%-*}… -d '{\"decision\":\"approved\"}'"
+cmd "curl -X POST \$MERION/v1/approvals/${AID%%-*}… -d '{\"decision\":\"approved\"}'"
 R2=$(curl -s "${auth[@]}" -X POST "$API/v1/approvals/$AID" -d '{"decision":"approved"}')
 say "  approval   ${G}${B}$(printf '%s' "$R2" | jq_ status)${R}"
 say "${B}Now it is applied.${R}  FluxVM saw: $(ops)"

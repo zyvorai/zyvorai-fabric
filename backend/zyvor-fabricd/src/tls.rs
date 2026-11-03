@@ -71,7 +71,7 @@ pub fn ensure_self_signed_cert(cert_path: &str, key_path: &str) -> Result<()> {
 
     std::fs::write(cert_path, cert_key.cert.pem())
         .with_context(|| format!("writing {}", cert_path.display()))?;
-    std::fs::write(key_path, cert_key.signing_key.serialize_pem())
+    encryption::write_private_file(key_path, cert_key.signing_key.serialize_pem())
         .with_context(|| format!("writing {}", key_path.display()))?;
 
     // Private key: owner read/write only.

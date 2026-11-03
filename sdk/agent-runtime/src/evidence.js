@@ -5,7 +5,7 @@
  * it is not a signature or independent proof of the runtime's global audit chain. */
 import { createHash } from "node:crypto";
 
-export const EVIDENCE_FORMAT = "zyvor-keep-evidence-v1";
+export const EVIDENCE_FORMAT = "zyvor-merion-evidence-v1";
 const AUDIT_LIMIT = 5000;
 const RECEIPT_LIMIT = 500;
 

@@ -27,7 +27,7 @@ export default function Product() {
           <p>Pools and volumes, Ceph, backups, replication, fault tolerance, and site recovery — without assembling an OpenStack.</p>
         </div>
         <div>
-          <h2>Keep — agent workstation</h2>
+          <h2>Merion — agent workstation</h2>
           <p>
             Give an untrusted agent a FluxVM cell with signed policy, vaulted credentials, and host
             eBPF that proves zero CONNECT on a PDF brief — without copying consumer browser chrome.
@@ -37,8 +37,8 @@ export default function Product() {
           <Link to="/sign-in" className="zf-btn zf-btn-primary">
             Sign in to console
           </Link>
-          <Link to="/keep" className="zf-btn zf-btn-secondary">
-            Meet Keep →
+          <Link to="/merion" className="zf-btn zf-btn-secondary">
+            Meet Merion →
           </Link>
         </div>
       </section>

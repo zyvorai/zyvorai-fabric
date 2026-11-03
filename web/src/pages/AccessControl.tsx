@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { Users, Plus, Trash2, Loader2, CheckCircle } from 'lucide-react'
 import { apiFetch } from '../api/client'
@@ -140,10 +141,7 @@ export default function AccessControl() {
       )}
 
       {loading && !loadError ? (
-        <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />
-          Loading users…
-        </div>
+        <PanelLoading label="Loading users" />
       ) : !loadError ? (
         <>
 
@@ -172,12 +170,12 @@ export default function AccessControl() {
         <div className="bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-xl p-5 space-y-4">
           <h3 className="text-sm font-semibold text-[var(--zf-ink)]">New User</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Username</label><input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" className="input-field text-sm" /></div>
-            <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Password</label><input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="password" className="input-field text-sm" /></div>
+            <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Username</label><input aria-label="Username" type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="username" className="input-field text-sm" /></div>
+            <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Password</label><input aria-label="Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="password" className="input-field text-sm" /></div>
             <div><label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Role</label>
               <div className="flex gap-2">
                 {['admin', 'operator', 'viewer'].map(r => (
-                  <button key={r} onClick={() => setNewRole(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors capitalize ${newRole === r ? 'bg-[var(--zf-link)] text-white border-[var(--zf-link)]' : 'text-[var(--zf-muted)] bg-white border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>{r}</button>
+                  <button key={r} onClick={() => setNewRole(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors capitalize ${newRole === r ? 'bg-[var(--zf-link-fill)] text-white border-[var(--zf-link)]' : 'text-[var(--zf-muted)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>{r}</button>
                 ))}
               </div>
             </div>
@@ -210,7 +208,7 @@ export default function AccessControl() {
                   <td className="px-5 py-3"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${roleBadge(user.role)}`}>{user.role}</span></td>
                   <td className="px-5 py-3">
                     <button onClick={() => handleToggle(user.id, user.enabled)} className="flex items-center gap-1.5" aria-label={`${user.enabled ? 'Disable' : 'Enable'} user ${user.username}`}>
-                      <div className={`relative w-8 h-4 rounded-full transition-colors ${user.enabled ? 'bg-emerald-500' : 'bg-[var(--zf-hairline)]'}`} role="switch" aria-checked={user.enabled}><div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform ${user.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} /></div>
+                      <div className={`relative w-8 h-4 rounded-full transition-colors ${user.enabled ? 'bg-emerald-500' : 'bg-[var(--zf-hairline)]'}`} role="switch" aria-checked={user.enabled}><div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-[var(--zf-surface)] transition-transform ${user.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} /></div>
                       <span className={`text-xs ${user.enabled ? 'text-emerald-700' : 'text-[var(--zf-muted)]'}`}>{user.enabled ? 'Active' : 'Disabled'}</span>
                     </button>
                   </td>

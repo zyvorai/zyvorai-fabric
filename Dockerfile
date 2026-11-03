@@ -11,10 +11,11 @@ FROM node:26-slim AS web-builder
 WORKDIR /build/web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
+COPY docs/merion/marketing.json /build/docs/merion/marketing.json
 COPY web/ ./
 RUN npm run build
 
-FROM rust:1.98-slim AS rust-builder
+FROM rust:1.99-slim AS rust-builder
 
 WORKDIR /build
 

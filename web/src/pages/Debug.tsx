@@ -88,7 +88,7 @@ export default function Debug() {
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={autoRefresh} onChange={() => setAutoRefresh((v) => !v)} className="sr-only" />
             <div className={`w-10 h-5 rounded-full transition-colors relative ${autoRefresh ? 'bg-[var(--zf-ink)]' : 'bg-[var(--zf-hairline)]'}`}>
-              <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-transform ${autoRefresh ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              <div className={`w-4 h-4 rounded-full bg-[var(--zf-surface)] absolute top-0.5 transition-transform ${autoRefresh ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </div>
             <span className="text-sm text-[var(--zf-ink)]">Auto-refresh (3s)</span>
           </label>

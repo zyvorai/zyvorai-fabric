@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * A user-defined Keep use case, as agent-runtime stores it (`POST /v1/demos`).
+ * A user-defined Merion use case, as agent-runtime stores it (`POST /v1/demos`).
  * It is data only: an extractor enum plus bounded rules. Mirrors
  * agent-runtime/src/demo_rules.rs; the server re-validates everything.
  */
@@ -49,6 +49,7 @@ export interface UseCaseSpec {
     instruction: string
     max_input_chars?: number
     max_output_tokens?: number
+    fallback_chain?: string
   }
 }
 

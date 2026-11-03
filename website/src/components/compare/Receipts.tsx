@@ -47,8 +47,8 @@ export default function Receipts(): ReactNode {
             ))}
           </dl>
           <p>
-            Archived logs live in the repo; <code>./scripts/keep-pilot-gate.sh</code> reruns the
-            gate. <Link to="/docs/keep/pilot-runs/">Pilot runs ›</Link>
+            Archived logs live in the repo; <code>./scripts/merion-pilot-gate.sh</code> reruns the
+            gate. <Link to="/docs/merion/pilot-runs/">Pilot runs ›</Link>
           </p>
         </div>
       </Reveal>

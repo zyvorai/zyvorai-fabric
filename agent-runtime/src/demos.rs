@@ -384,14 +384,14 @@ pub(crate) async fn demo_list(State(state): State<Arc<AppState>>) -> Json<Value>
     Json(json!({ "demos": demos }))
 }
 
-/// `GET /v1/keep/status` — what `keepctl doctor` and the console check before
+/// `GET /v1/merion/status` (alias `/v1/keep/status`) — what `merionctl doctor` and the console check before
 /// a first deploy: Keep mode, trusted signers, FluxVM readiness, demo counts.
-pub(crate) async fn keep_status(State(state): State<Arc<AppState>>) -> Json<Value> {
+pub(crate) async fn merion_status(State(state): State<Arc<AppState>>) -> Json<Value> {
     let fluxvm = state.fluxvm.security_capabilities().await;
     let trust = &state.policy_trust;
     Json(json!({
-        "keep_mode": trust.keep_mode,
-        "signature_required": trust.keep_mode || trust.require_signature,
+        "merion_mode": trust.merion_mode,
+        "signature_required": trust.merion_mode || trust.require_signature,
         "trusted_signers": trust.trusted_signers.len(),
         "fluxvm": {
             "ready": fluxvm.is_ok(),
@@ -933,6 +933,7 @@ async fn run_demo_inner(
         parent_session_id: None,
         user_id: user.clone(),
         tainted_by: vec![],
+        writes: 0,
         confidential: sandbox.confidential.clone(),
         agent_paused_reason: None,
         browse: Default::default(),
@@ -1173,7 +1174,7 @@ async fn run_demo_inner(
                 "kind": a.kind,
             })).collect::<Vec<_>>(),
             "egress_connects": connects,
-            "cockpit_url": format!("/app/keep/{id}"),
+            "cockpit_url": format!("/app/merion/{id}"),
             "badge": run_badge(simulated, model_outcome.as_ref().map(|m| m.host.as_str())),
             "model_calls": u32::from(model_outcome.is_some()),
             "model": model_outcome.as_ref().map(|m| json!({
@@ -1591,10 +1592,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn keep_status_reports_mode_signers_fluxvm_and_demo_counts() {
+    async fn merion_status_reports_mode_signers_fluxvm_and_demo_counts() {
         let state = crate::goals::tests::test_state().await;
-        let Json(v) = keep_status(State(state)).await;
-        assert_eq!(v["keep_mode"], false);
+        let Json(v) = merion_status(State(state)).await;
+        assert_eq!(v["merion_mode"], false);
         assert_eq!(v["trusted_signers"], 0);
         assert_eq!(v["fluxvm"]["ready"], false, "FluxVM is down in tests");
         assert!(v["fluxvm"]["error"].is_string());

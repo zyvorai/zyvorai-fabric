@@ -470,7 +470,7 @@ pub(crate) async fn create_goal(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.goal.created",
+            "merion.goal.created",
             Some(record.agent.clone()),
             json!({ "goal_id": record.id, "title": record.title }),
         )
@@ -719,7 +719,7 @@ pub(crate) async fn advance_step(
             .append(
                 Some(session_id),
                 AuditPhase::Planned,
-                "keep.goal.step.approval",
+                "merion.goal.step.approval",
                 Some(goal.agent.clone()),
                 json!({ "goal_id": goal.id, "step_id": step_id, "approval_id": approval_id }),
             )
@@ -898,7 +898,7 @@ pub(crate) async fn create_artifact(
         .append(
             record.session_id,
             AuditPhase::Performed,
-            "keep.artifact.created",
+            "merion.artifact.created",
             record.agent.clone(),
             json!({ "artifact_id": record.id, "kind": record.kind, "title": record.title }),
         )
@@ -970,6 +970,9 @@ pub(crate) mod tests {
             fluxvm_token: None,
             api_token: None,
             credentials_file: None,
+            model_chains_file: None,
+            model_prices_file: None,
+            model_cache_secs: None,
             skill_scopes_file: None,
             sentinel: None,
             guard: None,
@@ -995,6 +998,7 @@ pub(crate) mod tests {
             goal_retry_base_secs: 15,
             planner_agent: None,
             event_retention_days: None,
+            recording_key: None,
             idle_scan_interval_ms: 1000,
             warm_pool_reconcile_interval_ms: 2000,
             warm_pool_max_create_per_tick: 2,
@@ -1123,6 +1127,7 @@ pub(crate) mod tests {
                 parent_session_id: None,
                 user_id: None,
                 tainted_by: vec![],
+                writes: 0,
                 confidential: None,
                 agent_paused_reason: None,
                 browse: Default::default(),

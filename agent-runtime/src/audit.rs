@@ -148,6 +148,7 @@ impl AuditLog {
 
         tail.next_seq = entry.seq + 1;
         tail.last_hash = entry.hash.clone();
+        crate::otlp::emit_entry(&entry);
         Ok(entry)
     }
 

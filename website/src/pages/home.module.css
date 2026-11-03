@@ -1,0 +1,42 @@
+/* Homepage-only bits. Everything else comes from components/marketing/Shell.module.css. */
+
+.four {
+  list-style: none;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.9rem;
+}
+
+.body {
+  margin: 0;
+  color: var(--c-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.note {
+  margin: 1.5rem 0 0;
+  color: var(--c-muted);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.more {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-weight: 600;
+}
+
+@media (max-width: 996px) {
+  .four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .four {
+    grid-template-columns: 1fr;
+  }
+}

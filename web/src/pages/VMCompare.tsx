@@ -120,7 +120,7 @@ export default function VMCompare() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div>
                 <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Source VM</label>
-                <select
+                <select aria-label="Source VM"
                   value={sourceVM}
                   onChange={(e) => setSourceVM(e.target.value)}
                   className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] focus:outline-none focus:ring-1 focus:ring-[var(--zf-ink)]"
@@ -135,7 +135,7 @@ export default function VMCompare() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-[var(--zf-muted)] mb-1.5">Target VM</label>
-                <select
+                <select aria-label="Target VM"
                   value={targetVM}
                   onChange={(e) => setTargetVM(e.target.value)}
                   className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)] focus:outline-none focus:ring-1 focus:ring-[var(--zf-ink)]"

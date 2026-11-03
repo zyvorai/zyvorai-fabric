@@ -167,12 +167,12 @@ export default function ResourceOptimizer() {
                         <div className="text-xs text-[var(--zf-muted)] mt-0.5">{rec.reason}</div>
                         <div className="flex items-center gap-3 mt-2">
                           <div className="bg-[var(--zf-canvas)] rounded-lg px-3 py-1.5">
-                            <div className="text-[10px] text-[var(--zf-muted)]">Current</div>
+                            <div className="text-xs text-[var(--zf-muted)]">Current</div>
                             <div className="text-xs font-semibold text-[var(--zf-ink)]">{rec.current_value}</div>
                           </div>
                           <span className="text-[var(--zf-muted)]">&rarr;</span>
                           <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
-                            <div className="text-[10px] text-emerald-700">Recommended</div>
+                            <div className="text-xs text-emerald-700">Recommended</div>
                             <div className="text-xs font-semibold text-emerald-700">{rec.recommended_value}</div>
                           </div>
                         </div>

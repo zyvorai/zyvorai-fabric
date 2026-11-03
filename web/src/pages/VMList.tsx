@@ -83,13 +83,13 @@ function VMTableRow({ vm, onUpdate, selected, onSelect, canWrite }: { vm: VM; on
             {vm.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${getTagColor(tag)} text-[var(--zf-ink)]/90`}
+                className={`px-1.5 py-0.5 rounded text-xs font-medium ${getTagColor(tag)} text-[var(--zf-ink)]/90`}
               >
                 {tag}
               </span>
             ))}
             {vm.tags.length > 2 && (
-              <span className="text-[11px] text-[var(--zf-muted)]">+{vm.tags.length - 2}</span>
+              <span className="text-xs text-[var(--zf-muted)]">+{vm.tags.length - 2}</span>
             )}
           </div>
         ) : (
@@ -398,7 +398,7 @@ export default function VMList() {
               className="w-full bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] rounded-lg py-2 pl-9 pr-8 text-sm text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:border-[var(--zf-ink)] transition-colors"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors">
+              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--zf-muted)] hover:text-[var(--zf-ink)] transition-colors" aria-label="Close" title="Close">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}

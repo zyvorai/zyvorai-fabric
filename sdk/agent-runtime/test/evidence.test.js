@@ -63,7 +63,7 @@ test("CLI creates a private file and refuses to overwrite it", async () => {
   const path = join(dir, "proof.json");
   const messages = [];
   try {
-    const opts = { env: { KEEP_API_TOKEN: "operator", KEEP_EXPORT_TOKEN: "export" },
+    const opts = { env: { MERION_API_TOKEN: "operator", MERION_EXPORT_TOKEN: "export" },
       clientFactory: () => client(), write: (s) => messages.push(s) };
     assert.equal(await run(["collect", "--session", ID, "--out", path], opts), 0);
     assert.equal((await stat(path)).mode & 0o777, 0o600);
@@ -82,7 +82,7 @@ test("CLI creates a private file and refuses to overwrite it", async () => {
 test("CLI talks to the runtime HTTP contract with separate bearer and export headers", async () => {
   const observed = [];
   const server = createServer((req, res) => {
-    observed.push({ path: req.url, bearer: req.headers.authorization, export: req.headers["x-keep-export-token"] });
+    observed.push({ path: req.url, bearer: req.headers.authorization, export: req.headers["x-merion-export-token"] });
     res.setHeader("content-type", "application/json");
     if (req.headers.authorization !== "Bearer operator") {
       res.statusCode = 401;
@@ -91,7 +91,7 @@ test("CLI talks to the runtime HTTP contract with separate bearer and export hea
     }
     if (req.url === `/v1/sessions/${ID}/cockpit`) res.end(JSON.stringify({ session_id: ID, status: "completed" }));
     else if (req.url?.startsWith("/v1/export/audit?")) {
-      if (req.headers["x-keep-export-token"] !== "audit-only") {
+      if (req.headers["x-merion-export-token"] !== "audit-only") {
         res.statusCode = 403;
         res.end(JSON.stringify({ error: "missing export capability" }));
       } else res.end(JSON.stringify({ export: true, chain: { chain_ok: true, entries: 1 },
@@ -106,7 +106,7 @@ test("CLI talks to the runtime HTTP contract with separate bearer and export hea
     const address = server.address();
     const code = await run(["collect", "--session", ID, "--out", path,
       "--url", `http://127.0.0.1:${address.port}`],
-    { env: { KEEP_API_TOKEN: "operator", KEEP_EXPORT_TOKEN: "audit-only" }, write: () => {} });
+    { env: { MERION_API_TOKEN: "operator", MERION_EXPORT_TOKEN: "audit-only" }, write: () => {} });
     assert.equal(code, 0);
     assert.equal(observed.length, 3);
     assert.ok(observed.every((req) => req.bearer === "Bearer operator"));
@@ -116,6 +116,18 @@ test("CLI talks to the runtime HTTP contract with separate bearer and export hea
     assert.equal(verifyEvidence(snapshot).ok, true);
   } finally {
     await new Promise((resolve) => server.close(resolve));
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("CLI still accepts the pre-rename KEEP_* token names", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "keep-evidence-legacy-"));
+  const path = join(dir, "proof.json");
+  try {
+    const opts = { env: { KEEP_API_TOKEN: "operator", KEEP_EXPORT_TOKEN: "export" },
+      clientFactory: () => client(), write: () => {} };
+    assert.equal(await run(["collect", "--session", ID, "--out", path], opts), 0);
+  } finally {
     await rm(dir, { recursive: true, force: true });
   }
 });

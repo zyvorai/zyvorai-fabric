@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { apiFetch } from '../api/client'
 import ErrorBanner from '../components/ErrorBanner'
@@ -91,10 +92,7 @@ export default function Alerts() {
     return (
       <div className="space-y-6">
         <PageHeader title="Alerts" description="System alerts and notification rules" />
-        <div className="flex items-center justify-center h-64 text-[var(--zf-muted)]">
-          <div className="animate-spin w-6 h-6 border-2 border-[var(--zf-ink)] border-t-transparent rounded-full mr-3" />
-          Loading alerts…
-        </div>
+        <PanelLoading label="Loading alerts" />
       </div>
     )
   }

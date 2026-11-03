@@ -24,6 +24,12 @@ pub struct Config {
     pub fluxvm_token: Option<String>,
     pub api_token: Option<String>,
     pub credentials_file: Option<PathBuf>,
+    /// Operator-written fallback chains for the model step (see `model_gateway.rs`).
+    pub model_chains_file: Option<PathBuf>,
+    /// Operator-written prices and per-agent budgets for model calls (see `model_gateway::Prices`).
+    pub model_prices_file: Option<PathBuf>,
+    /// Seconds a use-case model reply may be reused for the same user, agent, endpoint and text. Off unless set.
+    pub model_cache_secs: Option<u64>,
     /// JSON policy mapping an agent `skill_scope` to the skill scopes it may mount.
     pub skill_scopes_file: Option<PathBuf>,
     /// Reviewer model for `egress_mode: "sentinel"`. Absent means sentinel
@@ -65,6 +71,9 @@ pub struct Config {
     pub memory_proposal_retention_days: Option<u64>,
     /// Delete the event log of sessions that ended this many days ago (`ZYVOR_AGENT_EVENT_RETENTION_DAYS`); `None` keeps it.
     pub event_retention_days: Option<u64>,
+    /// 32-byte Ed25519 seed, hex (`ZYVOR_AGENT_RECORDING_KEY`). Off when unset: no session recording can be exported, because an
+    /// unsigned recording would prove nothing. Held by the host only; the agent never sees it.
+    pub recording_key: Option<[u8; 32]>,
     pub idle_scan_interval_ms: u64,
     pub warm_pool_reconcile_interval_ms: u64,
     pub warm_pool_max_create_per_tick: usize,
@@ -107,13 +116,21 @@ impl Config {
             fluxvm_token: env_opt("ZYVOR_AGENT_FLUXVM_TOKEN"),
             api_token,
             credentials_file: env_opt("ZYVOR_AGENT_CREDENTIALS_FILE").map(PathBuf::from),
+            model_chains_file: env_opt("ZYVOR_AGENT_MODEL_CHAINS_FILE").map(PathBuf::from),
+            model_prices_file: env_opt("ZYVOR_AGENT_MODEL_PRICES_FILE").map(PathBuf::from),
+            model_cache_secs: env_opt("ZYVOR_AGENT_MODEL_CACHE_SECS")
+                .and_then(|v| v.trim().parse::<u64>().ok())
+                .filter(|n| *n > 0)
+                .map(|n| n.min(86_400)),
             skill_scopes_file: env_opt("ZYVOR_AGENT_SKILL_SCOPES_FILE").map(PathBuf::from),
             sentinel: sentinel_from_env()?,
             guard: guard_from_env()?,
             approval_webhook: approval_webhook_from_env()?,
             confine_all: env_opt("ZYVOR_AGENT_CONFINE").is_some_and(|v| v == "1"),
             security_profile: {
-                let keep = env_opt("ZYVOR_AGENT_KEEP_MODE").as_deref() == Some("1");
+                let keep = env_compat("ZYVOR_AGENT_MERION_MODE", "ZYVOR_AGENT_KEEP_MODE")
+                    .as_deref()
+                    == Some("1");
                 match env_opt("ZYVOR_AGENT_SECURITY_PROFILE") {
                     Some(s) if !s.is_empty() => Some(s),
                     _ if keep => Some("measured".into()),
@@ -136,6 +153,7 @@ impl Config {
             goal_retry_base_secs: env_parse("ZYVOR_AGENT_GOAL_RETRY_BASE_SECS", "15")?,
             planner_agent: env_opt("ZYVOR_AGENT_PLANNER_AGENT"),
             event_retention_days: env_days("ZYVOR_AGENT_EVENT_RETENTION_DAYS")?,
+            recording_key: recording_key_from_env()?,
             receipt_retention_days: env_days("ZYVOR_AGENT_RECEIPT_RETENTION_DAYS")?,
             memory_proposal_retention_days: env_days("ZYVOR_AGENT_MEMORY_PROPOSAL_RETENTION_DAYS")?,
             suggestion_retention_days: env_days("ZYVOR_AGENT_SUGGESTION_RETENTION_DAYS")?,
@@ -229,6 +247,17 @@ fn env_opt(name: &str) -> Option<String> {
     std::env::var(name).ok().filter(|v| !v.trim().is_empty())
 }
 
+/// A setting that was renamed: `new` wins, `old` is still read so existing env files and
+/// units keep working. Using only the old name logs one warning per process start.
+pub fn env_compat(new: &str, old: &str) -> Option<String> {
+    if let Some(v) = env_opt(new) {
+        return Some(v);
+    }
+    let v = env_opt(old)?;
+    tracing::warn!("{old} is deprecated, set {new} instead");
+    Some(v)
+}
+
 /// A retention period in days: unset or 0 means "keep", otherwise 1 to 3650.
 fn env_days(name: &str) -> Result<Option<u64>> {
     parse_days(env_opt(name).as_deref()).with_context(|| format!("invalid {name}"))
@@ -254,9 +283,36 @@ where
         .with_context(|| format!("invalid {name}"))
 }
 
+/// `ZYVOR_AGENT_RECORDING_KEY`: 64 hex characters. A malformed value is an error, not a silent "off".
+fn recording_key_from_env() -> Result<Option<[u8; 32]>> {
+    let Some(v) = env_opt("ZYVOR_AGENT_RECORDING_KEY").filter(|s| !s.is_empty()) else {
+        return Ok(None);
+    };
+    let bytes = hex::decode(v.trim()).context("ZYVOR_AGENT_RECORDING_KEY must be hex")?;
+    let seed: [u8; 32] = bytes.try_into().map_err(|_| {
+        anyhow::anyhow!("ZYVOR_AGENT_RECORDING_KEY must be 32 bytes (64 hex characters)")
+    })?;
+    Ok(Some(seed))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_renamed_setting_prefers_the_new_name_and_falls_back_to_the_old() {
+        // Names unique to this test: the process environment is shared between tests.
+        let (new, old) = ("ZYVOR_TEST_COMPAT_NEW_A", "ZYVOR_TEST_COMPAT_OLD_A");
+        assert_eq!(env_compat(new, old), None);
+        std::env::set_var(old, "legacy");
+        assert_eq!(env_compat(new, old).as_deref(), Some("legacy"));
+        std::env::set_var(new, "current");
+        assert_eq!(env_compat(new, old).as_deref(), Some("current"));
+        std::env::set_var(new, "  ");
+        assert_eq!(env_compat(new, old).as_deref(), Some("legacy"));
+        std::env::remove_var(new);
+        std::env::remove_var(old);
+    }
 
     #[test]
     fn refuses_to_start_with_neither_token_nor_opt_out() {

@@ -163,7 +163,7 @@ export default function LiveMetrics() {
             <div className="bg-[var(--zf-canvas)] rounded-lg p-2">
               <MiniChart data={m.data} color={m.color} max={m.max} />
             </div>
-            <div className="flex justify-between mt-1.5 text-[10px] text-[var(--zf-muted)]">
+            <div className="flex justify-between mt-1.5 text-xs text-[var(--zf-muted)]">
               <span>{MAX_POINTS}s ago</span>
               <span>now</span>
             </div>

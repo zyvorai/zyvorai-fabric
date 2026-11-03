@@ -15,10 +15,13 @@
 #   FABRIC_URL=https://127.0.0.1:9095
 #   FLUXVM_URL=http://127.0.0.1:7788
 #   FABRIC_TOKEN=… | FABRIC_USER/FABRIC_PASSWORD (default admin / Admin@321)
-#   KEEP_LAB=1          leave lab tunnels/services (default: cleanup)
+#   MERION_LAB=1          leave lab tunnels/services (default: cleanup)
 #   SKIP_FLUXVM=1       skip Maglev / ipcache checks
 #
 #   ./scripts/test-wireguard-service-fabric.sh
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_LAB+x}" ] || [ -z "${KEEP_LAB:-}" ] || export MERION_LAB="$KEEP_LAB"
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -292,7 +295,7 @@ print("  ipcache", found[0])
 PY
 pass "remote-identities → FluxVM ipcache"
 
-if [[ "${KEEP_LAB:-}" != "1" ]]; then
+if [[ "${MERION_LAB:-}" != "1" ]]; then
   echo "== cleanup =="
   api DELETE "/api/dataplane/remote-backends/$ROUTE_DOMAIN/$SERVICE/$PEER_B_IP/8080" -o /dev/null -w '' || true
   api DELETE "/api/dataplane/remote-identities/$ROUTE_DOMAIN/$IDENTITY_ID" -o /dev/null -w '' || true

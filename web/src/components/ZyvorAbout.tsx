@@ -41,19 +41,19 @@ export const ZYVOR_FABRIC_HELP_LINKS: HelpDocLink[] = [
 
 export default function ZyvorAbout({ className = '' }: { className?: string }) {
   return (
-    <div className={`space-y-5 text-sm text-[#1d1d1f] ${className}`.trim()}>
+    <div className={`space-y-5 text-sm text-[var(--zf-ink)] ${className}`.trim()}>
       <div className="flex items-start gap-4">
         <div className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-500/30 to-blue-700/50 border border-blue-400/30 shadow-lg shadow-blue-500/15">
-          <Server className="w-8 h-8 text-[#0066cc]" aria-hidden />
+          <Server className="w-8 h-8 text-[var(--zf-link)]" aria-hidden />
         </div>
         <div className="min-w-0 pt-0.5">
-          <h3 className="text-lg font-semibold text-[#1d1d1f]">{ZYVOR_FABRIC_PRODUCT}</h3>
-          <p className="text-xs text-[#6e6e73] mt-0.5">Version {ZYVOR_FABRIC_VERSION}</p>
-          <p className="text-sm text-[#6e6e73] mt-2 leading-relaxed">{ZYVOR_FABRIC_TAGLINE}</p>
+          <h3 className="text-lg font-semibold text-[var(--zf-ink)]">{ZYVOR_FABRIC_PRODUCT}</h3>
+          <p className="text-xs text-[var(--zf-muted)] mt-0.5">Version {ZYVOR_FABRIC_VERSION}</p>
+          <p className="text-sm text-[var(--zf-muted)] mt-2 leading-relaxed">{ZYVOR_FABRIC_TAGLINE}</p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#d2d2d7] bg-white p-4 space-y-3">
+      <div className="rounded-xl border border-[var(--zf-hairline)] bg-[var(--zf-surface)] p-4 space-y-3">
         <p className="leading-relaxed">
           Part of the{' '}
           <a
@@ -67,15 +67,15 @@ export default function ZyvorAbout({ className = '' }: { className?: string }) {
           </a>{' '}
           product family — clustering, networking, security, storage, HA, GPU passthrough, and
           operators on FluxVM, a disposable-VM engine with no systemd dependency. Daemon:{' '}
-          <span className="font-mono text-[#6e6e73]">{ZYVOR_FABRIC_DAEMON}</span>.
+          <span className="font-mono text-[var(--zf-muted)]">{ZYVOR_FABRIC_DAEMON}</span>.
         </p>
-        <p className="text-xs text-[#6e6e73] leading-relaxed">
+        <p className="text-xs text-[var(--zf-muted)] leading-relaxed">
           {ZYVOR_LINE} · {ZYVOR_COPY}
         </p>
       </div>
 
       <div>
-        <h4 className="text-xs font-semibold text-[#6e6e73] uppercase tracking-wider mb-2">Documentation</h4>
+        <h4 className="text-xs font-semibold text-[var(--zf-muted)] uppercase tracking-wider mb-2">Documentation</h4>
         <ul className="space-y-2">
           {ZYVOR_FABRIC_HELP_LINKS.map((link) => (
             <li key={link.href}>
@@ -83,7 +83,7 @@ export default function ZyvorAbout({ className = '' }: { className?: string }) {
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[#0066cc] hover:text-blue-300 text-sm"
+                className="inline-flex items-center gap-1.5 text-[var(--zf-link)] hover:text-blue-300 text-sm"
               >
                 {link.label}
                 <ExternalLink className="w-3.5 h-3.5 shrink-0" aria-hidden />

@@ -154,7 +154,7 @@ async fn check_gpus(
         .append(
             Some(session_id),
             AuditPhase::Performed,
-            "keep.cell.gpus",
+            "merion.cell.gpus",
             Some(agent.name.clone()),
             json!({"devices": devices}),
         )
@@ -453,7 +453,9 @@ pub fn public_router(state: Arc<AppState>) -> Router {
             post(crate::suggestions::dismiss),
         )
         .route("/v1/goals/{id}/browse", post(crate::goals::goal_browse))
-        .route("/v1/keep/status", get(crate::demos::keep_status))
+        .route("/v1/merion/status", get(crate::demos::merion_status))
+        // Pre-rename alias, kept so existing clients keep working.
+        .route("/v1/keep/status", get(crate::demos::merion_status))
         .route(
             "/v1/demos",
             get(crate::demos::demo_list).post(crate::demos::demo_save),
@@ -476,6 +478,23 @@ pub fn public_router(state: Arc<AppState>) -> Router {
             "/v1/users/{id}/devices/{device}",
             axum::routing::delete(remove_device),
         )
+        .route(
+            "/v1/users/{id}/changeset-policies",
+            get(list_changeset_policies),
+        )
+        .route(
+            "/v1/users/{id}/changeset-policies/{agent}",
+            get(get_changeset_policy)
+                .put(put_changeset_policy)
+                .delete(delete_changeset_policy),
+        )
+        .route("/v1/mcp/servers", get(crate::mcp_gateway::list_servers))
+        .route(
+            "/v1/mcp/servers/{name}",
+            get(crate::mcp_gateway::get_server)
+                .put(crate::mcp_gateway::put_server)
+                .delete(crate::mcp_gateway::delete_server),
+        )
         .route("/v1/usage", get(usage_route))
         .route("/v1/inbox", get(inbox))
         .route("/v1/receipts", get(crate::receipts::list_receipts))
@@ -486,6 +505,7 @@ pub fn public_router(state: Arc<AppState>) -> Router {
                 .delete(crate::connections::delete_connection),
         )
         .route("/v1/whoami", get(whoami))
+        .route("/v1/model-usage", get(crate::model_call::usage))
         .route("/v1/model-grants", get(crate::model_call::list_grants))
         .route(
             "/v1/model-grants/{key}",
@@ -512,6 +532,10 @@ pub fn public_router(state: Arc<AppState>) -> Router {
         .route("/v1/approvals/{id}", post(decide_approval))
         .route("/v1/sessions/{id}/speculate", post(speculate_session))
         .route(
+            "/v1/sessions/{id}/changesets/{cs}/restore",
+            post(restore_changeset),
+        )
+        .route(
             "/v1/sessions/{id}/grants",
             post(create_session_grant)
                 .get(list_session_grants)
@@ -536,6 +560,9 @@ pub fn public_router(state: Arc<AppState>) -> Router {
             get(list_binary_pins).delete(clear_binary_pins),
         )
         .route("/v1/sessions/{id}/cockpit", get(session_cockpit))
+        .route("/v1/sessions/{id}/report", get(session_report))
+        .route("/v1/sessions/{id}/recording", get(session_recording))
+        .route("/v1/recordings/verify", post(verify_recording))
         .route("/v1/export-tokens", post(mint_export_token))
         .route("/v1/vault/status", get(vault_status))
         .route("/v1/vault/unwrap-tokens", post(mint_unwrap_token))
@@ -552,11 +579,17 @@ pub fn public_router(state: Arc<AppState>) -> Router {
         .route("/healthz", get(|| async { Json(json!({"ok": true})) }))
         .route("/v1/hooks/{id}", post(crate::schedules::webhook_ingress))
         .route(
+            "/v1/chatops/slack/interact",
+            post(crate::chatops::slack_interact),
+        )
+        .route(
             "/v1/triggers/{id}/hook",
             post(crate::triggers::trigger_hook).layer(axum::extract::DefaultBodyLimit::max(
                 crate::demos::MAX_BATCH_BYTES,
             )),
         )
+        .route("/merion/cockpit", get(cockpit_page))
+        .route("/merion/browser", get(crate::browser::browser_page))
         .route("/keep/cockpit", get(cockpit_page))
         .route("/keep/browser", get(crate::browser::browser_page))
         .merge(protected)
@@ -655,9 +688,7 @@ async fn deploy_agent(
     headers: HeaderMap,
     body: Bytes,
 ) -> ApiResult<(StatusCode, Json<crate::model::AgentRecord>)> {
-    let signature = headers
-        .get("x-keep-manifest-signature")
-        .and_then(|value| value.to_str().ok());
+    let signature = header_str(&headers, "x-merion-manifest-signature");
     state
         .policy_trust
         .verify_deployment(&body, signature)
@@ -688,6 +719,9 @@ async fn deploy_agent(
         }
     }
     if let Err(message) = req.manifest.validate_confidential() {
+        return Err(ApiError::bad_request(message));
+    }
+    if let Err(message) = req.manifest.validate_verify_command() {
         return Err(ApiError::bad_request(message));
     }
     if let Err(message) = req.manifest.validate_gpus() {
@@ -994,6 +1028,7 @@ pub(crate) async fn create_session(
             parent_session_id: req.parent_session_id,
             user_id: req.user_id.clone(),
             tainted_by: vec![],
+            writes: 0,
             confidential: confidential.clone(),
             agent_paused_reason: None,
             browse: {
@@ -2341,6 +2376,11 @@ async fn delegate_session(
     Ok((status, Json(view)))
 }
 
+/// A request header's value as text, if present and valid UTF-8.
+fn header_str<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
+    headers.get(name).and_then(|v| v.to_str().ok())
+}
+
 #[derive(Debug, serde::Deserialize)]
 struct AuditQuery {
     #[serde(default)]
@@ -2399,7 +2439,7 @@ async fn list_audit(
     ))
 }
 
-/// Full audit/trajectory export — requires X-Keep-Export-Token (training default off).
+/// Full audit/trajectory export — requires X-Merion-Export-Token (training default off).
 async fn export_audit(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
@@ -2414,9 +2454,7 @@ async fn export_audit(
             )))
         }
     };
-    let export = headers
-        .get("x-keep-export-token")
-        .and_then(|v| v.to_str().ok());
+    let export = header_str(&headers, "x-merion-export-token");
     state
         .export_tokens
         .authorize(export, "audit")
@@ -2444,7 +2482,7 @@ async fn export_audit(
         .append(
             query.session_id,
             AuditPhase::Performed,
-            "keep.audit.exported",
+            "merion.audit.exported",
             None,
             json!({"limit": limit}),
         )
@@ -2459,7 +2497,7 @@ async fn export_audit(
                     "application/x-ndjson; charset=utf-8",
                 ),
                 (
-                    axum::http::HeaderName::from_static("x-keep-audit-chain"),
+                    axum::http::HeaderName::from_static("x-merion-audit-chain"),
                     verdict,
                 ),
             ],
@@ -2513,7 +2551,7 @@ async fn clear_binary_pins(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.binary_pins.cleared",
+            "merion.binary_pins.cleared",
             Some(name.clone()),
             json!({"removed": removed, "path": query.path}),
         )
@@ -2537,7 +2575,7 @@ async fn get_policy_suggestions(
         .get_agent(&name)
         .await
         .ok_or_else(|| ApiError::not_found("agent not found"))?;
-    let current = crate::policy::KeepPolicy::from_manifest(&agent.manifest);
+    let current = crate::policy::MerionPolicy::from_manifest(&agent.manifest);
     let sessions: std::collections::HashSet<Uuid> = state
         .store
         .list_sessions()
@@ -2572,7 +2610,7 @@ async fn get_policy_suggestions(
     })))
 }
 
-/// Keep: readable Sentinel policy as `keep.policy.yaml`.
+/// Keep: readable Sentinel policy as `merion.policy.yaml`.
 async fn get_agent_policy(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
@@ -2582,7 +2620,7 @@ async fn get_agent_policy(
         .get_agent(&name)
         .await
         .ok_or_else(|| ApiError::not_found("agent not found"))?;
-    let yaml = crate::policy::KeepPolicy::from_manifest(&agent.manifest)
+    let yaml = crate::policy::MerionPolicy::from_manifest(&agent.manifest)
         .to_yaml()
         .map_err(ApiError::internal)?;
     Ok((
@@ -2602,9 +2640,7 @@ async fn put_agent_policy(
     headers: HeaderMap,
     body: String,
 ) -> ApiResult<Json<Value>> {
-    let sig = headers
-        .get("x-keep-policy-signature")
-        .and_then(|v| v.to_str().ok());
+    let sig = header_str(&headers, "x-merion-policy-signature");
     state
         .policy_trust
         .verify_yaml(body.as_bytes(), sig)
@@ -2614,17 +2650,14 @@ async fn put_agent_policy(
         .get_agent(&name)
         .await
         .ok_or_else(|| ApiError::not_found("agent not found"))?;
-    let policy = crate::policy::KeepPolicy::from_yaml(&body).map_err(ApiError::bad_request)?;
+    let policy = crate::policy::MerionPolicy::from_yaml(&body).map_err(ApiError::bad_request)?;
     policy.enforceable().map_err(ApiError::bad_request)?;
-    let current = crate::policy::KeepPolicy::from_manifest(&agent.manifest);
+    let current = crate::policy::MerionPolicy::from_manifest(&agent.manifest);
     let risks = crate::policy_lint::review_change(Some(&current), &policy);
-    let acked = headers
-        .get("x-keep-policy-ack-risk")
-        .and_then(|v| v.to_str().ok())
-        == Some("1");
+    let acked = header_str(&headers, "x-merion-policy-ack-risk") == Some("1");
     if crate::policy_lint::needs_ack(&risks) && !acked {
         return Err(ApiError::conflict(format!(
-            "policy change widens access ({}); review it and resend with X-Keep-Policy-Ack-Risk: 1",
+            "policy change widens access ({}); review it and resend with X-Merion-Policy-Ack-Risk: 1",
             crate::policy_lint::summarize_high(&risks)
         )));
     }
@@ -2658,7 +2691,7 @@ async fn put_agent_policy(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.policy.set",
+            "merion.policy.set",
             Some(name),
             json!({
                 "version": record.version,
@@ -2670,12 +2703,90 @@ async fn put_agent_policy(
     Ok(Json(json!({
         "name": record.name,
         "version": record.version,
-        "policy": crate::policy::KeepPolicy::from_manifest(&record.manifest),
+        "policy": crate::policy::MerionPolicy::from_manifest(&record.manifest),
         "risks": risks,
     })))
 }
 
 /// Keep cockpit: taint paint + last Sentinel/audit decisions for a session.
+/// `GET /v1/sessions/{id}/report`: what the session did, what the host checked and did not, what remains, and
+/// what can be undone (docs/merion/design/run-report.md). Built from host records only.
+async fn session_report(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Value>> {
+    let session = require_session(&state, id).await?;
+    let mut approvals = state.store.approvals_of_session(id).await;
+    approvals.sort_by_key(|a| a.created_at);
+    let audit = state
+        .store
+        .audit
+        .list(Some(id), usize::MAX)
+        .await
+        .map_err(ApiError::internal)?;
+    let mut receipts = state.store.receipts.list(None, usize::MAX).await;
+    receipts.retain(|r| r.session_id == id);
+    Ok(Json(crate::run_report::build(&crate::run_report::Inputs {
+        session: &session,
+        approvals: &approvals,
+        audit: &audit,
+        receipts: &receipts,
+    })))
+}
+
+/// `GET /v1/sessions/{id}/recording`: the signed, masked, replayable record of a session (docs/merion/design/session-recording.md).
+/// Off (404) unless `ZYVOR_AGENT_RECORDING_KEY` is set. Each export is journaled with counts only.
+async fn session_recording(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Value>> {
+    let Some(seed) = state.config.recording_key else {
+        return Err(ApiError::not_found("session recording is not enabled"));
+    };
+    let session = require_session(&state, id).await?;
+    let mut approvals = state.store.approvals_of_session(id).await;
+    approvals.sort_by_key(|a| a.created_at);
+    let audit = state
+        .store
+        .audit
+        .list(Some(id), usize::MAX)
+        .await
+        .map_err(ApiError::internal)?;
+    let events = state
+        .store
+        .events_after(id, 0)
+        .await
+        .map_err(ApiError::internal)?;
+    let bundle = crate::recording::build(&crate::recording::Inputs {
+        session: &session,
+        audit: &audit,
+        events: &events,
+        approvals: &approvals,
+    });
+    let steps = bundle["steps"].as_array().map_or(0, Vec::len);
+    let _ = state
+        .store
+        .audit
+        .append(
+            Some(id),
+            crate::audit::AuditPhase::Performed,
+            "merion.recording.export",
+            None,
+            json!({ "steps": steps }),
+        )
+        .await;
+    Ok(Json(crate::recording::sign(bundle, &seed)))
+}
+
+/// `POST /v1/recordings/verify`: check a signed recording's digest and signature. Says who signed it; whether to trust
+/// that signer is the caller's call.
+async fn verify_recording(Json(signed): Json<Value>) -> Json<Value> {
+    Json(match crate::recording::verify(&signed) {
+        Ok(signer) => json!({ "valid": true, "signer": signer }),
+        Err(why) => json!({ "valid": false, "reason": why }),
+    })
+}
+
 async fn session_cockpit(
     State(state): State<Arc<AppState>>,
     Path(id): Path<Uuid>,
@@ -2792,7 +2903,7 @@ async fn session_cockpit(
         "browser_view": format!("/v1/sessions/{id}/browser/view"),
         "browser_screenshot": format!("/v1/sessions/{id}/browser/screenshot"),
         "browser_screencast": format!("/v1/sessions/{id}/browser/screencast"),
-        "browser_page": format!("/keep/browser?session={id}"),
+        "browser_page": format!("/merion/browser?session={id}"),
         "browser": browser_cap,
         "agent_paused_reason": session.agent_paused_reason,
         "browse": {
@@ -2852,7 +2963,7 @@ async fn host_recover_session(
             .append(
                 Some(id),
                 AuditPhase::Denied,
-                "keep.host_recover.refused",
+                "merion.host_recover.refused",
                 None,
                 json!({
                     "reason": "confidential",
@@ -2885,7 +2996,7 @@ async fn host_recover_session(
             .append(
                 Some(id),
                 AuditPhase::Denied,
-                "keep.host_recover.bad_keys",
+                "merion.host_recover.bad_keys",
                 None,
                 json!({"security_profile": receipt.security_profile}),
             )
@@ -2900,7 +3011,7 @@ async fn host_recover_session(
         .append(
             Some(id),
             AuditPhase::Performed,
-            "keep.host_recover.granted",
+            "merion.host_recover.granted",
             None,
             json!({
                 "security_profile": receipt.security_profile,
@@ -2947,7 +3058,7 @@ async fn mint_export_token(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.export_token.minted",
+            "merion.export_token.minted",
             None,
             json!({"scope": record.scope, "expires_at": record.expires_at}),
         )
@@ -2957,7 +3068,7 @@ async fn mint_export_token(
         "scope": record.scope,
         "expires_at": record.expires_at,
         "id": record.id,
-        "note": "Present as X-Keep-Export-Token. Without it, GET /v1/audit and pack export are refused.",
+        "note": "Present as X-Merion-Export-Token. Without it, GET /v1/audit and pack export are refused.",
     })))
 }
 
@@ -2993,7 +3104,7 @@ async fn mint_unwrap_token(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.unwrap_token.minted",
+            "merion.unwrap_token.minted",
             None,
             json!({
                 "scope": record.scope,
@@ -3030,7 +3141,7 @@ async fn unlock_vault(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.vault.unlocked",
+            "merion.vault.unlocked",
             None,
             json!({
                 "until": until,
@@ -3107,7 +3218,7 @@ async fn user_held_challenge(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.vault.user_held.challenge",
+            "merion.vault.user_held.challenge",
             None,
             json!({
                 "id": challenge.id,
@@ -3144,7 +3255,7 @@ async fn user_held_complete(
             .append(
                 None,
                 AuditPhase::Denied,
-                "keep.vault.user_held.complete_refused",
+                "merion.vault.user_held.complete_refused",
                 None,
                 json!({
                     "challenge_id": challenge.id,
@@ -3166,7 +3277,7 @@ async fn user_held_complete(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.vault.user_held.complete",
+            "merion.vault.user_held.complete",
             None,
             json!({
                 "challenge_id": challenge.id,
@@ -3195,9 +3306,7 @@ async fn pack_agent(
     Path(name): Path<String>,
     headers: HeaderMap,
 ) -> ApiResult<Json<Value>> {
-    let export = headers
-        .get("x-keep-export-token")
-        .and_then(|v| v.to_str().ok());
+    let export = header_str(&headers, "x-merion-export-token");
     state
         .export_tokens
         .authorize(export, "pack")
@@ -3208,8 +3317,8 @@ async fn pack_agent(
         .get_agent(&name)
         .await
         .ok_or_else(|| ApiError::not_found("agent not found"))?;
-    let policy = crate::policy::KeepPolicy::from_manifest(&agent.manifest);
-    let pack = crate::policy::KeepPackManifest {
+    let policy = crate::policy::MerionPolicy::from_manifest(&agent.manifest);
+    let pack = crate::policy::MerionPackManifest {
         version: 1,
         agent: agent.name.clone(),
         agent_version: agent.version.clone(),
@@ -3220,7 +3329,7 @@ async fn pack_agent(
         fluxvm_notes: [
             (
                 "disk".into(),
-                "Copy the FluxVM qcow2 / workspace for this agent's sandboxes separately; keepctl unpack restores policy only.".into(),
+                "Copy the FluxVM qcow2 / workspace for this agent's sandboxes separately; merionctl unpack restores policy only.".into(),
             ),
             (
                 "vault".into(),
@@ -3433,7 +3542,7 @@ async fn mint_user_token(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.user_token.minted",
+            "merion.user_token.minted",
             Some(req.user_id.clone()),
             json!({ "scopes": claims.scopes, "expires_at": claims.expires_at }),
         )
@@ -3468,7 +3577,7 @@ async fn revoke_user_tokens(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.user_token.revoked",
+            "merion.user_token.revoked",
             Some(user.clone()),
             json!({ "not_before": floor }),
         )
@@ -3618,7 +3727,7 @@ async fn enroll_device(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.device.enrolled",
+            "merion.device.enrolled",
             Some(user.clone()),
             json!({ "device_id": record.device_id, "alg": record.alg, "push_kind": record.push.as_ref().map(|p| p.kind.clone()) }),
         )
@@ -3650,7 +3759,7 @@ async fn remove_device(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.device.removed",
+            "merion.device.removed",
             Some(user),
             json!({ "device_id": device }),
         )
@@ -3908,13 +4017,53 @@ const MAX_SPECULATE_COMMAND_BYTES: usize = 8 * 1024;
 
 #[derive(Debug, serde::Deserialize)]
 struct SpeculateSessionRequest {
+    #[serde(default)]
     command: String,
+    /// Several commands run in order as one changeset; stops at the first failure.
+    /// Give this or `command`, not both.
+    #[serde(default)]
+    commands: Vec<String>,
     #[serde(default)]
     timeout_seconds: Option<u64>,
     #[serde(default)]
     paths: Option<Vec<String>>,
     #[serde(default)]
     ttl_seconds: Option<u64>,
+}
+
+const MAX_SPECULATE_COMMANDS: usize = 16;
+
+/// One command, or `commands` joined so they run in order and stop at the first
+/// failure. Each is wrapped in a brace group so a `;` or a trailing `#` inside one
+/// cannot change how its neighbours combine. The result is still one changeset.
+fn build_speculate_command(command: &str, commands: &[String]) -> Result<String, String> {
+    let command = command.trim();
+    if !commands.is_empty() {
+        if !command.is_empty() {
+            return Err("give either command or commands, not both".into());
+        }
+        if commands.len() > MAX_SPECULATE_COMMANDS {
+            return Err(format!(
+                "commands must have at most {MAX_SPECULATE_COMMANDS} entries"
+            ));
+        }
+        let parts: Vec<&str> = commands.iter().map(|c| c.trim()).collect();
+        if parts.iter().any(|c| c.is_empty()) {
+            return Err("commands must not contain an empty command".into());
+        }
+        if parts.len() == 1 {
+            return Ok(parts[0].to_string());
+        }
+        return Ok(parts
+            .iter()
+            .map(|c| format!("{{ {c}\n}}"))
+            .collect::<Vec<_>>()
+            .join(" && "));
+    }
+    if command.is_empty() {
+        return Err("command is required".into());
+    }
+    Ok(command.to_string())
 }
 
 /// `POST /v1/sessions/{id}/speculate`: run a command in an isolated copy of the
@@ -3932,10 +4081,9 @@ async fn speculate_session(
     if let Some(msg) = crate::attestation::host_channel_forbidden(session.confidential.as_ref()) {
         return Err(ApiError::forbidden(msg));
     }
-    let command = req.command.trim();
-    if command.is_empty() {
-        return Err(ApiError::bad_request("command is required"));
-    }
+    let command =
+        build_speculate_command(&req.command, &req.commands).map_err(ApiError::bad_request)?;
+    let command = command.as_str();
     if command.len() > MAX_SPECULATE_COMMAND_BYTES {
         return Err(ApiError::bad_request(format!(
             "command must be at most {MAX_SPECULATE_COMMAND_BYTES} bytes"
@@ -4005,10 +4153,315 @@ async fn speculate_session(
         .await
         .map_err(ApiError::internal)?;
     audit_approval_planned(&state, &record).await;
-    Ok((
-        StatusCode::CREATED,
-        Json(json!({ "approval": record, "changeset": changeset })),
-    ))
+    let policy_file = std::env::var("ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE").ok();
+    dry_run_changeset_policy(
+        &state,
+        &session,
+        &record,
+        &changeset,
+        policy_file.as_deref(),
+    )
+    .await;
+    let (record, auto_error) = auto_decide_changeset(&state, &session, record, &changeset).await;
+    let mut body = json!({ "approval": record, "changeset": changeset });
+    if let Some(error) = auto_error {
+        body["auto_apply_error"] = json!(error);
+    }
+    Ok((StatusCode::CREATED, Json(body)))
+}
+
+/// Stage two of auto-approval (docs/merion/design/auto-approve-changesets.md): if the operator set a policy
+/// for this user's agent and the measured changeset is inside it, decide it the way a person's approve does
+/// (same transition, same FluxVM approve-then-apply). Every doubt leaves the approval pending: no policy,
+/// a session with no user, a phone signature being required, the hourly cap, or any refusal from the
+/// evaluator. Returns the approval as it now stands and an error if the apply step failed.
+async fn auto_decide_changeset(
+    state: &AppState,
+    session: &SessionRecord,
+    record: ApprovalRecord,
+    changeset: &crate::fluxvm::Changeset,
+) -> (ApprovalRecord, Option<String>) {
+    use crate::changeset_policy::{eligible, Subject, MAX_AUTO_PER_HOUR};
+    let Some(user) = session.user_id.as_deref() else {
+        return (record, None);
+    };
+    let Some(stored) = state.store.get_changeset_policy(user, &session.agent).await else {
+        return (record, None);
+    };
+    let policy = &stored.policy;
+    let broker = broker_destinations(state, session).await;
+    let subject = Subject {
+        exit_code: changeset.exit_code,
+        changes: &changeset.changes,
+        side_effects: &changeset.side_effects,
+        staged: &changeset.staged,
+        unstaged: &changeset.unstaged,
+        tainted: !session.tainted_by.is_empty(),
+        broker_destinations: broker.as_deref(),
+    };
+    let since = Utc::now() - chrono::Duration::hours(1);
+    let recent = state
+        .store
+        .approvals_of_session(session.id)
+        .await
+        .iter()
+        .filter(|a| {
+            a.kind == ApprovalKind::Changeset
+                && a.status == ApprovalStatus::Approved
+                && a.comment
+                    .as_deref()
+                    .is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX))
+                && a.decided_at.is_some_and(|t| t > since)
+        })
+        .count();
+    let verdict = if crate::devices::signature_required(state, &record) {
+        Err("a phone signature is required, so a person decides".to_string())
+    } else if session.status != SessionStatus::Running {
+        Err("the session is not running".to_string())
+    } else if policy.expired(Utc::now()) {
+        Err("the timed grant has expired, so a person decides".to_string())
+    } else if recent >= MAX_AUTO_PER_HOUR {
+        Err(format!(
+            "{MAX_AUTO_PER_HOUR} auto-approvals in the last hour, so a person decides"
+        ))
+    } else {
+        eligible(policy, &subject)
+    };
+    let audit = |phase: AuditPhase, detail: Value| {
+        let record = &record;
+        async move {
+            if let Err(error) = state
+                .store
+                .audit
+                .append(
+                    Some(record.session_id),
+                    phase,
+                    "changeset.policy".to_string(),
+                    record.subject.clone(),
+                    detail,
+                )
+                .await
+            {
+                tracing::error!(%error, approval_id = %record.id, "failed to write audit entry");
+            }
+        }
+    };
+    let files = match verdict {
+        Ok(files) => files,
+        Err(reason) => {
+            audit(
+                AuditPhase::Planned,
+                json!({"approval_id": record.id, "auto": false, "policy_id": policy.id,
+                       "policy_version": policy.version, "reason": reason}),
+            )
+            .await;
+            return (record, None);
+        }
+    };
+    let comment = format!("{AUTO_APPROVED_PREFIX} {} v{}", policy.id, policy.version);
+    let decided = match state
+        .store
+        .transition_approval(record.id, ApprovalStatus::Approved, Some(comment), None)
+        .await
+    {
+        Ok(Some(decided)) => decided,
+        Ok(None) => return (record, None),
+        Err(error) => {
+            tracing::error!(%error, approval_id = %record.id, "auto-approval failed to record");
+            return (record, None);
+        }
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(decided.session_id),
+            AuditPhase::Approved,
+            format!("approval.{}", decided.kind.as_str()),
+            decided.subject.clone(),
+            json!({"approval_id": decided.id, "comment": decided.comment, "auto": true,
+                   "policy_id": policy.id, "policy_version": policy.version, "files": files}),
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %decided.id, "failed to write audit entry");
+    }
+    let apply_error = settle_changeset(state, session, &decided)
+        .await
+        .err()
+        .map(|e| format!("{e:?}"));
+    (decided, apply_error)
+}
+
+/// The destinations FluxVM will list for a cell confined to Merion's own egress broker, when it is safe to
+/// treat that as "nothing leaves": the agent denies egress, is strictly confined, and allows no host or
+/// browser. `None` for any other agent or when the gateway cannot be read, so egress that is not `blocked`
+/// stays a person's decision. The format matches FluxVM's allow-list report (`<cidr> tcp/<port>`).
+async fn broker_destinations(state: &AppState, session: &SessionRecord) -> Option<Vec<String>> {
+    let agent = state.store.get_agent(&session.agent).await?;
+    let m = &agent.manifest;
+    if m.egress_mode != crate::model::EgressMode::Deny
+        || m.confinement != crate::model::Confinement::Strict
+        || !m.egress_allow_hosts.is_empty()
+        || m.browser.is_some()
+    {
+        return None;
+    }
+    let host = match state.config.egress_advertise_host.as_deref() {
+        Some(v) => v.to_string(),
+        None => state
+            .fluxvm
+            .default_gateway(session.sandbox_id)
+            .await
+            .ok()?,
+    };
+    let gateway = crate::confine::parse_gateway(&host).ok()?;
+    let prefix = if gateway.is_ipv4() { 32 } else { 128 };
+    let mut ports = vec![state.config.egress_listen.port()];
+    ports.extend(state.config.proxy_listen.map(|a| a.port()));
+    Some(
+        ports
+            .into_iter()
+            .map(|p| format!("{gateway}/{prefix} tcp/{p}"))
+            .collect(),
+    )
+}
+
+/// The start of the comment an automatic approval carries, so it is never mistaken for a person's.
+use crate::run_report::AUTO_APPROVED_PREFIX;
+
+/// `GET /v1/users/{id}/changeset-policies`: the operator, or the user for their own id.
+async fn list_changeset_policies(
+    State(state): State<Arc<AppState>>,
+    Path(user): Path<String>,
+) -> Json<Value> {
+    Json(json!({ "items": state.store.list_changeset_policies(&user).await }))
+}
+
+/// `GET /v1/users/{id}/changeset-policies/{agent}` (operator).
+async fn get_changeset_policy(
+    State(state): State<Arc<AppState>>,
+    Path((user, agent)): Path<(String, String)>,
+) -> ApiResult<Json<Value>> {
+    match state.store.get_changeset_policy(&user, &agent).await {
+        Some(p) => Ok(Json(json!(p))),
+        None => Err(ApiError::not_found("no policy for that user and agent")),
+    }
+}
+
+/// `PUT /v1/users/{id}/changeset-policies/{agent}` (operator only): pre-authorise a bounded class of
+/// changeset for one user's agent. A user, session or worker token cannot set it, so nothing the agent
+/// can reach widens what skips a person's click. The body is the policy; the stored version is assigned here.
+async fn put_changeset_policy(
+    State(state): State<Arc<AppState>>,
+    Path((user, agent)): Path<(String, String)>,
+    body: String,
+) -> ApiResult<Json<Value>> {
+    crate::model::validate_user_id(&user).map_err(ApiError::bad_request)?;
+    if agent.is_empty() || agent.len() > 128 {
+        return Err(ApiError::bad_request("agent name is empty or too long"));
+    }
+    let policy =
+        crate::changeset_policy::ChangesetPolicy::parse(&body).map_err(ApiError::bad_request)?;
+    let stored = state
+        .store
+        .save_changeset_policy(&user, &agent, policy)
+        .await
+        .map_err(ApiError::internal)?;
+    let _ = state
+        .store
+        .audit
+        .append(
+            None,
+            AuditPhase::Performed,
+            "merion.changeset_policy.set",
+            Some(user),
+            json!({ "agent": agent, "policy": stored.policy }),
+        )
+        .await;
+    Ok(Json(json!(stored)))
+}
+
+/// `DELETE /v1/users/{id}/changeset-policies/{agent}` (operator): takes effect on the next speculate.
+async fn delete_changeset_policy(
+    State(state): State<Arc<AppState>>,
+    Path((user, agent)): Path<(String, String)>,
+) -> ApiResult<StatusCode> {
+    if !state
+        .store
+        .delete_changeset_policy(&user, &agent)
+        .await
+        .map_err(ApiError::internal)?
+    {
+        return Err(ApiError::not_found("no policy for that user and agent"));
+    }
+    let _ = state
+        .store
+        .audit
+        .append(
+            None,
+            AuditPhase::Performed,
+            "merion.changeset_policy.removed",
+            Some(user),
+            json!({ "agent": agent }),
+        )
+        .await;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Stage one of auto-approval (docs/merion/design/auto-approve-changesets.md): say whether an operator's
+/// policy file *would* have approved this changeset, and journal the answer. It never decides anything; the
+/// approval stays pending. The file is read on every call, so editing or removing it takes effect at once.
+async fn dry_run_changeset_policy(
+    state: &AppState,
+    session: &SessionRecord,
+    record: &ApprovalRecord,
+    changeset: &crate::fluxvm::Changeset,
+    policy_file: Option<&str>,
+) {
+    use crate::changeset_policy::{eligible, ChangesetPolicy, Subject};
+    let Some(path) = policy_file.filter(|p| !p.is_empty()) else {
+        return;
+    };
+    let broker = broker_destinations(state, session).await;
+    let verdict = std::fs::read_to_string(path)
+        .map_err(|e| format!("policy file unreadable: {e}"))
+        .and_then(|text| ChangesetPolicy::parse(&text))
+        .and_then(|policy| {
+            let subject = Subject {
+                exit_code: changeset.exit_code,
+                changes: &changeset.changes,
+                side_effects: &changeset.side_effects,
+                staged: &changeset.staged,
+                unstaged: &changeset.unstaged,
+                tainted: !session.tainted_by.is_empty(),
+                broker_destinations: broker.as_deref(),
+            };
+            eligible(&policy, &subject).map(|files| (policy.id, policy.version, files))
+        });
+    let detail = match verdict {
+        Ok((id, version, files)) => json!({
+            "approval_id": record.id, "dry_run": true, "would_auto_approve": true,
+            "policy_id": id, "policy_version": version, "files": files,
+        }),
+        Err(reason) => json!({
+            "approval_id": record.id, "dry_run": true, "would_auto_approve": false, "reason": reason,
+        }),
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(record.session_id),
+            AuditPhase::Planned,
+            "changeset.policy.dry_run".to_string(),
+            record.subject.clone(),
+            detail,
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %record.id, "failed to write audit entry");
+    }
 }
 
 /// Carry out a person's decision on a changeset approval. Approve means
@@ -4029,6 +4482,9 @@ async fn settle_changeset(
         return Err(ApiError::internal("changeset approval has no changeset_id"));
     };
     let approved = record.status == ApprovalStatus::Approved;
+    if approved {
+        snapshot_before_apply(state, session, record, &changeset_id).await;
+    }
     let outcome = if approved {
         match state
             .fluxvm
@@ -4077,6 +4533,9 @@ async fn settle_changeset(
     {
         tracing::error!(%error, approval_id = %record.id, "failed to write audit entry");
     }
+    if approved && outcome.is_ok() {
+        run_verify_command(state, session, record, &changeset_id.to_string()).await;
+    }
     outcome.map(|_| ()).map_err(|e| {
         ApiError::bad_gateway(format!(
             "your decision is recorded, but FluxVM could not {} the changeset: {e:#}",
@@ -4085,7 +4544,192 @@ async fn settle_changeset(
     })
 }
 
-async fn decide_approval(
+/// For an agent that opted in (`snapshot_before_apply`), save a FluxVM snapshot of the cell just before its changeset is
+/// applied, and journal it as `changeset.snapshot`. A failed snapshot does not stop the apply, which a person already
+/// approved; it is journaled as failed and the report then says there is no undo.
+async fn snapshot_before_apply(
+    state: &AppState,
+    session: &SessionRecord,
+    record: &ApprovalRecord,
+    changeset_id: &Uuid,
+) {
+    let Ok(agent) = state
+        .store
+        .get_agent_version(&session.agent, &session.agent_version)
+        .await
+    else {
+        return;
+    };
+    if !agent.manifest.snapshot_before_apply {
+        return;
+    }
+    let tag = crate::run_report::snapshot_tag(&changeset_id.to_string());
+    let (phase, detail) = match state.fluxvm.snapshot_tag(session.sandbox_id, &tag).await {
+        Ok(()) => (
+            AuditPhase::Performed,
+            json!({ "approval_id": record.id, "changeset_id": changeset_id, "tag": tag }),
+        ),
+        Err(e) => (
+            AuditPhase::Failed,
+            json!({ "approval_id": record.id, "changeset_id": changeset_id, "tag": tag, "error": format!("{e:#}") }),
+        ),
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(record.session_id),
+            phase,
+            "changeset.snapshot".to_string(),
+            record.subject.clone(),
+            detail,
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %record.id, "failed to write snapshot audit entry");
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct RestoreRequest {
+    #[serde(default)]
+    confirm: bool,
+}
+
+/// `POST /v1/sessions/{id}/changesets/{cs}/restore` (operator only): put the cell back to the snapshot taken just before
+/// that changeset was applied. It discards everything the cell did since, so it needs `{"confirm": true}`, and it is
+/// refused unless the report would show `undo_available` for that change (see `run_report::restore_blocker`).
+async fn restore_changeset(
+    State(state): State<Arc<AppState>>,
+    Path((id, cs)): Path<(Uuid, Uuid)>,
+    Json(req): Json<RestoreRequest>,
+) -> ApiResult<Json<Value>> {
+    let session = require_session(&state, id).await?;
+    if !req.confirm {
+        return Err(ApiError::bad_request(
+            "a restore returns the whole cell to just before the change and discards everything since, including the agent's memory; send {\"confirm\": true}",
+        ));
+    }
+    if session.status.is_terminal() {
+        return Err(ApiError::conflict(
+            "the session has ended; there is no running cell to restore",
+        ));
+    }
+    let rows = state
+        .store
+        .audit
+        .list(Some(id), usize::MAX)
+        .await
+        .map_err(ApiError::internal)?;
+    if let Some(why) = crate::run_report::restore_blocker(&rows, &json!(cs.to_string())) {
+        return Err(ApiError::conflict(why));
+    }
+    let tag = crate::run_report::snapshot_tag(&cs.to_string());
+    let outcome = state.fluxvm.restore_tag(session.sandbox_id, &tag).await;
+    let (phase, detail) = match &outcome {
+        Ok(()) => (
+            AuditPhase::Performed,
+            json!({ "changeset_id": cs, "tag": tag }),
+        ),
+        Err(e) => (
+            AuditPhase::Failed,
+            json!({ "changeset_id": cs, "tag": tag, "error": format!("{e:#}") }),
+        ),
+    };
+    let _ = state
+        .store
+        .audit
+        .append(
+            Some(id),
+            phase,
+            "changeset.restore".to_string(),
+            None,
+            detail,
+        )
+        .await;
+    outcome.map_err(|e| {
+        ApiError::bad_gateway(format!("FluxVM could not restore the snapshot: {e:#}"))
+    })?;
+    Ok(Json(
+        json!({ "restored": true, "changeset_id": cs, "snapshot": tag }),
+    ))
+}
+
+/// The last few lines of a command's output, each shortened. Output can echo file content, so this is a short tail for a
+/// person to read in the report, never the whole of it.
+fn output_tail(stdout: &str, stderr: &str) -> Vec<String> {
+    let lines: Vec<&str> = stdout
+        .lines()
+        .chain(stderr.lines())
+        .filter(|l| !l.trim().is_empty())
+        .collect();
+    lines[lines.len().saturating_sub(5)..]
+        .iter()
+        .map(|l| l.chars().take(200).collect())
+        .collect()
+}
+
+/// After a changeset is applied, run the manifest's `verify_command` in the cell and journal the result as
+/// `changeset.verify`, so the run report shows it as a check. The host chose when to run it and the manifest chose
+/// what; the agent chose neither. A command that cannot run is a failed check, never a missing one.
+async fn run_verify_command(
+    state: &AppState,
+    session: &SessionRecord,
+    record: &ApprovalRecord,
+    changeset_id: &str,
+) {
+    let Ok(agent) = state
+        .store
+        .get_agent_version(&session.agent, &session.agent_version)
+        .await
+    else {
+        return;
+    };
+    let Some(command) = agent.manifest.verify_command.as_deref() else {
+        return;
+    };
+    let (phase, detail) = match state
+        .fluxvm
+        .process(session.sandbox_id, command, Some(120))
+        .await
+    {
+        Ok(out) => {
+            let exit = out.get("exit_code").and_then(Value::as_i64);
+            let text = |k: &str| out.get(k).and_then(Value::as_str).unwrap_or("").to_string();
+            (
+                if exit == Some(0) {
+                    AuditPhase::Performed
+                } else {
+                    AuditPhase::Failed
+                },
+                json!({
+                    "approval_id": record.id, "changeset_id": changeset_id, "command": command,
+                    "exit_code": exit, "tail": output_tail(&text("stdout"), &text("stderr")),
+                }),
+            )
+        }
+        Err(e) => (
+            AuditPhase::Failed,
+            json!({ "approval_id": record.id, "changeset_id": changeset_id, "command": command, "error": format!("{e:#}") }),
+        ),
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(record.session_id),
+            phase,
+            "changeset.verify".to_string(),
+            record.subject.clone(),
+            detail,
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %record.id, "failed to write verify audit entry");
+    }
+}
+
+pub(crate) async fn decide_approval(
     State(state): State<Arc<AppState>>,
     Extension(principal): Extension<Principal>,
     Path(id): Path<Uuid>,
@@ -4127,6 +4771,7 @@ async fn decide_approval(
         // Decided, or expired, between the read above and now.
         return Err(ApiError::conflict("approval is already decided"));
     };
+    crate::otlp::emit_approval(&record);
     let phase = if record.status == ApprovalStatus::Approved {
         AuditPhase::Approved
     } else {
@@ -4422,7 +5067,7 @@ mod tests {
         let rows = state.store.audit.list(Some(session), 10).await.unwrap();
         let row = rows
             .iter()
-            .find(|r| r.action == "keep.cell.gpus")
+            .find(|r| r.action == "merion.cell.gpus")
             .expect("a gpu journal row");
         assert_eq!(
             row.detail["devices"],
@@ -4470,6 +5115,8 @@ mod tests {
     struct FakeFlux {
         calls: Arc<std::sync::Mutex<Vec<String>>>,
         fail_apply: bool,
+        /// Exit code the fake guest returns for a `process` call (the verify command).
+        verify_exit: i64,
     }
 
     fn fake_changeset(sandbox: &str, cs: &str, state: &str) -> Value {
@@ -4511,7 +5158,32 @@ mod tests {
                 (StatusCode::OK, Json(fake_changeset(&id, &cs, state)))
             }
         };
+        let record = fake.clone();
+        let process = move |Path(_id): Path<String>| {
+            let record = record.clone();
+            async move {
+                record.calls.lock().unwrap().push("process".into());
+                Json(json!({
+                    "result": "exec", "exit_code": record.verify_exit,
+                    "stdout": "ran 3 tests\n1 failed: parse_dates\n", "stderr": ""
+                }))
+            }
+        };
+        let record = fake.clone();
+        let vm_verb = move |Path((_id, verb)): Path<(String, String)>, Json(body): Json<Value>| {
+            let record = record.clone();
+            async move {
+                record
+                    .calls
+                    .lock()
+                    .unwrap()
+                    .push(format!("{verb}:{}", body["tag"].as_str().unwrap_or("")));
+                Json(json!({}))
+            }
+        };
         let app = Router::new()
+            .route("/v1/sandboxes/{id}/process", post(process))
+            .route("/v1/vms/{id}/{verb}", post(vm_verb))
             .route("/v1/sandboxes/{id}/speculate", post(speculate))
             .route("/v1/sandboxes/{id}/changesets/{cs}/{verb}", post(verb));
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -4579,6 +5251,7 @@ mod tests {
             parent_session_id: None,
             user_id: None,
             tainted_by: vec![],
+            writes: 0,
             confidential: None,
             agent_paused_reason: None,
             browse: Default::default(),
@@ -4587,9 +5260,28 @@ mod tests {
         record
     }
 
+    #[test]
+    fn speculate_command_building() {
+        let v = |xs: &[&str]| xs.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert_eq!(build_speculate_command(" ls ", &[]).unwrap(), "ls");
+        assert!(build_speculate_command("  ", &[]).is_err());
+        assert!(build_speculate_command("a", &v(&["b"])).is_err());
+        assert!(build_speculate_command("", &v(&["a", " "])).is_err());
+        assert_eq!(build_speculate_command("", &v(&[" a "])).unwrap(), "a");
+        assert_eq!(
+            build_speculate_command("", &v(&["a; b", "c # note"])).unwrap(),
+            "{ a; b\n} && { c # note\n}"
+        );
+        let many: Vec<String> = (0..=MAX_SPECULATE_COMMANDS)
+            .map(|i| format!("c{i}"))
+            .collect();
+        assert!(build_speculate_command("", &many).is_err());
+    }
+
     fn speculate_req(command: &str) -> Json<SpeculateSessionRequest> {
         Json(SpeculateSessionRequest {
             command: command.into(),
+            commands: Vec::new(),
             timeout_seconds: None,
             paths: Some(vec!["/work".into()]),
             ttl_seconds: None,
@@ -4631,6 +5323,78 @@ mod tests {
         (id, vec![])
     }
 
+    async fn dry_run_detail(
+        policy: Option<&str>,
+        changes: Value,
+    ) -> (Value, ApprovalStatus, Vec<&'static str>) {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let record = state.store.get_approval(approval).await.unwrap();
+        let mut cs: crate::fluxvm::Changeset = serde_json::from_value(fake_changeset(
+            &session.sandbox_id.to_string(),
+            "00000000-0000-0000-0000-00000000c0de",
+            "pending",
+        ))
+        .unwrap();
+        cs.changes = changes;
+        cs.side_effects = json!({"egress": "blocked", "non_replayable": []});
+        cs.staged = json!({"/work/a.txt": {"size": 6}});
+        let file = std::env::temp_dir().join(format!("policy-{}.json", Uuid::new_v4()));
+        if let Some(text) = policy {
+            std::fs::write(&file, text).unwrap();
+        }
+        dry_run_changeset_policy(
+            &state,
+            &session,
+            &record,
+            &cs,
+            policy.map(|_| file.to_str().unwrap()),
+        )
+        .await;
+        let _ = std::fs::remove_file(&file);
+        let entries = state.store.audit.list(Some(session.id), 100).await.unwrap();
+        let entry = entries
+            .into_iter()
+            .rev()
+            .find(|e| e.action == "changeset.policy.dry_run")
+            .map(|e| e.detail)
+            .unwrap_or(Value::Null);
+        let after = state.store.get_approval(approval).await.unwrap();
+        let calls = fake.calls.lock().unwrap().iter().map(|_| "call").collect();
+        (entry, after.status, calls)
+    }
+
+    #[tokio::test]
+    async fn the_dry_run_reports_what_a_policy_would_do_and_decides_nothing() {
+        let policy = r#"{"id":"notes","version":3,"paths":["/work"],"max_bytes":100}"#;
+        let ok = json!({"added": ["/work/a.txt"], "modified": [], "deleted": []});
+        let (detail, status, calls) = dry_run_detail(Some(policy), ok).await;
+        assert_eq!(detail["would_auto_approve"], true);
+        assert_eq!(detail["policy_id"], "notes");
+        assert_eq!(detail["policy_version"], 3);
+        assert_eq!(status, ApprovalStatus::Pending, "a dry run never approves");
+        assert_eq!(calls.len(), 1, "only the speculate call reached FluxVM");
+
+        let outside = json!({"added": ["/etc/x"], "modified": [], "deleted": []});
+        let (detail, status, _) = dry_run_detail(Some(policy), outside).await;
+        assert_eq!(detail["would_auto_approve"], false);
+        assert!(detail["reason"].as_str().unwrap().contains("outside"));
+        assert_eq!(status, ApprovalStatus::Pending);
+    }
+
+    #[tokio::test]
+    async fn no_policy_file_or_a_broken_one_writes_nothing_or_a_refusal() {
+        let ok = json!({"added": ["/work/a.txt"], "modified": [], "deleted": []});
+        let (detail, _, _) = dry_run_detail(None, ok.clone()).await;
+        assert_eq!(detail, Value::Null, "off by default");
+        let (detail, status, _) = dry_run_detail(Some("{not json"), ok).await;
+        assert_eq!(detail["would_auto_approve"], false);
+        assert_eq!(status, ApprovalStatus::Pending);
+    }
+
     #[tokio::test]
     async fn approving_a_changeset_approves_then_applies_it_on_fluxvm() {
         let fake = FakeFlux::default();
@@ -4665,6 +5429,259 @@ mod tests {
             .unwrap();
         assert_eq!(done.status, ApprovalStatus::Denied);
         assert_eq!(*fake.calls.lock().unwrap(), ["speculate", "reject"]);
+    }
+
+    async fn report_for(state: &Arc<AppState>, session: Uuid) -> Value {
+        let Json(r) = session_report(State(state.clone()), Path(session))
+            .await
+            .unwrap();
+        r
+    }
+
+    /// A running session whose pinned agent version carries `extra` manifest fields.
+    async fn session_with_manifest(state: &Arc<AppState>, extra: Value) -> SessionRecord {
+        let mut m = json!({"template": "t"});
+        m.as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        let manifest: crate::model::AgentManifest = serde_json::from_value(m).unwrap();
+        let deployed = state
+            .store
+            .deploy_agent(crate::model::DeployAgentRequest {
+                name: "a".into(),
+                bundle_base64: base64::Engine::encode(
+                    &base64::engine::general_purpose::STANDARD,
+                    "export default 1",
+                ),
+                manifest,
+            })
+            .await
+            .unwrap();
+        let session = running_session(state, SessionStatus::Running).await;
+        state
+            .store
+            .update_session(session.id, |s| s.agent_version = deployed.version.clone())
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn a_verify_command_runs_after_the_apply_and_a_failing_one_shows_as_failed() {
+        for (exit, expect) in [(0, "passed"), (1, "failed")] {
+            let fake = FakeFlux {
+                verify_exit: exit,
+                ..Default::default()
+            };
+            let url = start_fake_flux(fake.clone()).await;
+            let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+            let session =
+                session_with_manifest(&state, json!({"verify_command": "npm test"})).await;
+            let (approval, _) = speculate_for_test(&state, session.id).await;
+            let _ = decide(&state, approval, ApprovalStatus::Approved)
+                .await
+                .unwrap();
+            let calls = fake.calls.lock().unwrap().clone();
+            assert_eq!(
+                calls.last().map(String::as_str),
+                Some("process"),
+                "{calls:?}"
+            );
+            let r = report_for(&state, session.id).await;
+            let v = r["checked"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|c| c["check"] == "the verify command exited 0")
+                .unwrap_or_else(|| panic!("no verify check in {r}"));
+            assert_eq!(v["result"], expect);
+            assert_eq!(v["command"], "npm test");
+            assert!(v["output_tail"].as_array().unwrap().len() <= 5);
+        }
+        // No verify command in the manifest: no such check, and nothing is run.
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = session_with_manifest(&state, json!({})).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        assert!(!fake.calls.lock().unwrap().contains(&"process".to_string()));
+    }
+
+    #[tokio::test]
+    async fn a_snapshot_taken_before_the_apply_makes_a_confirmed_restore_possible_once() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = session_with_manifest(&state, json!({"snapshot_before_apply": true})).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        let calls = fake.calls.lock().unwrap().clone();
+        let snap = calls
+            .iter()
+            .position(|c| c.starts_with("snapshot:merion-pre-"))
+            .expect("a snapshot");
+        let apply = calls.iter().position(|c| c == "apply").unwrap();
+        assert!(
+            snap < apply,
+            "the snapshot must come before the apply: {calls:?}"
+        );
+
+        let r = report_for(&state, session.id).await;
+        assert_eq!(r["rollback"][0]["state"], "undo_available");
+        let cs = Uuid::parse_str("00000000-0000-0000-0000-00000000c0de").unwrap();
+        let restore = |confirm: bool| {
+            restore_changeset(
+                State(state.clone()),
+                Path((session.id, cs)),
+                Json(RestoreRequest { confirm }),
+            )
+        };
+        assert_eq!(
+            restore(false).await.unwrap_err().status,
+            StatusCode::BAD_REQUEST
+        );
+        assert!(!fake
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|c| c.starts_with("restore:")));
+        let _ = restore(true).await.unwrap();
+        assert!(fake
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|c| c.starts_with("restore:merion-pre-")));
+        assert_eq!(
+            report_for(&state, session.id).await["rollback"][0]["state"],
+            "restored_from_snapshot"
+        );
+        assert_eq!(
+            restore(true).await.unwrap_err().status,
+            StatusCode::CONFLICT,
+            "only once"
+        );
+    }
+
+    #[tokio::test]
+    async fn without_the_opt_in_nothing_is_snapshotted_and_a_restore_is_refused() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = session_with_manifest(&state, json!({})).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        assert!(!fake
+            .calls
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|c| c.starts_with("snapshot:")));
+        let cs = Uuid::parse_str("00000000-0000-0000-0000-00000000c0de").unwrap();
+        let err = restore_changeset(
+            State(state.clone()),
+            Path((session.id, cs)),
+            Json(RestoreRequest { confirm: true }),
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(err.status, StatusCode::CONFLICT);
+        assert!(err.message.contains("no snapshot"), "{}", err.message);
+    }
+
+    #[tokio::test]
+    async fn the_recording_is_off_without_a_key_and_signed_masked_and_journaled_with_one() {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let mut state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let off = session_recording(State(state.clone()), Path(session.id)).await;
+        assert!(off.is_err(), "no key, no recording");
+
+        Arc::get_mut(&mut state).unwrap().config.recording_key = Some([5u8; 32]);
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        let Json(signed) = session_recording(State(state.clone()), Path(session.id))
+            .await
+            .unwrap();
+        let Json(checked) = verify_recording(Json(signed.clone())).await;
+        assert_eq!(checked["valid"], true);
+        let steps = signed["bundle"]["steps"].as_array().unwrap();
+        assert!(steps.iter().any(|s| s["source"] == "approval"));
+        assert!(steps
+            .iter()
+            .all(|s| s.get("prompt").is_none() && s.get("data").is_none()));
+        let rows = state
+            .store
+            .audit
+            .list(Some(session.id), usize::MAX)
+            .await
+            .unwrap();
+        assert!(rows.iter().any(|r| r.action == "merion.recording.export"));
+    }
+
+    #[tokio::test]
+    async fn the_report_follows_a_real_approve_deny_and_failed_apply() {
+        // Applied: checked on measured facts, no automatic undo.
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let pending = report_for(&state, session.id).await;
+        assert!(pending["did"].as_array().unwrap().is_empty());
+        assert!(pending["remaining"][0]["what"]
+            .as_str()
+            .unwrap()
+            .contains("waiting for a decision"));
+        let _ = decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap();
+        let r = report_for(&state, session.id).await;
+        assert_eq!(r["did"][0]["type"], "changeset_applied");
+        assert_eq!(r["rollback"][0]["state"], "applied_no_automatic_undo");
+        assert!(r["checked"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["result"] == "passed"));
+
+        // Denied: nothing to undo.
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Denied)
+            .await
+            .unwrap();
+        let r = report_for(&state, session.id).await;
+        assert_eq!(r["did"][0]["type"], "changeset_not_applied");
+        assert_eq!(r["rollback"][0]["state"], "nothing_to_undo");
+
+        // Approved but FluxVM could not apply: reported as failed and unknown, not as applied.
+        let fake = FakeFlux {
+            fail_apply: true,
+            ..Default::default()
+        };
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let _ = decide(&state, approval, ApprovalStatus::Approved).await;
+        let r = report_for(&state, session.id).await;
+        assert_eq!(r["did"][0]["type"], "changeset_apply_failed");
+        assert_eq!(r["rollback"][0]["state"], "unknown");
+        assert!(r["checked"].as_array().unwrap().is_empty());
     }
 
     #[tokio::test]

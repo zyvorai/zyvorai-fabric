@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-// The calendar-suggestions example agent: a heuristic proactive finder (docs/keep/REMAINING.md's "a real finder"). Pure decision
+// The calendar-suggestions example agent: a heuristic proactive finder (docs/merion/REMAINING.md's "a real finder"). Pure decision
 // functions tested directly, then the whole agent against a fake `ctx.fetch`, the same pattern google-agents.test.js uses.
 
 import assert from "node:assert/strict";
@@ -9,7 +9,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { buildBundle } from "../src/bundle.js";
 
-const agentFile = fileURLToPath(new URL("../../../examples/keep-agents/calendar-suggestions/agent.ts", import.meta.url));
+const agentFile = fileURLToPath(new URL("../../../examples/merion-agents/calendar-suggestions/agent.ts", import.meta.url));
 const load = async () => {
   const { bundle } = await buildBundle(agentFile);
   return await import(`data:text/javascript;base64,${Buffer.from(bundle).toString("base64")}#calendar-suggestions`);

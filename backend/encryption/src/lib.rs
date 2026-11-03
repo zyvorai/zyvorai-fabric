@@ -8,6 +8,30 @@ use anyhow::{bail, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+/// Write `contents` to `path`, creating the file with mode 0600 so key material is never
+/// readable by other users, not even briefly. An existing file is narrowed to 0600 before
+/// any bytes are written.
+pub fn write_private_file(
+    path: impl AsRef<std::path::Path>,
+    contents: impl AsRef<[u8]>,
+) -> std::io::Result<()> {
+    use std::io::Write;
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    let mut file = options.open(path)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        file.set_permissions(std::fs::Permissions::from_mode(0o600))?;
+    }
+    file.write_all(contents.as_ref())
+}
+
 // ---------------------------------------------------------------------------
 // Data models
 // ---------------------------------------------------------------------------
@@ -530,7 +554,7 @@ impl EncryptionManager {
                 "/tmp/zyvor-fabricd-encrypt-{}",
                 uuid::Uuid::new_v4().simple()
             );
-            if let Err(e) = std::fs::write(&secret_file, &key_id_for_disk) {
+            if let Err(e) = write_private_file(&secret_file, &key_id_for_disk) {
                 tracing::error!(
                     "Failed to write encryption secret file for VM '{}': {}",
                     vm_name,
@@ -650,7 +674,7 @@ impl EncryptionManager {
                     uuid::Uuid::new_v4().simple()
                 );
 
-                if let Err(e) = std::fs::write(&secret_file, key_id) {
+                if let Err(e) = write_private_file(&secret_file, key_id) {
                     tracing::error!(
                         "Failed to write decryption secret file for VM '{}': {}",
                         vm_name,
@@ -1086,5 +1110,28 @@ mod tests {
         let de: VmEncryptionStatus = serde_json::from_str(&json).unwrap();
         assert_eq!(de.vm_name, "test-vm");
         assert_eq!(de.algorithm, Some(EncryptionAlgorithm::ChaCha20Poly1305));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn write_private_file_is_owner_only_for_new_and_existing_files() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = std::env::temp_dir().join(format!("enc-private-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let mode = |p: &std::path::Path| std::fs::metadata(p).unwrap().permissions().mode() & 0o777;
+
+        let fresh = dir.join("fresh");
+        write_private_file(&fresh, "key").unwrap();
+        assert_eq!(mode(&fresh), 0o600);
+        assert_eq!(std::fs::read_to_string(&fresh).unwrap(), "key");
+
+        let loose = dir.join("loose");
+        std::fs::write(&loose, "old-and-longer").unwrap();
+        std::fs::set_permissions(&loose, std::fs::Permissions::from_mode(0o644)).unwrap();
+        write_private_file(&loose, "new").unwrap();
+        assert_eq!(mode(&loose), 0o600);
+        assert_eq!(std::fs::read_to_string(&loose).unwrap(), "new");
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

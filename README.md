@@ -3,7 +3,7 @@
 # Zyvor Fabric
 
 [![CI](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ci.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=CI)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ci.yml)
-[![Keep](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Keep)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/keep.yml)
+[![Merion](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Merion)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/merion.yml)
 [![Agent Runtime](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/agent-runtime.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Agent%20Runtime)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/agent-runtime.yml)
 [![AI Workloads](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ai-workloads.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=AI%20Workloads)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ai-workloads.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0071e3?style=flat-square&labelColor=1d1d1f)](LICENSE)
@@ -20,112 +20,204 @@
 <img src="docs/social/fabric-hero-dark.jpg" alt="Zyvor Fabric - One daemon. Four front doors." width="100%">
 
 <p align="center">
-  <img src="docs/assets/demos/keep-live-speculate.gif" alt="Keep with a real FluxVM microVM: an agent proposes a file change, a person approves it, and only then is it applied in the guest. A second proposal is denied and the file stays." width="820">
+  <img src="docs/assets/demos/merion-live-speculate.gif" alt="Merion with a real FluxVM microVM: an agent proposes a file change, a person approves it, and only then is it applied in the guest. A second proposal is denied and the file stays." width="820">
 </p>
-<p align="center"><sub><b>An agent proposes. A person decides.</b> A real run: the Keep runtime and a real FluxVM microVM on KVM, on a shared lab host. The waits are trimmed; the printed times (75 s to speculate, 118 s to apply) are what that loaded host took, not a benchmark. <a href="docs/assets/demos/README.md">How these are made</a></sub></p>
+<p align="center"><sub><b>An agent proposes. A person decides.</b> A real run: the Merion runtime and a real FluxVM microVM on KVM, on a shared lab host. The waits are trimmed; the printed times (75 s to speculate, 118 s to apply) are what that loaded host took, not a benchmark. <a href="docs/assets/demos/README.md">How these are made</a></sub></p>
 
-### One daemon. Four front doors.
+<h3>The private cloud that fits in one daemon.</h3>
 
-**Private cloud control plane for Linux.** VMs, networking, storage, security and AI inference from **one daemon**: one ~15MB Rust daemon that deploys in about 5 minutes on any Linux server with KVM, driven the same way from the CLI, the web console, the Kubernetes operator and Terraform.
+**VMs. Networking. Storage. Security. AI.** One ~15 MB Rust daemon, deployed in about 5 minutes on any Linux server with KVM. Driven the same way from the CLI, the web console, Kubernetes and Terraform.
 
-**780+ REST endpoints** · **53 Rust crates** · **4 front doors, one API** · **92-page web console** · **Built on FluxVM + GuestKit**
+[**Get started**](#quickstart) · [**Meet Merion**](docs/merion/README.md) · [**Documentation**](docs/index.md) · [**Talk to Zyvor**](https://zyvor.dev)
 
-[**Quickstart**](#quickstart) · [**Keep**](docs/keep/README.md) · [**AI Workloads**](docs/ai-workloads.md) · [**Deploy**](#deploy) · [**Docs**](docs/index.md) · [**Talk to Zyvor**](https://zyvor.dev)
+</div>
+
+<p align="center"><img src="docs/assets/merion/launch-hero.png" alt="Merion: your agent gets a real computer, you keep the keys. A sealed cell, approvals signed on your phone, nothing applied until you say so." width="900"></p>
+
+<br>
+
+<div align="center">
+
+## 780+ endpoints. 4 front doors. 1 API.
+
+**53** Rust crates  ·  **92** console pages  ·  **31** security audit rounds, **0** outstanding  ·  Apache-2.0, in full
+
+<sub>Counted from source. <a href="docs/PRODUCT_OVERVIEW.md">Methodology</a></sub>
 
 </div>
 
 ---
 
-## What's new
+<div align="center">
 
-| Release | What landed |
-|---|---|
-| **Keep** | Speculative execution: `POST /v1/sessions/{id}/speculate` runs a command in an isolated copy of the cell and holds the file changes behind a `changeset` approval. A person's approve applies them on FluxVM; a deny rejects them. The agent cannot approve |
-| **Keep** | FluxVM credential grants through `/v1/sessions/{id}/grants`, only for credentials whose Keep limits a grant can keep (no approval, method, path or per-user limits) |
-| **FluxVM** | `fluxvm-client` gains fork, snapshot, restore, `?ready=exec`, `Idempotency-Key` on create and delete, guest exec policy, balloon and PSS memory (`fabricctl live-fork`, `fabricctl memory`, `fabricctl balloon`; balloon is Beta), CD-ROM eject and the `vz` backend. Fork, snapshot, restore, idempotency and Keep speculate/approve/deny were run against a real FluxVM on KVM; see [the boundary doc](docs/FLUXVM-FABRIC-BOUNDARY.md) for what was and was not |
-| **Keep** | Credential secrets from a file or from HashiCorp Vault (`source vault`), with Vault AppRole and Kubernetes login and chart values |
-| **Keep** | The runtime rejects policy fields it does not enforce |
-| **0.3.0** | `POST /v1/agui`: an AG-UI endpoint over Keep sessions, validated against the official `@ag-ui/core` 1.0.0 schemas; it cannot approve anything |
-| **0.3.0** | **Solvor**, a native SwiftUI Mac client for Keep (`integrations/macos-keep`), plus `keepctl init` to scaffold a new use-case pack |
-| **0.3.0** | OCR for photos and screenshots inside the cell, six bank operations packs, and more everyday use cases |
-| **0.3.0** | `zyvorctl` is now `fabricctl`, and it finds a TLS daemon on `localhost:9095` without `--server` |
-| **0.3.0** | Fixed: use-case cells now get a host-applied deny-all policy and fail closed; finished runs delete their cell at once |
+# One daemon.
+## Four front doors.
 
-Full history: [CHANGELOG.md](CHANGELOG.md).
-
-## Where you can use it
-
-| If you are… | Use it for | Start here |
-|---|---|---|
-| Building with AI agents | A sealed microVM per agent run, network rules the host sets, approvals you hold | [Keep](docs/keep/README.md) |
-| Running a private cloud | VMs, networking, storage and security from one daemon on any Linux server with KVM | [Quickstart](#quickstart) |
-| Running Kubernetes | VMs as `VirtualMachine` resources next to your pods | [Kubernetes](docs/KUBERNETES.md) |
-| Managing a Mac fleet | Solvor, the native Mac client for Keep | [Solvor](integrations/macos-keep) |
-| Wanting inference near your VMs | OpenAI-compatible endpoints on the same daemon (single-cluster Beta) | [AI Workloads](docs/ai-workloads.md) |
-
-## Why Zyvor Fabric
-
-| When this happens… | Zyvor Fabric gives you… |
-|---|---|
-| The CLI, the console and your Terraform each drift from one another | One REST API with 780+ endpoints behind the CLI, the web console, the Kubernetes operator and Terraform |
-| VM lifecycle is tied to libvirt XML or systemd units | FluxVM supervises each VM's hypervisor process directly, and host networking uses direct netlink calls |
-| Auth, RBAC and audit are a separate project | PAM/LDAP/OIDC sign-in, JWT auth, 3-tier RBAC, audit export and encryption at rest, built in, with a 31-round security audit report |
-| You want private inference next to your VMs, not in someone else's cloud | OpenAI-compatible inference on the same daemon: models, Maglev-weighted backends and API keys (single-cluster Beta) |
-| You want to give an AI agent a computer without giving it your network | Keep: a sealed microVM whose network policy the host sets, with approvals you hold |
-| Deploying a private cloud is a multi-week project | One daemon on any Linux server with KVM: bare metal, Docker, Kubernetes or Operator only |
-
-![Capabilities at a glance: Compute, Network, Secure, AI](docs/ux/readme-capabilities.jpg)
-
-## One daemon. Four front doors.
+</div>
 
 `zyvor-fabricd` gives you VM lifecycle, software-defined networking, pluggable storage, security policy and **OpenAI-compatible AI inference**. The CLI, the web console, the Kubernetes operator and Terraform all talk to the same API, so nothing drifts between them.
 
-Fabric does not implement VM execution itself. That is a deliberate design choice, not a gap: **Fabric decides what should exist; [FluxVM](https://github.com/zyvorai/zyvor-fluxvm) makes it exist; [GuestKit](https://github.com/zyvorai/zyvor-guestkit) prepares the disk.**
+Fabric does not implement VM execution itself, and that is deliberate: **Fabric decides what should exist. [FluxVM](https://github.com/zyvorai/zyvor-fluxvm) makes it exist. [GuestKit](https://github.com/zyvorai/zyvor-guestkit) prepares the disk.**
+
+<table>
+<tr>
+<td valign="top" width="33%">
+<h4>Compute and network</h4>
+VM lifecycle and software-defined networking, with a TC/eBPF dataplane that enforces per-VM policy and rate limits.<br><br>
+<a href="docs/network-fabric-architecture.md">Network Fabric ›</a>
+</td>
+<td valign="top" width="33%">
+<h4>Secure by default</h4>
+PAM, LDAP and OIDC sign-in, JWT auth, three-tier RBAC, audit export and encryption at rest. Built in, not bolted on.<br><br>
+<a href="SECURITY.md">Security ›</a>
+</td>
+<td valign="top" width="33%">
+<h4>Private inference <sub>Beta</sub></h4>
+OpenAI-compatible endpoints on the same daemon: models, Maglev-weighted backends and API keys. Single-cluster Beta, not GA.<br><br>
+<a href="docs/ai-workloads-at-a-glance.md">AI Workloads ›</a>
+</td>
+</tr>
+<tr>
+<td valign="top" width="33%">
+<h4>Agents in a sealed cell</h4>
+Merion gives an AI agent a real computer without your network. The host sets the rules; you hold the approvals.<br><br>
+<a href="docs/merion/README.md">Merion ›</a>
+</td>
+<td valign="top" width="33%">
+<h4>Kubernetes and Terraform</h4>
+Run in a cluster with Helm. The operator turns <code>VirtualMachine</code> resources into API calls. A Terraform provider is included.<br><br>
+<a href="docs/KUBERNETES.md">Kubernetes ›</a>
+</td>
+<td valign="top" width="33%">
+<h4>Console and CLI</h4>
+A 92-page web console and <code>fabricctl</code>, both first-class against the same REST API.<br><br>
+<a href="docs/web-ui.md">Web console ›</a>
+</td>
+</tr>
+</table>
+
+![Capabilities at a glance: Compute, Network, Secure, AI](docs/ux/readme-capabilities.jpg)
 
 > **Naming:** the product is **Zyvor Fabric**; the daemon, unit and paths stay `zyvor-fabricd`. Canonical repo: [zyvorai/fabric](https://github.com/zyvorai/zyvorai-fabric). See [docs/NAMING.md](docs/NAMING.md).
 
 <a id="ai-workloads-beta"></a>
 
+---
+
+<div align="center">
+
+# Merion.
+## Your agent gets a real computer.<br>You keep the keys.
+
+</div>
+
+An open workstation for an AI agent you can't fully trust: a sealed microVM, network rules the host enforces, and approvals only you can give. Run it, read it, take it with you.
+
 <table>
 <tr>
-<td valign="top" width="33%">
-<b>VMs and networking</b><br>
-VM lifecycle, software-defined networking and a TC/eBPF VM-edge dataplane with per-VM policy and rate limits, on top of FluxVM.<br>
-<a href="docs/network-fabric-architecture.md">Network Fabric</a>
+<td valign="top" width="50%">
+<h4>Approve from anywhere</h4>
+Your <b>phone</b> (iPhone or Android) signs each decision with a key that never leaves the device. <b>Slack and Teams</b> get the same request, with the host-rendered preview and its digest. Buttons appear only when no phone signature is required.<br><br>
+<a href="docs/merion/design/chatops-approvals.md">Chat approvals ›</a> · <a href="integrations/android-merion/README.md">Android ›</a>
 </td>
-<td valign="top" width="33%">
-<b>Storage and security</b><br>
-Pluggable storage. PAM/LDAP/OIDC sign-in, JWT auth, 3-tier RBAC, audit export and encryption at rest, built in.<br>
-<a href="SECURITY.md">Security</a>
-</td>
-<td valign="top" width="33%">
-<b>AI inference <sub>Beta</sub></b><br>
-OpenAI-compatible inference on the same daemon: models, Maglev-weighted backends and API keys. Single-cluster Beta, not GA.<br>
-<a href="docs/ai-workloads-at-a-glance.md">AI Workloads</a>
+<td valign="top" width="50%">
+<h4>See everything it did</h4>
+Every action lands in a signed audit trail. Send it to any <b>OpenTelemetry</b> collector; an allowlist keeps file contents, previews and credentials out.<br><br>
+<a href="docs/merion/design/otlp-export.md">OpenTelemetry export ›</a>
 </td>
 </tr>
 <tr>
-<td valign="top" width="33%">
-<b>Keep</b><br>
-An open agent workstation: drop a file, get answers, in a sealed microVM whose network policy the host sets. The docs say exactly what its evidence class does not prove.<br>
-<a href="docs/keep/README.md">Keep</a>
+<td valign="top" width="50%">
+<h4>Propose, then decide</h4>
+The agent speculates in an isolated copy of the cell. Its changes wait behind an approval, and nothing is applied until a person says yes. The agent can never approve.<br><br>
+<a href="docs/merion/README.md">How it works ›</a>
 </td>
-<td valign="top" width="33%">
-<b>Kubernetes, Operator, Terraform</b><br>
-Run fabricd and FluxVM in a cluster with Helm or manifests; the operator turns <code>VirtualMachine</code> CRs into API calls; a Terraform provider is included.<br>
-<a href="docs/KUBERNETES.md">Kubernetes</a>
-</td>
-<td valign="top" width="33%">
-<b>Console and CLI</b><br>
-A 92-page web console and <code>fabricctl</code>, both first-class against the same 780+-endpoint REST API.<br>
-<a href="docs/web-ui.md">Web console</a>
+<td valign="top" width="50%">
+<h4>Sealed by design</h4>
+A deny-all network policy set by the host, credentials that never enter the cell, and a counter that shows zero outbound connections. The docs say plainly what the evidence class does not prove.<br><br>
+<a href="docs/merion/STATUS.md">Status ›</a>
 </td>
 </tr>
 </table>
 
+<p align="center">
+  <img src="docs/assets/demos/merion-live-speculate.gif" alt="Merion with a real FluxVM microVM: an agent proposes a file change, a person approves it, and only then is it applied in the guest. A second proposal is denied and the file stays." width="820">
+</p>
+<p align="center"><sub><b>An agent proposes. A person decides.</b> A real run on a shared lab host. The waits are trimmed; the printed times (75 s to speculate, 118 s to apply) are what that loaded host took, not a benchmark. <a href="docs/assets/demos/README.md">How these are made</a></sub></p>
+
+<p align="center">
+  <img src="docs/assets/merion/solvor-home.png" alt="Solvor, the Mac client for Merion: use cases" width="49%"> <img src="docs/assets/merion/solvor-result.png" alt="Solvor: a run's result" width="49%">
+</p>
+<p align="center"><sub>Solvor, the native Mac client for Merion: pick a use case, then read the result of a run in a sealed cell.</sub></p>
+
 ---
 
-## Zyvor Fabric vs Proxmox VE
+<div align="center">
+
+# Every cluster.
+## One view.
+
+</div>
+
+Register your other Fabric daemons and see their hosts, VMs and health together in the console. A host that is down never breaks the list, and maintenance runs on the target host's own API with your own permissions. [Federation guide ›](docs/federation.md)
+
+![Zyvor Fabric dashboard](docs/assets/dashboard.png)
+
+<p align="center"><sub>The console dashboard: fleet health, capability status and live VM metrics at a glance.</sub></p>
+
+---
+
+<div align="center">
+
+# Get started.
+## Five minutes. One server.
+
+</div>
+
+<a id="quick-start"></a>
+
+<a id="quickstart"></a>
+
+Requires a Linux server with KVM.
+
+```bash
+git clone https://github.com/zyvorai/fabric.git && cd fabric
+make build && sudo make install
+sudo zyvor-fabricd                                   # or: sudo systemctl enable --now zyvor-fabricd
+fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096 --tenant acme
+# Web UI → https://localhost:9095   (console at /app)
+```
+
+Default ports: **9095** (API and UI) and **7788** (FluxVM on localhost). The full path table, verification commands and multi-tenant notes are in [Getting started](docs/getting-started.md); a laptop dev setup is in [QUICKSTART.md](QUICKSTART.md).
+
+<a id="deploy"></a>
+
+### Deploy your way
+
+| | |
+|---|---|
+| **Bare metal** <a id="bare-metal-systemd--easiest-path"></a> | `./scripts/ship USER@HOST` ships FluxVM and Fabric in one command. [Details](docs/deploy.md#bare-metal-systemd--easiest-path) |
+| **Docker / Podman** | `make docker-up`, then `http://localhost:9095`. [Details](docs/DOCKER.md) |
+| **Kubernetes** <a id="run-on-kubernetes"></a> | `./scripts/deploy k8s USER@HOST` for a k3s lab, or Helm from `charts/zyvor-fabric`. [Details](docs/deploy.md#run-on-kubernetes) · [Guide](docs/KUBERNETES.md) |
+| **Operator only** | CRDs that drive an already-running fabricd, from [`operator/`](operator/) |
+
+---
+
+## Who it is for
+
+| If you are… | Use it for | Start here |
+|---|---|---|
+| Building with AI agents | A sealed microVM per agent run, network rules the host sets, approvals you hold | [Merion](docs/merion/README.md) |
+| Running a private cloud | VMs, networking, storage and security from one daemon | [Quickstart](#quickstart) |
+| Running Kubernetes | VMs as `VirtualMachine` resources next to your pods | [Kubernetes](docs/KUBERNETES.md) |
+| Managing a Mac fleet | Solvor, the native Mac client for Merion | [Solvor](integrations/macos-merion) |
+| Wanting inference near your VMs | OpenAI-compatible endpoints on the same daemon (single-cluster Beta) | [AI Workloads](docs/ai-workloads.md) |
+
+<a id="is-this-for-you"></a>
+
+**Is this for you?** It fits API-first automation, single-host or small-cluster deployments, security-conscious teams, and private inference next to the VMs. Look elsewhere for large multi-host clusters with mature live migration today, a deep libvirt-XML ecosystem, or first-class Windows guests. [The honest version](docs/why-fabric.md#is-this-for-you), the [comparison matrix](docs/guides/decision-support/comparison-matrix.md) and the [FAQ](docs/quick-reference/faq.md).
+
+## Fabric vs Proxmox VE
 
 ![Zyvor Fabric vs Proxmox VE: API first, one daemon, private inference next to the VMs](docs/ux/readme-vs.jpg)
 
@@ -140,80 +232,43 @@ A 92-page web console and <code>fabricctl</code>, both first-class against the s
 | License | Apache-2.0, in full | AGPL plus an optional subscription |
 | **Choose Proxmox VE when** | | You need large multi-host clusters with mature shared-storage live migration today, or first-class Windows guests |
 
-<a id="is-this-for-you"></a>
-
-**Is this for you?** It fits API-first automation, single-host or small-cluster deployments, security-conscious teams, and private inference next to the VMs. Look elsewhere for large multi-host clusters with mature live migration today, a deep libvirt-XML ecosystem, or first-class Windows guests. [The honest version](docs/why-fabric.md#is-this-for-you), the [comparison matrix](docs/guides/decision-support/comparison-matrix.md) and the [FAQ](docs/quick-reference/faq.md).
-
----
-
-## See it live
-
-<div align="center">
-
-![Zyvor Fabric dashboard](docs/assets/dashboard.png)
-
-*The console dashboard — fleet health, capability status and live VM metrics at a glance.*
-
-[![Keep: your agent, your hardware, your keys](docs/assets/keep-hero.jpg)](docs/keep/README.md)
-
-**Keep it yours.** *[Keep](docs/keep/README.md) is the sealed agent runtime you run, read and take with you. Muse column from its public announcement; evidence class today is `software-test`.*
-
-<img src="docs/assets/keep/solvor-home.png" alt="Solvor, the Mac client for Keep: use cases" width="49%"> <img src="docs/assets/keep/solvor-result.png" alt="Solvor: a run's result" width="49%">
-
-*Solvor, the native Mac client for Keep: pick a use case, then read the result of a run in a sealed cell.*
-
-</div>
-
----
-
 ## How it fits together
 
 ![Fabric decides; FluxVM runs; GuestKit prepares](docs/ux/readme-how-it-works.jpg)
 
-- <a id="architecture-fluxvm--guestkit"></a>**Architecture:** how Fabric composes FluxVM and GuestKit — [docs/architecture-fluxvm-guestkit.md](docs/architecture-fluxvm-guestkit.md).
-- <a id="zyvor-platform-stack"></a>**Zyvor platform stack:** where Fabric sits among the Zyvor products — [docs/platform-stack.md](docs/platform-stack.md).
+- <a id="architecture-fluxvm--guestkit"></a>**Architecture:** how Fabric composes FluxVM and GuestKit: [docs/architecture-fluxvm-guestkit.md](docs/architecture-fluxvm-guestkit.md)
+- <a id="zyvor-platform-stack"></a>**Zyvor platform stack:** where Fabric sits among the Zyvor products: [docs/platform-stack.md](docs/platform-stack.md)
+
+## Maturity
+
+| Area | Status (from the repo's own docs) |
+|---|---|
+| VM lifecycle, networking, storage, security, CLI, console, operator, Terraform | Shipped; see [FEATURES.md](FEATURES.md) |
+| Live migration | Disk-copy path GA; native FluxVM transport **preview**; full HA cutover **pre-GA** ([comparison matrix](docs/guides/decision-support/comparison-matrix.md)) |
+| AI Workloads | Single-cluster **Beta**; multi-site HA store stays **Preview**; **not GA** ([at a glance](docs/ai-workloads-at-a-glance.md)) |
+| Merion (was Keep) | Evidence class `software-test`; Merion 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/merion/STATUS.md)) |
+| Slack/Teams approvals, OpenTelemetry export, federation view, Android app | Merged. Tested against local fakes; not yet against a live Slack workspace, collector, second daemon or Android device |
 
 ---
 
-<a id="quick-start"></a>
+## What's new
 
-## Quickstart
+| | |
+|---|---|
+| **Timed and counted limits** | Auto-approve grants that expire (`ttl_minutes`), a write limit per session (`sequence.max_writes`), and model-call caps per run and per goal. All off by default. [Grants](docs/merion/design/auto-approve-changesets.md), [writes](docs/merion/design/sequence-policy.md), [budgets](docs/merion/design/model-budgets.md) |
+| **MCP gateway** | Register tool servers; a cell reaches them only through the broker, which allows listed tools, rate limits, journals names (never arguments) and keeps approvals. [Design](docs/merion/design/mcp-gateway.md) |
+| **Signed session recording** | A masked, ordered, Ed25519-signed replay bundle of what a session did; content is left out. [Design](docs/merion/design/session-recording.md) |
+| **Delegated vs autonomous** | Every egress journal row says whether a person's own connection, a host credential or nothing was used. [Design](docs/merion/design/on-behalf-of.md) |
+| **Run webhook** | One signed `run.finished` event per run, with no content. [Design](docs/merion/design/run-webhooks.md) |
+| **Approve from Slack or Teams** | Requests arrive with the host-rendered preview and its digest. Buttons only when no phone signature is required. [Design](docs/merion/design/chatops-approvals.md) |
+| **OpenTelemetry export** | Audit entries as OTLP logs, decided approvals as spans, one trace per session. [Design](docs/merion/design/otlp-export.md) |
+| **One view across daemons** | Peer Fabric hosts, VMs and health in one console page. [Guide](docs/federation.md) |
+| **Android approvals** | `merion-approval-v1` signed with a Keystore key behind biometrics. [README](integrations/android-merion/README.md) |
+| **Phone-only approvals** | With signatures required, an unsigned, flipped or forged decision is refused (403) and the approval keeps waiting; a valid one works once. |
+| **Speculative execution** | `POST /v1/sessions/{id}/speculate` holds file changes behind a `changeset` approval; a person's approve applies them on FluxVM. Auto-approve is off by default and a required phone signature always wins. [Design](docs/merion/design/auto-approve-changesets.md) |
+| **Rename** | **Keep is now Merion**, end to end. [Verification](docs/merion/VERIFICATION.md#after-the-keep--merion-rename-2026-10-16) |
 
-Requires a Linux server with KVM.
-
-```bash
-git clone https://github.com/zyvorai/zyvorai-fabric.git && cd fabric
-make build && sudo make install
-sudo zyvor-fabricd                                   # or: sudo systemctl enable --now zyvor-fabricd
-fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096 --tenant acme
-# Web UI → https://localhost:9095   (console at /app)
-```
-
-Default ports: **9095** (API + UI) and **7788** (FluxVM on localhost). The full path table, verification commands and multi-tenant notes are in [Getting started](docs/getting-started.md); a laptop dev setup is in [QUICKSTART.md](QUICKSTART.md).
-
-## Platform at a glance
-
-| Metric | Value |
-|--------|-------|
-| Rust crates | 53 |
-| REST endpoints | 780+ (main API) — 824 combined with the OpenStack-compatibility layer |
-| LOC | ~87K (60K Rust + 27K TS) |
-| Web stack | React 19.2 · Vite · Tailwind |
-| Interfaces | 4 (CLI, Web, Operator, Terraform) + Fabric Doctor |
-| Web pages | 92 (87 console + 5 marketing) |
-| Security | 31-round audit, 194 issues found and fixed, 0 outstanding ([report](docs/SECURITY_AUDIT_REPORT.md)) |
-| Deploy modes | Bare metal · Docker · Kubernetes · Operator |
-
-All figures above are counted directly from source (route definitions, router config, crate manifest, audit report) — see [docs/PRODUCT_OVERVIEW.md](docs/PRODUCT_OVERVIEW.md) for the methodology.
-
-## Deploy
-
-Four first-class ways to run Fabric. Pick one; the full guide is [docs/deploy.md](docs/deploy.md).
-
-- <a id="bare-metal-systemd--easiest-path"></a>**Bare metal (systemd), easiest path:** `./scripts/ship USER@HOST` ships FluxVM and Fabric in one command. [Details](docs/deploy.md#bare-metal-systemd--easiest-path).
-- **Docker / Podman:** `make docker-up`, then `http://localhost:9095`. [Details](docs/DOCKER.md).
-- <a id="run-on-kubernetes"></a>**Kubernetes:** `./scripts/deploy k8s USER@HOST` for a k3s lab, or Helm from `charts/zyvor-fabric`. [Details](docs/deploy.md#run-on-kubernetes) and [docs/KUBERNETES.md](docs/KUBERNETES.md).
-- **Operator only:** CRDs that drive an already-running fabricd, from [`operator/`](operator/).
+Every release, with the details: **[CHANGELOG.md](CHANGELOG.md)**.
 
 ## Documentation
 
@@ -225,7 +280,7 @@ Four first-class ways to run Fabric. Pick one; the full guide is [docs/deploy.md
 | Architecture | [docs/architecture.md](docs/architecture.md) · [docs/architecture-fluxvm-guestkit.md](docs/architecture-fluxvm-guestkit.md) |
 | REST API, OIDC/SSO and networking | [docs/api.md](docs/api.md) · [docs/oidc.md](docs/oidc.md) · [docs/networking.md](docs/networking.md) |
 | AI Workloads (Beta) | [docs/ai-workloads.md](docs/ai-workloads.md) · [Tutorial 15](docs/tutorials/15-ai-workloads.md) |
-| Keep (open agent workstation) | [docs/keep/README.md](docs/keep/README.md) · [docs/keep/at-a-glance.md](docs/keep/at-a-glance.md) |
+| Merion | [docs/merion/README.md](docs/merion/README.md) · [docs/merion/at-a-glance.md](docs/merion/at-a-glance.md) |
 | Tutorials and user manuals | [docs/tutorials/README.md](docs/tutorials/README.md) · [docs/user/README.md](docs/user/README.md) |
 
 ## Contributing
@@ -240,19 +295,6 @@ make lint && make fmt
 
 `docs/` and this README are authoritative; historical build summaries in the repo root are snapshots.
 
----
-
-## Maturity
-
-| Area | Status (from the repo's own docs) |
-|---|---|
-| VM lifecycle, networking, storage, security, CLI, console, operator, Terraform | Shipped; see [FEATURES.md](FEATURES.md) |
-| Live migration | Disk-copy path GA; native FluxVM transport **preview**; full HA cutover **pre-GA** ([comparison matrix](docs/guides/decision-support/comparison-matrix.md)) |
-| AI Workloads | Single-cluster **Beta**; multi-site HA store stays **Preview**; **not GA** ([at a glance](docs/ai-workloads-at-a-glance.md)) |
-| Keep | Evidence class `software-test`; Keep 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/keep/STATUS.md)) |
-
----
-
 ## Part of the Zyvor stack
 
 | Product | Role next to Zyvor Fabric |
@@ -264,7 +306,9 @@ make lint && make fmt
 
 → [zyvor.dev](https://zyvor.dev)
 
----
+## Support
+
+Free under Apache-2.0. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
 ## License and support
 

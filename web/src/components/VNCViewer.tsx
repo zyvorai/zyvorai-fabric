@@ -78,7 +78,7 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
   const statusMeta: Record<Status, { label: string; dot: string; text: string }> = {
     connecting: { label: 'Connecting…', dot: 'bg-amber-400 animate-pulse', text: 'text-amber-400' },
     connected: { label: 'Connected', dot: 'bg-emerald-400', text: 'text-emerald-600' },
-    disconnected: { label: 'Disconnected', dot: 'bg-slate-500', text: 'text-[#6e6e73]' },
+    disconnected: { label: 'Disconnected', dot: 'bg-slate-500', text: 'text-[var(--zf-muted)]' },
     error: { label: 'Connection failed', dot: 'bg-red-400', text: 'text-red-600' },
   }
   const meta = statusMeta[status]
@@ -86,7 +86,7 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
   return (
     <div
       ref={frameRef}
-      className={`relative rounded-xl border border-[#d2d2d7] overflow-hidden ${fullscreen ? 'bg-black' : 'bg-gradient-to-b from-slate-900 to-black'}`}
+      className={`relative rounded-xl border border-[var(--zf-hairline)] overflow-hidden ${fullscreen ? 'bg-black' : 'bg-gradient-to-b from-slate-900 to-black'}`}
     >
       {/* Toolbar */}
       <div className={`flex items-center justify-between gap-3 px-4 py-2.5 border-b border-white/10 ${fullscreen ? 'bg-black/80' : 'bg-slate-900/70'}`}>
@@ -100,7 +100,7 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
             onClick={() => rfbRef.current?.sendCtrlAltDel()}
             disabled={status !== 'connected'}
             title="Send Ctrl+Alt+Del"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#1d1d1f] hover:text-[#1d1d1f] hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--zf-ink)] hover:text-[var(--zf-ink)] hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
           >
             <Keyboard className="w-3.5 h-3.5" />
             Ctrl+Alt+Del
@@ -110,7 +110,7 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
               type="button"
               onClick={() => setConnectAttempt((n) => n + 1)}
               title="Reconnect"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#1d1d1f] hover:text-[#1d1d1f] hover:bg-white/10 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--zf-ink)] hover:text-[var(--zf-ink)] hover:bg-white/10 transition-colors"
             >
               <RotateCw className="w-3.5 h-3.5" />
               Reconnect
@@ -120,7 +120,7 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
             type="button"
             onClick={toggleFullscreen}
             title={fullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-            className="p-1.5 rounded-lg text-[#1d1d1f] hover:text-[#1d1d1f] hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-[var(--zf-ink)] hover:text-[var(--zf-ink)] hover:bg-white/10 transition-colors"
           >
             {fullscreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
           </button>
@@ -141,14 +141,14 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
             {status === 'connecting' && (
               <>
-                <Loader2 className="w-8 h-8 text-[#0066cc] animate-spin" />
-                <p className="text-sm text-[#6e6e73]">Connecting to display…</p>
+                <Loader2 className="w-8 h-8 text-[var(--zf-link)] animate-spin" />
+                <p className="text-sm text-[var(--zf-muted)]">Connecting to display…</p>
               </>
             )}
             {status === 'disconnected' && (
               <>
-                <WifiOff className="w-8 h-8 text-[#6e6e73]" />
-                <p className="text-sm text-[#6e6e73]">{errorMsg || 'Disconnected'}</p>
+                <WifiOff className="w-8 h-8 text-[var(--zf-muted)]" />
+                <p className="text-sm text-[var(--zf-muted)]">{errorMsg || 'Disconnected'}</p>
               </>
             )}
             {status === 'error' && (
@@ -163,7 +163,7 @@ export default function VNCViewer({ vmName }: VNCViewerProps) {
           // A black canvas alone is indistinguishable from a dead connection
           // -- the guest's VGA framebuffer stays blank on any image whose
           // console output goes entirely to a serial tty, which is common.
-          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[#6e6e73] text-[11px] pointer-events-none">
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-[var(--zf-muted)] text-xs pointer-events-none">
             <Monitor className="w-3 h-3" />
             Live display
           </div>

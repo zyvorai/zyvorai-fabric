@@ -1,12 +1,129 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 - 2026-10-17
+
+### Changed
+- **Sign-in page.** It now uses the console's design tokens, so the dark theme works, the accent is the console blue,
+  and the show-password button is a 44px target. The hint no longer prints the lab default login. Behind the card
+  there is a slow aurora and a faded grid, and the card is frosted glass; the motion is off under reduced-motion.
+  Looked at in a browser on a deployed host in light and dark at one desktop size, first and second step. The a11y
+  gate (`npm run a11y`) was not re-run for the backdrop, the animation was not watched, and phone width was not seen.
+- **Replay view and refusal rows.** The console's Merion session page has a Replay card: load the signed recording,
+  see whether its signature is valid, scrub through the steps and download the JSON. The Fabric daemon proxies
+  `GET /api/sessions/{id}/recording` (owner only) and `POST /api/recordings/verify`. A model call refused by a budget
+  now writes its own `model.budget_refused` journal row. Console unit tests and the runtime suite pass; the replay
+  card and the daemon proxy were not run against a live host.
+- **UX pass.** Console: a skip link, one keyboard focus ring, one easing curve for hover and press, and a short page
+  fade-in. Site: the same focus ring, selection tint and easing. Headings balance their lines on both. All motion is
+  off under reduced-motion. Not reviewed page by page; signed-in console pages were not seen. Design:
+  `docs/merion/design/ux-pass.md`.
 
 ### Added
+- **Signed run webhook.** With `ZYVOR_AGENT_RUN_WEBHOOK` (https, or http for loopback) and
+  `ZYVOR_AGENT_RUN_WEBHOOK_SECRET` set, one `run.finished` event is POSTed when a session first reaches a final status,
+  signed like the approval webhook (`x-zyvor-signature: sha256=<HMAC-SHA256>`). The body names the run and its status,
+  never the error, input or user. Best effort, two retries, lost if the runtime restarts with one queued. Unit test
+  with a local receiver. Design: `docs/merion/design/run-webhooks.md`.
+- **Model-call caps per run and per goal.** In the operator's prices file, an agent budget can now carry `run` and
+  `goal` limits (`max_calls`, `max_cost`) beside the daily ones. A run is one session; a goal is every session started
+  for it (its steps and its planner). A call past the cap is refused with 429 before anything is sent, on both model
+  paths. Off unless the file sets them. Unit tests with a local stub provider. Design:
+  `docs/merion/design/model-budgets.md`.
+- **Delegated versus autonomous, in the journal.** Every `egress.http` row now carries `identity`: `autonomous` (no
+  credential), `delegated` (a person's own connection, with `acting_for` naming them) or `service` (a credential the
+  operator holds for the whole host). A per-person OAuth credential can set `oauth.audience`, sent as `resource`
+  (RFC 8707) so the provider can issue a token for one API. `identity` is also in the OTLP and recording allowlists.
+  Unit tests with a local token server. Not RFC 8693 token exchange or sender-constrained tokens. Design:
+  `docs/merion/design/on-behalf-of.md`.
+- **Session recording.** `GET /v1/sessions/{id}/recording` returns a masked, ordered, Ed25519-signed bundle of a session's
+  journal rows, events and approvals; `POST /v1/recordings/verify` checks one. Journal rows keep only the OTLP allowlist
+  of scalar fields; event data and approval text are never included (events carry a length and SHA-256). Off unless
+  `ZYVOR_AGENT_RECORDING_KEY` (32-byte hex seed) is set; each export is journaled with a count. Unit tests; the console
+  replay view is not built yet. Design: `docs/merion/design/session-recording.md`.
+- **MCP gateway and registry.** An operator registers tool servers (`PUT /v1/mcp/servers/{name}`: URL, optional vault
+  credential, allowed tools, calls per minute); a cell calls `POST /v1/mcp/{server}` on the broker port. Only listed
+  tools and the core MCP methods are relayed; each call is journaled by name (never arguments) and then goes through
+  the ordinary egress broker, so host rules, DLP, taint, the write limit and approvals still apply. Unit tests and a
+  local stub server; not a real MCP server. Design: `docs/merion/design/mcp-gateway.md`.
+- **Write limit per session.** `sequence.max_writes` in an agent manifest or signed policy holds every brokered write
+  past the Nth (any method but GET and HEAD) for a person's decision; the count is kept on the session. Off by default;
+  the CONNECT proxy is not counted. Unit tests with a local stub upstream. Design: `docs/merion/design/sequence-policy.md`.
+- **Timed auto-approve grants.** A changeset policy can carry `ttl_minutes` (1 to 1440); the runtime turns it into
+  `expires_at`, and after that the policy approves nothing and a person decides. Clients cannot set `expires_at`. A
+  policy without `ttl_minutes` behaves as before. Tested with unit tests only. Design: `docs/merion/design/auto-approve-changesets.md`.
+- **Merion for Android (`integrations/android-merion`).** `merionkit` is a plain-JVM library for the `merion-approval-v1` protocol:
+  the exact signed text, P-256 signing and verifying, and an API client; its tests read the runtime's own
+  `docs/merion/mobile/test-vectors.json`. `app` is a small Compose app with an Android Keystore key (StrongBox when present, a
+  biometric check per signature). `merionkit`'s 6 tests pass on JDK 17. The app module has never been built or run; no push, chat, goals or Done list yet.
+
+- **Federation: one inventory across several Fabric daemons.** An admin registers peer daemons (`/api/federation/peers`);
+  `GET /api/federation/overview` returns each peer's hosts and VM total, asked in parallel with a short timeout and per-peer
+  isolation (a down peer, a refused token or a redirect shows in its own row). Host maintenance on a peer is forwarded with the
+  caller's own bearer token, so the peer's RBAC decides; no stored admin credential. New **Federation** page in the console. Peer
+  read tokens are held in memory (re-set after a restart). The web tests and 5 Rust tests passed (Rust on Linux, 2026-10-27); no real second daemon was used yet. Docs: `docs/federation.md`.
+
+- **Slack and Teams approval messages.** Set `ZYVOR_AGENT_SLACK_WEBHOOK` and/or `ZYVOR_AGENT_TEAMS_WEBHOOK` (and optionally
+  `ZYVOR_AGENT_CONSOLE_URL` for a link) and each new approval is posted there with its kind, subject, agent and id, never the
+  agent's prompt or the request preview. Slack gets Allow and Deny buttons only when `ZYVOR_AGENT_SLACK_SIGNING_SECRET` and
+  `ZYVOR_AGENT_SLACK_USERS` are set and the approval does not need a phone signature; the click
+  (`POST /v1/chatops/slack/interact`, Slack signature checked, five-minute window) goes through the normal user-token decision path
+  and only for the session's owner. Teams gets a card with a link, no buttons. Tested against fakes, not a real workspace.
+  Design: `docs/merion/design/chatops-approvals.md`.
+
+- **OpenTelemetry export (OTLP/HTTP, JSON).** Set `OTEL_EXPORTER_OTLP_ENDPOINT` (https, or http on loopback), and optionally
+  `OTEL_EXPORTER_OTLP_HEADERS` and `OTEL_SERVICE_NAME`; every journal row is sent as an OTLP log record and every decided approval
+  as a span, with one trace id per session. Only an allowlist of scalar fields leaves the host: never the error or output text, the
+  approval prompt, a preview, a request body, or the subject (opt in with `ZYVOR_AGENT_OTLP_INCLUDE_SUBJECT=1`). Delivery is best
+  effort through a bounded queue and never blocks a request. No new dependencies; gRPC and protobuf are not spoken. Tested against a
+  local fake collector, not a real one. Docs: `docs/merion/design/otlp-export.md`.
+- **Verify command and snapshot restore for the run report.** `verify_command` runs after an applied changeset and shows as a check.
+  `snapshot_before_apply` snapshots the cell first; an operator can then restore it (`POST /v1/sessions/{id}/changesets/{cs}/restore`,
+  confirmed, latest change only, never for end users). The report shows `undo_available` or `restored_from_snapshot`.
+- `merionctl report <session-id> [--json]` prints the run report as text.
+- **Model reply cache** (`ZYVOR_AGENT_MODEL_CACHE_SECS`, off by default) for the use-case `model` step: per person, in memory, never across
+  people, and only while the vault and the first-use approval still allow the endpoint.
+- **Prices and per-agent budgets for model calls.** `ZYVOR_AGENT_MODEL_PRICES_FILE` adds `cost` to `GET /v1/model-usage` and a rolling
+  24-hour call and cost budget per agent (429 before anything is sent). The `model_socket` path now journals `model.call` rows.
+- **Failover for the agent's `model_socket`.** `model_socket.fallback_chain` names the same operator-written chain; the egress
+  broker retries the agent's chat call against it on a connect error, 429 or 5xx, each attempt through the full policy and vault
+  path. Docs: `docs/merion/MODEL.md`.
+- **Run report.** `GET /v1/sessions/{id}/report` says what a session did, what the host actually checked (exit code, every file
+  kept, the applied changeset is the approved one, the service accepted the request), what it did not check, what is still
+  waiting, and what can be undone: nothing to undo, applied with no automatic undo, unknown, or cannot be undone (it left the
+  cell). Built only from approvals, the journal and receipts; an agent's own claims are never counted. Design:
+  `docs/merion/design/run-report.md`.
+- **Model fallback chains.** A use case's `model` step may name an operator-written chain (`fallback_chain`,
+  `ZYVOR_AGENT_MODEL_CHAINS_FILE`); on a connect error, 429 or 5xx the host tries the next endpoint, each one vault-checked and
+  approved by a person on first use, with a circuit breaker and `model.failover` journal rows. `GET /v1/model-usage` sums calls,
+  failures, tokens and latency per endpoint. Design: `docs/merion/design/model-gateway.md`.
+- **Auto-approve policies for speculate (off by default).** An operator can set a bounded policy per user and agent
+  (`/v1/users/{id}/changeset-policies/{agent}`); a changeset inside it is approved and applied without a click, journaled with
+  the policy id and version. Operator-only writes, per-session hourly cap of 30, and a required phone signature always wins.
+  See `docs/merion/design/auto-approve-changesets.md`. End-to-end checks are now 85.
+
+### Changed (breaking)
+- **Keep is now Merion in every identifier.** Wire and config names moved: `X-Keep-*` headers are now `X-Merion-*` with **no compatibility**
+  (a client still sending the old header is ignored); `merion.policy.yaml`; `.merionpack.json` (`merionpack/1`; saved `.keeppack.json`
+  bundles are refused); `/app/merion`, `/merion`, `/api/merion/status`; audit actions `keep.*` → `merion.*` for new rows. `MERION_*` env
+  vars win and `KEEP_*` still work as a fallback. Swift: Keychain services `dev.zyvor.merion.*` (old items are read once and moved), iOS bundle id
+  `dev.zyvor.merion.phone` (**phones must re-enroll**), `MerionKit`, `MerionPhone`. Helm: chart `charts/zyvor-merion`, values key `merion:`, label
+  domain `merion.zyvor.dev` (**a new release**; move values from `keep.*`). AG-UI `CUSTOM` event names stay `keep.*` unless the caller sends
+  `forwardedProps.eventNames: "merion"`.
+  Also renamed: the browser network identity `keep-browser/{tenant}/{session}` → `merion-browser/…` (match it in any FluxVM policy), and the HMAC label that
+  derives user-token signing keys from the operator token, so **user tokens minted from the operator token stop verifying and must be reissued** (an explicit
+  `ZYVOR_AGENT_USER_TOKEN_SECRET` is unaffected).
+- **One approval signing format.** The host verifies only `merion-approval-v1` (the first line of the signed text); `keep-approval-v1` is refused and `sign.formats` is gone. **Phones and clients built before the rename must update** and sign `merion-approval-v1`. The SDK reference phone, `MerionKit` and the test vectors (`cases`, no `cases_merion`) follow.
+
+### Added
+- **Auto-approve, stage one (dry run).** `ZYVOR_AGENT_CHANGESET_POLICY_DRYRUN_FILE` names an operator policy file; each speculate then journals
+  `changeset.policy.dry_run` saying whether the policy *would* have approved the changeset, and why not. It never decides: the approval stays pending.
+  The evaluator (`changeset_policy.rs`) matches on what FluxVM measured (paths, kinds, file count, size from `staged`, exit code), refuses tainted
+  sessions, unstaged changes, egress, non-replayable side effects and unknown change kinds, and keeps a deny floor (`.ssh`, `.pem`, `.key`, `.env`,
+  dotfiles) that a policy can extend but not remove. `Changeset` now deserializes `staged`. Design: `docs/merion/design/auto-approve-changesets.md`.
 - **Keep: speculative execution behind an approval.** `POST /v1/sessions/{id}/speculate` runs a command in an isolated
   copy of the cell and opens a `changeset` approval carrying the diff. A person's approve makes FluxVM approve then apply;
   a deny rejects it. The agent cannot approve. `paths` is required (FluxVM needs existing guest directories for a VM).
-  `keepctl speculate` / `keepctl decide`, a diff view in the console's Keep session page, and e2e coverage against the
+  `merionctl speculate` / `merionctl decide`, a diff view in the console's Keep session page, and e2e coverage against the
   FluxVM stub. Run live against a real FluxVM microVM on KVM: speculate, approve (apply) and deny (reject), checked inside the guest.
 - **Keep: FluxVM credential grants.** `/v1/sessions/{id}/grants` (POST, GET, DELETE) forward to FluxVM's broker, only for
   credentials whose Keep limits a grant can keep: an `Authorization` header, no approval, method, path or per-user limits,
@@ -21,9 +138,10 @@
 - **Demos:** `scripts/record-demos.sh` and `scripts/demo/cast.py` render real command runs (and clearly labelled
   illustrative replays) to GIF, MP4 and WebM under `docs/assets/demos/`. `docs/use-cases.md` says which part to use for
   which problem. `docs/FLUXVM-FABRIC-BOUNDARY.md` lists every FluxVM route Fabric uses and whether it was run live.
-- **Design note:** `docs/keep/branching-design.md` explains why Keep sessions are not branched with fork yet.
+- **Design note:** `docs/merion/branching-design.md` explains why Keep sessions are not branched with fork yet.
 
 ### Fixed
+- The website build failed with "Can't find any doc with ID keep/KEEP": the docs category now points at `merion/MERION`.
 - `scripts/lib/deploy-common.sh` printed `s: unbound variable` after every deploy.
 - The website lockfile no longer carries the Trivy findings (`tinypool` is overridden to 2.x).
 - `zyvor-fabricd` registered `POST /vms/{name}/fork` twice during one commit window on `main`, which panicked at
@@ -33,7 +151,7 @@
 
 ### Changed
 - **`zyvorctl` is now `fabricctl`.** The Fabric CLI binary, its Rust crate (`backend/fabricctl`), the bash completion
-  (`/etc/bash_completion.d/fabricctl`), the CI workflow and the docs use the new name, matching the product and `keepctl`.
+  (`/etc/bash_completion.d/fabricctl`), the CI workflow and the docs use the new name, matching the product and `merionctl`.
   There is no `zyvorctl` alias. `make install`, `scripts/install.sh`, `setup.sh`, `scripts/dist-install.sh`,
   `scripts/deploy-remote.sh` and the uninstallers remove a leftover `zyvorctl` and its completion. The Python SDK
   package and its console script are renamed too (`import fabricctl`, command `fabricctl`), which breaks existing
@@ -60,29 +178,29 @@
 ### Added
 - **Seven more everyday use cases**: `payslip-text`, `kindle-highlights`, `android-call-log`, `insurance-claim-mail`, `takeout-my-activity` (each with a synthetic sample, asserted in `demos-ci.sh` from the real engine's output) and the OCR photo packs `fuel-receipt-photo` and
   `school-fee-receipt-photo` (the fuel pack tested on a generated image; school-fee deploys only). The Kindle ranking first put the `==========` separator above the books; it now reads the title line before each clipping. Catalogue and gallery groups updated.
-- **`scripts/keep-chat.py`, a small web chat for a Keep agent over AG-UI.** One static page and one proxied route: the token stays server-side, the agent is fixed by `--agent`, `127.0.0.1` only, foreign Host/Origin refused. Streams the reply, starts a new thread when the agent finished the last, shows approval
-  requests as notices and cannot approve. 8 proxy tests, a `demos-ci.sh` check, and the page driven in a real browser. `keep-demo-local.sh` now deploys `echo-agent` (so the chat works out of the box) and always does an incremental build, so it never runs a runtime older than the checkout.
+- **`scripts/merion-chat.py`, a small web chat for a Keep agent over AG-UI.** One static page and one proxied route: the token stays server-side, the agent is fixed by `--agent`, `127.0.0.1` only, foreign Host/Origin refused. Streams the reply, starts a new thread when the agent finished the last, shows approval
+  requests as notices and cannot approve. 8 proxy tests, a `demos-ci.sh` check, and the page driven in a real browser. `merion-demo-local.sh` now deploys `echo-agent` (so the chat works out of the box) and always does an incremental build, so it never runs a runtime older than the checkout.
 - **`echo-agent`**, an agent with no model, credentials or network, to try `POST /v1/agui` end to end; AG-UI now also passes on events an agent emits with `ctx.emit` as `CUSTOM` `keep.event`. Docs record a real-host finding: agent sessions need IP
   networking on the host (`ZYVOR_AGENT_EGRESS_ADVERTISE_HOST` or tap+netns); on the use-case-only lab host the run ended with the runtime's refusal delivered as a valid `RUN_ERROR`, so only AG-UI's error path is verified on a real cell.
-- **`scripts/keep-watch.sh`, page-change tracking with no new server capability.** Fetches a public page on the user's own machine (http/https, 2 MiB, 30 s, no credentials in the URL), reads it with a use case in a cell, and
+- **`scripts/merion-watch.sh`, page-change tracking with no new server capability.** Fetches a public page on the user's own machine (http/https, 2 MiB, 30 s, no credentials in the URL), reads it with a use case in a cell, and
   reports the runtime's own diff against the last run: BASELINE, UNCHANGED, or CHANGED with the lines (exit 3), `--match TEXT` to alert only when text newly appears, `--notify`, and escalation to exit 4 after repeated failures.
-  Tested against a real runtime in `demos-ci.sh` (127 checks); cron, launchd and notifications not run. Recipe in `docs/keep/RECIPES.md`.
+  Tested against a real runtime in `demos-ci.sh` (127 checks); cron, launchd and notifications not run. Recipe in `docs/merion/RECIPES.md`.
 - **`POST /v1/agui`, an AG-UI endpoint over Keep sessions.** A chat client that speaks the AG-UI protocol can start an agent in a sealed cell and stream its events; later messages on a thread steer the same session. Through
   the same session code as `/v1/sessions`, so scopes, quotas and tenancy apply (a user token needs `run`; threads are per user). **It cannot approve or deny anything**: an approval request is shown as a `CUSTOM` event and is decided on
   the user's device. The stream is validated against the official `@ag-ui/core` 1.0.0 schemas in `demos-ci.sh` (129 checks) with 8 unit tests and authz tests; no tool-call or state events yet, and not tried with a real chat client.
-  `model-agent` also accepts `input.message`. See `docs/keep/AGUI.md`.
-- **`keepctl init <name>`**, a one-command start for a new use-case pack: scaffolds a valid pack (rules, a synthetic sample, a README) from `docs/keep/pack-template`, refuses to overwrite and refuses bad names. Tested in `demos-ci.sh`: the scaffold
+  `model-agent` also accepts `input.message`. See `docs/merion/AGUI.md`.
+- **`merionctl init <name>`**, a one-command start for a new use-case pack: scaffolds a valid pack (rules, a synthetic sample, a README) from `docs/merion/pack-template`, refuses to overwrite and refuses bad names. Tested in `demos-ci.sh`: the scaffold
   deploys and passes its own sample with no edits.
-- **`scripts/keep-demo-local.sh`, a two-minute local demo that is honest about what it is.** Starts the FluxVM simulator (`agent-runtime/tests/sandbox_stub.py`) and the runtime on loopback with no KVM, Docker or root, mints a 1-day
+- **`scripts/merion-demo-local.sh`, a two-minute local demo that is honest about what it is.** Starts the FluxVM simulator (`agent-runtime/tests/sandbox_stub.py`) and the runtime on loopback with no KVM, Docker or root, mints a 1-day
   user token and prints how to try a use case and how to connect Solvor. It is **not sealed**: the simulator marks its sandboxes `simulated`, and the runtime then reports `badge.evidence: "simulated"`,
   `badge.sealed: false` and an honesty line that starts `SIMULATED, not sealed` (never the software-test wording). Solvor shows an amber "Simulated, not sealed" pill instead of the proof pill, the console shows a warning,
-  and `keep-demo.sh` says so. Tested: runtime unit tests for the badge, a demos-ci check that every simulator run is labelled, a KeepKit test (55 tests) and `keep-demo-local.sh` run end to end on a Mac.
-- **`scripts/keep-up.sh`, a one-command Keep host.** Run on a Linux machine: preflight (Linux, x86_64, KVM, systemd, memory, disk, tools; refuses honestly), FluxVM check
-  or `--install-fluxvm` (experimental, from source), the Keep runtime via the new `deploy-keep.sh local`, the cell template, then a scoped 1-7 day user token and the exact Solvor
-  settings. `deploy-keep.sh` gains a `local` target and no longer requires fabricd. Tested with fake facts and a fake curl (6 checks); not yet run on a clean machine.
+  and `merion-demo.sh` says so. Tested: runtime unit tests for the badge, a demos-ci check that every simulator run is labelled, a KeepKit test (55 tests) and `merion-demo-local.sh` run end to end on a Mac.
+- **`scripts/merion-up.sh`, a one-command Keep host.** Run on a Linux machine: preflight (Linux, x86_64, KVM, systemd, memory, disk, tools; refuses honestly), FluxVM check
+  or `--install-fluxvm` (experimental, from source), the Keep runtime via the new `deploy-merion.sh local`, the cell template, then a scoped 1-7 day user token and the exact Solvor
+  settings. `deploy-merion.sh` gains a `local` target and no longer requires fabricd. Tested with fake facts and a fake curl (6 checks); not yet run on a clean machine.
 - **Bank operations packs.** Six declarative packs for a bank's operations teams: `neft-rtgs-returns`,
   `nach-return-report`, `recon-exceptions`, `upi-dispute-mail`, `loan-sanction-letter` and `rbi-circular-brief`, each
-  with a README and (except the two PDF ones) a synthetic sample, plus `docs/keep/BANK-OPERATIONS.md`. Declarative, so
+  with a README and (except the two PDF ones) a synthetic sample, plus `docs/merion/BANK-OPERATIONS.md`. Declarative, so
   no runtime change; extractive, with no OCR and no compliance claim.
 - **OCR for photos and screenshots.** A new `ocr` extractor reads `.png`, `.jpg` and `.tif` with `tesseract` (English) inside the cell, and two packs use it: `receipt-photo`
   and `bill-photo`. The `node22-agent` template gains `tesseract-ocr`; a template baked earlier refuses an image run with a clear message instead of failing. Quality depends
@@ -95,14 +213,14 @@
   intent, Services entry, menu bar and URL scheme are built but not exercised. Redesigned with the Zyvor mark, a generated app icon, Liquid Glass on
   macOS 26 and system-accent buttons. **Read an email from the browser** (on click, with a redaction preview; the `.eml` pipeline and routed packs ran in
   real cells; the Apple Events reader is not verified against a real webmail page) and **Talk to Solvor** plus Siri App Shortcuts (voice can never approve,
-  deny, send or delete; microphone, Speech, Translation and Siri not run here). 54 unit tests. `docs/keep/MACOS-APP.md`.
+  deny, send or delete; microphone, Speech, Translation and Siri not run here). 54 unit tests. `docs/merion/MACOS-APP.md`.
 - **Eighteen developer-tool, browser and desktop-app use cases**, plus **recipes** for calling Keep from Siri Shortcuts, macOS,
   Windows and other agents. Packs: `github-prs`, `github-issues`, `github-actions-log`, `dependabot-alerts`, `git-log-digest`,
   `xcodebuild-log`, `xcode-crash-log`, `vscode-extensions`, `vscode-settings-audit`, `bookmarks-digest`, `browser-history-takeout`,
   `mac-apps-inventory`, `mac-launch-items`, `windows-services`, `windows-scheduled-tasks`, and three Excel sheets
   (`sales-register-sheet`, `inventory-sheet`, `attendance-sheet`); `chat-export-digest` now also reads WhatsApp's iPhone
   export layout. Declarative and extractive, no runtime change. GitHub, `git log`, `launchctl` and `system_profiler` samples follow
-  real output; the others follow documented layouts and are not verified against a real export. `docs/keep/RECIPES.md` documents
+  real output; the others follow documented layouts and are not verified against a real export. `docs/merion/RECIPES.md` documents
   the two calls (run a use case, read the artifact) with a Shortcut, a macOS script, a PowerShell script and webhook triggers.
 - **Four office use cases.** `receivables-ageing` and `reimbursement-claims` (from a mail export), `po-line-items` (a PO as
   text) and `employee-ledger` (a CSV), for the paperwork around invoices, POs, staff and claims. Extractive; they list and
@@ -117,84 +235,84 @@
   `bank-sms-ledger`, `card-statement`, `calendar-week`, `contacts-audit`, `travel-itinerary`, `subscription-finder`
   and `receipt-pdf`, each with a README and (except the PDF one) a sample. Declarative, so no runtime change; they are
   extractive, and one-time codes are not echoed. Run live in real cells with `0` outbound connections. They are listed
-  in `docs/keep/SCENARIOS.md` and on the phone-makers page of the GitHub Pages site. Photos and screenshots are not
+  in `docs/merion/SCENARIOS.md` and on the phone-makers page of the GitHub Pages site. Photos and screenshots are not
   covered (no OCR).
 - **Keep for phone makers, pictured.** A `/keep/phones` page on the GitHub Pages site (architecture, a user's day
   with a phone mock-up, the phone-signed approval handshake, per-user isolation, the measured benchmark, and a
-  built / reference / not-built status list) and five diagrams in `docs/assets/keep/` that the docs embed too.
+  built / reference / not-built status list) and five diagrams in `docs/assets/merion/` that the docs embed too.
   `VENDORS.md`, `TENANCY.md` and the mobile guide now show them, and `VENDORS.md` states that phone-signed
   approvals have not yet been run with a waiting agent on a real cell. The Zyvor website is not changed.
-- **`scripts/keep-live-tenancy.sh`**: two users, a phone-signed approval and the reference gateway against a
+- **`scripts/merion-live-tenancy.sh`**: two users, a phone-signed approval and the reference gateway against a
   live shard in real cells (29 checks pass on the lab host).
-- **A blueprint and a reference gateway for phone vendors.** `docs/keep/VENDORS.md` (architecture, who runs
+- **A blueprint and a reference gateway for phone vendors.** `docs/merion/VENDORS.md` (architecture, who runs
   what, what to claim and not claim, questions for counsel), `reference/vendor-gateway` (vendor login in,
   placement by region, scoped user tokens, device enrolment behind a strong login, push relay with adapters,
-  per-user rate limit, usage rollup; 12 tests, no dependencies), `scripts/keep-bench.sh` (cold-start and
+  per-user rate limit, usage rollup; 12 tests, no dependencies), `scripts/merion-bench.sh` (cold-start and
   concurrency, with a memory guard; first numbers from a lab host are in the doc), and Simplified Chinese
   strings for the navigation, headings and buttons of the Keep pages.
 - **The model is the vendor's choice.** A manifest's `model_socket` now works: agents call
   `ctx.model.chat()` (an OpenAI-compatible endpoint, through the egress broker with the vault credential),
   and OpenAI-compatible CLI agents are pointed at it. Deploy checks the URL and that the credential is
   granted. Recipes for Qwen, DeepSeek, GLM and local servers, and a `model-agent` example pack.
-  Docs: [MODELS.md](docs/keep/MODELS.md).
+  Docs: [MODELS.md](docs/merion/MODELS.md).
 - **Phone-signed approvals.** The operator enrols a phone's public key per user (ECDSA P-256 as Android
   Keystore holds it, or Ed25519); the phone signs an exact text naming the approval, the decision, a digest of
   the planned action and a server challenge, and the runtime refuses any decision whose signature does not
   verify (flipped, replayed, forged or late). Mandatory per credential or globally for user tokens. Approvals
   push to each device through a vendor-run relay. Node reference client `keep-phone`, cross-language test
-  vectors. Docs: [docs/keep/mobile](docs/keep/mobile/README.md).
+  vectors. Docs: [docs/merion/mobile](docs/merion/mobile/README.md).
 - **Many users on one Keep shard.** Operator-minted, per-user, stateless **user tokens**
   (`POST /v1/user-tokens`, scopes `read` / `run` / `approve`, revocable per user) reach only that
   user's sessions, approvals, artifacts and audit rows; everything else is 403 by default and
   another user's objects are 404. Per-user quotas (429) and `GET /v1/usage`, `GET /v1/inbox`.
   fabricd now filters approvals and audit by session ownership for non-admins and adds
-  `POST /api/agent-tokens`. Docs: [TENANCY.md](docs/keep/TENANCY.md).
-- **`scripts/keep-live-scenarios.sh`** runs the built-ins, the scenario packs, batch, zip, a webhook trigger and
+  `POST /api/agent-tokens`. Docs: [TENANCY.md](docs/merion/TENANCY.md).
+- **`scripts/merion-live-scenarios.sh`** runs the built-ins, the scenario packs, batch, zip, a webhook trigger and
   history against a live runtime in real cells (18 checks).
 - **The cell template and seven scenario packs, in the repo.** `agent-runtime/templates/node22-agent/`
   (Ubuntu 24.04, Node 22, poppler, the guest agent) with a one-command bake,
-  `./scripts/keep-bake-node22-agent.sh` (`--dry-run` shows what is missing). New use-case packs under
-  `examples/keep-agents/`: `status-page-watch`, `mailbox-triage`, `api-facts`, `expense-sheet`,
+  `./scripts/merion-bake-node22-agent.sh` (`--dry-run` shows what is missing). New use-case packs under
+  `examples/merion-agents/`: `status-page-watch`, `mailbox-triage`, `api-facts`, `expense-sheet`,
   `nda-review`, and two model-assisted ones, `invoice-model-brief` and `meeting-notes-model`. Docs:
-  [SCENARIOS.md](docs/keep/SCENARIOS.md).
+  [SCENARIOS.md](docs/merion/SCENARIOS.md).
 - **Model-assisted use cases.** A use case can declare one `model` step: after the cell
   extracts the text, the host sends it to a single OpenAI-compatible endpoint and adds the
   reply to the artifact. The cell stays offline (0 CONNECT); the vault decides whether the
   endpoint is reachable, the first use needs an out-of-band approval, every call is audited
   (sizes and a digest, never the text or the key), and the reply is sanitised. New
-  `GET/DELETE /v1/model-grants`, `keepctl grants`. Docs: [MODEL.md](docs/keep/MODEL.md).
+  `GET/DELETE /v1/model-grants`, `merionctl grants`. Docs: [MODEL.md](docs/merion/MODEL.md).
 - **More Keep file types and rules.** Use cases can read `.docx`, `.xlsx` (first sheet),
   `.html`, and `.eml` / `.mbox` (fixed Node scripts run in the cell), and a zip upload fans
   out to one cell per accepted file. New rules: `regex_extract` (linear-time `regex`),
   `json_path`, `table`. A scanned PDF now says plainly that Keep does no OCR. Docs:
-  [PACKS.md](docs/keep/PACKS.md).
+  [PACKS.md](docs/merion/PACKS.md).
 - **Keep triggers and batch.** `POST /v1/demos/{id}` takes several files (one cell each,
   one `batch_id`, 207 when some fail). Signed webhook triggers
   (`POST /v1/triggers/{id}/hook`) and watched-folder triggers (under
-  `ZYVOR_AGENT_WATCH_ROOT`) start a use case without an upload. `keepctl run` takes
-  several files and `keepctl trigger list|add-webhook|add-folder|rm|fire`; the console
-  uploads several files and has a Triggers tab. Docs: [TRIGGERS.md](docs/keep/TRIGGERS.md).
+  `ZYVOR_AGENT_WATCH_ROOT`) start a use case without an upload. `merionctl run` takes
+  several files and `merionctl trigger list|add-webhook|add-folder|rm|fire`; the console
+  uploads several files and has a Triggers tab. Docs: [TRIGGERS.md](docs/merion/TRIGGERS.md).
 - **Keep run history.** Artifacts can carry `ttl_seconds` (hidden at once, swept on
   the next write); `GET /v1/artifacts` filters by `use_case` and `since`;
   `GET /v1/artifacts/{a}/diff/{b}` returns a line diff of two runs. The approval
-  webhook also sends `run.finished` / `run.failed`. New `keepctl`
+  webhook also sends `run.finished` / `run.failed`. New `merionctl`
   `list | run | artifacts | diff | audit | approvals`, fabricd `GET /api/artifacts`
   and `/api/artifacts/{a}/diff/{b}` (admin), and a console page at
   `/app/keep/history` (Runs with diff, Audit with the hash-chain check, Approvals).
 - **Keep use cases you build yourself.** A declarative `pack.json` (an extractor
   plus bounded summary rules, no code) is deployed from the console
-  (`/app/keep` → **Deploy your own use case**) or with `keepctl deploy`;
+  (`/app/keep` → **Deploy your own use case**) or with `merionctl deploy`;
   TypeScript agent packs deploy in one command, signed with Node's Ed25519
-  (byte-compatible with `keep_sign_policy`). New `keepctl bundle` / `doctor`,
+  (byte-compatible with `keep_sign_policy`). New `merionctl bundle` / `doctor`,
   console **Deploy an agent pack**, `POST /v1/demos` + `DELETE /v1/demos/{id}`,
-  `GET /v1/keep/status`, fabricd `POST /api/packs` (admin, signed bytes forwarded
-  untouched). Docs: [PACKS.md](docs/keep/PACKS.md),
+  `GET /v1/merion/status`, fabricd `POST /api/packs` (admin, signed bytes forwarded
+  untouched). Docs: [PACKS.md](docs/merion/PACKS.md),
   [Tutorial 19](docs/tutorials/19-build-your-own-use-case.md).
 - **Six more one-click use cases**, table-driven: contract clauses, security
   questionnaire, meeting actions, log triage, SBOM summary, CSV cleanup (with
   spreadsheet-formula neutralisation). `GET /v1/demos`, `POST /v1/demos/{id}`,
-  `./scripts/keep-demo.sh`. Docs: [demos/README.md](docs/keep/demos/README.md),
-  [Tutorial 18](docs/tutorials/18-keep-use-cases.md).
+  `./scripts/merion-demo.sh`. Docs: [demos/README.md](docs/merion/demos/README.md),
+  [Tutorial 18](docs/tutorials/18-merion-use-cases.md).
 - **`./scripts/deploy keep user@host`.** Installs Fabric and the Keep runtime on a
   host that already runs FluxVM, registers only the author's public signer key,
   and smoke-tests the CSV cleanup (the PDF demos also need pdftotext in the template).
@@ -213,59 +331,59 @@
 ### Added (earlier)
 - **Keep Browser 0.3.** Split-sight `agent_paused_reason`, origin taint lattice,
   trajectory-as-code (`browse-script` artifact), goal-bound tabs, honesty badge,
-  profile inspect, SNI-identity label. Docs: [BROWSER-0.3.md](docs/keep/browser/BROWSER-0.3.md).
+  profile inspect, SNI-identity label. Docs: [BROWSER-0.3.md](docs/merion/browser/BROWSER-0.3.md).
 - **Keep host eBPF via FluxVM (no PacketWolf).** Confinement posts
   `deny_udp` + gateway-only ports + deny metadata/DNS CIDRs; cockpit shows
   `egress_connects` + FluxVM `drop_reasons`; `ebpf_deny` freezes the cell.
-  Docs: [confine.md](docs/keep/confine.md).
-- **One-click PDF → brief demo.** Pack `examples/keep-agents/pdf-brief/`,
+  Docs: [confine.md](docs/merion/confine.md).
+- **One-click PDF → brief demo.** Pack `examples/merion-agents/pdf-brief/`,
   `POST /v1/demos/pdf-brief`, fabricd `/api/demos/pdf-brief`, console
-  `/app/keep` **Brief this PDF**, `./scripts/keep-demo-pdf.sh`. Expect 0 CONNECT.
-  Tutorial: [17-keep-pdf-brief.md](docs/tutorials/17-keep-pdf-brief.md).
+  `/app/keep` **Brief this PDF**, `./scripts/merion-demo-pdf.sh`. Expect 0 CONNECT.
+  Tutorial: [17-keep-pdf-brief.md](docs/tutorials/17-merion-pdf-brief.md).
 - **Brokered Keep browser (Chromium + Playwright a11y).** Guest `browser-agent`
   template with loopback CDP `:9222` + driver `:9230`; MCP `browser_*` tools;
-  `POST …/browser/fill-secret`; `keepctl browser tabs|shot`; policy `browser:`
-  block; bake + CI smoke scripts. Docs: [DRIVER.md](docs/keep/browser/DRIVER.md).
+  `POST …/browser/fill-secret`; `merionctl browser tabs|shot`; policy `browser:`
+  block; bake + CI smoke scripts. Docs: [DRIVER.md](docs/merion/browser/DRIVER.md).
 - **Keep 0.2 soft scaffold follow-through.** Cockpit/vault read FluxVM
   `GET /v1/security/capabilities` for `snp_launch_verified` /
   `tdx_launch_verified`; user-held complete fail-closes until verified, then
   grants a vault lease via key-broker stub (wrapped disk key still not
   implemented). Browser screencast WS + screenshot links on cockpit;
   fabricd proxies screencast (`/ws/sessions/{id}/browser/screencast`) and
-  vault user-held routes; `scripts/keep-bake-browser-agent.sh`.
+  vault user-held routes; `scripts/merion-bake-browser-agent.sh`.
 - **Keep guest vsock fix (lab).** Musl-static `fluxvm-guest-agent` in `node22-agent`
   image (glibc host binary failed with `GLIBC_2.39 not found`); QEMU and
   Firecracker (`node22-fc` flat rootfs) guest vsock healthy.
 - **Vault software unwrap ceremony.** Optional `ZYVOR_AGENT_VAULT_UNWRAP_REQUIRED=1`
   with `POST /v1/vault/unwrap-tokens`, `POST /v1/vault/unwrap`, `GET /v1/vault/status`
-  (`secret_backend: host-env` honesty). `keepctl unwrap-token|unwrap|vault-status`.
+  (`secret_backend: host-env` honesty). `merionctl unwrap-token|unwrap|vault-status`.
 - **Keep console browser listing.** `/app/keep/:sessionId` polls tab listing;
   fabricd proxies `GET /api/sessions/{id}/browser/view`.
 - **Keep 0.1 pilot gate.** Live FluxVM e2e requires a registered agent template
-  (no soft-pass); `./scripts/keep-pilot-gate.sh` runs happy + deny paths and
-  archives logs under `docs/keep/pilot-runs/`; console Keep view at
+  (no soft-pass); `./scripts/merion-pilot-gate.sh` runs happy + deny paths and
+  archives logs under `docs/merion/pilot-runs/`; console Keep view at
   `/app/keep/:sessionId` (goal → evidence → approval → outcome); fabricd proxies
   `GET /api/sessions/{id}/cockpit`. Non-broker approvals can be decided after a
-  session ends. Docs: [docs/keep/PRODUCTION.md](docs/keep/PRODUCTION.md),
-  [docs/keep/STATUS.md](docs/keep/STATUS.md).
+  session ends. Docs: [docs/merion/PRODUCTION.md](docs/merion/PRODUCTION.md),
+  [docs/merion/STATUS.md](docs/merion/STATUS.md).
 - **Signed agent deployments in Keep mode.** `POST /v1/agents` requires
-  `X-Keep-Manifest-Signature` over the exact JSON body when
-  `ZYVOR_AGENT_KEEP_MODE=1`; `keepctl create --signature` / `policy sign agent.json`.
+  `X-Merion-Manifest-Signature` over the exact JSON body when
+  `ZYVOR_AGENT_MERION_MODE=1`; `merionctl create --signature` / `policy sign agent.json`.
 - **Keep packaged agents (infra, migration, deploy).** Goals/plans/artifacts API
   (`/v1/goals`, `/v1/artifacts`, advance → `/v1/approvals`); cockpit `active_goal` /
   `recent_artifacts`; shared `_fabric` client + `fabric-api` credential/policy
   recipes; packs `infra-ops`, `migration-op`, `deploy-op` under
-  `examples/keep-agents/`; demo `./scripts/keep-pack-demo.sh`. Docs:
-  [docs/keep/goals](docs/keep/goals/README.md), Tutorial 16 appendix, STATUS.
-- **Keep 0.1 live proof.** Fail-closed Keep mode (`ZYVOR_AGENT_KEEP_MODE=1`) requires
-  trusted policy signers at startup and refuses unsigned `keep.policy.yaml` updates;
+  `examples/merion-agents/`; demo `./scripts/merion-pack-demo.sh`. Docs:
+  [docs/merion/goals](docs/merion/goals/README.md), Tutorial 16 appendix, STATUS.
+- **Keep 0.1 live proof.** Fail-closed Keep mode (`ZYVOR_AGENT_MERION_MODE=1`) requires
+  trusted policy signers at startup and refuses unsigned `merion.policy.yaml` updates;
   `CredentialVault::authorize_resolve` allowlists host/method/path/user before
   host-env secret injection; operator browser live view
   (`GET /v1/sessions/{id}/browser/view`, `/keep/browser`); cockpit reports
   `evidence_class: software-test` and measured `security_profile`; lab gate
-  `./scripts/keep-live-lab.sh` / `KEEP_E2E_FLUXVM=1 ./scripts/keep-e2e.sh`.
-  Product page at console `/keep`. Docs: [docs/keep/PRODUCTION.md](docs/keep/PRODUCTION.md),
-  [Tutorial 16](docs/tutorials/16-keep-workstation.md).
+  `./scripts/merion-live-lab.sh` / `MERION_E2E_FLUXVM=1 ./scripts/merion-e2e.sh`.
+  Product page at console `/keep`. Docs: [docs/merion/PRODUCTION.md](docs/merion/PRODUCTION.md),
+  [Tutorial 16](docs/tutorials/16-merion-workstation.md).
 - **Inner containment, always-on workstations and a browser tab view.**
   `inner_container: strict` runs the worker unprivileged in a bubblewrap container
   (fails closed); `persistent: true` plus `PUT /v1/workstations/{agent}/{user_id}`

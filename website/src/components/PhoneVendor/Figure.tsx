@@ -3,7 +3,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
 
 /**
- * A diagram from docs/assets/keep, served in place (see staticDirectories in docusaurus.config.ts) so this page and
+ * A diagram from docs/assets/merion, served in place (see staticDirectories in docusaurus.config.ts) so this page and
  * the GitHub docs show the same file. Wide diagrams scroll sideways on a phone rather than shrinking to nothing.
  */
 export default function Figure({
@@ -17,7 +17,7 @@ export default function Figure({
   caption?: ReactNode;
   minWidth?: number;
 }): ReactNode {
-  const src = useBaseUrl(`/keep/${file}`);
+  const src = useBaseUrl(`/merion/${file}`);
   return (
     <figure className={styles.figure}>
       <div className={styles.scroller} tabIndex={0} role="group" aria-label={alt}>

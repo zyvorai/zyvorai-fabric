@@ -18,6 +18,9 @@
 # Exit: 0 all required PASS; 1 FAIL; 2 misconfig
 #
 #   FABRIC_URL=https://fabric:9095 FABRIC_TOKEN=… ./scripts/test-production-readiness.sh
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_LAB+x}" ] || [ -z "${KEEP_LAB:-}" ] || export MERION_LAB="$KEEP_LAB"
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -175,7 +178,7 @@ if want_section wireguard; then
   echo "=== wireguard (mutating) ==="
   chmod +x "$ROOT/scripts/test-wireguard-service-fabric.sh" 2>/dev/null || true
   set +e
-  FABRIC_TOKEN="$TOKEN" KEEP_LAB="${KEEP_LAB:-0}" \
+  FABRIC_TOKEN="$TOKEN" MERION_LAB="${MERION_LAB:-0}" \
     "$ROOT/scripts/test-wireguard-service-fabric.sh" >/tmp/fabric-wg.out 2>&1
   dc=$?
   set -e

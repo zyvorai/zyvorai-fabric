@@ -184,7 +184,7 @@ export default function CostEstimator() {
         <label className="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" checked={includeSnapshots} onChange={() => setIncludeSnapshots(!includeSnapshots)} className="sr-only peer" />
           <div className={`relative w-10 h-5 rounded-full transition-colors ${includeSnapshots ? 'bg-emerald-500' : 'bg-[var(--zf-hairline)]'}`}>
-            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${includeSnapshots ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-[var(--zf-surface)] transition-transform ${includeSnapshots ? 'translate-x-5' : 'translate-x-0.5'}`} />
           </div>
           <span className="text-sm text-[var(--zf-ink)]">Include snapshots (+50% storage)</span>
         </label>

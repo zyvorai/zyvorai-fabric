@@ -18,7 +18,7 @@ import type {Cell, Col, Level, TGroup} from '@site/src/components/compare/data';
 import styles from './ComparePage.module.css';
 
 type Tag = 'security' | 'ops' | 'portability';
-type Row = {label: string; muse: Cell; keep: Cell; fabric: Cell; flux: Cell};
+type Row = {label: string; muse: Cell; merion: Cell; fabric: Cell; flux: Cell};
 type Group = {title: string; tag: Tag; rows: Row[]};
 
 const NA_FABRIC = c('Delegates to FluxVM', 'na');
@@ -27,9 +27,9 @@ const UNDOC = c('Not documented publicly', 'na');
 
 /*
  * Muse cells are "as publicly described" — public detail is thin, see the
- * sourcing note on the page. Like the /keep page, only rows stated in
- * docs/keep/KEEP.md keep a Muse claim; the rest read "Not documented publicly". Keep/Fabric/FluxVM cells trace to
- * docs/keep/KEEP.md, docs/PRODUCT_OVERVIEW.md and fluxvm/README.md.
+ * sourcing note on the page. Like the /merion page, only rows stated in
+ * docs/merion/MERION.md keep a Muse claim; the rest read "Not documented publicly". Merion/Fabric/FluxVM cells trace to
+ * docs/merion/MERION.md, docs/PRODUCT_OVERVIEW.md and fluxvm/README.md.
  */
 const GROUPS: Group[] = [
   {
@@ -39,14 +39,14 @@ const GROUPS: Group[] = [
       {
         label: 'Home',
         muse: c('Meta’s cloud', 'part'),
-        keep: c('Laptop, mini-PC, FluxVM host, or rented SNP/TDX — same API'),
+        merion: c('Laptop, mini-PC, FluxVM host, or rented SNP/TDX — same API'),
         fabric: c('Any Linux host — one ~15 MB Rust daemon'),
         flux: c('One Linux host is enough; grow to multi-host fleets'),
       },
       {
         label: 'Control surface',
         muse: UNDOC,
-        keep: c('keepctl, /app/keep console, vsock admin'),
+        merion: c('merionctl, /app/merion console, vsock admin'),
         fabric: c('780+ REST endpoints, CLI, web console, K8s operator, Terraform'),
         flux: c('REST API + CLI with the same verbs'),
       },
@@ -59,28 +59,35 @@ const GROUPS: Group[] = [
       {
         label: 'Policy',
         muse: c('Closed Sentinel', 'part'),
-        keep: c('Signed keep.policy.yaml — fails closed, diffable in git'),
+        merion: c('Signed merion.policy.yaml — fails closed, diffable in git'),
         fabric: c('3-tier RBAC, audit log, LDAP/OIDC SSO'),
         flux: c('Per-VM security_profile; multi-tenant controls are opt-in', 'part'),
       },
       {
         label: 'Credentials',
         muse: c('Surrogates swapped at egress'),
-        keep: c('Vault — the agent never sees real passwords'),
+        merion: c('Vault — the agent never sees real passwords'),
         fabric: NA,
         flux: NA,
       },
       {
         label: 'Approvals',
         muse: c('Bound to a connector'),
-        keep: c('Phone-only high-risk approvals, bound to a connector'),
+        merion: c('Phone-only high-risk approvals, bound to a connector'),
         fabric: NA,
         flux: NA,
       },
       {
+        label: 'Auto-approve',
+        muse: UNDOC,
+        merion: c('Optional per-agent policy, off by default — in-policy changesets are applied and journaled; a required phone signature always wins'),
+        fabric: NA,
+        flux: c('Measures the changeset the policy checks'),
+      },
+      {
         label: 'Training',
         muse: c('Trajectories may train after sanitization', 'no'),
-        keep: c('Default off — export needs a scoped token'),
+        merion: c('Default off — export needs a scoped token'),
         fabric: NA,
         flux: NA,
       },
@@ -93,21 +100,21 @@ const GROUPS: Group[] = [
       {
         label: 'The cell',
         muse: c('Its own cloud VM; Sentinel on the same machine, kept apart at the system level', 'part'),
-        keep: c('Firecracker / KVM microVM via FluxVM'),
+        merion: c('Firecracker / KVM microVM via FluxVM'),
         fabric: NA_FABRIC,
         flux: c('Firecracker, Cloud Hypervisor, QEMU/KVM or in-tree — one trait'),
       },
       {
         label: 'Guest access',
         muse: UNDOC,
-        keep: c('vsock admin — no SSH to the agent'),
+        merion: c('vsock admin — no SSH to the agent'),
         fabric: NA_FABRIC,
         flux: c('vsock agent: exec, PTY, file copy — no SSH'),
       },
       {
         label: 'Confidential',
         muse: UNDOC,
-        keep: c('measured today (software-test); SNP/TDX gated on a verified run', 'part'),
+        merion: c('measured today (software-test); SNP/TDX gated on a verified run', 'part'),
         fabric: NA,
         flux: c('security_profile field; hardware evidence gated', 'part'),
       },
@@ -120,14 +127,14 @@ const GROUPS: Group[] = [
       {
         label: 'Egress pin',
         muse: UNDOC,
-        keep: c('deny_udp + gateway-only ports; cockpit CONNECT 0'),
+        merion: c('deny_udp + gateway-only ports; cockpit CONNECT 0'),
         fabric: c('Cilium-style network policies, WireGuard mesh'),
         flux: c('TC/eBPF Network Fabric (GA): L3/L4 policy, rate limits, live reconfigure'),
       },
       {
         label: 'Proof',
         muse: UNDOC,
-        keep: c('Audit journal + FluxVM drop_reasons (PacketWolf optional)'),
+        merion: c('Audit journal + FluxVM drop_reasons (PacketWolf optional)'),
         fabric: c('Audit logging'),
         flux: c('drop_reasons from the host pin'),
       },
@@ -140,7 +147,7 @@ const GROUPS: Group[] = [
       {
         label: 'Model',
         muse: c('Tied to Muse Spark', 'no'),
-        keep: c('BYO model socket'),
+        merion: c('BYO model socket'),
         fabric: c('AI Workloads (Beta): OpenAI-compatible gateway', 'part'),
         flux: NA,
       },
@@ -153,21 +160,21 @@ const GROUPS: Group[] = [
       {
         label: 'Leaving',
         muse: UNDOC,
-        keep: c('keepctl pack / unpack onto another FluxVM'),
+        merion: c('merionctl pack / unpack onto another FluxVM'),
         fabric: c('Live migration (disk-copy GA, native preview), VMDK/VDI import'),
         flux: c('qcow2 CoW clones, memory snapshots'),
       },
       {
         label: 'Fleet',
         muse: NA,
-        keep: c('Rides on Fabric + FluxVM'),
+        merion: c('Rides on Fabric + FluxVM'),
         fabric: c('Kubernetes operator, Terraform provider'),
         flux: c('Multi-host fleet; K8s operator verified on real k3s'),
       },
       {
         label: 'License',
         muse: c('Closed', 'no'),
-        keep: c('Apache-2.0'),
+        merion: c('Apache-2.0'),
         fabric: c('Apache-2.0'),
         flux: c('Apache-2.0'),
       },
@@ -190,10 +197,10 @@ type UseCase = {
   cta: string;
 };
 
-const GH = 'https://github.com/zyvorai/fabric/tree/main/examples/keep-agents';
+const GH = 'https://github.com/zyvorai/fabric/tree/main/examples/merion-agents';
 
-/* Every entry traces to examples/keep-agents/*, docs/keep/browser/BROWSER-0.3.md,
- * docs/keep/approve, docs/keep/PRODUCTION.md or docs/keep/keepctl. */
+/* Every entry traces to examples/merion-agents/*, docs/merion/browser/BROWSER-0.3.md,
+ * docs/merion/approve, docs/merion/PRODUCTION.md or docs/merion/merionctl. */
 const USE_CASES: UseCase[] = [
   {
     id: 'pdf-brief',
@@ -203,11 +210,11 @@ const USE_CASES: UseCase[] = [
     headline: 'PDF in. brief.md out. Zero connects.',
     blurb:
       'The one-click stage demo: drop a document on the cockpit and get a brief back, with no browser and nothing leaving the cell.',
-    flow: ['Drop a PDF on /app/keep', 'Agent reads it with pdftotext in the cell', 'brief.md lands as an artifact'],
+    flow: ['Drop a PDF on /app/merion', 'Agent reads it with pdftotext in the cell', 'brief.md lands as an artifact'],
     guards: ['No browser', 'deny_udp + gateway-only ports', 'Expects egress_connects: 0'],
     out: 'brief.md',
-    cmd: './scripts/keep-demo-pdf.sh examples/keep-agents/pdf-brief/sample.pdf',
-    href: '/docs/tutorials/keep-pdf-brief',
+    cmd: './scripts/merion-demo-pdf.sh examples/merion-agents/pdf-brief/sample.pdf',
+    href: '/docs/tutorials/merion-pdf-brief',
     cta: 'Tutorial 17',
   },
   {
@@ -223,9 +230,9 @@ const USE_CASES: UseCase[] = [
       'Write an incident timeline',
       'Apply the fix — blocked until you approve',
     ],
-    guards: ['Fix step is requires_approval', 'Fabric API via a vault credential', 'Mutations go through Keep ask'],
+    guards: ['Fix step is requires_approval', 'Fabric API via a vault credential', 'Mutations go through Merion ask'],
     out: 'Incident timeline (markdown) + proposed_fix JSON',
-    cmd: './scripts/keep-pack-demo.sh infra-ops',
+    cmd: './scripts/merion-pack-demo.sh infra-ops',
     href: `${GH}/infra-ops`,
     cta: 'infra-ops on GitHub',
   },
@@ -240,7 +247,7 @@ const USE_CASES: UseCase[] = [
     flow: ['Inspect the guest with GuestKit', 'Draft the wave plan and preflight report', 'Cutover checklist for you to run'],
     guards: ['Create, cancel and rescue always hit approval', 'Only talks to fabricd', 'Transiva / hypersdk stay out of scope'],
     out: 'Wave plan, preflight report, cutover checklist',
-    cmd: './scripts/keep-pack-demo.sh migration-op',
+    cmd: './scripts/merion-pack-demo.sh migration-op',
     href: `${GH}/migration-op`,
     cta: 'migration-op on GitHub',
   },
@@ -255,7 +262,7 @@ const USE_CASES: UseCase[] = [
     flow: ['Probe /readyz and /health', 'Map results to Fabric Doctor', 'Propose commands — you run them'],
     guards: ['No host writes by default', 'Privileged steps are proposals only'],
     out: 'Prerequisites checklist + readiness report',
-    cmd: './scripts/keep-pack-demo.sh deploy-op',
+    cmd: './scripts/merion-pack-demo.sh deploy-op',
     href: `${GH}/deploy-op`,
     cta: 'deploy-op on GitHub',
   },
@@ -270,7 +277,7 @@ const USE_CASES: UseCase[] = [
     flow: ['browser_open an allowlisted host', 'browser_snapshot — titles and refs, no HTML', 'Write research.md, then stop'],
     guards: ['allow_hosts allowlist', 'snapshot_only · downloads denied', 'file:// blocked · max 4 tabs'],
     out: 'research.md',
-    cmd: 'keepctl create -f examples/keep-agents/browser-research/deploy.json',
+    cmd: 'merionctl create -f examples/merion-agents/browser-research/deploy.json',
     href: `${GH}/browser-research`,
     cta: 'browser-research on GitHub',
   },
@@ -286,7 +293,7 @@ const USE_CASES: UseCase[] = [
     guards: ['Audit says vault:name, no value', 'Pause is first-class session state', 'Separate agent / operator cookie jars'],
     out: 'Audit entry with source: vault:name',
     cmd: 'POST /v1/sessions/{id}/browser/fill-secret',
-    href: '/docs/keep/browser/BROWSER-0.3',
+    href: '/docs/merion/browser/BROWSER-0.3',
     cta: 'Browser 0.3',
   },
   {
@@ -297,11 +304,11 @@ const USE_CASES: UseCase[] = [
     headline: 'A browsing session you can run again.',
     blurb:
       'Every act is saved as a browse-script artifact, so a trajectory that worked becomes something you can replay instead of re-prompting.',
-    flow: ['Agent browses; each act is logged', 'Saved as artifact kind=browse-script', 'Replay it with keepctl browse replay'],
+    flow: ['Agent browses; each act is logged', 'Saved as artifact kind=browse-script', 'Replay it with merionctl browse replay'],
     guards: ['Chromium and CDP stay host objects', 'Agent sees a11y refs, not raw DOM', 'Paste across disjoint origins denied'],
     out: 'browse-script artifact',
-    cmd: 'keepctl browse replay',
-    href: '/docs/keep/browser/BROWSER-0.3',
+    cmd: 'merionctl browse replay',
+    href: '/docs/merion/browser/BROWSER-0.3',
     cta: 'Browser 0.3',
   },
   {
@@ -316,7 +323,7 @@ const USE_CASES: UseCase[] = [
     guards: ['Per-goal host allowlist', 'Live view: pixels for you, a11y tree for the agent'],
     out: 'Goal-bound tab + artifacts on the goal',
     cmd: 'POST /v1/goals/{id}/browse',
-    href: '/docs/keep/browser/BROWSER-0.3',
+    href: '/docs/merion/browser/BROWSER-0.3',
     cta: 'Browser 0.3',
   },
   {
@@ -331,23 +338,23 @@ const USE_CASES: UseCase[] = [
     guards: ['Token bound to a connector + action', 'Guest cannot see the channel', 'Pilot gate proves approve and deny paths'],
     out: 'Capability token, not a sentence in chat',
     cmd: 'POST /v1/approvals/{id}',
-    href: '/docs/keep/approve/',
+    href: '/docs/merion/approve/',
     cta: 'Approvals',
   },
   {
     id: 'pack',
     group: 'Workstation',
     name: 'Pack up and leave',
-    kind: 'keepctl pack / unpack',
+    kind: 'merionctl pack / unpack',
     headline: 'Your workstation is portable.',
     blurb:
       'Export the policy, the agent pin and the vault names, then unpack onto another FluxVM. No lock-in, and no raw secrets in the box.',
-    flow: ['Mint a scoped export token', 'keepctl pack → policy, agent pin, vault names', 'keepctl unpack onto another FluxVM'],
-    guards: ['Export needs X-Keep-Export-Token', 'Vault names only — no raw secrets', 'Training default off'],
+    flow: ['Mint a scoped export token', 'merionctl pack → policy, agent pin, vault names', 'merionctl unpack onto another FluxVM'],
+    guards: ['Export needs X-Merion-Export-Token', 'Vault names only — no raw secrets', 'Training default off'],
     out: 'A portable pack directory',
-    cmd: 'keepctl pack /tmp/keep-pack my-agent',
-    href: '/docs/keep/keepctl/',
-    cta: 'keepctl',
+    cmd: 'merionctl pack /tmp/merion-pack my-agent',
+    href: '/docs/merion/merionctl/',
+    cta: 'merionctl',
   },
   {
     id: 'byo',
@@ -357,8 +364,8 @@ const USE_CASES: UseCase[] = [
     headline: 'Write it in TypeScript. Keep the guardrails.',
     blurb:
       'Build your own agent into a bundle and deploy it under the same signed policy, in the same microVM cell, with the same approvals as the shipped packs.',
-    flow: ['Write agent.ts against the Fabric client', 'npx fabric-agent build → one bundle', 'keepctl create -f deploy.json'],
-    guards: ['Signed keep.policy.yaml applies', 'BYO model socket', 'Cell is a FluxVM microVM'],
+    flow: ['Write agent.ts against the Fabric client', 'npx fabric-agent build → one bundle', 'merionctl create -f deploy.json'],
+    guards: ['Signed merion.policy.yaml applies', 'BYO model socket', 'Cell is a FluxVM microVM'],
     out: 'A deployed agent + its goals and artifacts',
     cmd: 'npx fabric-agent build agent.ts --out bundle.mjs',
     href: `${GH}/_fabric`,
@@ -422,7 +429,7 @@ function Hero(): ReactNode {
       eyebrow="Zyvor Fabric"
       title="Private cloud control plane for Linux."
       accent="See how it stacks up."
-      sub="Fabric vs Proxmox, OpenStack and libvirt — then Keep and FluxVM for the agent stack you run yourself."
+      sub="Fabric vs Proxmox, OpenStack and libvirt — then Merion and FluxVM for the agent stack you run yourself."
       buttons={
         <>
           <a className="button button--primary button--lg" href="#matrix">
@@ -446,7 +453,7 @@ function Hero(): ReactNode {
 
 function StackScene(): ReactNode {
   const layers = [
-    ['Keep', 'Product layer', 'Policy, vault, approvals, browser, demos'],
+    ['Merion', 'Product layer', 'Policy, vault, approvals, browser, demos'],
     ['Fabric', 'Control plane', 'Console, JWT, Agents / Sessions'],
     ['FluxVM', 'Hypervisor', 'The cell + the host TC/eBPF pin'],
   ] as const;
@@ -487,7 +494,7 @@ function StackScene(): ReactNode {
 
 const MUSE_COLS: Col[] = [
   {key: 'muse', label: 'Muse', sub: 'as publicly described', dim: true},
-  {key: 'keep', label: 'Keep', sub: 'product layer', hl: true},
+  {key: 'merion', label: 'Merion', sub: 'product layer', hl: true},
   {key: 'fabric', label: 'Fabric', sub: 'control plane'},
   {key: 'flux', label: 'FluxVM', sub: 'hypervisor'},
 ];
@@ -495,7 +502,7 @@ const MUSE_COLS: Col[] = [
 const MUSE_GROUPS: (TGroup & {tag: Tag})[] = GROUPS.map((g) => ({
   title: g.title,
   tag: g.tag,
-  rows: g.rows.map((r) => ({label: r.label, cells: [r.muse, r.keep, r.fabric, r.flux]})),
+  rows: g.rows.map((r) => ({label: r.label, cells: [r.muse, r.merion, r.fabric, r.flux]})),
 }));
 
 type TabId = 'stack' | 'fabric' | 'flux';
@@ -510,9 +517,9 @@ const TABS: {
 }[] = [
   {
     id: 'stack',
-    label: 'Muse vs the Keep stack',
+    label: 'Muse vs the Merion stack',
     caption:
-      'Muse compared with Keep, Fabric and FluxVM across trust, isolation, network proof and portability.',
+      'Muse compared with Merion, Fabric and FluxVM across trust, isolation, network proof and portability.',
     cols: MUSE_COLS,
     groups: MUSE_GROUPS,
     note: null,
@@ -723,7 +730,7 @@ function UseCases(): ReactNode {
             <li key={g}>{g}</li>
           ))}
         </ul>
-        <pre className={styles.ucCmd}>
+        <pre tabIndex={0} className={styles.ucCmd}>
           <code>{uc.cmd}</code>
         </pre>
         <p className={styles.ucOut}>
@@ -751,15 +758,15 @@ function Proof(): ReactNode {
           <p className={clsx(shell.lede, shell.onDarkMuted)}>
             The PDF-brief demo runs an agent through a vendor SOW behind a host-side eBPF pin —{' '}
             <code>deny_udp</code> plus gateway-only ports. It expects <code>egress_connects: 0</code>,
-            read from Keep’s journal and FluxVM’s <code>drop_reasons</code>.
+            read from Merion’s journal and FluxVM’s <code>drop_reasons</code>.
           </p>
           <div className={shell.btnrow}>
-            <Link className="button button--primary button--lg" to="/docs/tutorials/keep-pdf-brief">
+            <Link className="button button--primary button--lg" to="/docs/tutorials/merion-pdf-brief">
               Run Tutorial 17
             </Link>
             <Link
               className="button button--outline button--lg button--secondary"
-              to="/docs/keep/demos/pdf-brief">
+              to="/docs/merion/demos/pdf-brief">
               Demo docs
             </Link>
           </div>
@@ -771,7 +778,7 @@ function Proof(): ReactNode {
             <code>egress_connects</code>
           </div>
           <ul className={styles.sources}>
-            <li>Keep audit journal</li>
+            <li>Merion audit journal</li>
             <li>FluxVM host TC/eBPF pin</li>
           </ul>
         </Reveal>
@@ -782,11 +789,11 @@ function Proof(): ReactNode {
 
 const CARDS = [
   {
-    name: 'Keep',
+    name: 'Merion',
     role: 'The agent workstation',
     points: ['Signed policy that fails closed', 'Vault, approvals, brokered browser', 'pack / unpack to leave'],
-    to: '/docs/keep/',
-    cta: 'Keep docs',
+    to: '/docs/merion/',
+    cta: 'Merion docs',
   },
   {
     name: 'Fabric',
@@ -810,7 +817,7 @@ export default function ComparePage(): ReactNode {
   return (
     <Layout
       title="Zyvor Fabric — private cloud control plane"
-      description="Fabric vs the field: compare Zyvor Fabric with Proxmox, OpenStack and libvirt — then Keep, FluxVM, proof, and a runnable quickstart.">
+      description="Fabric vs the field: compare Zyvor Fabric with Proxmox, OpenStack and libvirt — then Merion, FluxVM, proof, and a runnable quickstart.">
       <PageMetadata image="/img/compare-social.png" />
       <Page>
         <Hero />
@@ -819,7 +826,7 @@ export default function ComparePage(): ReactNode {
             id="matrix"
             eyebrow="The matrix"
             title="Side by side."
-            lede="Start with Fabric vs the field. Switch tabs for Muse vs the Keep stack, or FluxVM vs libvirt."
+            lede="Start with Fabric vs the field. Switch tabs for Muse vs the Merion stack, or FluxVM vs libvirt."
             wide>
             <Matrix />
           </Section>
@@ -827,7 +834,7 @@ export default function ComparePage(): ReactNode {
           <Section
             eyebrow="What Muse got right"
             title="Same threat model. Credit where due."
-            lede="Muse’s public story gets the shape right. Keep starts from the same five ideas."
+            lede="Muse’s public story gets the shape right. Merion starts from the same five ideas."
             tint>
             <ul className={shell.tiles}>
               {GOT_RIGHT.map(([h, b], i) => (
@@ -845,7 +852,7 @@ export default function ComparePage(): ReactNode {
             id="stack"
             eyebrow="The stack"
             title="One outsider. Three layers you own."
-            lede="Keep, Fabric and FluxVM aren’t rivals — they’re one stack. Muse is the reference point outside it.">
+            lede="Merion, Fabric and FluxVM aren’t rivals — they’re one stack. Muse is the reference point outside it.">
             <StackScene />
           </Section>
 
@@ -853,7 +860,7 @@ export default function ComparePage(): ReactNode {
             id="profiles"
             eyebrow="Security profiles"
             title="Three rungs. One says what it can’t prove."
-            lede="Keep labels every cell with the evidence it actually has. Measured is software-test; hardware attestation stays gated until a verified run."
+            lede="Merion labels every cell with the evidence it actually has. Measured is software-test; hardware attestation stays gated until a verified run."
             tint
             wide>
             <ProfileLadder />
@@ -888,7 +895,7 @@ export default function ComparePage(): ReactNode {
             id="receipts"
             eyebrow="Receipts"
             title="Run, archived, in the repo."
-            lede="The pilot gate has passed on a real FluxVM host — happy path and deny path — with logs archived under docs/keep/pilot-runs/."
+            lede="The pilot gate has passed on a real FluxVM host — happy path and deny path — with logs archived under docs/merion/pilot-runs/."
             wide>
             <Receipts />
           </Section>
@@ -897,7 +904,7 @@ export default function ComparePage(): ReactNode {
             id="roadmap"
             eyebrow="Roadmap"
             title="Shipped, gated, next."
-            lede="What is done, what waits on hardware, and what comes after — straight from STATUS.md and the Keep 0.2 notes."
+            lede="What is done, what waits on hardware, and what comes after — straight from STATUS.md and the Merion 0.2 notes."
             tint
             wide>
             <Roadmap />
@@ -937,7 +944,7 @@ export default function ComparePage(): ReactNode {
           <HonestyBand
             items={[
               <>
-                Until Keep 0.2 runs on real SNP/TDX with a user-held key, evidence stays{' '}
+                Until Merion 0.2 runs on real SNP/TDX with a user-held key, evidence stays{' '}
                 <code>software-test</code> — never “the operator cannot read this.” Muse’s Secure VM
                 has the same limit today.
               </>,
@@ -953,8 +960,8 @@ export default function ComparePage(): ReactNode {
             <Link className="button button--primary button--lg" to="/docs/getting-started/Quick-Start">
               Quick start
             </Link>
-            <Link className="button button--outline button--lg button--secondary" to="/keep">
-              Meet Keep
+            <Link className="button button--outline button--lg button--secondary" to="/merion">
+              Meet Merion
             </Link>
           </CtaBand>
         </main>

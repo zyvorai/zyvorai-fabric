@@ -101,7 +101,7 @@ pub fn signing_key(api_token: Option<&str>, secret_env: Option<&str>) -> Option<
     }
     api_token
         .filter(|t| !t.is_empty())
-        .map(|t| hmac_sha256(t.as_bytes(), b"keep-user-token-v1").to_vec())
+        .map(|t| hmac_sha256(t.as_bytes(), b"merion-user-token-v1").to_vec())
 }
 
 pub fn signing_key_for(state: &AppState) -> Option<Vec<u8>> {
@@ -205,6 +205,8 @@ pub fn user_route(method: &Method, path: &str) -> UserRoute {
         ["v1", "sessions"] if *method == Method::POST => UserRoute::Open(Scope::Run),
         // Recovering a session through the host is an operator action.
         ["v1", "sessions", _, "host-recover", ..] => UserRoute::Denied,
+        // Restoring the cell to a snapshot discards everything it did since: an operator action.
+        ["v1", "sessions", _, "changesets", ..] => UserRoute::Denied,
         ["v1", "sessions", sid, ..] => match id(sid) {
             Some(sid) if read => UserRoute::Session(sid, Scope::Read),
             Some(sid) if write => UserRoute::Session(sid, Scope::Run),
@@ -302,6 +304,11 @@ pub fn user_route(method: &Method, path: &str) -> UserRoute {
         // A user may list their own enrolled devices. Enrolling and removing them is an operator
         // action, so a stolen user token cannot add its own key.
         ["v1", "users", uid, "devices"] if read => {
+            UserRoute::OwnUser((*uid).to_string(), Scope::Read)
+        }
+        // Auto-approval policies are set by the operator (the gateway), like device enrolment, so a stolen user token
+        // cannot widen what skips a person's click. A user may read their own.
+        ["v1", "users", uid, "changeset-policies"] if read => {
             UserRoute::OwnUser((*uid).to_string(), Scope::Read)
         }
         ["v1", "audit"] | ["v1", "usage"] | ["v1", "inbox"] | ["v1", "demos"] if read => {
@@ -498,6 +505,11 @@ mod tests {
                 UserRoute::Session(sid, Scope::Read),
             ),
             (
+                Method::GET,
+                format!("/v1/sessions/{sid}/report"),
+                UserRoute::Session(sid, Scope::Read),
+            ),
+            (
                 Method::POST,
                 format!("/v1/sessions/{sid}/cancel"),
                 UserRoute::Session(sid, Scope::Run),
@@ -505,6 +517,11 @@ mod tests {
             (
                 Method::POST,
                 format!("/v1/sessions/{sid}/host-recover"),
+                UserRoute::Denied,
+            ),
+            (
+                Method::POST,
+                format!("/v1/sessions/{sid}/changesets/{aid}/restore"),
                 UserRoute::Denied,
             ),
             (
@@ -765,9 +782,11 @@ mod tests {
         for p in [
             "/v1/agents",
             "/v1/keep/status",
+            "/v1/merion/status",
             "/v1/user-tokens",
             "/v1/triggers",
             "/v1/model-grants",
+            "/v1/model-usage",
             "/v1/vault/status",
             "/v1/skills",
             "/v1/schedules",
@@ -797,6 +816,8 @@ mod tests {
                 "/v1/users/ana/devices",
                 "/v1/users/ana/devices/phone",
                 "/v1/users/ana/revoke-tokens",
+                "/v1/users/ana/changeset-policies",
+                "/v1/users/ana/changeset-policies/agent",
             ] {
                 assert_eq!(user_route(&m, p), UserRoute::Denied, "{m} {p}");
             }

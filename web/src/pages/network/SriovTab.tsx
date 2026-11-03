@@ -30,29 +30,29 @@ function SriovTabContent({ sriov, onDelete, onAdopt, onCreate }: SriovTabProps) 
   const pageItems = paginateSlice(filtered, page, DEFAULT_PAGE_SIZE, showAll)
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">SR-IOV</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-[#1d1d1f] py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Configure SR-IOV
         </button>}
       </div>
       {sriov.length === 0 ? (
-        <div className="p-12 text-center text-[#6e6e73]">No SR-IOV configurations.</div>
+        <div className="p-12 text-center text-[var(--zf-muted)]">No SR-IOV configurations.</div>
       ) : (
         <>
           <ListControls search={search} onSearchChange={setSearch} searchPlaceholder="Search PF name…" total={sriov.length} filtered={filtered.length} page={page} pageSize={DEFAULT_PAGE_SIZE} onPageChange={setPage} showAll={showAll} onShowAllChange={setShowAll} />
           <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white">
+            <thead className="bg-[var(--zf-surface)]">
               <tr>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">PF Name</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">VFs</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">VF Configs</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">PF Name</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">VFs</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">VF Configs</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#d2d2d7]">
+            <tbody className="divide-y divide-[var(--zf-hairline)]">
               {pageItems.map(s => (
                 <tr key={s.id} className="hover:bg-white/[0.03] transition">
                   <td className="p-4 font-medium">
@@ -60,7 +60,7 @@ function SriovTabContent({ sriov, onDelete, onAdopt, onCreate }: SriovTabProps) 
                     {isHostManaged(s) && <HostBadge />}
                   </td>
                   <td className="p-4 font-mono text-violet-400">{s.num_vfs}</td>
-                  <td className="p-4 text-[#6e6e73] text-sm">{s.vf_configs?.length ?? 0} entries</td>
+                  <td className="p-4 text-[var(--zf-muted)] text-sm">{s.vf_configs?.length ?? 0} entries</td>
                   <td className="p-4">
                     <HostManagedActions readOnly={readOnly}
                       item={s}
@@ -72,7 +72,7 @@ function SriovTabContent({ sriov, onDelete, onAdopt, onCreate }: SriovTabProps) 
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && <div className="p-8 text-center text-[#6e6e73] text-sm">No SR-IOV configs match your search.</div>}
+          {filtered.length === 0 && <div className="p-8 text-center text-[var(--zf-muted)] text-sm">No SR-IOV configs match your search.</div>}
           </div>
         </>
       )}
@@ -111,7 +111,7 @@ export function CreateSriovModal({ onClose, onCreated }: { onClose: () => void; 
         <InputField label="Physical Function (PF)" value={pfName} onChange={setPfName} placeholder="eno2" />
         <InputField label="Number of VFs" value={numVfs} onChange={setNumVfs} placeholder="4" type="number" />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-[#1d1d1f] py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Configure SR-IOV'}
         </button>
       </div>

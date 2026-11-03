@@ -1,11 +1,11 @@
-# Tutorial 19: Build your own Keep use case
+# Tutorial 19: Build your own Merion use case
 
 Tutorials 17 and 18 run use cases we ship. This one builds your own and deploys it in one step,
 first without code, then as a TypeScript agent.
 
 **Level:** Beginner  
 **Time:** 25 minutes  
-**Needs:** A Fabric + Keep runtime with FluxVM (`./scripts/deploy keep user@host` sets one up),
+**Needs:** A Fabric + Merion runtime with FluxVM (`./scripts/deploy keep user@host` sets one up),
 Node 20+ for the CLI, `cd sdk/agent-runtime && npm ci` once.
 
 > **Honesty.** Summaries from a declarative use case are **extractive**: no model is called and
@@ -20,7 +20,7 @@ Take an invoice as plain text and pull out the totals, the due date and any repe
 
 ### Option A: the console
 
-1. Sign in, open **Keep** (`/app/keep`), and choose **Deploy your own use case → New use case**.
+1. Sign in, open **Merion** (`/app/merion`), and choose **Deploy your own use case → New use case**.
 2. Name it `Invoice check`, choose **Text files**, extensions `txt`.
 3. Add rules: *Lines that mention…* `total, amount due`; *Most repeated lines*; *Counts*.
 4. Paste a few lines of a sample invoice into **Sample text** and click **Deploy use case**.
@@ -30,12 +30,12 @@ guest reads your file, the summary is built, and the cockpit shows **0 CONNECT**
 
 ### Option B: one command
 
-`examples/keep-agents/invoice-check/` is the same thing as a `pack.json`:
+`examples/merion-agents/invoice-check/` is the same thing as a `pack.json`:
 
 ```bash
-export KEEP_API=http://127.0.0.1:9096 KEEP_TOKEN=...      # or ssh -L 9096:127.0.0.1:9096 user@host
-./scripts/keepctl deploy examples/keep-agents/invoice-check --dry-run   # what it would do
-./scripts/keepctl deploy examples/keep-agents/invoice-check --test      # deploy, run on the sample, require 0 CONNECT
+export MERION_API=http://127.0.0.1:9096 MERION_TOKEN=...      # or ssh -L 9096:127.0.0.1:9096 user@host
+./scripts/merionctl deploy examples/merion-agents/invoice-check --dry-run   # what it would do
+./scripts/merionctl deploy examples/merion-agents/invoice-check --test      # deploy, run on the sample, require 0 CONNECT
 ```
 
 Change a rule in `pack.json` and run the same command: the use case is replaced in place.
@@ -43,7 +43,7 @@ Change a rule in `pack.json` and run the same command: the use case is replaced 
 ### What the runtime checks
 
 A spec is data. The extractor is one of two fixed choices, the rules are bounded, unknown fields
-are rejected, and you cannot shadow a built-in id. See [PACKS.md](../keep/PACKS.md) for every field
+are rejected, and you cannot shadow a built-in id. See [PACKS.md](../merion/PACKS.md) for every field
 and limit.
 
 Try to break it: add a rule kind that does not exist, or a `command` field. Both are refused.
@@ -75,23 +75,23 @@ JSON
 Deploy and start a session in one command:
 
 ```bash
-export KEEP_POLICY_SEED=$(cat ~/.config/zyvor/keep-signer.seed)   # made by ./scripts/deploy keep
-../scripts/keepctl deploy . --run
+export MERION_POLICY_SEED=$(cat ~/.config/zyvor/keep-signer.seed)   # made by ./scripts/deploy keep
+../scripts/merionctl deploy . --run
 # ✓ deploy agent my-agent (signed)
 # ✓ start a session and goal
-# Open /app/keep/<session> in the console
+# Open /app/merion/<session> in the console
 ```
 
-In Keep mode the deploy is signed over the exact bytes it sends. `keepctl doctor` tells you if the
-runtime is in Keep mode and has your public key registered.
+In Merion mode the deploy is signed over the exact bytes it sends. `merionctl doctor` tells you if the
+runtime is in Merion mode and has your public key registered.
 
 ### From the console instead
 
 ```bash
-../scripts/keepctl bundle .        # writes my-agent.keeppack.json (signed with your seed)
+../scripts/merionctl bundle .        # writes my-agent.merionpack.json (signed with your seed)
 ```
 
-In `/app/keep`, **Deploy an agent pack**, choose the file, **Deploy pack**. The console uploads the
+In `/app/merion`, **Deploy an agent pack**, choose the file, **Deploy pack**. The console uploads the
 signed bytes untouched; your seed never leaves your machine.
 
 ---
@@ -99,13 +99,13 @@ signed bytes untouched; your seed never leaves your machine.
 ## Check it worked
 
 ```bash
-./scripts/keepctl doctor           # runtime, Keep mode, signers, FluxVM, use-case counts
-./scripts/keepctl doctor --smoke   # also runs the CSV cleanup once in a real cell
+./scripts/merionctl doctor           # runtime, Merion mode, signers, FluxVM, use-case counts
+./scripts/merionctl doctor --smoke   # also runs the CSV cleanup once in a real cell
 ```
 
 ## Where next
 
-- All pack fields: [PACKS.md](../keep/PACKS.md).
+- All pack fields: [PACKS.md](../merion/PACKS.md).
 - Install everything on a host: `./scripts/deploy keep user@host` (needs FluxVM already running).
 - Use cases that need the network or a browser are `agent` packs with an egress allowlist:
-  [Tutorial 16](16-keep-workstation.md).
+  [Tutorial 16](16-merion-workstation.md).

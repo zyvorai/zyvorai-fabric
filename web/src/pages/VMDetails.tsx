@@ -1,6 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+import { PanelLoading } from '../components/Skeleton'
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { getVM, getMetrics, deleteVM, addPortForward, removePortForward, getVMLogs, VM, VMMetrics, VMLogEntry } from '../api/vm'
@@ -97,21 +98,21 @@ export default function VMDetails() {
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-5 w-24 bg-white rounded" />
+        <div className="h-5 w-24 bg-[var(--zf-surface)] rounded" />
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <div className="h-8 w-48 bg-white rounded" />
-            <div className="h-4 w-32 bg-white rounded" />
+            <div className="h-8 w-48 bg-[var(--zf-surface)] rounded" />
+            <div className="h-4 w-32 bg-[var(--zf-surface)] rounded" />
           </div>
           <div className="flex gap-2">
-            <div className="h-9 w-20 bg-white rounded-lg" />
-            <div className="h-9 w-20 bg-white rounded-lg" />
+            <div className="h-9 w-20 bg-[var(--zf-surface)] rounded-lg" />
+            <div className="h-9 w-20 bg-[var(--zf-surface)] rounded-lg" />
           </div>
         </div>
-        <div className="h-10 bg-white rounded" />
+        <div className="h-10 bg-[var(--zf-surface)] rounded" />
         <div className="grid grid-cols-2 gap-4">
-          <div className="h-48 bg-white rounded-xl" />
-          <div className="h-48 bg-white rounded-xl" />
+          <div className="h-48 bg-[var(--zf-surface)] rounded-xl" />
+          <div className="h-48 bg-[var(--zf-surface)] rounded-xl" />
         </div>
       </div>
     )
@@ -163,7 +164,7 @@ export default function VMDetails() {
       <div className="flex items-start justify-between gap-4 min-w-0 flex-wrap">
         <div>
           <div className="flex items-center gap-3 mb-1 flex-wrap">
-            <h1 className="text-2xl font-bold text-[var(--zf-ink)]">{vm.name}</h1>
+            <h1 className="text-[26px] sm:text-[32px] leading-tight font-semibold tracking-[-0.022em] text-[var(--zf-ink)]">{vm.name}</h1>
             <StatusBadge status={vm.state} />
             <CopyButton text={vm.name} label="Copy name" successMessage="VM name copied" />
             <CopyButton
@@ -251,7 +252,7 @@ export default function VMDetails() {
                 <Icon className="w-3.5 h-3.5 shrink-0" />
                 {tab.label}
                 {isActive && (
-                  <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-[var(--zf-link)] rounded-full" />
+                  <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-[var(--zf-link-fill)] rounded-full" />
                 )}
               </button>
             )
@@ -567,7 +568,7 @@ function DisksTab({ vm }: { vm: VM }) {
               <td className="py-3 px-4 font-mono text-xs text-[var(--zf-muted)] max-w-[300px] truncate">{disk.path}</td>
               <td className="py-3 px-4 text-[var(--zf-muted)]">{disk.size}</td>
               <td className="py-3 px-4">
-                <span className="px-2 py-0.5 text-[11px] font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
+                <span className="px-2 py-0.5 text-xs font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
                   {disk.format.toUpperCase()}
                 </span>
               </td>
@@ -965,10 +966,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
 
   if (loading) {
     return (
-      <div className="zf-panel p-8 text-center">
-        <Loader2 className="w-6 h-6 text-[var(--zf-muted)] mx-auto mb-2 animate-spin" />
-        <p className="text-[var(--zf-muted)] text-sm">Loading snapshots...</p>
-      </div>
+      <PanelLoading label="Loading snapshots" />
     )
   }
 
@@ -1013,7 +1011,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Name</label>
-              <input
+              <input aria-label="Name"
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -1023,7 +1021,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
             </div>
             <div>
               <label className="block text-xs text-[var(--zf-muted)] mb-1">Type</label>
-              <select
+              <select aria-label="Type"
                 value={newType}
                 onChange={(e) => setNewType(e.target.value as 'Disk' | 'Full')}
                 className="input-field py-1.5"
@@ -1048,7 +1046,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
           </div>
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">Description (optional)</label>
-            <input
+            <input aria-label="Description (optional)"
               type="text"
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
@@ -1103,7 +1101,7 @@ function SnapshotsTab({ vm }: { vm: VM }) {
                     )}
                   </td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 text-[11px] font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
+                    <span className="px-2 py-0.5 text-xs font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
                       {snap.snapshot_type === 'Disk' ? 'disk-only' : 'full'}
                     </span>
                   </td>
@@ -1223,10 +1221,10 @@ function LogsTab({ vm }: { vm: VM }) {
           <button
             onClick={() => setAutoRefresh((v) => !v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              autoRefresh ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30' : 'bg-white border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+              autoRefresh ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30' : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-[var(--zf-link)] animate-pulse' : 'bg-[var(--zf-hairline)]'}`} />
+            <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-[var(--zf-link-fill)] animate-pulse' : 'bg-[var(--zf-hairline)]'}`} />
             Live
           </button>
           <button

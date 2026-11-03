@@ -16,7 +16,7 @@ import NotFound from './pages/NotFound'
 import Home from './pages/marketing/Home'
 import Product from './pages/marketing/Product'
 import Platform from './pages/marketing/Platform'
-import Keep from './pages/marketing/Keep'
+import MerionPage from './pages/marketing/MerionPage'
 import SecurityPage from './pages/marketing/Security'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -35,9 +35,9 @@ const ContainerGroups = lazy(() => import('./pages/ContainerGroups'))
 const Agents = lazy(() => import('./pages/Agents'))
 const AiWorkloads = lazy(() => import('./pages/AiWorkloads'))
 const Sessions = lazy(() => import('./pages/Sessions'))
-const KeepHome = lazy(() => import('./pages/KeepHome'))
-const KeepSession = lazy(() => import('./pages/KeepSession'))
-const KeepHistory = lazy(() => import('./pages/KeepHistory'))
+const MerionHome = lazy(() => import('./pages/MerionHome'))
+const MerionSession = lazy(() => import('./pages/MerionSession'))
+const MerionHistory = lazy(() => import('./pages/MerionHistory'))
 const Schedules = lazy(() => import('./pages/Schedules'))
 const AuditLogs = lazy(() => import('./pages/AuditLogs'))
 const Analytics = lazy(() => import('./pages/Analytics'))
@@ -46,6 +46,7 @@ const Notifications = lazy(() => import('./pages/Notifications'))
 const StoragePools = lazy(() => import('./pages/StoragePools'))
 const SystemResources = lazy(() => import('./pages/SystemResources'))
 const Datacenters = lazy(() => import('./pages/Datacenters'))
+const Federation = lazy(() => import('./pages/Federation'))
 const ResourcePools = lazy(() => import('./pages/ResourcePools'))
 const WarmPools = lazy(() => import('./pages/WarmPools'))
 const DRS = lazy(() => import('./pages/DRS'))
@@ -151,9 +152,9 @@ function ConsoleRoutes() {
             <Route path="agents" element={<Agents />} />
             <Route path="sessions" element={<Sessions />} />
             <Route path="sessions/:id" element={<Sessions />} />
-            <Route path="keep" element={<KeepHome />} />
-            <Route path="keep/history" element={<KeepHistory />} />
-            <Route path="keep/:sessionId" element={<KeepSession />} />
+            <Route path="merion" element={<MerionHome />} />
+            <Route path="merion/history" element={<MerionHistory />} />
+            <Route path="merion/:sessionId" element={<MerionSession />} />
             <Route path="schedules" element={<Schedules />} />
             <Route path="autoscale" element={<AutoscalePage />} />
             <Route path="zones" element={<Zones />} />
@@ -165,6 +166,7 @@ function ConsoleRoutes() {
             <Route path="system" element={<SystemResources />} />
             <Route path="settings" element={<Settings />} />
             <Route path="datacenters" element={<Datacenters />} />
+            <Route path="federation" element={<Federation />} />
             <Route path="resource-pools" element={<ResourcePools />} />
             <Route path="vm-pools" element={<WarmPools />} />
             <Route path="drs" element={<DRS />} />
@@ -249,7 +251,7 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/product" element={<Product />} />
       <Route path="/platform" element={<Platform />} />
-      <Route path="/keep" element={<Keep />} />
+      <Route path="/merion" element={<MerionPage />} />
       <Route path="/security" element={<SecurityPage />} />
       <Route path="/sign-in" element={<SignIn />} />
       <Route path="/login" element={<Navigate to="/sign-in" replace />} />

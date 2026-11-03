@@ -142,11 +142,11 @@ export default function EventStream() {
             key={ev.id}
             className="flex gap-3 py-1 hover:bg-white/[0.04] rounded px-1 -mx-1"
           >
-            <span className="text-white/30 shrink-0 tabular-nums text-[11px]">
+            <span className="text-white/30 shrink-0 tabular-nums text-xs">
               {ev.timestamp.toLocaleTimeString(undefined, { hour12: false })}
             </span>
             <span
-              className="shrink-0 uppercase text-[11px] font-semibold w-14"
+              className="shrink-0 uppercase text-xs font-semibold w-14"
               style={{ color: levelColor(ev.level) }}
             >
               {ev.level}

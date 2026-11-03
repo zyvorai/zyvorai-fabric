@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-// The price-watch example agent: a plain API-key connector (docs/keep/connectors/README.md), paired with calendar-suggestions as the
+// The price-watch example agent: a plain API-key connector (docs/merion/connectors/README.md), paired with calendar-suggestions as the
 // second proactive finder. api.pricewatch.example is a placeholder host, not a real vendor; tested against a fake ctx.fetch only.
 
 import assert from "node:assert/strict";
@@ -9,7 +9,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { buildBundle } from "../src/bundle.js";
 
-const agentFile = fileURLToPath(new URL("../../../examples/keep-agents/price-watch/agent.ts", import.meta.url));
+const agentFile = fileURLToPath(new URL("../../../examples/merion-agents/price-watch/agent.ts", import.meta.url));
 const load = async () => {
   const { bundle } = await buildBundle(agentFile);
   return await import(`data:text/javascript;base64,${Buffer.from(bundle).toString("base64")}#price-watch`);

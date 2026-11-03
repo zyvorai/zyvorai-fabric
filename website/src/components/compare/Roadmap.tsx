@@ -71,7 +71,7 @@ export default function Roadmap(): ReactNode {
       <div className={styles.rail} aria-hidden>
         <span className={styles.fill} />
       </div>
-      <ol className={styles.track} ref={track} tabIndex={0} aria-label="Keep roadmap">
+      <ol className={styles.track} ref={track} tabIndex={0} aria-label="Merion roadmap">
         {ROADMAP.map((r) => (
           <li key={r.id} className={clsx(styles.item, styles[r.state])}>
             <span className={styles.node} aria-hidden />

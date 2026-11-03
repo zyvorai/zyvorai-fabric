@@ -11,7 +11,7 @@ interface MetricChartProps {
 
 export default function MetricChart({ title, data, color = '#3b82f6' }: MetricChartProps) {
   return (
-    <div className="bg-[#f5f5f7] rounded-lg p-6 border border-[#d2d2d7]">
+    <div className="bg-[var(--zf-canvas)] rounded-lg p-6 border border-[var(--zf-hairline)]">
       <h3 className="text-lg font-semibold mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data}>

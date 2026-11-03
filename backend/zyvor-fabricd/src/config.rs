@@ -286,7 +286,7 @@ fn default_jwt_secret() -> String {
                     tracing::warn!("Failed to create directory for JWT secret: {}", e);
                 }
             }
-            if let Err(e) = std::fs::write(secret_path, &secret) {
+            if let Err(e) = encryption::write_private_file(secret_path, &secret) {
                 tracing::warn!(
                     "Could not persist JWT secret to {}: {}. \
                      Tokens will be invalidated on restart. \
@@ -356,7 +356,7 @@ fn default_admin_password() -> String {
                 tracing::warn!("Failed to create directory for admin password: {}", e);
             }
         }
-        if let Err(e) = std::fs::write(pw_path, &password) {
+        if let Err(e) = encryption::write_private_file(pw_path, &password) {
             tracing::error!("Failed to write admin password file: {}", e);
         } else {
             // Set restrictive permissions on the password file

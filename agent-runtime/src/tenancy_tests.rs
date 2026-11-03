@@ -312,6 +312,7 @@ async fn operator_routes_are_closed_to_user_tokens() {
     let t = Some(w.ana.token.as_str());
     for (m, p) in [
         ("GET", "/v1/keep/status"),
+        ("GET", "/v1/merion/status"),
         ("GET", "/v1/agents"),
         ("POST", "/v1/agents"),
         ("POST", "/v1/user-tokens"),
@@ -877,7 +878,7 @@ async fn the_inbox_carries_what_a_phone_needs_to_sign() {
     let w = world().await;
     let (_, v) = call(&w.app, "GET", "/v1/inbox", Some(&w.ana.token), None).await;
     let sign = &v["pending_approvals"][0]["sign"];
-    assert_eq!(sign["format"], "keep-approval-v1");
+    assert_eq!(sign["format"], "merion-approval-v1");
     let a = w.state.store.get_approval(w.ana.approval).await.unwrap();
     let key = crate::authz::signing_key(Some(op().as_str()), None).unwrap();
     assert_eq!(sign["challenge"], crate::devices::challenge(&key, &a));
@@ -1132,7 +1133,7 @@ async fn threads_are_private_to_their_owner() {
     let (_, audit) = call(&w.app, "GET", "/v1/audit", operator, None).await;
     let text = audit.to_string();
     assert!(
-        text.contains("keep.thread.delete"),
+        text.contains("merion.thread.delete"),
         "the deletion is not journaled"
     );
     assert!(
@@ -1296,7 +1297,7 @@ async fn memory_is_private_opt_in_and_decided_by_the_user() {
     let (_, audit) = call(&w.app, "GET", "/v1/audit", operator, None).await;
     let text = audit.to_string();
     assert!(
-        text.contains("keep.memory.operator_access"),
+        text.contains("merion.memory.operator_access"),
         "the operator's read is journaled"
     );
     assert!(
@@ -1748,7 +1749,7 @@ async fn connections_are_private_write_only_and_offered_only_by_the_host() {
     let (_, audit) = call(&app, "GET", "/v1/audit", operator, None).await;
     everything += &audit.to_string();
     assert!(
-        everything.contains("keep.connection.connected"),
+        everything.contains("merion.connection.connected"),
         "the connection is journaled"
     );
     assert!(
@@ -1824,7 +1825,7 @@ async fn connections_are_private_write_only_and_offered_only_by_the_host() {
     assert!(
         audit
             .to_string()
-            .contains("keep.connection.operator_access")
+            .contains("merion.connection.operator_access")
             && !audit.to_string().contains(secret)
     );
 
@@ -1977,7 +1978,7 @@ async fn a_plan_is_proposed_by_the_planner_and_only_the_owner_can_accept_or_reje
     let journal =
         serde_json::to_string(&w.state.store.audit.list(None, 200).await.unwrap()).unwrap();
     assert!(
-        journal.contains("keep.goal.plan_proposed")
+        journal.contains("merion.goal.plan_proposed")
             && !journal.contains("Find flights")
             && !journal.contains("flights to Lisbon"),
         "{journal}"
@@ -2241,7 +2242,7 @@ async fn suggestions_are_opt_in_private_bounded_and_only_the_owner_turns_them_in
     let journal =
         serde_json::to_string(&w.state.store.audit.list(None, 200).await.unwrap()).unwrap();
     assert!(
-        journal.contains("keep.suggestion.proposed")
+        journal.contains("merion.suggestion.proposed")
             && !journal.contains("dentist")
             && !journal.contains("gap on Friday"),
         "{journal}"
@@ -2356,7 +2357,7 @@ async fn suggestions_are_opt_in_private_bounded_and_only_the_owner_turns_them_in
     );
     let journal =
         serde_json::to_string(&w.state.store.audit.list(None, 400).await.unwrap()).unwrap();
-    assert!(journal.contains("keep.suggestion.operator_access"));
+    assert!(journal.contains("merion.suggestion.operator_access"));
     let (st, _) = call(&w.app, "GET", "/v1/suggestions", None, None).await;
     assert_eq!(st, StatusCode::UNAUTHORIZED);
 }

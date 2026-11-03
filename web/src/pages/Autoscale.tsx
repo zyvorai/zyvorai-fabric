@@ -105,7 +105,7 @@ export default function Autoscale() {
       {policies.length > 0 && (
         <div className="bg-[var(--zf-canvas)] rounded-xl border border-[var(--zf-hairline)] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-white text-[var(--zf-muted)] text-left">
+            <thead className="bg-[var(--zf-surface)] text-[var(--zf-muted)] text-left">
               <tr>
                 <th className="p-4">VM</th>
                 <th className="p-4">CPU range</th>
@@ -117,7 +117,7 @@ export default function Autoscale() {
             </thead>
             <tbody className="divide-y divide-[var(--zf-hairline)]">
               {policies.map((p) => (
-                <tr key={p.vm_name} className="hover:bg-white">
+                <tr key={p.vm_name} className="hover:bg-[var(--zf-surface)]">
                   <td className="p-4 font-medium text-[var(--zf-ink)]">{p.vm_name}</td>
                   <td className="p-4 text-[var(--zf-muted)]">{p.min_cpus}–{p.max_cpus} vCPU</td>
                   <td className="p-4 text-[var(--zf-muted)]">{p.min_memory_mb}–{p.max_memory_mb} MB</td>
@@ -240,10 +240,10 @@ function CreatePolicyDialog({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs text-[var(--zf-muted)] mb-1">VM</label>
-            <select
+            <select aria-label="VM"
               value={vmName}
               onChange={(e) => setVmName(e.target.value)}
-              className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"
+              className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"
               required
             >
               {available.length === 0 && <option value="">No VMs available</option>}
@@ -293,7 +293,7 @@ function Field({
         type="number"
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-        className="w-full bg-white border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"
+        className="w-full bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg px-3 py-2 text-sm text-[var(--zf-ink)]"
       />
     </div>
   )

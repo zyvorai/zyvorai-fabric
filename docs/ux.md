@@ -9,7 +9,7 @@ Visual reference: [apple.com/airpods](https://www.apple.com/airpods/) — SF Pro
 | Surface | Routes | Shell |
 |---------|--------|--------|
 | Marketing | `/`, `/product`, `/platform`, `/security` | [`MarketingLayout`](../web/src/components/MarketingLayout.tsx) |
-| Sign-in | `/sign-in` (legacy `/login` redirects here) | Standalone card |
+| Sign-in | `/sign-in` (legacy `/login` redirects here) | Standalone card on an aurora and grid backdrop; follows the light and dark theme |
 | Console | `/app/*` | [`ConsoleLayout`](../web/src/components/ConsoleLayout.tsx) — top bar + left nav |
 
 ## Visual system

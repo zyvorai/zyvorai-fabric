@@ -11,7 +11,7 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-pub const SCOREBOARD_SCHEMA: &str = "keep.scoreboard/v1";
+pub const SCOREBOARD_SCHEMA: &str = "merion.scoreboard/v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -181,7 +181,7 @@ mod tests {
     use super::*;
 
     const POLICY: &str = "\
-schema: keep.policy/v1
+schema: merion.policy/v1
 training: off
 egress:
   default: deny
@@ -226,7 +226,7 @@ model_socket: socket://lab/a
     #[test]
     fn pack_rejects_vault() {
         let ok = vec![
-            ("keep.policy.yaml".into(), POLICY.into()),
+            ("merion.policy.yaml".into(), POLICY.into()),
             ("agent.json".into(), "{\"name\":\"pdf-brief\"}".into()),
             ("MIGRATION.md".into(), "notes only".into()),
         ];

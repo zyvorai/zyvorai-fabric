@@ -171,7 +171,7 @@ export default function ISOImages() {
                     <div className="font-medium text-[var(--zf-ink)] flex items-center gap-2">
                       {iso.name}
                       {isVirtioWin(iso.name) && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
+                        <span className="text-xs px-1.5 py-0.5 rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
                           virtio-win
                         </span>
                       )}

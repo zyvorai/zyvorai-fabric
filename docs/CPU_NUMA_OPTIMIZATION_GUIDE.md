@@ -350,7 +350,7 @@ curl -X POST http://localhost:9095/api/vms \
 
 ### 1. NUMA-Aware VM Sizing
 
-**Rule:** Keep VM within a single NUMA node
+**Rule:** Merion VM within a single NUMA node
 
 **Example:**
 ```

@@ -131,12 +131,12 @@ export default function Kernel() {
               aria-label="Filter modules"
               value={moduleFilter}
               onChange={(e) => setModuleFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-white border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--zf-ink)] w-48"
+              className="px-3 py-1.5 text-xs bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--zf-ink)] w-48"
             />
           </div>
           <div className="overflow-x-auto max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-white">
+              <thead className="sticky top-0 bg-[var(--zf-surface)]">
                 <tr className="border-b border-[var(--zf-hairline)]">
                   <th className="text-left px-5 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Name</th>
                   <th className="text-right px-5 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Size</th>
@@ -174,7 +174,7 @@ export default function Kernel() {
           </div>
           <div className="overflow-x-auto max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-white">
+              <thead className="sticky top-0 bg-[var(--zf-surface)]">
                 <tr className="border-b border-[var(--zf-hairline)]">
                   <th className="text-left px-5 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Key</th>
                   <th className="text-left px-5 py-3 text-xs font-medium text-[var(--zf-muted)] uppercase tracking-wider">Value</th>

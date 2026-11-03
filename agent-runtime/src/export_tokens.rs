@@ -75,7 +75,7 @@ impl ExportTokenStore {
     pub async fn authorize(&self, raw_token: Option<&str>, needed_prefix: &str) -> Result<()> {
         let Some(raw) = raw_token.map(str::trim).filter(|s| !s.is_empty()) else {
             bail!(
-                "export refused: present X-Keep-Export-Token (mint via POST /v1/export-tokens). Training/trajectory export is off by default."
+                "export refused: present X-Merion-Export-Token (mint via POST /v1/export-tokens). Training/trajectory export is off by default."
             );
         };
         let hash = hex::encode(Sha256::digest(raw.as_bytes()));

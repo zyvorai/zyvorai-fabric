@@ -42,9 +42,9 @@ export default function ProfileLadder(): ReactNode {
         </dl>
         <figure className={clsx(styles.receipt, p.status === 'gated' && styles.locked)}>
           <figcaption>
-            attestation <span>illustrative · field names from KEEP-0.2</span>
+            attestation <span>illustrative · field names from MERION-0.2</span>
           </figcaption>
-          <pre>
+          <pre tabIndex={0}>
             <code>
               {p.receipt.map(([k, v]) => (
                 <span key={k} className={styles.line}>
@@ -59,8 +59,8 @@ export default function ProfileLadder(): ReactNode {
       </div>
 
       <p className={styles.note}>
-        Muse’s Secure VM is described as having the same limit today (public detail is thin). Keep
-        states its limit here, in the product. <Link to="/docs/keep/SECURITY-PROFILES">Security profiles ›</Link>
+        Muse’s Secure VM is described as having the same limit today (public detail is thin). Merion
+        states its limit here, in the product. <Link to="/docs/merion/SECURITY-PROFILES">Security profiles ›</Link>
       </p>
     </div>
   );

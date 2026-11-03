@@ -68,7 +68,7 @@ export default function FavoriteVMs() {
   const renderVMRow = (vm: any) => {
     const starred = isFavorite(vm.name)
     return (
-      <div key={vm.name} className="flex items-center gap-3 p-3 rounded-xl border bg-[var(--zf-canvas)] border-[var(--zf-hairline)] hover:bg-white hover:border-[var(--zf-hairline)] transition-all">
+      <div key={vm.name} className="flex items-center gap-3 p-3 rounded-xl border bg-[var(--zf-canvas)] border-[var(--zf-hairline)] hover:bg-[var(--zf-surface)] hover:border-[var(--zf-hairline)] transition-all">
         <button onClick={() => toggleFavorite(vm)} className="flex-shrink-0 transition-colors" title={starred ? 'Remove from favorites' : 'Add to favorites'}>
           <Star className={`w-5 h-5 ${starred ? 'text-[var(--zf-warning)] fill-[var(--zf-warning)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-warning)]/60'}`} />
         </button>
@@ -99,7 +99,7 @@ export default function FavoriteVMs() {
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--zf-muted)]" />
         <input type="text" placeholder="Search VMs..." aria-label="Search VMs" value={search} onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--zf-link)] text-sm" />
+          className="w-full pl-10 pr-4 py-2.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded-lg text-[var(--zf-ink)] placeholder-[var(--zf-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--zf-link)] text-sm" />
       </div>
 
       {error && (

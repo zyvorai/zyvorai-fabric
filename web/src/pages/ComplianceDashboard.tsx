@@ -159,7 +159,7 @@ export default function ComplianceDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
         <div className="bg-[var(--zf-surface)] rounded-xl border border-[var(--zf-hairline)] p-6 flex flex-col items-center justify-center">
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 ${scoreBorder(summary.score)} bg-white`}>
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 ${scoreBorder(summary.score)} bg-[var(--zf-surface)]`}>
             <span className={`text-3xl font-bold ${scoreColor(summary.score)}`}>{summary.score}</span>
           </div>
           <span className="text-xs text-[var(--zf-muted)] mt-2">Compliance Score</span>
@@ -185,7 +185,7 @@ export default function ComplianceDashboard() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {categories.map(cat => (
           <button key={cat} onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap capitalize ${selectedCategory === cat ? 'bg-[var(--zf-link)] text-white border border-[var(--zf-link)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)] bg-[var(--zf-surface)] border border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap capitalize ${selectedCategory === cat ? 'bg-[var(--zf-link-fill)] text-white border border-[var(--zf-link)]' : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)] bg-[var(--zf-surface)] border border-[var(--zf-hairline)] hover:border-[var(--zf-ink)]'}`}>
             {cat}
           </button>
         ))}

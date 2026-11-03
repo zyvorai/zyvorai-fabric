@@ -73,6 +73,27 @@ pub struct ModelOutcome {
     pub response_bytes: usize,
     /// True when this call needed (and got) a first-use approval.
     pub approved_now: bool,
+    /// 0 for the pack's own endpoint, 1.. for the operator's fallback chain.
+    pub target_index: usize,
+}
+
+/// Why one endpoint's attempt failed, and whether the next endpoint in the chain should be tried.
+struct Failure {
+    err: ApiError,
+    /// Rate limited, a server error, or the endpoint could not be reached. A refusal or a 4xx is not.
+    next: bool,
+}
+
+impl From<ApiError> for Failure {
+    fn from(err: ApiError) -> Self {
+        Self { err, next: false }
+    }
+}
+
+impl Failure {
+    fn failover(err: ApiError) -> Self {
+        Self { err, next: true }
+    }
 }
 
 /// Changing anything that decides where the text goes changes the key, so an old approval
@@ -205,14 +226,31 @@ async fn authorize(state: &AppState, spec: &ModelSpec) -> Result<Authorized, Api
     })
 }
 
+/// The pack's endpoint first, then the operator's chain if the pack names one. A chain that cannot be read
+/// is an error, not a quiet run without it.
+fn plan(state: &AppState, spec: &ModelSpec) -> Result<Vec<ModelSpec>, ApiError> {
+    let mut all = vec![spec.clone()];
+    if let Some(name) = &spec.fallback_chain {
+        let more =
+            crate::model_gateway::targets(state.config.model_chains_file.as_deref(), name, spec)
+                .map_err(ApiError::bad_request)?;
+        all.extend(more);
+    }
+    Ok(all)
+}
+
 /// Fail fast: check the vault before a cell is created, so a misconfigured endpoint does not
-/// cost a sandbox boot. It does not open an approval and sends nothing.
+/// cost a sandbox boot. It does not open an approval and sends nothing. The pack's own endpoint must be
+/// reachable; a fallback only has to be well-formed, since it may be unused.
 pub(crate) async fn preflight(state: &AppState, spec: &ModelSpec) -> Result<(), ApiError> {
+    plan(state, spec)?;
     authorize(state, spec).await.map(|_| ())
 }
 
 /// Send `text` to the declared endpoint and return the reply. Fails closed: any refusal or error
-/// fails the run rather than quietly skipping the model step.
+/// fails the run rather than quietly skipping the model step. If the pack names a fallback chain, an
+/// endpoint that is down, rate limited or answering 5xx hands over to the next one; each endpoint is checked by
+/// the vault and, on first use, approved by a person like any other, and a failover is journaled.
 pub(crate) async fn call(
     state: &AppState,
     session: &SessionRecord,
@@ -220,10 +258,284 @@ pub(crate) async fn call(
     spec: &ModelSpec,
     text: &str,
 ) -> Result<ModelOutcome, ApiError> {
+    let cache_key = cache_key(state, session, use_case, spec, text);
+    if let Some(hit) = cache_lookup(state, &cache_key, use_case, spec).await {
+        audit_cache_hit(state, session, use_case, &hit).await;
+        return Ok(hit);
+    }
     // A user's daily model-call allowance, when the operator set one.
     if let Some(user) = session.user_id.as_deref() {
         crate::usage::check_model_quota(state, user, crate::usage::Limits::from_env()).await?;
     }
+    check_agent_budget(state, &session.agent, Some(session.id))
+        .await
+        .map_err(ApiError::too_many)?;
+    let targets = plan(state, spec)?;
+    let mut last: Option<ApiError> = None;
+    let mut skipped: Vec<String> = Vec::new();
+    for (index, target) in targets.iter().enumerate() {
+        let key = crate::model_gateway::breaker_key(target);
+        if crate::model_gateway::is_open(&key, std::time::Instant::now()) {
+            skipped.push(target.host());
+            last.get_or_insert_with(|| {
+                ApiError::bad_gateway(format!(
+                    "model endpoint {} is failing; skipped for now",
+                    target.host()
+                ))
+            });
+            continue;
+        }
+        match call_one(state, session, use_case, target, text, index).await {
+            Ok(out) => {
+                crate::model_gateway::record(&key, true, std::time::Instant::now());
+                if index > 0 {
+                    audit_failover(state, session, use_case, &skipped, &out).await;
+                }
+                cache_store(state, cache_key, &out);
+                return Ok(out);
+            }
+            Err(f) => {
+                if f.next {
+                    crate::model_gateway::record(&key, false, std::time::Instant::now());
+                }
+                skipped.push(target.host());
+                // The pack's own endpoint hands over only for a failover-class failure; a fallback that
+                // is refused (vault, approval) just means the next one is tried.
+                let go_on = f.next || index > 0;
+                last = Some(f.err);
+                if !go_on {
+                    break;
+                }
+            }
+        }
+    }
+    Err(last.unwrap_or_else(|| ApiError::bad_gateway("no model endpoint was available")))
+}
+
+const CACHE_MAX_ENTRIES: usize = 256;
+
+/// The cache key: who asked, which agent and use case, where it goes and exactly what is sent. A different person, text,
+/// model, instruction or endpoint never shares an entry. `None` when the cache is off or the call has no user: a reply
+/// is never reused across people, so an anonymous call is never cached.
+fn cache_key(
+    state: &AppState,
+    session: &SessionRecord,
+    use_case: &str,
+    spec: &ModelSpec,
+    text: &str,
+) -> Option<String> {
+    state.config.model_cache_secs?;
+    let user = session.user_id.as_deref()?;
+    let mut h = Sha256::new();
+    for part in [user, &session.agent, use_case, &grant_key(use_case, spec)] {
+        h.update(part.as_bytes());
+        h.update([0]);
+    }
+    h.update(request_body(spec, text));
+    Some(hex::encode(h.finalize()))
+}
+
+/// A fresh entry, served only while the endpoint is still reachable by the vault and still approved: a revoked grant or
+/// credential stops the cache too.
+async fn cache_lookup(
+    state: &AppState,
+    key: &Option<String>,
+    use_case: &str,
+    spec: &ModelSpec,
+) -> Option<ModelOutcome> {
+    let key = key.as_ref()?;
+    let ttl = std::time::Duration::from_secs(state.config.model_cache_secs?);
+    let hit = {
+        let mut cache = state.model_cache.lock().unwrap_or_else(|e| e.into_inner());
+        match cache.get(key) {
+            Some((at, out)) if at.elapsed() < ttl => Some(out.clone()),
+            Some(_) => {
+                cache.remove(key);
+                None
+            }
+            None => None,
+        }
+    }?;
+    if authorize(state, spec).await.is_err()
+        || !state
+            .store
+            .has_model_grant(&grant_key(use_case, spec))
+            .await
+    {
+        return None;
+    }
+    Some(hit)
+}
+
+fn cache_store(state: &AppState, key: Option<String>, out: &ModelOutcome) {
+    let (Some(key), Some(ttl)) = (key, state.config.model_cache_secs) else {
+        return;
+    };
+    let ttl = std::time::Duration::from_secs(ttl);
+    let mut cache = state.model_cache.lock().unwrap_or_else(|e| e.into_inner());
+    cache.retain(|_, (at, _)| at.elapsed() < ttl);
+    if cache.len() >= CACHE_MAX_ENTRIES {
+        if let Some(oldest) = cache
+            .iter()
+            .min_by_key(|(_, (at, _))| *at)
+            .map(|(k, _)| k.clone())
+        {
+            cache.remove(&oldest);
+        }
+    }
+    cache.insert(
+        key,
+        (
+            std::time::Instant::now(),
+            ModelOutcome {
+                approved_now: false,
+                ..out.clone()
+            },
+        ),
+    );
+}
+
+/// A cache hit is not a call: it has its own row, sends nothing, and counts toward no allowance or budget.
+async fn audit_cache_hit(
+    state: &AppState,
+    session: &SessionRecord,
+    use_case: &str,
+    out: &ModelOutcome,
+) {
+    let _ = state
+        .store
+        .audit
+        .append(
+            Some(session.id),
+            AuditPhase::Performed,
+            "model.cache_hit",
+            Some(use_case.to_string()),
+            json!({ "host": out.host, "model": out.model, "response_bytes": out.response_bytes }),
+        )
+        .await;
+}
+
+/// Refuse a model call when the operator's budget for `agent` is used up (`ZYVOR_AGENT_MODEL_PRICES_FILE`). No file or
+/// no budget for the agent means no limit. A file that cannot be read refuses rather than lifting the limit.
+pub(crate) async fn check_agent_budget(
+    state: &AppState,
+    agent: &str,
+    session: Option<uuid::Uuid>,
+) -> Result<(), String> {
+    let result = check_agent_budget_inner(state, agent, session).await;
+    if let Err(why) = &result {
+        // The refusal is its own row, so a person reading the journal sees which cap stopped the call. The text names
+        // the agent and the counts; it never carries a request.
+        let _ = state
+            .store
+            .audit
+            .append(
+                session,
+                AuditPhase::Denied,
+                "model.budget_refused",
+                Some(agent.to_string()),
+                json!({ "reason": why }),
+            )
+            .await;
+    }
+    result
+}
+
+async fn check_agent_budget_inner(
+    state: &AppState,
+    agent: &str,
+    session: Option<uuid::Uuid>,
+) -> Result<(), String> {
+    let Some(prices) =
+        crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())?
+    else {
+        return Ok(());
+    };
+    let Some(budget) = prices.budget_for(agent) else {
+        return Ok(());
+    };
+    // Every session of the goal this run belongs to, so one goal's cap spans its steps and its planner.
+    let mut goal_sessions: std::collections::HashSet<uuid::Uuid> = Default::default();
+    if let (Some(limit), Some(id)) = (budget.goal, session) {
+        if limit.max_calls.is_some() || limit.max_cost.is_some() {
+            for g in state.store.list_goals().await {
+                let ids: Vec<_> = [g.session_id, g.planning_session_id]
+                    .into_iter()
+                    .chain(g.plan.iter().map(|s| s.session_id))
+                    .flatten()
+                    .collect();
+                if ids.contains(&id) {
+                    goal_sessions.extend(ids);
+                }
+            }
+        }
+    }
+    let mut ids: std::collections::HashSet<uuid::Uuid> = state
+        .store
+        .list_sessions()
+        .await
+        .into_iter()
+        .filter(|s| s.agent == agent)
+        .map(|s| s.id)
+        .collect();
+    ids.extend(&goal_sessions);
+    let since = chrono::Utc::now() - chrono::Duration::hours(24);
+    let rows = state
+        .store
+        .audit
+        .list_for_sessions(&ids, usize::MAX)
+        .await
+        .map_err(|e| e.to_string())?;
+    if let Some(why) = crate::model_gateway::over_budget(&prices, agent, &rows, since) {
+        return Err(why);
+    }
+    if let (Some(limit), Some(id)) = (budget.run, session) {
+        let mine: Vec<_> = rows.iter().filter(|r| r.session_id == Some(id)).collect();
+        if let Some(why) = crate::model_gateway::over_limit(&prices, "run", limit, &mine) {
+            return Err(why);
+        }
+    }
+    if let Some(limit) = budget.goal.filter(|_| !goal_sessions.is_empty()) {
+        let mine: Vec<_> = rows
+            .iter()
+            .filter(|r| r.session_id.is_some_and(|s| goal_sessions.contains(&s)))
+            .collect();
+        if let Some(why) = crate::model_gateway::over_limit(&prices, "goal", limit, &mine) {
+            return Err(why);
+        }
+    }
+    Ok(())
+}
+
+async fn audit_failover(
+    state: &AppState,
+    session: &SessionRecord,
+    use_case: &str,
+    from: &[String],
+    out: &ModelOutcome,
+) {
+    let _ = state
+        .store
+        .audit
+        .append(
+            Some(session.id),
+            AuditPhase::Performed,
+            "model.failover",
+            Some(use_case.to_string()),
+            json!({ "from": from, "to": out.host, "model": out.model, "target_index": out.target_index }),
+        )
+        .await;
+}
+
+/// One attempt at one endpoint.
+async fn call_one(
+    state: &AppState,
+    session: &SessionRecord,
+    use_case: &str,
+    spec: &ModelSpec,
+    text: &str,
+    index: usize,
+) -> Result<ModelOutcome, Failure> {
     // 1. The vault decides whether this endpoint is reachable at all.
     let Authorized {
         url,
@@ -322,13 +634,14 @@ pub(crate) async fn call(
     let detail = |extra: Value| {
         let mut d = json!({
             "host": host, "model": spec.model, "credential": spec.credential,
-            "request_bytes": body.len(), "request_sha256": body_sha256,
+            "request_bytes": body.len(), "request_sha256": body_sha256, "target_index": index,
         });
         if let (Some(m), Some(e)) = (d.as_object_mut(), extra.as_object()) {
             m.extend(e.clone());
         }
         d
     };
+    let started = std::time::Instant::now();
     let mut response = match request.send().await {
         Ok(r) => r,
         Err(e) => {
@@ -341,9 +654,9 @@ pub(crate) async fn call(
                 detail(json!({ "error": why })),
             )
             .await;
-            return Err(ApiError::bad_gateway(format!(
+            return Err(Failure::failover(ApiError::bad_gateway(format!(
                 "model call to {host} failed: {why}"
-            )));
+            ))));
         }
     };
     let status = response.status();
@@ -361,7 +674,7 @@ pub(crate) async fn call(
                         detail(json!({ "error": "reply too large" })),
                     )
                     .await;
-                    return Err(ApiError::bad_gateway("the model reply was too large"));
+                    return Err(ApiError::bad_gateway("the model reply was too large").into());
                 }
             }
             Ok(None) => break,
@@ -375,9 +688,9 @@ pub(crate) async fn call(
                     detail(json!({ "error": why })),
                 )
                 .await;
-                return Err(ApiError::bad_gateway(format!(
+                return Err(Failure::failover(ApiError::bad_gateway(format!(
                     "model reply broke off: {why}"
-                )));
+                ))));
             }
         }
     }
@@ -391,12 +704,17 @@ pub(crate) async fn call(
             detail(json!({ "status": status.as_u16(), "response_bytes": bytes.len() })),
         )
         .await;
-        return Err(ApiError::bad_gateway(format!(
+        let err = ApiError::bad_gateway(format!(
             "model endpoint {host} answered HTTP {}: {snippet}",
             status.as_u16()
-        )));
+        ));
+        return Err(Failure {
+            err,
+            next: crate::model_gateway::failover_status(status.as_u16()),
+        });
     }
     let text = reply_text(&bytes).map_err(ApiError::bad_gateway)?;
+    let (prompt_tokens, completion_tokens) = crate::model_gateway::tokens(&bytes);
     audit(
         state,
         session,
@@ -404,6 +722,8 @@ pub(crate) async fn call(
         use_case,
         detail(json!({
             "status": status.as_u16(), "response_bytes": bytes.len(), "first_use": approved_now,
+            "latency_ms": started.elapsed().as_millis() as u64,
+            "prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens,
         })),
     )
     .await;
@@ -414,10 +734,27 @@ pub(crate) async fn call(
         request_bytes: body.len(),
         response_bytes: bytes.len(),
         approved_now,
+        target_index: index,
     })
 }
 
 // ---- operator API for approvals that were given -------------------------
+
+/// `GET /v1/model-usage`: calls, failures, tokens and latency per endpoint, from the journal (operator only).
+pub(crate) async fn usage(State(state): State<Arc<AppState>>) -> Result<Json<Value>, ApiError> {
+    let rows = state
+        .store
+        .audit
+        .list(None, usize::MAX)
+        .await
+        .map_err(ApiError::internal)?;
+    let prices = crate::model_gateway::Prices::load(state.config.model_prices_file.as_deref())
+        .map_err(ApiError::internal)?;
+    Ok(Json(crate::model_gateway::summarize(
+        &rows,
+        prices.as_ref(),
+    )))
+}
 
 pub(crate) async fn list_grants(State(state): State<Arc<AppState>>) -> Json<Value> {
     Json(json!({ "items": state.store.list_model_grants().await }))
@@ -444,7 +781,7 @@ pub(crate) async fn revoke_grant(
         .append(
             None,
             AuditPhase::Performed,
-            "keep.model_grant.revoked",
+            "merion.model_grant.revoked",
             None,
             json!({ "key": key }),
         )
@@ -500,6 +837,7 @@ mod tests {
             instruction: "Summarise in one line.".into(),
             max_input_chars: None,
             max_output_tokens: None,
+            fallback_chain: None,
         }
     }
 
@@ -613,6 +951,347 @@ mod tests {
             reply_text(br#"{"choices":[{"message":{"content":"hi"}}]}"#).unwrap(),
             "hi"
         );
+    }
+
+    /// A state whose vault holds credential `llm` for several local ports, and whose operator wrote one chain.
+    async fn state_with_chain(
+        ports: &[u16],
+        chain_ports: &[u16],
+    ) -> (Arc<AppState>, SessionRecord) {
+        let var = format!("ZY_TEST_MODEL_KEY_{}", Uuid::new_v4().simple());
+        std::env::set_var(&var, "sk-test-123");
+        let creds = std::env::temp_dir().join(format!("zyvor-creds-{}.json", Uuid::new_v4()));
+        std::fs::write(
+            &creds,
+            json!({"llm": {
+                "host": "127.0.0.1", "header": "authorization", "env": var,
+                "prefix": "Bearer ", "allowed_ports": ports, "allowed_methods": ["POST"],
+                "path_prefixes": ["/v1/chat/completions"]
+            }})
+            .to_string(),
+        )
+        .unwrap();
+        let targets: Vec<Value> = chain_ports
+            .iter()
+            .map(|p| json!({"credential": "llm", "base_url": format!("http://127.0.0.1:{p}/v1"), "model": format!("fb-{p}")}))
+            .collect();
+        let chains = std::env::temp_dir().join(format!("zyvor-chains-{}.json", Uuid::new_v4()));
+        std::fs::write(
+            &chains,
+            json!({"chains": {"main": {"targets": targets}}}).to_string(),
+        )
+        .unwrap();
+        state_and_session_cfg(|c| {
+            c.credentials_file = Some(creds);
+            c.model_chains_file = Some(chains);
+        })
+        .await
+    }
+
+    fn chained(port: u16) -> ModelSpec {
+        ModelSpec {
+            fallback_chain: Some("main".into()),
+            ..spec(port)
+        }
+    }
+
+    /// Decide every approval that appears, the way an operator would.
+    fn operator_all(state: Arc<AppState>, decision: ApprovalStatus) -> tokio::task::JoinHandle<()> {
+        tokio::spawn(async move {
+            for _ in 0..200 {
+                for a in state.store.list_approvals().await {
+                    if a.status == ApprovalStatus::Pending {
+                        let _ = state
+                            .store
+                            .transition_approval(a.id, decision, None, None)
+                            .await;
+                    }
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(25)).await;
+            }
+        })
+    }
+
+    #[tokio::test]
+    async fn a_down_primary_hands_over_to_the_chain_and_the_journal_says_so() {
+        let (p1, seen1) = stub(503, "unused").await;
+        let (p2, seen2) = stub(200, "from the fallback").await;
+        let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+
+        let out = call(&state, &session, "uc", &chained(p1), "DOC")
+            .await
+            .unwrap();
+        op.abort();
+        assert_eq!(out.text, "from the fallback");
+        assert_eq!(out.target_index, 1);
+        assert_eq!(out.model, format!("fb-{p2}"));
+        assert_eq!(seen1.lock().unwrap().len(), 1);
+        {
+            let second = seen2.lock().unwrap();
+            assert_eq!(second.len(), 1);
+            assert_eq!(
+                second[0].0, "Bearer sk-test-123",
+                "the fallback gets its key from the vault too"
+            );
+            assert!(second[0].1.contains("DOC"));
+        }
+
+        let rows = state.store.audit.list(Some(session.id), 100).await.unwrap();
+        let calls: Vec<_> = rows.iter().filter(|r| r.action == "model.call").collect();
+        assert_eq!(calls.len(), 2);
+        assert_eq!(calls[0].phase, AuditPhase::Failed);
+        assert_eq!(calls[0].detail["target_index"], 0);
+        assert_eq!(calls[1].phase, AuditPhase::Performed);
+        assert_eq!(calls[1].detail["target_index"], 1);
+        assert!(calls[1].detail["latency_ms"].is_u64());
+        let failover = rows
+            .iter()
+            .find(|r| r.action == "model.failover")
+            .expect("a failover row");
+        assert_eq!(failover.detail["to"], "127.0.0.1");
+        assert_eq!(failover.detail["target_index"], 1);
+        let all = serde_json::to_string(&rows).unwrap();
+        assert!(!all.contains("DOC\"") && !all.contains("sk-test-123"));
+        // Each endpoint was a new question for a person.
+        assert_eq!(state.store.list_approvals().await.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn a_request_error_does_not_fail_over_and_the_fallback_is_never_called() {
+        let (p1, _) = stub(400, "bad").await;
+        let (p2, seen2) = stub(200, "x").await;
+        let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
+        op.abort();
+        assert!(err.message().contains("HTTP 400"), "{}", err.message());
+        assert!(seen2.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn every_endpoint_failing_returns_the_last_error_after_trying_all() {
+        let (p1, seen1) = stub(429, "slow down").await;
+        let (p2, seen2) = stub(500, "boom").await;
+        let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
+        op.abort();
+        assert!(err.message().contains("HTTP 500"), "{}", err.message());
+        assert_eq!(
+            (seen1.lock().unwrap().len(), seen2.lock().unwrap().len()),
+            (1, 1)
+        );
+    }
+
+    #[tokio::test]
+    async fn a_fallback_a_person_denies_is_never_sent_anything() {
+        let (p1, _) = stub(503, "x").await;
+        let (p2, seen2) = stub(200, "x").await;
+        let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
+        // The primary is approved first; deny whatever is asked after that.
+        let st = state.clone();
+        let op = tokio::spawn(async move {
+            let mut n = 0;
+            for _ in 0..200 {
+                for a in st.store.list_approvals().await {
+                    if a.status == ApprovalStatus::Pending {
+                        n += 1;
+                        let d = if n == 1 {
+                            ApprovalStatus::Approved
+                        } else {
+                            ApprovalStatus::Denied
+                        };
+                        let _ = st.store.transition_approval(a.id, d, None, None).await;
+                    }
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(25)).await;
+            }
+        });
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
+        op.abort();
+        assert!(err.message().contains("denied"), "{}", err.message());
+        assert!(seen2.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn a_fallback_the_vault_does_not_allow_is_refused_and_nothing_is_sent() {
+        let (p1, _) = stub(503, "x").await;
+        let (p2, seen2) = stub(200, "x").await;
+        // The vault allows only the primary's port; the chain names p2.
+        let (state, session) = state_with_chain(&[p1], &[p2]).await;
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
+        op.abort();
+        assert!(err.message().contains("vault"), "{}", err.message());
+        assert!(seen2.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn a_named_chain_that_cannot_be_read_stops_the_call_before_anything_is_sent() {
+        let (p1, seen1) = stub(200, "x").await;
+        let (state, session) = state_for(p1).await; // no chains file configured
+        let err = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap_err();
+        assert!(
+            err.message().contains("no chains file"),
+            "{}",
+            err.message()
+        );
+        assert!(seen1.lock().unwrap().is_empty());
+        assert!(preflight(&state, &chained(p1)).await.is_err());
+    }
+
+    #[tokio::test]
+    async fn a_repeatedly_failing_primary_is_skipped_until_its_breaker_closes() {
+        let (p1, seen1) = stub(503, "x").await;
+        let (p2, seen2) = stub(200, "ok").await;
+        let (state, session) = state_with_chain(&[p1, p2], &[p2]).await;
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        for _ in 0..crate::model_gateway::FAILURE_THRESHOLD {
+            call(&state, &session, "uc", &chained(p1), "t")
+                .await
+                .unwrap();
+        }
+        assert_eq!(
+            seen1.lock().unwrap().len() as u32,
+            crate::model_gateway::FAILURE_THRESHOLD
+        );
+        let out = call(&state, &session, "uc", &chained(p1), "t")
+            .await
+            .unwrap();
+        op.abort();
+        assert_eq!(out.target_index, 1);
+        assert_eq!(
+            seen1.lock().unwrap().len() as u32,
+            crate::model_gateway::FAILURE_THRESHOLD,
+            "the open breaker kept the failing endpoint from being called again"
+        );
+        assert_eq!(
+            seen2.lock().unwrap().len() as u32,
+            crate::model_gateway::FAILURE_THRESHOLD + 1
+        );
+    }
+
+    async fn cached_state(port: u16) -> (Arc<AppState>, SessionRecord) {
+        let var = format!("ZY_TEST_MODEL_KEY_{}", Uuid::new_v4().simple());
+        std::env::set_var(&var, "sk-test-123");
+        let file = std::env::temp_dir().join(format!("zyvor-creds-{}.json", Uuid::new_v4()));
+        std::fs::write(
+            &file,
+            json!({"llm": {"host": "127.0.0.1", "header": "authorization", "env": var, "prefix": "Bearer ",
+                "allowed_ports": [port], "allowed_methods": ["POST"], "path_prefixes": ["/v1/chat/completions"]}})
+            .to_string(),
+        )
+        .unwrap();
+        state_and_session_cfg(|c| {
+            c.credentials_file = Some(file);
+            c.model_cache_secs = Some(60);
+        })
+        .await
+    }
+
+    #[tokio::test]
+    async fn a_repeat_for_the_same_user_is_served_from_the_cache_and_costs_nothing() {
+        let (port, seen) = stub(200, "summary").await;
+        let (state, mut session) = cached_state(port).await;
+        session.user_id = Some("ana".into());
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        let first = call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        op.abort();
+        let again = call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        assert_eq!(
+            (first.text.as_str(), again.text.as_str()),
+            ("summary", "summary")
+        );
+        assert_eq!(
+            seen.lock().unwrap().len(),
+            1,
+            "the second call must not reach the provider"
+        );
+        let rows = state.store.audit.list(Some(session.id), 100).await.unwrap();
+        assert_eq!(
+            rows.iter()
+                .filter(|r| r.action == "model.cache_hit")
+                .count(),
+            1
+        );
+        assert_eq!(
+            rows.iter()
+                .filter(|r| r.action == "model.call" && r.phase == AuditPhase::Performed)
+                .count(),
+            1,
+            "a hit is not a call"
+        );
+        // Other text, and another person, are never served someone else's reply.
+        call(&state, &session, "uc", &spec(port), "OTHER")
+            .await
+            .unwrap();
+        let mut bob = session.clone();
+        bob.user_id = Some("bob".into());
+        call(&state, &bob, "uc", &spec(port), "DOC").await.unwrap();
+        assert_eq!(seen.lock().unwrap().len(), 3);
+        // A revoked approval stops the cache too.
+        let key = grant_key("uc", &spec(port));
+        assert!(state.store.revoke_model_grant(&key).await.unwrap());
+        let op = operator_all(state.clone(), ApprovalStatus::Denied);
+        assert!(call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .is_err());
+        op.abort();
+        assert_eq!(seen.lock().unwrap().len(), 3);
+    }
+
+    #[tokio::test]
+    async fn without_a_user_or_without_the_setting_nothing_is_cached() {
+        let (port, seen) = stub(200, "x").await;
+        let (state, session) = cached_state(port).await; // no user on the session
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        op.abort();
+        assert_eq!(seen.lock().unwrap().len(), 2);
+        let (port, seen) = stub(200, "x").await;
+        let (state, mut session) = state_for(port).await; // cache not configured
+        session.user_id = Some("ana".into());
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        call(&state, &session, "uc", &spec(port), "DOC")
+            .await
+            .unwrap();
+        op.abort();
+        assert_eq!(seen.lock().unwrap().len(), 2);
+    }
+
+    #[tokio::test]
+    async fn without_a_chain_a_failing_endpoint_fails_the_step_as_before() {
+        let (p1, _) = stub(503, "x").await;
+        let (state, session) = state_for(p1).await;
+        let op = operator_all(state.clone(), ApprovalStatus::Approved);
+        let err = call(&state, &session, "uc", &spec(p1), "t")
+            .await
+            .unwrap_err();
+        op.abort();
+        assert!(err.message().contains("HTTP 503"), "{}", err.message());
     }
 
     #[tokio::test]

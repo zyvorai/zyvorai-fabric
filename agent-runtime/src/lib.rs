@@ -12,6 +12,8 @@ pub mod binary_id;
 pub mod browse_ifc;
 pub mod browser;
 pub mod card;
+pub mod changeset_policy;
+pub mod chatops;
 pub mod config;
 pub mod confine;
 pub mod connections;
@@ -30,19 +32,25 @@ pub mod goals;
 pub mod guard;
 pub mod l7;
 pub mod mcp;
+pub mod mcp_gateway;
 pub mod memory;
 pub mod mitm;
 pub mod model;
 pub mod model_call;
+pub mod model_gateway;
 pub mod notify;
 pub mod ocsf;
+pub mod otlp;
 pub mod policy;
 pub mod policy_lint;
 pub mod pool;
 pub mod preview;
 pub mod proxy;
 pub mod receipts;
+pub mod recording;
 pub mod retention;
+pub mod run_events;
+pub mod run_report;
 pub mod schedules;
 pub mod scoreboard;
 pub mod sentinel;
@@ -101,7 +109,7 @@ pub struct AppState {
     pub mitm: Option<Arc<mitm::Mitm>>,
     /// Extra roots the broker trusts for upstream TLS.
     pub extra_roots: Vec<reqwest::Certificate>,
-    /// Keep: Ed25519 trusted signers for `keep.policy.yaml`.
+    /// Keep: Ed25519 trusted signers for `merion.policy.yaml`.
     pub policy_trust: PolicyTrust,
     /// Keep: scoped export tokens (training default off).
     pub export_tokens: ExportTokenStore,
@@ -113,6 +121,8 @@ pub struct AppState {
     pub vault_unwrap_required: bool,
     /// Active unwrap lease end (None = locked when required).
     pub vault_unlocked_until: Mutex<Option<DateTime<Utc>>>,
+    /// Recent use-case model replies (`ZYVOR_AGENT_MODEL_CACHE_SECS`), in memory only. See `model_call`.
+    pub model_cache: Mutex<HashMap<String, (std::time::Instant, model_call::ModelOutcome)>>,
     /// Serializes the idempotency/quota reservation section of session creation,
     /// one lock per agent name so a slow or hung FluxVM call for one agent can
     /// never block session creation for every other agent on the process.
@@ -170,6 +180,7 @@ impl AppState {
             user_held_challenges,
             vault_unwrap_required: unwrap_tokens::unwrap_required_from_env(),
             vault_unlocked_until: Mutex::new(None),
+            model_cache: Mutex::new(HashMap::new()),
             session_create_locks: Mutex::new(HashMap::new()),
             warm_pool_reconcile_lock: tokio::sync::Mutex::new(()),
             session_locks: Mutex::new(HashMap::new()),

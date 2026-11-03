@@ -37,41 +37,41 @@ function BridgesTabContent({ bridges, dhcpServers, onDelete, onAdopt, onCreate, 
   const pageItems = paginateSlice(filtered, page, DEFAULT_PAGE_SIZE, showAll)
 
   return (
-    <div className="bg-[#f5f5f7] rounded-lg border border-[#d2d2d7]">
-      <div className="p-6 border-b border-[#d2d2d7] flex items-center justify-between">
+    <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
         <h2 className="text-xl font-semibold">Network Bridges</h2>
-        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[#0066cc] hover:bg-[#0077ed] text-white py-2 px-4 rounded-lg transition text-sm">
+        {!readOnly && <button onClick={onCreate} className="flex items-center gap-2 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] text-white py-2 px-4 rounded-lg transition text-sm">
           <Plus className="w-4 h-4" /> Create Bridge
         </button>}
       </div>
       {bridges.length === 0 ? (
-        <div className="p-12 text-center text-[#6e6e73]">No bridges configured. Create one to get started.</div>
+        <div className="p-12 text-center text-[var(--zf-muted)]">No bridges configured. Create one to get started.</div>
       ) : (
         <>
           <ListControls search={search} onSearchChange={setSearch} searchPlaceholder="Search name, addresses…" total={bridges.length} filtered={filtered.length} page={page} pageSize={DEFAULT_PAGE_SIZE} onPageChange={setPage} showAll={showAll} onShowAllChange={setShowAll} />
           <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white">
+            <thead className="bg-[var(--zf-surface)]">
               <tr>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Name</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Addresses</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">STP</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">DHCP</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">MTU</th>
-                <th className="text-left p-4 font-medium text-[#1d1d1f]">Actions</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Name</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Addresses</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">STP</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">DHCP</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">MTU</th>
+                <th className="text-left p-4 font-medium text-[var(--zf-ink)]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#d2d2d7]">
+            <tbody className="divide-y divide-[var(--zf-hairline)]">
               {pageItems.map(b => (
                 <tr key={b.id} className="hover:bg-white/[0.03] transition">
                   <td className="p-4 font-medium">
                     {b.name}
                     {isHostManaged(b) && <HostBadge />}
                   </td>
-                  <td className="p-4 text-[#6e6e73] font-mono text-sm">{b.addresses.join(', ') || '-'}</td>
-                  <td className="p-4">{b.stp ? <span className="text-emerald-600">on</span> : <span className="text-[#6e6e73]">off</span>}</td>
-                  <td className="p-4 text-[#6e6e73]">{b.dhcp}</td>
-                  <td className="p-4 text-[#6e6e73]">{b.mtu ?? '-'}</td>
+                  <td className="p-4 text-[var(--zf-muted)] font-mono text-sm">{b.addresses.join(', ') || '-'}</td>
+                  <td className="p-4">{b.stp ? <span className="text-emerald-600">on</span> : <span className="text-[var(--zf-muted)]">off</span>}</td>
+                  <td className="p-4 text-[var(--zf-muted)]">{b.dhcp}</td>
+                  <td className="p-4 text-[var(--zf-muted)]">{b.mtu ?? '-'}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-1">
                       {!readOnly && !isHostManaged(b) && (
@@ -91,7 +91,7 @@ function BridgesTabContent({ bridges, dhcpServers, onDelete, onAdopt, onCreate, 
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && <div className="p-8 text-center text-[#6e6e73] text-sm">No bridges match your search.</div>}
+          {filtered.length === 0 && <div className="p-8 text-center text-[var(--zf-muted)] text-sm">No bridges match your search.</div>}
           </div>
         </>
       )}
@@ -141,7 +141,7 @@ export function CreateBridgeModal({ onClose, onCreated }: { onClose: () => void;
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="1500" type="number" />
         <CheckboxField label="Enable STP (Spanning Tree Protocol)" checked={stp} onChange={setStp} />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Creating...' : 'Create Bridge'}
         </button>
       </div>
@@ -191,7 +191,7 @@ export function EditBridgeModal({ bridge, onClose, onUpdated }: { bridge: Bridge
         <InputField label="MTU" value={mtu} onChange={setMtu} placeholder="1500" type="number" />
         <CheckboxField label="Enable STP (Spanning Tree Protocol)" checked={stp} onChange={setStp} />
         {err && <p className="text-red-600 text-sm">{err}</p>}
-        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+        <button onClick={handleSubmit} disabled={submitting} className="w-full bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
           {submitting ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
@@ -261,20 +261,20 @@ export function DhcpServerModal({ bridge, existing, onClose, onCreated, onDelete
     return (
       <ModalWrapper title={`DHCP Server — ${bridge.name}`} onClose={onClose}>
         <div className="space-y-4">
-          <p className="text-sm text-[#6e6e73]">
+          <p className="text-sm text-[var(--zf-muted)]">
             This bridge's dnsmasq instance hands out leases in{' '}
-            <span className="font-mono text-[#1d1d1f]">{existing.gateway?.split('.').slice(0, 3).join('.')}.{existing.pool_offset}–{existing.pool_offset + existing.pool_size - 1}</span>
+            <span className="font-mono text-[var(--zf-ink)]">{existing.gateway?.split('.').slice(0, 3).join('.')}.{existing.pool_offset}–{existing.pool_offset + existing.pool_size - 1}</span>
             {' '}and also serves DNS Zone/Policy records to anything on this bridge.
           </p>
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div><div className="text-[#6e6e73] text-xs mb-1">Gateway</div><div className="font-mono">{existing.gateway ?? '—'}</div></div>
-            <div><div className="text-[#6e6e73] text-xs mb-1">Lease time</div><div>{existing.default_lease_time_sec}s</div></div>
-            <div><div className="text-[#6e6e73] text-xs mb-1">DNS servers</div><div className="font-mono">{existing.dns_servers.join(', ') || '—'}</div></div>
-            <div><div className="text-[#6e6e73] text-xs mb-1">Domain</div><div>{existing.domain ?? '—'}</div></div>
+            <div><div className="text-[var(--zf-muted)] text-xs mb-1">Gateway</div><div className="font-mono">{existing.gateway ?? '—'}</div></div>
+            <div><div className="text-[var(--zf-muted)] text-xs mb-1">Lease time</div><div>{existing.default_lease_time_sec}s</div></div>
+            <div><div className="text-[var(--zf-muted)] text-xs mb-1">DNS servers</div><div className="font-mono">{existing.dns_servers.join(', ') || '—'}</div></div>
+            <div><div className="text-[var(--zf-muted)] text-xs mb-1">Domain</div><div>{existing.domain ?? '—'}</div></div>
           </div>
           {err && <p className="text-red-600 text-sm">{err}</p>}
           <div className="flex gap-2">
-            <button onClick={() => setEditing(true)} className="flex-1 flex items-center justify-center gap-2 bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1d1d1f] py-2 px-4 rounded-lg transition">
+            <button onClick={() => setEditing(true)} className="flex-1 flex items-center justify-center gap-2 bg-[var(--zf-canvas-alt)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
               <Pencil className="w-4 h-4" /> Edit
             </button>
             <button onClick={handleDelete} disabled={submitting} className="flex-1 flex items-center justify-center gap-2 bg-red-600/20 hover:bg-red-600/30 text-red-600 disabled:opacity-50 py-2 px-4 rounded-lg transition">
@@ -289,7 +289,7 @@ export function DhcpServerModal({ bridge, existing, onClose, onCreated, onDelete
   return (
     <ModalWrapper title={existing ? `Edit DHCP Server — ${bridge.name}` : `Configure DHCP — ${bridge.name}`} onClose={onClose}>
       <div className="space-y-4">
-        <p className="text-sm text-[#6e6e73]">
+        <p className="text-sm text-[var(--zf-muted)]">
           {existing
             ? 'Restarts this bridge’s dnsmasq instance with the updated settings.'
             : 'Starts a dnsmasq instance bound to this bridge, handing out leases and serving DNS Zone/Policy records to VMs on it.'}
@@ -304,11 +304,11 @@ export function DhcpServerModal({ bridge, existing, onClose, onCreated, onDelete
         {err && <p className="text-red-600 text-sm">{err}</p>}
         <div className="flex gap-2">
           {existing && (
-            <button onClick={() => setEditing(false)} className="flex-1 bg-[#e8e8ed] hover:bg-[#d2d2d7] text-[#1d1d1f] py-2 px-4 rounded-lg transition">
+            <button onClick={() => setEditing(false)} className="flex-1 bg-[var(--zf-canvas-alt)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition">
               Cancel
             </button>
           )}
-          <button onClick={handleSubmit} disabled={submitting} className="flex-1 bg-[#0066cc] hover:bg-[#0077ed] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 bg-[var(--zf-link-fill)] hover:bg-[var(--zf-link-fill-hover)] disabled:opacity-50 text-white py-2 px-4 rounded-lg transition">
             {submitting ? 'Saving...' : existing ? 'Save Changes' : 'Start DHCP Server'}
           </button>
         </div>

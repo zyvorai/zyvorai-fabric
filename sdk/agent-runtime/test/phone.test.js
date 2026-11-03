@@ -8,12 +8,13 @@ import { readFileSync } from "node:fs";
 import { decisionBody, generateDevice, signDecision, signingPayload, verifyDecision, verifyRelaySignature } from "../src/phone.js";
 
 // The runtime's test suite writes these; both sides must agree on them.
-const vectors = JSON.parse(readFileSync(new URL("../../../docs/keep/mobile/test-vectors.json", import.meta.url), "utf8"));
+const vectors = JSON.parse(readFileSync(new URL("../../../docs/merion/mobile/test-vectors.json", import.meta.url), "utf8"));
 const approval = { ...vectors.approval, sign: vectors.sign };
 
 test("the payload matches the runtime's byte for byte", () => {
   for (const c of vectors.cases) {
     assert.equal(signingPayload(approval, c.decision), c.payload, `${c.alg} ${c.decision}`);
+    assert.ok(c.payload.startsWith("merion-approval-v1\n"));
   }
 });
 
@@ -22,7 +23,7 @@ test("signatures made by the runtime's test keys verify here", () => {
     assert.equal(verifyDecision(c.public_key, c.alg, c.payload, c.signature), true, `${c.alg} ${c.decision}`);
     // and not for the other decision
     const other = c.decision === "approved" ? "denied" : "approved";
-    assert.equal(verifyDecision(c.public_key, c.alg, signingPayload(approval, other), c.signature), false);
+    assert.equal(verifyDecision(c.public_key, c.alg, signingPayload(approval, other, approval.sign, c.payload.split("\n")[0]), c.signature), false);
   }
 });
 

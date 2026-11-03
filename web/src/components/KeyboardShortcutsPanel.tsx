@@ -81,17 +81,17 @@ export default function KeyboardShortcutsPanel() {
       onClick={() => setIsOpen(false)}
     >
       <div
-        className="bg-[#f5f5f7] rounded-xl shadow-2xl border border-[#d2d2d7] w-full max-w-lg overflow-hidden"
+        className="bg-[var(--zf-canvas)] rounded-xl shadow-2xl border border-[var(--zf-hairline)] w-full max-w-lg overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#d2d2d7]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--zf-hairline)]">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-blue-500/10">
-              <Keyboard className="w-4 h-4 text-[#0066cc]" />
+              <Keyboard className="w-4 h-4 text-[var(--zf-link)]" />
             </div>
-            <h2 className="text-base font-semibold text-[#1d1d1f]">Keyboard Shortcuts</h2>
+            <h2 className="text-base font-semibold text-[var(--zf-ink)]">Keyboard Shortcuts</h2>
           </div>
-          <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-md text-[#6e6e73] hover:text-[#1d1d1f] hover:bg-white/5 transition-colors">
+          <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:bg-white/5 transition-colors" aria-label="Close" title="Close">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -99,21 +99,21 @@ export default function KeyboardShortcutsPanel() {
         <div className="px-5 py-4 overflow-y-auto max-h-[60vh] sidebar-scroll">
           {categories.map((category) => (
             <div key={category} className="mb-5 last:mb-0">
-              <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#6e6e73] mb-2">{category}</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--zf-muted)] mb-2">{category}</h3>
               <div className="space-y-1">
                 {shortcuts
                   .filter((s) => s.category === category)
                   .map((shortcut, index) => (
                     <div key={index} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-white/[0.02] transition-colors">
-                      <span className="text-sm text-[#6e6e73]">{shortcut.description}</span>
+                      <span className="text-sm text-[var(--zf-muted)]">{shortcut.description}</span>
                       <div className="flex items-center gap-1.5">
                         {shortcut.keys.map((key, ki) => (
                           <span key={ki} className="flex items-center gap-1">
-                            <kbd className="px-2 py-0.5 bg-white border border-[#d2d2d7] rounded text-xs font-mono text-[#1d1d1f] min-w-[24px] text-center">
+                            <kbd className="px-2 py-0.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded text-xs font-mono text-[var(--zf-ink)] min-w-[24px] text-center">
                               {key}
                             </kbd>
                             {ki < shortcut.keys.length - 1 && (
-                              <span className="text-[10px] text-[#6e6e73]">then</span>
+                              <span className="text-xs text-[var(--zf-muted)]">then</span>
                             )}
                           </span>
                         ))}
@@ -125,8 +125,8 @@ export default function KeyboardShortcutsPanel() {
           ))}
         </div>
 
-        <div className="px-5 py-3 border-t border-[#d2d2d7] text-center text-[11px] text-[#6e6e73]">
-          Press <kbd className="px-1.5 py-0.5 bg-white border border-[#d2d2d7] rounded font-mono mx-0.5">?</kbd> to toggle
+        <div className="px-5 py-3 border-t border-[var(--zf-hairline)] text-center text-xs text-[var(--zf-muted)]">
+          Press <kbd className="px-1.5 py-0.5 bg-[var(--zf-surface)] border border-[var(--zf-hairline)] rounded font-mono mx-0.5">?</kbd> to toggle
         </div>
       </div>
     </div>

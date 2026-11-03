@@ -284,12 +284,12 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(status, { "content-type": "application/json" });
     res.end(JSON.stringify(result));
   } catch (e) {
-    console.error("keep-browser-driver tool error:", e);
+    console.error("merion-browser-driver tool error:", e);
     res.writeHead(500, { "content-type": "application/json" });
     res.end(JSON.stringify({ error: "internal error" }));
   }
 });
 
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`keep-browser-driver listening on 127.0.0.1:${PORT} cdp=${CDP}`);
+  console.log(`merion-browser-driver listening on 127.0.0.1:${PORT} cdp=${CDP}`);
 });

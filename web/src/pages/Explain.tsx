@@ -101,7 +101,7 @@ export default function Explain() {
             onClick={() => fetchExplanation(m.key)}
             className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeMetric === m.key
-                ? 'bg-[var(--zf-link)] text-white'
+                ? 'bg-[var(--zf-link-fill)] text-white'
                 : 'bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] text-[var(--zf-ink)] hover:bg-black/[0.04] hover:text-[var(--zf-ink)]'
             }`}
           >
@@ -170,7 +170,7 @@ export default function Explain() {
                   return (
                     <div
                       key={idx}
-                      className="flex-1 bg-[var(--zf-link)] hover:opacity-80 rounded-t-sm transition-colors min-w-[2px]"
+                      className="flex-1 bg-[var(--zf-link-fill)] hover:opacity-80 rounded-t-sm transition-colors min-w-[2px]"
                       style={{ height: `${heightPct}%` }}
                       title={`${value.toFixed(1)} at ${sample.timestamp ?? idx}`}
                     />

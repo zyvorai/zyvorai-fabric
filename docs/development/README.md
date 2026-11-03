@@ -19,7 +19,7 @@ project, from setting up your development environment to submitting pull request
 ```bash
 # Clone the repository
 git clone https://github.com/zyvorai/fabric.git
-cd zyvor-fabric
+cd fabric
 
 # Build all backend crates
 cd backend && cargo build

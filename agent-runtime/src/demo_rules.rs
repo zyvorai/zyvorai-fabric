@@ -206,9 +206,18 @@ pub struct ModelSpec {
     /// Upper bound on the reply (50..=4000 tokens, default 800).
     #[serde(default)]
     pub max_output_tokens: Option<u32>,
+    /// Name of an operator-written chain of further endpoints to try when this one is down, rate-limited or
+    /// answers 5xx. The pack only names it; the endpoints, and whether the chain exists at all, are the operator's.
+    #[serde(default)]
+    pub fallback_chain: Option<String>,
 }
 
 impl ModelSpec {
+    /// The same checks the pack loader applies to a `model` block.
+    pub fn check(&self) -> Result<(), String> {
+        self.validate()
+    }
+
     pub fn input_cap(&self) -> usize {
         self.max_input_chars.unwrap_or(24_000)
     }
@@ -295,6 +304,13 @@ impl ModelSpec {
             .is_some_and(|n| !(50..=4000).contains(&n))
         {
             return Err("model.max_output_tokens must be 50..=4000".into());
+        }
+        if self
+            .fallback_chain
+            .as_deref()
+            .is_some_and(|c| !crate::model_gateway::valid_chain_name(c))
+        {
+            return Err("model.fallback_chain must be 1-40 letters, digits, '-' or '_'".into());
         }
         Ok(())
     }
@@ -882,14 +898,15 @@ fn json_scalar(v: &serde_json::Value) -> String {
 mod tests {
     use super::*;
 
-    /// Every declarative pack shipped in `examples/keep-agents` must pass the same validation the deploy path applies,
+    /// Every declarative pack shipped in `examples/merion-agents` must pass the same validation the deploy path applies,
     /// so a limit (a 200-character pattern, an 80-character title) is caught here and not by a red CI job on main.
     #[test]
     fn every_shipped_usecase_pack_validates() {
-        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/keep-agents");
+        let dir =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/merion-agents");
         // the contributor template must stay a valid pack too, or the guide would hand people a broken file
         let template =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/keep/pack-template");
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../docs/merion/pack-template");
         let pack_only = [
             "kind",
             "name",
@@ -901,7 +918,7 @@ mod tests {
         ];
         let mut checked = 0;
         let mut entries: Vec<_> = std::fs::read_dir(&dir)
-            .expect("examples/keep-agents")
+            .expect("examples/merion-agents")
             .flatten()
             .collect();
         entries.sort_by_key(|e| e.file_name());

@@ -30,6 +30,7 @@ const RETRY_DELAYS: [Duration; 2] = [Duration::from_secs(1), Duration::from_secs
 
 /// Tell the operator's device about a new approval, in the background.
 pub fn approval_requested(state: &AppState, record: &ApprovalRecord) {
+    crate::chatops::approval_requested(state, record);
     let webhook = state.config.approval_webhook.clone();
     let relays = push_relays();
     if webhook.is_none() && relays.is_empty() {
@@ -773,7 +774,7 @@ mod tests {
         assert_eq!(v["device"]["id"], "a-fcm");
         assert_eq!(v["device"]["push"]["token"], "T1");
         assert_eq!(v["approval"]["id"], json!(r.id));
-        assert_eq!(v["sign"]["format"], "keep-approval-v1");
+        assert_eq!(v["sign"]["format"], "merion-approval-v1");
         assert_eq!(v["sign"]["challenge"].as_str().unwrap().len(), 32);
         // The message never carries the planned action (request details) or any secret.
         assert!(v["approval"].get("planned_action").is_none());

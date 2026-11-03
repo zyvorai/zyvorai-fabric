@@ -8,13 +8,14 @@
   --c-muted: #6e6e73;
   --c-surface: #f5f5f7;
   --c-line: #d2d2d7;
-  --c-accent: #0071e3;
-  --c-glow: rgba(0, 113, 227, 0.09);
+  --c-accent: #0066cc;
+  --c-fill: #0066cc; /* solid fills that carry white text */
+  --c-glow: rgba(0, 102, 204, 0.09);
   --c-black: #000;
   --c-on-black: #f5f5f7;
   --c-on-black-muted: #a1a1a6;
   --c-ok: #1a7f37;
-  --c-warn: #b36b00;
+  --c-warn: #8f5600;
   background: var(--c-bg);
   color: var(--c-ink);
 }
@@ -25,7 +26,8 @@
   --c-muted: #98989d;
   --c-surface: #111113;
   --c-line: #38383a;
-  --c-accent: #0a84ff;
+  --c-accent: #4da3ff;
+  --c-fill: #0071e3;
   --c-glow: rgba(10, 132, 255, 0.14);
   --c-ok: #30d158;
   --c-warn: #ff9f0a;
@@ -106,6 +108,12 @@
   color: var(--c-on-black-muted);
   max-width: 40rem;
   margin: 0 auto 2.25rem;
+}
+
+.heroBtns :global(.button--outline.button--secondary) {
+  /* the hero band is always black, whatever the site theme */
+  color: #f5f5f7;
+  border-color: rgba(245, 245, 247, 0.45);
 }
 
 .heroBtns,

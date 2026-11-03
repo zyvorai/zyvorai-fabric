@@ -30,7 +30,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
-pub const PAYLOAD_FORMAT: &str = "keep-approval-v1";
+/// The one payload format the host verifies. The first line of the signed text, so a signature made for
+/// another purpose never verifies as an approval.
+pub const PAYLOAD_FORMAT: &str = "merion-approval-v1";
 const DEFAULT_SIGN_TTL: i64 = 3600;
 const ED25519_SPKI_PREFIX: [u8; 12] = [
     0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00,
@@ -224,13 +226,14 @@ pub fn signing_payload(
     decision: ApprovalStatus,
     challenge: &str,
 ) -> String {
+    let format = PAYLOAD_FORMAT;
     let decision = match decision {
         ApprovalStatus::Approved => "approved",
         ApprovalStatus::Denied => "denied",
         _ => "other",
     };
     format!(
-        "{PAYLOAD_FORMAT}\napproval: {}\ndecision: {decision}\nkind: {}\nsubject: {}\naction-sha256: {}\nchallenge: {challenge}\nexpires: {}\n",
+        "{format}\napproval: {}\ndecision: {decision}\nkind: {}\nsubject: {}\naction-sha256: {}\nchallenge: {challenge}\nexpires: {}\n",
         approval.id,
         approval.kind.as_str(),
         approval.subject.as_deref().unwrap_or(""),
@@ -266,19 +269,31 @@ pub fn verify_decision(
     signature: &str,
     now: DateTime<Utc>,
 ) -> Result<(), SignError> {
+    verify_decision_format(key, device, approval, decision, signature, now).map(|_| ())
+}
+
+/// [`verify_decision`], also returning which payload format the signature was over.
+pub fn verify_decision_format(
+    key: &[u8],
+    device: &DeviceRecord,
+    approval: &ApprovalRecord,
+    decision: ApprovalStatus,
+    signature: &str,
+    now: DateTime<Utc>,
+) -> Result<&'static str, SignError> {
     if now.timestamp() >= expires_at(approval) {
         return Err(SignError::Expired);
     }
-    let payload = signing_payload(approval, decision, &challenge(key, approval));
+    let challenge = challenge(key, approval);
+    let payload = signing_payload(approval, decision, &challenge);
     if verify_signature(device, payload.as_bytes(), signature) {
-        Ok(())
-    } else {
-        Err(SignError::BadSignature)
+        return Ok(PAYLOAD_FORMAT);
     }
+    Err(SignError::BadSignature)
 }
 
 /// Should a decision made with a user token have to be signed by an enrolled phone?
-fn signature_required(state: &crate::AppState, approval: &ApprovalRecord) -> bool {
+pub(crate) fn signature_required(state: &crate::AppState, approval: &ApprovalRecord) -> bool {
     if std::env::var("ZYVOR_AGENT_REQUIRE_DEVICE_SIGNATURE").is_ok_and(|v| v == "1") {
         return true;
     }
@@ -346,9 +361,9 @@ pub(crate) async fn check_decision(
         .await;
         return Err(ApiError::forbidden("unknown device for this user"));
     };
-    match verify_decision(&key, &device, approval, req.decision, signature, Utc::now()) {
-        Ok(()) => {
-            audit(AuditPhase::Performed, json!({"approval_id": approval.id, "device_id": device_id, "decision": req.decision})).await;
+    match verify_decision_format(&key, &device, approval, req.decision, signature, Utc::now()) {
+        Ok(format) => {
+            audit(AuditPhase::Performed, json!({"approval_id": approval.id, "device_id": device_id, "decision": req.decision, "format": format})).await;
             Ok(Some(device_id.clone()))
         }
         Err(e) => {
@@ -652,7 +667,7 @@ mod tests {
     fn the_payload_is_readable_and_names_everything_signed() {
         let a = approval();
         let p = signing_payload(&a, ApprovalStatus::Approved, "c0ffee");
-        assert!(p.starts_with("keep-approval-v1\n"));
+        assert!(p.starts_with("merion-approval-v1\n"));
         let wants = [
             format!("approval: {}", a.id),
             "decision: approved".to_string(),
@@ -670,10 +685,10 @@ mod tests {
 
     // ---- cross-language test vectors ---------------------------------------------------------
     //
-    // `docs/keep/mobile/test-vectors.json` pins the exact payload and signatures, so a phone client
+    // `docs/merion/mobile/test-vectors.json` pins the exact payload and signatures, so a phone client
     // in any language can prove it agrees with this verifier. The signatures are deterministic
     // (Ed25519, and P-256 with RFC 6979), so the file is stable. Regenerate it after a deliberate
-    // change with `KEEP_WRITE_VECTORS=1 cargo test --lib test_vectors`.
+    // change with `MERION_WRITE_VECTORS=1 cargo test --lib test_vectors`.
 
     fn vector_approval() -> ApprovalRecord {
         let mut a = approval();
@@ -733,20 +748,22 @@ mod tests {
     fn test_vectors_are_current_and_verify() {
         let path = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../docs/keep/mobile/test-vectors.json"
+            "/../docs/merion/mobile/test-vectors.json"
         );
         let want = build_vectors();
-        if std::env::var("KEEP_WRITE_VECTORS").is_ok_and(|v| v == "1") {
+        let write_vectors = std::env::var("MERION_WRITE_VECTORS").is_ok_and(|v| v == "1")
+            || std::env::var("KEEP_WRITE_VECTORS").is_ok_and(|v| v == "1");
+        if write_vectors {
             std::fs::create_dir_all(std::path::Path::new(path).parent().unwrap()).unwrap();
             std::fs::write(path, serde_json::to_string_pretty(&want).unwrap() + "\n").unwrap();
         }
         let on_disk: Value = serde_json::from_str(&std::fs::read_to_string(path).expect(
-            "docs/keep/mobile/test-vectors.json is missing: KEEP_WRITE_VECTORS=1 cargo test --lib test_vectors",
+            "docs/merion/mobile/test-vectors.json is missing: MERION_WRITE_VECTORS=1 cargo test --lib test_vectors",
         ))
         .unwrap();
         assert_eq!(
             on_disk, want,
-            "the committed vectors are stale: regenerate with KEEP_WRITE_VECTORS=1"
+            "the committed vectors are stale: regenerate with MERION_WRITE_VECTORS=1"
         );
         // Every committed signature verifies under the server's own code.
         for c in want["cases"].as_array().unwrap() {
@@ -788,5 +805,42 @@ mod tests {
                 ));
             }
         }
+    }
+
+    #[test]
+    fn a_signature_verifies_only_for_its_decision_and_only_over_the_merion_format() {
+        let key = b"k".to_vec();
+        let a = approval();
+        let (dev, sk) = ed_device();
+        let ch = challenge(&key, &a);
+        let sign = |text: String| {
+            base64::engine::general_purpose::STANDARD.encode(sk.sign(text.as_bytes()).to_bytes())
+        };
+        let now = Utc::now();
+        let sig = sign(signing_payload(&a, ApprovalStatus::Approved, &ch));
+        assert_eq!(
+            verify_decision_format(&key, &dev, &a, ApprovalStatus::Approved, &sig, now),
+            Ok("merion-approval-v1")
+        );
+        // The same signature never verifies for a different decision.
+        assert_eq!(
+            verify_decision_format(&key, &dev, &a, ApprovalStatus::Denied, &sig, now),
+            Err(SignError::BadSignature)
+        );
+        // The pre-rename and any other format are refused.
+        for other in ["keep-approval-v1", "other-approval-v1"] {
+            let text = signing_payload(&a, ApprovalStatus::Approved, &ch).replacen(
+                PAYLOAD_FORMAT,
+                other,
+                1,
+            );
+            assert_eq!(
+                verify_decision(&key, &dev, &a, ApprovalStatus::Approved, &sign(text), now),
+                Err(SignError::BadSignature)
+            );
+        }
+        let info = signing_info(&key, &a);
+        assert_eq!(info["format"], "merion-approval-v1");
+        assert!(info.get("formats").is_none());
     }
 }
