@@ -120,3 +120,5 @@ The run takes about 7 minutes in one process, so `npm run a11y` runs the two the
 ## Checks
 
 `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run a11y` (22 pages, light and dark, 1440 and 390 px), and `node baseline-shots.mjs <dir>` for screenshots.
+
+VM details is now also checked for a **stopped** (`vms/staging-api`) and a **paused** (`vms/ci-runner`) VM, 12 tabs each, in both themes and both sizes. Both passed with no change to the app. Still not covered: a VM that is failed or mid-migration.
