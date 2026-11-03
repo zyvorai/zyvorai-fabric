@@ -41,11 +41,11 @@ const short = (s: string, n = 17) => (s.length > n ? `${s.slice(0, n - 1)}…` :
     taps, with a line wherever the configuration ties two together (a bond's members, a VLAN's parent, a tap's bridge). A node is outlined
     by its networkd state; a line moves only when both ends are up. The picture is decorative: the same connections are listed in
     words for a screen reader, and the tabs below hold every setting. Draws nothing when nothing is configured. */
-export function NetworkMap(props: NetworkMapInput) {
-  const { links, bonds, vlans, vxlans, macvtaps, bridges, taps, netfiles } = props
+export function NetworkMap(props: NetworkMapInput & { hiddenInterfaces?: number }) {
+  const { links, bonds, vlans, vxlans, macvtaps, bridges, taps, netfiles, interfaces, hiddenInterfaces } = props
   const map = useMemo(
-    () => buildNetworkMap({ links, bonds, vlans, vxlans, macvtaps, bridges, taps, netfiles }),
-    [links, bonds, vlans, vxlans, macvtaps, bridges, taps, netfiles],
+    () => buildNetworkMap({ links, bonds, vlans, vxlans, macvtaps, bridges, taps, netfiles, interfaces }),
+    [links, bonds, vlans, vxlans, macvtaps, bridges, taps, netfiles, interfaces],
   )
   if (map.nodes.length === 0) return null
 
@@ -125,6 +125,11 @@ export function NetworkMap(props: NetworkMapInput) {
           })}
         </svg>
       </div>
+      {hiddenInterfaces ? (
+        <p className="m-0 mt-2 text-xs text-[var(--zf-muted)]">
+          {hiddenInterfaces} more physical interface{hiddenInterfaces === 1 ? '' : 's'} not drawn; the Interfaces tab lists every one.
+        </p>
+      ) : null}
       <ul className="sr-only" aria-label="Connections">
         {connections.length === 0 ? <li>Nothing is connected to anything else yet.</li> : connections.map((c) => <li key={c}>{c}</li>)}
       </ul>
