@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import urllib.error
 import urllib.request
 import uuid
@@ -140,6 +141,8 @@ class Handler(BaseHTTPRequestHandler):
                 command=body.get("command", ""),
                 paths=body["paths"],
                 state="pending",
+                # The fixture's own expires_at is long past; a live changeset expires an hour out.
+                expires_at=int(time.time()) + 3600,
             )
             with LOCK:
                 CHANGESETS[changeset["id"]] = changeset
