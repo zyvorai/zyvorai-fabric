@@ -52,13 +52,13 @@ export default function RescueTab({ vm }: { vm: VM }) {
       </div>
 
       {!stopped && (
-        <div className="flex items-center gap-2 text-sm text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3">
+        <div className="flex items-center gap-2 text-sm text-[var(--zf-warn-text)] bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           Stop this VM first — GuestKit needs exclusive access to the disk, which a running VM already holds.
         </div>
       )}
       {!canWrite && (
-        <p className="text-sm text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+        <p className="text-sm text-[var(--zf-warn-text)] bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
           Viewer accounts cannot run rescue operations.
         </p>
       )}

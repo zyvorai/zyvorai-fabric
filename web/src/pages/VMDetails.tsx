@@ -219,7 +219,7 @@ export default function VMDetails() {
           {canWrite && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-1.5 rounded-lg text-[var(--zf-muted)] hover:text-[var(--zf-danger)] hover:bg-red-50 transition-colors"
+              className="p-1.5 rounded-lg text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)] hover:bg-red-50 transition-colors"
               title="Delete VM"
             >
               <Trash2 className="w-4 h-4" />
@@ -306,9 +306,9 @@ function ActionBtn({ onClick, color, icon: Icon, label }: {
 }) {
   const colors: Record<string, string> = {
     green: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
-    red: 'bg-red-50 text-[var(--zf-danger)] hover:bg-red-100',
+    red: 'bg-red-50 text-red-700 hover:bg-red-100',
     yellow: 'bg-amber-50 text-amber-800 hover:bg-amber-100',
-    blue: 'bg-[var(--zf-link)]/15 text-[var(--zf-link)] hover:bg-[var(--zf-link)]/25',
+    blue: 'bg-[var(--zf-link)]/10 text-[var(--zf-ink)] hover:bg-[var(--zf-link)]/20',
     purple: 'bg-black/[0.04] text-[var(--zf-ink)] hover:bg-black/[0.06]',
   }
 
@@ -512,9 +512,9 @@ function MetricsTab({ vm }: { vm: VM }) {
 function MetricStat({ label, value, color }: { label: string; value: string; color: string }) {
   const textMap: Record<string, string> = {
     blue: 'text-[var(--zf-link)]',
-    emerald: 'text-emerald-700',
+    emerald: 'text-[var(--zf-proof-text)]',
     purple: 'text-[var(--zf-ink)]',
-    orange: 'text-amber-800',
+    orange: 'text-[var(--zf-warn-text)]',
   }
   return (
     <div className="zf-panel px-4 py-3">
@@ -797,7 +797,7 @@ function PortForwardsSection({ vm, onUpdated }: { vm: VM; onUpdated: () => void 
               max={65535}
               className="input-field w-28 py-1.5"
             />
-            <select
+            <select aria-label="Protocol"
               value={protocol}
               onChange={(e) => setProtocol(e.target.value as 'tcp' | 'udp')}
               className="input-field w-auto py-1.5"
@@ -811,7 +811,7 @@ function PortForwardsSection({ vm, onUpdated }: { vm: VM; onUpdated: () => void 
               This VM is running — adding a forward requires restarting it to apply.
             </p>
           )}
-          {formError && <p className="text-[var(--zf-danger)] text-sm">{formError}</p>}
+          {formError && <p className="text-[var(--zf-danger-text)] text-sm">{formError}</p>}
           <div className="flex gap-2">
             <button
               onClick={handleAdd}
@@ -858,7 +858,7 @@ function PortForwardsSection({ vm, onUpdated }: { vm: VM; onUpdated: () => void 
                       onClick={() => handleRemove(f.host_port)}
                       disabled={removingPort === f.host_port}
                       title="Remove port forward"
-                      className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-danger)] hover:bg-red-50 disabled:opacity-50 transition-colors"
+                      className="p-1.5 rounded-md text-[var(--zf-muted)] hover:text-[var(--zf-danger-text)] hover:bg-red-50 disabled:opacity-50 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -973,8 +973,8 @@ function SnapshotsTab({ vm }: { vm: VM }) {
   if (error) {
     return (
       <div className="zf-panel p-8 text-center">
-        <AlertCircle className="w-6 h-6 text-[var(--zf-danger)] mx-auto mb-2" />
-        <p className="text-[var(--zf-danger)] text-sm mb-3">{error}</p>
+        <AlertCircle className="w-6 h-6 text-[var(--zf-danger-text)] mx-auto mb-2" />
+        <p className="text-[var(--zf-danger-text)] text-sm mb-3">{error}</p>
         <button
           onClick={() => { setLoading(true); loadSnapshots() }}
           className="zf-btn zf-btn-ghost zf-btn-sm mx-auto"
@@ -1112,14 +1112,14 @@ function SnapshotsTab({ vm }: { vm: VM }) {
                       <button
                         onClick={() => handleRevert(snap)}
                         disabled={actionInProgress === snap.id}
-                        className="px-2.5 py-1 bg-[var(--zf-link)]/15 text-[var(--zf-link)] hover:bg-[var(--zf-link)]/25 disabled:opacity-50 rounded text-xs font-medium transition-colors"
+                        className="px-2.5 py-1 bg-[var(--zf-link)]/10 text-[var(--zf-ink)] hover:bg-[var(--zf-link)]/20 disabled:opacity-50 rounded text-xs font-medium transition-colors"
                       >
                         {actionInProgress === snap.id ? 'Working...' : 'Restore'}
                       </button>
                       <button
                         onClick={() => handleDelete(snap)}
                         disabled={actionInProgress === snap.id}
-                        className="px-2.5 py-1 bg-red-50 text-[var(--zf-danger)] hover:bg-red-100 disabled:opacity-50 rounded text-xs font-medium transition-colors"
+                        className="px-2.5 py-1 bg-red-50 text-red-700 hover:bg-red-100 disabled:opacity-50 rounded text-xs font-medium transition-colors"
                       >
                         Delete
                       </button>
@@ -1221,7 +1221,7 @@ function LogsTab({ vm }: { vm: VM }) {
           <button
             onClick={() => setAutoRefresh((v) => !v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-              autoRefresh ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30' : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+              autoRefresh ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30' : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-[var(--zf-link-fill)] animate-pulse' : 'bg-[var(--zf-hairline)]'}`} />
@@ -1239,8 +1239,8 @@ function LogsTab({ vm }: { vm: VM }) {
 
       {error && (
         <div className="zf-panel p-8 text-center">
-          <AlertCircle className="w-6 h-6 text-[var(--zf-danger)] mx-auto mb-2" />
-          <p className="text-[var(--zf-danger)] text-sm mb-3">{error}</p>
+          <AlertCircle className="w-6 h-6 text-[var(--zf-danger-text)] mx-auto mb-2" />
+          <p className="text-[var(--zf-danger-text)] text-sm mb-3">{error}</p>
           <button
             onClick={() => loadLogs()}
             className="zf-btn zf-btn-ghost zf-btn-sm mx-auto"

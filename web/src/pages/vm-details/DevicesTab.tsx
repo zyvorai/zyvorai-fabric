@@ -122,7 +122,7 @@ export default function DevicesTab({ vm }: { vm: VM }) {
       )}
 
       {!canWrite && (
-        <p className="text-sm text-amber-400/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+        <p className="text-sm text-[var(--zf-warn-text)] bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
           Viewer accounts cannot attach or detach devices.
         </p>
       )}
@@ -219,7 +219,7 @@ function DeviceTable({
                     type="button"
                     disabled={!canWrite || row.busy}
                     onClick={row.onAttach}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--zf-link)]/20 text-[var(--zf-link)] hover:bg-[var(--zf-link)]/30 disabled:opacity-50"
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--zf-link)]/20 text-[var(--zf-ink)] hover:bg-[var(--zf-link)]/30 disabled:opacity-50"
                   >
                     {row.busy ? '…' : 'Attach'}
                   </button>

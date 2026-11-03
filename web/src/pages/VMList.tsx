@@ -370,7 +370,7 @@ export default function VMList() {
             <button
               onClick={() => setGroupByTags(!groupByTags)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition ${
-                groupByTags ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30' : 'bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
+                groupByTags ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30' : 'bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
@@ -406,7 +406,7 @@ export default function VMList() {
               onClick={selectAll}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                 selectedVMs.size === filteredVMs.length
-                  ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
+                  ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30'
                   : 'bg-[var(--zf-canvas)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
               }`}
             >
@@ -519,7 +519,7 @@ export default function VMList() {
             <button
               onClick={bulkBackup}
               disabled={bulkLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link)]/15 text-[var(--zf-link)] hover:bg-[var(--zf-link)]/25 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--zf-link)]/15 text-[var(--zf-ink)] hover:bg-[var(--zf-link)]/25 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
               <Archive className="w-3.5 h-3.5" />
               Backup {selectedCount}

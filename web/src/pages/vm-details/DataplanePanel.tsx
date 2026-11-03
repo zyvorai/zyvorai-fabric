@@ -837,7 +837,7 @@ export default function DataplanePanel({ vmName }: { vmName: string }) {
           <div className="flex flex-wrap items-end gap-3">
             <div>
               <label className={labelCls}>Limit</label>
-              <select
+              <select aria-label="Row limit"
                 className={inputCls}
                 value={flowLimit}
                 onChange={(e) => setFlowLimit(parseInt(e.target.value, 10))}

@@ -464,7 +464,29 @@ export function mockBody(path) {
   const p = path.replace(/\/+$/, '')
   if (p === '/auth/me') return MOCK_USER
   if (p === '/vms') return VMS
-  let m = p.match(/^\/vms\/([^/]+)\/metrics$/)
+  let m = p.match(/^\/vms\/([^/]+)$/)
+  if (m) return VMS.find((v) => v.name === m[1])
+  m = p.match(/^\/vms\/([^/]+)\/(boot|display|cpu-model|watchdog|serials|firmware\/status|cpu\/affinity|logs)$/)
+  if (m) {
+    const what = m[2]
+    if (what === 'boot') return { boot_order: ['disk', 'network'], firmware: 'uefi', secure_boot: false }
+    if (what === 'display') return { type: 'vnc', listen_address: '127.0.0.1', port: 5901, keymap: 'en-us' }
+    if (what === 'cpu-model') return { model: 'host-model', mode: 'host-model', features_add: [], features_remove: [] }
+    if (what === 'watchdog') return { model: 'i6300esb', action: 'reset' }
+    if (what === 'serials') return [{ type: 'pty' }]
+    if (what === 'firmware/status') return { firmware_type: 'uefi', code_path: '/usr/share/OVMF/OVMF_CODE.fd', vars_path: '/var/lib/fluxvm/web-01.vars', secure_boot_enabled: false, tpm_enabled: false, tpm_version: null }
+    if (what === 'cpu/affinity') return [0, 1, 2, 3]
+    return {
+      count: 3,
+      entries: [
+        { timestamp: ago(300), hostname: m[1], unit: 'sshd.service', message: 'Accepted publickey for ops from 10.20.0.5', priority: 'info' },
+        { timestamp: ago(240), hostname: m[1], unit: 'nginx.service', message: 'worker process started', priority: 'info' },
+        { timestamp: ago(60), hostname: m[1], unit: 'kernel', message: 'EXT4-fs: mounted filesystem with ordered data mode', priority: 'warning' },
+      ],
+    }
+  }
+  if (p === '/system/cpu-models') return [{ name: 'host-model', vendor: 'Intel', features: ['avx2', 'aes'] }, { name: 'EPYC', vendor: 'AMD', features: ['avx2', 'sse4_2'] }]
+  m = p.match(/^\/vms\/([^/]+)\/metrics$/)
   if (m) {
     const vm = VMS.find((v) => v.name === m[1])
     const seed = (vm?.name.length ?? 5) * 7

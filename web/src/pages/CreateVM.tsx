@@ -465,7 +465,7 @@ export default function CreateVM() {
                         onClick={() => setMemory(preset.value)}
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           memory === preset.value
-                            ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
+                            ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30'
                             : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)] hover:border-[var(--zf-hairline)]'
                         }`}
                       >
@@ -540,7 +540,7 @@ export default function CreateVM() {
                             }
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                               advanced.firmware === fw
-                                ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
+                                ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30'
                                 : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                             }`}
                           >
@@ -563,7 +563,7 @@ export default function CreateVM() {
                             onClick={() => setAdvanced({ ...advanced, displayType: dt })}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                               advanced.displayType === dt
-                                ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
+                                ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30'
                                 : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                             }`}
                           >
@@ -584,7 +584,7 @@ export default function CreateVM() {
                           onClick={() => setNetworkMode('nat')}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             networkMode === 'nat'
-                              ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
+                              ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30'
                               : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                           }`}
                         >
@@ -595,7 +595,7 @@ export default function CreateVM() {
                           onClick={() => setNetworkMode('bridged')}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             networkMode === 'bridged'
-                              ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
+                              ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30'
                               : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                           }`}
                         >
@@ -606,7 +606,7 @@ export default function CreateVM() {
                           onClick={() => setNetworkMode('direct')}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             networkMode === 'direct'
-                              ? 'bg-[var(--zf-link)]/20 text-[var(--zf-link)] border border-[var(--zf-link)]/30'
+                              ? 'bg-[var(--zf-link)]/20 text-[var(--zf-ink)] border border-[var(--zf-link)]/30'
                               : 'bg-[var(--zf-surface)] border border-[var(--zf-hairline)] text-[var(--zf-muted)] hover:text-[var(--zf-ink)]'
                           }`}
                         >
