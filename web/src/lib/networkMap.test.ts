@@ -59,9 +59,54 @@ describe('buildNetworkMap', () => {
   })
 })
 
+describe('interfaces to always draw', () => {
+  it('draws a physical NIC that nothing refers to, so a host with no bonds, VLANs or taps still shows what it has', () => {
+    const m = buildNetworkMap({ interfaces: [{ name: 'eno1', operational_state: 'routable' }, { name: 'eno2' }] })
+    expect(ids(m)).toEqual(['interface:eno1', 'interface:eno2'])
+    expect(m.edges).toEqual([])
+    expect(m.nodes[0].state).toBe('routable')
+  })
+  it('does not draw a name twice when a bond or bridge has it', () => {
+    const m = buildNetworkMap({ bonds: [{ name: 'bond0', slave_interfaces: ['eno1'] }], interfaces: [{ name: 'eno1' }, { name: 'bond0' }] })
+    expect(ids(m).filter((i) => i.endsWith(':bond0'))).toEqual(['bond:bond0'])
+    expect(ids(m).filter((i) => i.endsWith(':eno1'))).toEqual(['interface:eno1'])
+  })
+})
+
+describe('a host with nothing connected (the shape seen on the lab host)', () => {
+  const m = buildNetworkMap({
+    bridges: [{ name: 'mfork0', operational_state: 'down' }, { name: 'virbr0', operational_state: 'down' }],
+    vxlans: [{ name: 'cilium_vxlan' }],
+    interfaces: [
+      { name: 'cilium_host', operational_state: 'up' },
+      { name: 'cilium_net', operational_state: 'up' },
+      { name: 'cilium_vxlan', operational_state: 'unknown' },
+      { name: 'eno8303', operational_state: 'up' },
+      { name: 'eno8403', operational_state: 'down' },
+    ],
+  })
+  it('still draws what the host has: its NICs, bridges and VXLAN, with no lines', () => {
+    expect(ids(m)).toEqual([
+      'interface:cilium_host', 'interface:cilium_net', 'interface:eno8303', 'interface:eno8403',
+      'vxlan:cilium_vxlan', 'bridge:mfork0', 'bridge:virbr0',
+    ])
+    expect(m.edges).toEqual([])
+  })
+  it('draws a VXLAN once even though it is also listed as an interface, and tones the reported states', () => {
+    expect(ids(m).filter((i) => i.endsWith(':cilium_vxlan'))).toEqual(['vxlan:cilium_vxlan'])
+    const tone = (id: string) => netTone(m.nodes.find((n) => n.id === id)?.state)
+    expect(tone('interface:eno8303')).toBe('proof') // "up" is a working link, not "not reported"
+    expect(tone('interface:eno8403')).toBe('neutral')
+    expect(tone('bridge:virbr0')).toBe('neutral')
+  })
+})
+
 describe('netTone', () => {
   it('is green only for a clearly working link, amber for degraded, and never red', () => {
     expect(['routable', 'carrier', 'enslaved'].map(netTone)).toEqual(['proof', 'proof', 'proof'])
+    // the plain vocabulary a real host's bridges, VXLANs and network files report
+    expect(netTone('up')).toBe('proof')
+    expect(['down', 'unknown'].map(netTone)).toEqual(['neutral', 'neutral'])
     expect(netTone('degraded')).toBe('warn')
     expect(['no-carrier', 'off', 'dormant', undefined, 'whatever'].map(netTone)).toEqual(['neutral', 'neutral', 'neutral', 'neutral', 'neutral'])
   })

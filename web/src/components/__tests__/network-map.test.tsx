@@ -46,6 +46,13 @@ describe('NetworkMap', () => {
     expect(html).not.toMatch(/#[0-9a-fA-F]{3,6}/)
   })
 
+  it('draws physical NICs and says how many more were not drawn', () => {
+    const h = renderToStaticMarkup(<NetworkMap bridges={[{ name: 'br0' }]} interfaces={[{ name: 'eno1', operational_state: 'routable' }]} hiddenInterfaces={3} />)
+    expect(h).toContain('>eno1<')
+    expect(h).toContain('3 more physical interfaces not drawn')
+    expect(renderToStaticMarkup(<NetworkMap bridges={[{ name: 'br0' }]} hiddenInterfaces={1} />)).toContain('1 more physical interface not drawn')
+  })
+
   it('draws nothing when nothing is configured', () => {
     expect(renderToStaticMarkup(<NetworkMap />)).toBe('')
   })

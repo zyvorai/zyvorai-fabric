@@ -44,6 +44,7 @@ import { ReadOnlyProvider } from '../contexts/ReadOnlyContext'
 import ReadOnlyNotice from '../components/ReadOnlyNotice'
 import { PageHeader } from '../components/ui'
 import { NetworkMap } from '../components/NetworkMap'
+import { netfileTypeOf } from './network/ListControls'
 
 type Tab = 'bridges' | 'bonds' | 'vlans' | 'macvtap' | 'taps' | 'netfiles' | 'linkfiles' | 'portforwards' | 'vxlan' | 'sriov' | 'floatingips' | 'status'
 type Modal = 'bridge' | 'bond' | 'vlan' | 'macvtap' | 'tap' | 'netfile' | 'linkfile' | 'portforward' | 'vxlan' | 'sriov' | 'floatingip'
@@ -314,6 +315,15 @@ export default function Network() {
   }, [bridges, links])
 
   const netfileCounts = useMemo(() => countNetfileTypes(netfiles), [netfiles])
+  // The host's physical NICs, drawn on the map even when no bond, VLAN or bridge refers to them (35 container interfaces are not).
+  const MAX_DRAWN_NICS = 12
+  const physicalNics = useMemo(
+    () =>
+      netfiles
+        .filter((n) => netfileTypeOf(n.description, n.match_name) !== 'container')
+        .map((n) => ({ name: n.match_name, operational_state: n.operational_state })),
+    [netfiles],
+  )
 
   const closeModal = () => {
     setActiveModal(null)
@@ -428,6 +438,8 @@ export default function Network() {
         bridges={bridges}
         taps={taps}
         netfiles={netfiles}
+        interfaces={physicalNics.slice(0, MAX_DRAWN_NICS)}
+        hiddenInterfaces={Math.max(0, physicalNics.length - MAX_DRAWN_NICS)}
       />
 
       {/* Tabs */}
