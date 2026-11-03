@@ -24,6 +24,24 @@ Cost counts only calls that reported tokens on a priced model; the rest are not 
 `model.call` rows, so a refused call is never counted. A call past a cap is refused with 429 and a message naming the
 scope, before anything is sent, and the refusal is journaled as `model.budget_refused` with the reason. A prices file that cannot be read refuses rather than lifting the cap.
 
+## Per user
+
+One person's calls, over every agent they run, can be capped too:
+
+```json
+{"default_user_budget": {"max_calls_per_day": 300, "max_cost_per_day": 5.0},
+ "user_budgets": {"alice": {"max_calls_per_day": 1000}}}
+```
+
+- A user's own entry replaces `default_user_budget`; they are not added together.
+- Rolling 24 hours, counted over every session whose `user_id` is that person, whatever the agent. It takes `max_calls_per_day`,
+  `max_cost_per_day` and `warn_at`; `run` and `goal` are per agent, and a user budget that sets them fails the file load.
+- It is checked on both model paths, after the agent's own caps. A refusal is a 429 naming the user, journaled as
+  `model.budget_refused`.
+- A session with no `user_id` belongs to nobody, so a user cap cannot count or refuse it. Cost counts only calls with reported
+  tokens on a priced model, as for the agent caps.
+- The cockpit's `budget` gets a `user` scope for the session's user (with the same `fraction`, `warn` and `reached`).
+
 ## Seeing what is left
 
 `GET /v1/sessions/{id}/cockpit` (and `merionctl cockpit <id>`) carries a `budget` object: for the session's agent, one entry per
@@ -37,7 +55,8 @@ here changes a cap.
 
 ## Not done
 
-- Per-user caps across agents.
+- Per-tenant caps, and a user cap on `run`/`goal`.
+- A user with no `user_id` on the session is not capped by a user budget.
 
 - Caps in the manifest. They live in the operator's file so an agent's author cannot raise their own.
 - Goal caps spanning agents other than the budgeted one only when those sessions belong to the same goal.

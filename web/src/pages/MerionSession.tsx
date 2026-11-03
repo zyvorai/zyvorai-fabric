@@ -735,7 +735,13 @@ export default function MerionSession() {
               (cockpit.budget.scopes ?? []).map((sc) => (
                 <div key={sc.scope} className="flex flex-wrap items-baseline gap-x-3">
                   <span className="font-medium">
-                    {sc.scope === 'day' ? 'Last 24 hours' : sc.scope === 'run' ? 'This run' : 'This goal'}
+                    {sc.scope === 'day'
+                      ? 'Last 24 hours'
+                      : sc.scope === 'run'
+                        ? 'This run'
+                        : sc.scope === 'user'
+                          ? 'Your last 24 hours, all agents'
+                          : 'This goal'}
                   </span>
                   {sc.calls.max != null && (
                     <span>

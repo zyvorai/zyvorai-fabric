@@ -8,6 +8,10 @@
   The console shows it as a "Model budget" card. It counts the same journal rows as the refusal. Read-only.
   It warns (`warn`, an amber line in the card) from 80% of a cap; `warn_at` in a budget sets another share, above 0 and at most 1.
   The warning never refuses a call.
+- **Per-user model budgets.** `user_budgets` and `default_user_budget` in the operator's prices file cap one person's model
+  calls and cost over a rolling 24 hours across every agent they run (`max_calls_per_day`, `max_cost_per_day`, `warn_at`).
+  A call past the cap is refused with 429 naming the user, before anything is sent. A session with no `user_id` is not capped.
+  The cockpit budget gets a `user` scope. See `docs/merion/design/model-budgets.md`.
 - **Failed applies are visible and retryable.** An approved changeset that FluxVM could not apply now shows in the
   console's Merion session page as "Approved, but not applied" with the error and a Retry button
   (`POST /v1/approvals/{id}/retry-apply`, `merionctl retry-apply <id>`). A person asks for each retry; it checks the

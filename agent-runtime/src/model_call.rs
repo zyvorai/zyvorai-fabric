@@ -489,6 +489,29 @@ async fn budget_rows(
     Ok((rows, goal_sessions))
 }
 
+/// The journal rows of every session one person owns, over all agents. A session with no `user_id` belongs to nobody, so
+/// a per-user cap cannot count it (and cannot refuse it).
+async fn user_rows(state: &AppState, user: &str) -> Result<Vec<crate::audit::AuditEntry>, String> {
+    let ids: std::collections::HashSet<uuid::Uuid> = state
+        .store
+        .list_sessions()
+        .await
+        .into_iter()
+        .filter(|s| s.user_id.as_deref() == Some(user))
+        .map(|s| s.id)
+        .collect();
+    state
+        .store
+        .audit
+        .list_for_sessions(&ids, usize::MAX)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+async fn session_user(state: &AppState, session: Option<uuid::Uuid>) -> Option<String> {
+    state.store.get_session(session?).await?.user_id
+}
+
 async fn check_agent_budget_inner(
     state: &AppState,
     agent: &str,
@@ -499,34 +522,46 @@ async fn check_agent_budget_inner(
     else {
         return Ok(());
     };
-    let Some(budget) = prices.budget_for(agent) else {
+    let user = session_user(state, session).await;
+    let user_budget = user.as_deref().and_then(|u| prices.user_budget_for(u));
+    let agent_budget = prices.budget_for(agent);
+    if agent_budget.is_none() && user_budget.is_none() {
         return Ok(());
-    };
-    let (rows, goal_sessions) = budget_rows(state, agent, session, budget).await?;
-    let since = chrono::Utc::now() - chrono::Duration::hours(24);
-    if let Some(why) = crate::model_gateway::over_budget(&prices, agent, &rows, since) {
-        return Err(why);
     }
-    if let (Some(limit), Some(id)) = (budget.run, session) {
-        let mine: Vec<_> = rows.iter().filter(|r| r.session_id == Some(id)).collect();
-        if let Some(why) = crate::model_gateway::over_limit(&prices, "run", limit, &mine) {
+    let since = chrono::Utc::now() - chrono::Duration::hours(24);
+    if let Some(budget) = agent_budget {
+        let (rows, goal_sessions) = budget_rows(state, agent, session, budget).await?;
+        if let Some(why) = crate::model_gateway::over_budget(&prices, agent, &rows, since) {
             return Err(why);
         }
+        if let (Some(limit), Some(id)) = (budget.run, session) {
+            let mine: Vec<_> = rows.iter().filter(|r| r.session_id == Some(id)).collect();
+            if let Some(why) = crate::model_gateway::over_limit(&prices, "run", limit, &mine) {
+                return Err(why);
+            }
+        }
+        if let Some(limit) = budget.goal.filter(|_| !goal_sessions.is_empty()) {
+            let mine: Vec<_> = rows
+                .iter()
+                .filter(|r| r.session_id.is_some_and(|s| goal_sessions.contains(&s)))
+                .collect();
+            if let Some(why) = crate::model_gateway::over_limit(&prices, "goal", limit, &mine) {
+                return Err(why);
+            }
+        }
     }
-    if let Some(limit) = budget.goal.filter(|_| !goal_sessions.is_empty()) {
-        let mine: Vec<_> = rows
-            .iter()
-            .filter(|r| r.session_id.is_some_and(|s| goal_sessions.contains(&s)))
-            .collect();
-        if let Some(why) = crate::model_gateway::over_limit(&prices, "goal", limit, &mine) {
+    if let (Some(user), Some(_)) = (user.as_deref(), user_budget) {
+        let rows = user_rows(state, user).await?;
+        if let Some(why) = crate::model_gateway::over_user_budget(&prices, user, &rows, since) {
             return Err(why);
         }
     }
     Ok(())
 }
 
-/// What the operator's budget for `agent` has used so far, for the cockpit. `None` when no prices file or no budget
-/// applies. A prices file that cannot be read is an `Err` here, as it refuses a call in `check_agent_budget`.
+/// What the operator's budgets for `agent` and for the session's user have used so far, for the cockpit. `None` when no
+/// prices file or no budget applies. A prices file that cannot be read is an `Err` here, as it refuses a call in
+/// `check_agent_budget`.
 pub(crate) async fn budget_status_for(
     state: &AppState,
     agent: &str,
@@ -537,10 +572,20 @@ pub(crate) async fn budget_status_for(
     else {
         return Ok(None);
     };
-    let Some(budget) = prices.budget_for(agent) else {
+    let user = session_user(state, Some(session)).await;
+    let user_budget = user.as_deref().and_then(|u| prices.user_budget_for(u));
+    let agent_budget = prices.budget_for(agent);
+    if agent_budget.is_none() && user_budget.is_none() {
         return Ok(None);
+    }
+    let (rows, goal_sessions) = match agent_budget {
+        Some(b) => budget_rows(state, agent, Some(session), b).await?,
+        None => (Vec::new(), Default::default()),
     };
-    let (rows, goal_sessions) = budget_rows(state, agent, Some(session), budget).await?;
+    let urows = match (user.as_deref(), user_budget) {
+        (Some(u), Some(_)) => user_rows(state, u).await?,
+        _ => Vec::new(),
+    };
     let since = chrono::Utc::now() - chrono::Duration::hours(24);
     let run: Vec<&crate::audit::AuditEntry> = rows
         .iter()
@@ -557,6 +602,7 @@ pub(crate) async fn budget_status_for(
         since,
         Some(&run),
         (!goal_sessions.is_empty()).then_some(goal.as_slice()),
+        user.as_deref().map(|u| (u, urows.as_slice())),
     ))
 }
 
