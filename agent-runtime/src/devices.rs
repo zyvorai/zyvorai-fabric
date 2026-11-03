@@ -407,6 +407,7 @@ mod tests {
             preview: None,
             broker_held: true,
             apply_error: None,
+            decided_by: None,
         }
     }
 

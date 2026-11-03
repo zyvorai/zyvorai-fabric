@@ -19,6 +19,8 @@ pub struct FluxVm {
     /// are safe. Default is 4; override with `ZYVOR_AGENT_SANDBOX_CREATE_CONCURRENCY`
     /// (1–64). A cell that is already running is not affected.
     create_gate: std::sync::Arc<tokio::sync::Semaphore>,
+    /// Per-request limit for reads; see [`parse_read_timeout_secs`]. `ZYVOR_AGENT_FLUXVM_READ_TIMEOUT_SECS`.
+    read_timeout: std::time::Duration,
 }
 
 /// Default concurrent sandbox creations (safe after guestkit flock fix).
@@ -30,6 +32,15 @@ fn parse_create_concurrency(value: Option<&str>) -> usize {
         .and_then(|v| v.trim().parse::<usize>().ok())
         .map(|n| n.clamp(1, 64))
         .unwrap_or(DEFAULT_CREATE_CONCURRENCY)
+}
+
+/// Seconds a plain read (GET) may take; a status call that hangs should not hold a request for the full
+/// 180 s that creates, execs and snapshots may need. 1 to 600; unset or unparsable falls back to 30.
+fn parse_read_timeout_secs(value: Option<&str>) -> u64 {
+    value
+        .and_then(|v| v.trim().parse::<u64>().ok())
+        .map(|n| n.clamp(1, 600))
+        .unwrap_or(30)
 }
 
 fn create_concurrency() -> usize {
@@ -181,6 +192,11 @@ impl FluxVm {
             http,
             token,
             create_gate: std::sync::Arc::new(tokio::sync::Semaphore::new(create_concurrency())),
+            read_timeout: std::time::Duration::from_secs(parse_read_timeout_secs(
+                std::env::var("ZYVOR_AGENT_FLUXVM_READ_TIMEOUT_SECS")
+                    .ok()
+                    .as_deref(),
+            )),
         })
     }
 
@@ -188,6 +204,11 @@ impl FluxVm {
         self.base
             .join(path)
             .with_context(|| format!("joining FluxVM URL with {path}"))
+    }
+
+    /// An authenticated GET with the (shorter) read timeout.
+    fn get(&self, url: Url) -> reqwest::RequestBuilder {
+        self.auth(self.http.get(url)).timeout(self.read_timeout)
     }
 
     fn auth(&self, b: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
@@ -216,17 +237,14 @@ impl FluxVm {
     }
 
     pub async fn get_sandbox(&self, id: Uuid) -> Result<SandboxRecord> {
-        let response = self
-            .auth(self.http.get(self.url(&format!("/v1/vms/{id}"))?))
-            .send()
-            .await?;
+        let response = self.get(self.url(&format!("/v1/vms/{id}"))?).send().await?;
         self.parse(response).await
     }
 
     /// Host SNP/TDX capability + launch-verified flags (fail-closed when unreachable).
     pub async fn security_capabilities(&self) -> Result<HostSecurityCapabilities> {
         let response = self
-            .auth(self.http.get(self.url("/v1/security/capabilities")?))
+            .get(self.url("/v1/security/capabilities")?)
             .send()
             .await?;
         self.parse(response).await
@@ -344,10 +362,7 @@ impl FluxVm {
 
     pub async fn list_grants(&self, id: Uuid) -> Result<Value> {
         let response = self
-            .auth(
-                self.http
-                    .get(self.url(&format!("/v1/sandboxes/{id}/grants"))?),
-            )
+            .get(self.url(&format!("/v1/sandboxes/{id}/grants"))?)
             .send()
             .await?;
         self.parse(response).await
@@ -588,10 +603,7 @@ impl FluxVm {
 
     pub async fn get_changeset(&self, id: Uuid, changeset: Uuid) -> Result<Changeset> {
         let response = self
-            .auth(
-                self.http
-                    .get(self.url(&format!("/v1/sandboxes/{id}/changesets/{changeset}"))?),
-            )
+            .get(self.url(&format!("/v1/sandboxes/{id}/changesets/{changeset}"))?)
             .send()
             .await?;
         self.parse(response).await
@@ -681,7 +693,7 @@ impl FluxVm {
         if let Some(n) = limit {
             url.query_pairs_mut().append_pair("limit", &n.to_string());
         }
-        let response = self.auth(self.http.get(url)).send().await?;
+        let response = self.get(url).send().await?;
         self.parse(response).await
     }
 
@@ -955,6 +967,15 @@ mod tests {
         assert_eq!(parse_create_concurrency(Some("0")), 1);
         assert_eq!(parse_create_concurrency(Some("999")), 64);
         assert_eq!(parse_create_concurrency(Some("not a number")), 4);
+    }
+
+    #[test]
+    fn read_timeout_parsing_is_bounded() {
+        assert_eq!(parse_read_timeout_secs(None), 30);
+        assert_eq!(parse_read_timeout_secs(Some(" 5 ")), 5);
+        assert_eq!(parse_read_timeout_secs(Some("0")), 1);
+        assert_eq!(parse_read_timeout_secs(Some("99999")), 600);
+        assert_eq!(parse_read_timeout_secs(Some("soon")), 30);
     }
 
     #[test]

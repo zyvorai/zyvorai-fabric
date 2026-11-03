@@ -530,6 +530,7 @@ pub fn public_router(state: Arc<AppState>) -> Router {
         )
         .route("/v1/approvals", get(list_approvals).post(create_approval))
         .route("/v1/approvals/{id}", post(decide_approval))
+        .route("/v1/approvals/{id}/retry-apply", post(retry_apply))
         .route("/v1/sessions/{id}/speculate", post(speculate_session))
         .route(
             "/v1/sessions/{id}/changesets/{cs}/restore",
@@ -2313,6 +2314,7 @@ async fn record_approval_request(
         preview: None,
         broker_held: false,
         apply_error: None,
+        decided_by: None,
     };
     state.store.save_approval(record.clone()).await?;
     audit_approval_planned(state, &record).await;
@@ -2810,6 +2812,26 @@ async fn session_cockpit(
         .into_iter()
         .filter(|a| a.session_id == id && a.status == crate::model::ApprovalStatus::Pending)
         .collect();
+    // Approved by a person, but FluxVM could not apply it: shown with a retry, never as done.
+    let failed_applies: Vec<_> = state
+        .store
+        .approvals_of_session(id)
+        .await
+        .into_iter()
+        .filter(|a| {
+            a.kind == ApprovalKind::Changeset
+                && a.status == ApprovalStatus::Approved
+                && a.apply_error.is_some()
+        })
+        .map(|a| {
+            json!({
+                "id": a.id,
+                "prompt": a.prompt,
+                "apply_error": a.apply_error,
+                "decided_at": a.decided_at,
+            })
+        })
+        .collect();
     let schedules = state.store.list_schedules().await;
     let upcoming: Vec<_> = schedules
         .into_iter()
@@ -2888,6 +2910,7 @@ async fn session_cockpit(
         "egress_connects": egress_connects,
         "drop_reasons": drop_reasons,
         "pending_approvals": pending,
+        "failed_applies": failed_applies,
         "last_decisions": decisions,
         "upcoming_cron": upcoming,
         "active_goal": active_goal.as_ref().map(|g| json!({
@@ -3807,6 +3830,7 @@ async fn create_approval(
         preview: None,
         broker_held: false,
         apply_error: None,
+        decided_by: None,
     };
     state
         .store
@@ -4149,6 +4173,7 @@ async fn speculate_session(
         preview: None,
         broker_held: false,
         apply_error: None,
+        decided_by: None,
     };
     if let Err(e) = state.store.save_approval(record.clone()).await {
         // No approval will ever name this changeset: drop it rather than leave it pending in FluxVM.
@@ -4187,7 +4212,9 @@ async fn auto_decide_changeset(
     record: ApprovalRecord,
     changeset: &crate::fluxvm::Changeset,
 ) -> (ApprovalRecord, Option<String>) {
-    use crate::changeset_policy::{eligible, Subject, MAX_AUTO_PER_HOUR};
+    use crate::changeset_policy::{
+        eligible, Subject, MAX_AUTO_PER_HOUR, MAX_AUTO_PER_USER_PER_HOUR,
+    };
     let Some(user) = session.user_id.as_deref() else {
         return (record, None);
     };
@@ -4206,19 +4233,40 @@ async fn auto_decide_changeset(
         broker_destinations: broker.as_deref(),
     };
     let since = Utc::now() - chrono::Duration::hours(1);
+    let is_recent_auto = |a: &ApprovalRecord| {
+        a.kind == ApprovalKind::Changeset
+            && a.status == ApprovalStatus::Approved
+            && (a
+                .decided_by
+                .as_deref()
+                .is_some_and(|d| d.starts_with("policy:"))
+                || a.comment
+                    .as_deref()
+                    .is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX)))
+            && a.decided_at.is_some_and(|t| t > since)
+    };
     let recent = state
         .store
         .approvals_of_session(session.id)
         .await
         .iter()
-        .filter(|a| {
-            a.kind == ApprovalKind::Changeset
-                && a.status == ApprovalStatus::Approved
-                && a.comment
-                    .as_deref()
-                    .is_some_and(|c| c.starts_with(AUTO_APPROVED_PREFIX))
-                && a.decided_at.is_some_and(|t| t > since)
-        })
+        .filter(|a| is_recent_auto(a))
+        .count();
+    // The same user's other sessions count too: the per-session cap alone is easy to multiply.
+    let user_sessions: std::collections::HashSet<Uuid> = state
+        .store
+        .list_sessions()
+        .await
+        .into_iter()
+        .filter(|s| s.user_id.as_deref() == Some(user))
+        .map(|s| s.id)
+        .collect();
+    let recent_for_user = state
+        .store
+        .list_approvals()
+        .await
+        .iter()
+        .filter(|a| user_sessions.contains(&a.session_id) && is_recent_auto(a))
         .count();
     let verdict = if crate::devices::signature_required(state, &record) {
         Err("a phone signature is required, so a person decides".to_string())
@@ -4229,6 +4277,10 @@ async fn auto_decide_changeset(
     } else if recent >= MAX_AUTO_PER_HOUR {
         Err(format!(
             "{MAX_AUTO_PER_HOUR} auto-approvals in the last hour, so a person decides"
+        ))
+    } else if recent_for_user >= MAX_AUTO_PER_USER_PER_HOUR {
+        Err(format!(
+            "{MAX_AUTO_PER_USER_PER_HOUR} auto-approvals for this user in the last hour, so a person decides"
         ))
     } else {
         eligible(policy, &subject)
@@ -4265,12 +4317,19 @@ async fn auto_decide_changeset(
         }
     };
     let comment = format!("{AUTO_APPROVED_PREFIX} {} v{}", policy.id, policy.version);
+    let decided_by = format!("policy:{}:v{}", policy.id, policy.version);
     let decided = match state
         .store
         .transition_approval(record.id, ApprovalStatus::Approved, Some(comment), None)
         .await
     {
-        Ok(Some(decided)) => decided,
+        Ok(Some(decided)) => state
+            .store
+            .set_decided_by(decided.id, decided_by.clone())
+            .await
+            .ok()
+            .flatten()
+            .unwrap_or(decided),
         Ok(None) => return (record, None),
         Err(error) => {
             tracing::error!(%error, approval_id = %record.id, "auto-approval failed to record");
@@ -4286,7 +4345,7 @@ async fn auto_decide_changeset(
             format!("approval.{}", decided.kind.as_str()),
             decided.subject.clone(),
             json!({"approval_id": decided.id, "comment": decided.comment, "auto": true,
-                   "policy_id": policy.id, "policy_version": policy.version, "files": files}),
+                   "decided_by": decided_by, "policy_id": policy.id, "policy_version": policy.version, "files": files}),
         )
         .await
     {
@@ -4750,6 +4809,108 @@ async fn run_verify_command(
     }
 }
 
+/// `POST /v1/approvals/{id}/retry-apply`: try again to apply a changeset a person already approved but
+/// FluxVM could not apply. A person asks for it; nothing retries on its own. It looks at the changeset's
+/// state first, so it never applies twice: `applied` just clears the error, `pending`/`approved` are carried
+/// out, and anything else (expired, rejected) is refused.
+async fn retry_apply(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<ApprovalRecord>> {
+    let Some(record) = state.store.get_approval(id).await else {
+        return Err(ApiError::not_found("approval not found"));
+    };
+    if record.kind != ApprovalKind::Changeset
+        || record.status != ApprovalStatus::Approved
+        || record.apply_error.is_none()
+    {
+        return Err(ApiError::conflict(
+            "only an approved changeset whose apply failed can be retried",
+        ));
+    }
+    let session = require_session(&state, record.session_id).await?;
+    let changeset_id = record
+        .planned_action
+        .as_ref()
+        .and_then(|a| a.get("changeset_id"))
+        .and_then(Value::as_str)
+        .and_then(|s| Uuid::parse_str(s).ok())
+        .ok_or_else(|| ApiError::internal("changeset approval has no changeset_id"))?;
+    let current = state
+        .fluxvm
+        .get_changeset(session.sandbox_id, changeset_id)
+        .await
+        .map_err(|e| ApiError::bad_gateway(format!("changeset: {e:#}")))?;
+    let outcome = match current.state.as_str() {
+        "applied" => Ok(current),
+        "approved" => {
+            state
+                .fluxvm
+                .apply_changeset(session.sandbox_id, changeset_id)
+                .await
+        }
+        "pending" => match state
+            .fluxvm
+            .approve_changeset(session.sandbox_id, changeset_id)
+            .await
+        {
+            Ok(_) => {
+                state
+                    .fluxvm
+                    .apply_changeset(session.sandbox_id, changeset_id)
+                    .await
+            }
+            Err(e) => Err(e),
+        },
+        other => {
+            return Err(ApiError::conflict(format!(
+                "the changeset is {other}, so it cannot be applied now"
+            )))
+        }
+    };
+    let (phase, detail) = match &outcome {
+        Ok(cs) => (
+            AuditPhase::Performed,
+            json!({ "approval_id": id, "changeset_id": changeset_id, "state": cs.state, "retry": true }),
+        ),
+        Err(e) => (
+            AuditPhase::Failed,
+            json!({ "approval_id": id, "changeset_id": changeset_id, "error": format!("{e:#}"), "retry": true }),
+        ),
+    };
+    if let Err(error) = state
+        .store
+        .audit
+        .append(
+            Some(record.session_id),
+            phase,
+            "changeset.apply".to_string(),
+            record.subject.clone(),
+            detail,
+        )
+        .await
+    {
+        tracing::error!(%error, approval_id = %id, "failed to write audit entry");
+    }
+    match outcome {
+        Ok(_) => {
+            let cleared = state
+                .store
+                .clear_apply_error(id)
+                .await
+                .map_err(ApiError::internal)?
+                .unwrap_or(record);
+            Ok(Json(cleared))
+        }
+        Err(e) => {
+            let _ = state.store.set_apply_error(id, format!("{e:#}")).await;
+            Err(ApiError::bad_gateway(format!(
+                "FluxVM could not apply the changeset: {e:#}"
+            )))
+        }
+    }
+}
+
 /// True when a changeset approval's FluxVM changeset is past its `expires_at` (Unix seconds; 0 = none).
 fn changeset_expired(record: &ApprovalRecord, now: i64) -> bool {
     record.kind == ApprovalKind::Changeset
@@ -5159,7 +5320,10 @@ mod tests {
     #[derive(Clone, Default)]
     struct FakeFlux {
         calls: Arc<std::sync::Mutex<Vec<String>>>,
-        fail_apply: bool,
+        /// While true, `apply` is refused with a 409. A test can clear it to let a retry through.
+        fail_apply: Arc<std::sync::atomic::AtomicBool>,
+        /// The changeset's current state, as `GET .../changesets/{id}` reports it.
+        cs_state: Arc<std::sync::Mutex<String>>,
         /// Exit code the fake guest returns for a `process` call (the verify command).
         verify_exit: i64,
     }
@@ -5181,6 +5345,7 @@ mod tests {
             let record = record.clone();
             async move {
                 record.calls.lock().unwrap().push("speculate".into());
+                *record.cs_state.lock().unwrap() = "pending".into();
                 Json(fake_changeset(&id, cs, "pending"))
             }
         };
@@ -5189,7 +5354,7 @@ mod tests {
             let record = record.clone();
             async move {
                 record.calls.lock().unwrap().push(verb.clone());
-                if verb == "apply" && record.fail_apply {
+                if verb == "apply" && record.fail_apply.load(std::sync::atomic::Ordering::SeqCst) {
                     return (
                         StatusCode::CONFLICT,
                         Json(json!({ "error": "base moved on" })),
@@ -5200,7 +5365,17 @@ mod tests {
                     "apply" => "applied",
                     _ => "rejected",
                 };
+                *record.cs_state.lock().unwrap() = state.to_string();
                 (StatusCode::OK, Json(fake_changeset(&id, &cs, state)))
+            }
+        };
+        let record = fake.clone();
+        let get_cs = move |Path((id, cs)): Path<(String, String)>| {
+            let record = record.clone();
+            async move {
+                let state = record.cs_state.lock().unwrap().clone();
+                let state = if state.is_empty() { "pending" } else { &state };
+                Json(fake_changeset(&id, &cs, state))
             }
         };
         let record = fake.clone();
@@ -5230,7 +5405,8 @@ mod tests {
             .route("/v1/sandboxes/{id}/process", post(process))
             .route("/v1/vms/{id}/{verb}", post(vm_verb))
             .route("/v1/sandboxes/{id}/speculate", post(speculate))
-            .route("/v1/sandboxes/{id}/changesets/{cs}/{verb}", post(verb));
+            .route("/v1/sandboxes/{id}/changesets/{cs}/{verb}", post(verb))
+            .route("/v1/sandboxes/{id}/changesets/{cs}", get(get_cs));
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
         tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
@@ -5715,7 +5891,7 @@ mod tests {
 
         // Approved but FluxVM could not apply: reported as failed and unknown, not as applied.
         let fake = FakeFlux {
-            fail_apply: true,
+            fail_apply: Arc::new(std::sync::atomic::AtomicBool::new(true)),
             ..Default::default()
         };
         let url = start_fake_flux(fake.clone()).await;
@@ -5732,7 +5908,7 @@ mod tests {
     #[tokio::test]
     async fn a_failed_apply_is_reported_and_the_decision_stays_recorded() {
         let fake = FakeFlux {
-            fail_apply: true,
+            fail_apply: Arc::new(std::sync::atomic::AtomicBool::new(true)),
             ..Default::default()
         };
         let url = start_fake_flux(fake.clone()).await;
@@ -5865,5 +6041,147 @@ mod tests {
         assert_eq!(err.status, StatusCode::CONFLICT);
         let stored = state.store.get_approval(approval).await.unwrap();
         assert_eq!(stored.status, ApprovalStatus::Expired);
+    }
+
+    /// A user's session with an auto-approve policy for `/work`, and the pending approval to decide.
+    async fn auto_approve_setup() -> (
+        Arc<AppState>,
+        SessionRecord,
+        ApprovalRecord,
+        crate::fluxvm::Changeset,
+    ) {
+        let fake = FakeFlux::default();
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let mut session = running_session(&state, SessionStatus::Running).await;
+        session.user_id = Some("u".into());
+        state.store.save_session(session.clone()).await.unwrap();
+        let policy: crate::changeset_policy::ChangesetPolicy =
+            serde_json::from_str(r#"{"id":"notes","paths":["/work"],"max_bytes":100}"#).unwrap();
+        state
+            .store
+            .save_changeset_policy("u", &session.agent, policy)
+            .await
+            .unwrap();
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let record = state.store.get_approval(approval).await.unwrap();
+        let mut cs: crate::fluxvm::Changeset = serde_json::from_value(fake_changeset(
+            &session.sandbox_id.to_string(),
+            "00000000-0000-0000-0000-00000000c0de",
+            "pending",
+        ))
+        .unwrap();
+        cs.changes = json!({"added": ["/work/a.txt"], "modified": [], "deleted": []});
+        cs.side_effects = json!({"egress": "blocked", "non_replayable": []});
+        cs.staged = json!({"/work/a.txt": {"size": 6}});
+        (state, session, record, cs)
+    }
+
+    #[tokio::test]
+    async fn an_auto_approval_records_the_policy_that_decided_it() {
+        let (state, session, record, cs) = auto_approve_setup().await;
+        let (decided, apply_error) = auto_decide_changeset(&state, &session, record, &cs).await;
+        assert!(apply_error.is_none(), "{apply_error:?}");
+        assert_eq!(decided.status, ApprovalStatus::Approved);
+        assert_eq!(decided.decided_by.as_deref(), Some("policy:notes:v1"));
+    }
+
+    #[tokio::test]
+    async fn the_per_user_cap_counts_the_users_other_sessions() {
+        let (state, session, record, cs) = auto_approve_setup().await;
+        // The same user's other session already used the hourly allowance.
+        let mut other = running_session(&state, SessionStatus::Running).await;
+        other.user_id = Some("u".into());
+        state.store.save_session(other.clone()).await.unwrap();
+        for _ in 0..crate::changeset_policy::MAX_AUTO_PER_USER_PER_HOUR {
+            let mut seeded = record.clone();
+            seeded.id = Uuid::new_v4();
+            seeded.session_id = other.id;
+            seeded.status = ApprovalStatus::Approved;
+            seeded.decided_at = Some(Utc::now());
+            seeded.decided_by = Some("policy:notes:v1".into());
+            state.store.save_approval(seeded).await.unwrap();
+        }
+        let (decided, _) = auto_decide_changeset(&state, &session, record, &cs).await;
+        assert_eq!(
+            decided.status,
+            ApprovalStatus::Pending,
+            "a person decides past the cap"
+        );
+        let entries = state.store.audit.list(Some(session.id), 100).await.unwrap();
+        assert!(entries.iter().any(|e| e.action == "changeset.policy"
+            && e.detail["reason"]
+                .as_str()
+                .is_some_and(|r| r.contains("for this user"))));
+    }
+
+    #[tokio::test]
+    async fn retry_apply_finishes_a_failed_apply_once_and_refuses_the_wrong_state() {
+        let fake = FakeFlux {
+            fail_apply: Arc::new(std::sync::atomic::AtomicBool::new(true)),
+            ..Default::default()
+        };
+        let url = start_fake_flux(fake.clone()).await;
+        let state = crate::goals::tests::test_state_with_fluxvm(&url).await;
+        let session = running_session(&state, SessionStatus::Running).await;
+        let calls = || fake.calls.lock().unwrap().clone();
+
+        // Not yet approved: nothing to retry.
+        let (approval, _) = speculate_for_test(&state, session.id).await;
+        let err = retry_apply(State(state.clone()), Path(approval))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::CONFLICT);
+
+        // Approve; FluxVM refuses the apply and the record says so.
+        decide(&state, approval, ApprovalStatus::Approved)
+            .await
+            .unwrap_err();
+        assert!(state
+            .store
+            .get_approval(approval)
+            .await
+            .unwrap()
+            .apply_error
+            .is_some());
+
+        // While FluxVM still refuses, the retry fails and the error stays.
+        let err = retry_apply(State(state.clone()), Path(approval))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::BAD_GATEWAY);
+        assert!(state
+            .store
+            .get_approval(approval)
+            .await
+            .unwrap()
+            .apply_error
+            .is_some());
+
+        // Once FluxVM accepts, the retry applies the already-approved changeset (no second approve) and clears it.
+        fake.fail_apply
+            .store(false, std::sync::atomic::Ordering::SeqCst);
+        let before = calls().iter().filter(|c| *c == "approve").count();
+        let Json(done) = retry_apply(State(state.clone()), Path(approval))
+            .await
+            .unwrap();
+        assert!(done.apply_error.is_none());
+        assert_eq!(calls().iter().filter(|c| *c == "approve").count(), before);
+        assert_eq!(calls().last().map(String::as_str), Some("apply"));
+        assert!(state
+            .store
+            .get_approval(approval)
+            .await
+            .unwrap()
+            .apply_error
+            .is_none());
+
+        // Nothing left to retry, so a second call is refused and does not apply again.
+        let applies = calls().iter().filter(|c| *c == "apply").count();
+        let err = retry_apply(State(state.clone()), Path(approval))
+            .await
+            .unwrap_err();
+        assert_eq!(err.status, StatusCode::CONFLICT);
+        assert_eq!(calls().iter().filter(|c| *c == "apply").count(), applies);
     }
 }

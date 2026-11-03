@@ -81,6 +81,8 @@ export interface MerionApproval {
   status: "pending" | "approved" | "denied" | "expired";
   /** Set when a person approved a changeset but FluxVM could not apply it; nothing changed. */
   apply_error?: string;
+  /** `policy:<id>:v<n>` when an auto-approval policy decided; absent for a person. */
+  decided_by?: string;
   planned_action?: unknown;
   created_at: string;
   decided_at?: string | null;

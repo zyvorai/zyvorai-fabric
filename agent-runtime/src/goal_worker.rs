@@ -537,6 +537,7 @@ async fn open_approval(
         preview: None,
         broker_held: false,
         apply_error: None,
+        decided_by: None,
     };
     state
         .store

@@ -1212,6 +1212,7 @@ pub(crate) async fn authorize_unlisted_host(
         preview: None,
         broker_held: true,
         apply_error: None,
+        decided_by: None,
     };
     let (approval, created) = state
         .store
@@ -1382,6 +1383,7 @@ async fn hold_for_approval(
         preview: preview.map(crate::preview::Preview::to_value),
         broker_held: true,
         apply_error: None,
+        decided_by: None,
     };
     state
         .store
@@ -3897,6 +3899,7 @@ pub(crate) mod ask_tests {
             source_seq: None,
             broker_held: held,
             apply_error: None,
+            decided_by: None,
             grant_scope: None,
             preview: None,
         };

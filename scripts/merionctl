@@ -36,6 +36,7 @@
 #   merionctl changeset-policy list|show|set|rm <user> [<agent>] [--paths /work[,..]] [--kinds added,modified] [--max-files N] [--max-bytes N] [--deny GLOB,..]
 #                                      # operator-set auto-approval; see docs/merion/design/auto-approve-changesets.md
 #   merionctl decide <approval-id> approved|denied           # a person's decision; approved applies a changeset on FluxVM
+#   merionctl retry-apply <approval-id>                      # try again to apply a changeset that was approved but failed to apply
 #
 # Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
 [ -n "${MERION_API+x}" ] || [ -z "${KEEP_API:-}" ] || export MERION_API="$KEEP_API"
@@ -707,6 +708,13 @@ print(json.dumps(b))')
     case "$decision" in approved|denied) ;; *) echo "usage: merionctl decide <approval-id> approved|denied" >&2; exit 1 ;; esac
     [[ -n "$aid" ]] || { echo "usage: merionctl decide <approval-id> approved|denied" >&2; exit 1; }
     api POST "/v1/approvals/${aid}" -H 'Content-Type: application/json' -d "{\"decision\":\"${decision}\"}"
+    echo
+    ;;
+
+  retry-apply)
+    aid="${1:-}"
+    [[ -n "$aid" ]] || { echo "usage: merionctl retry-apply <approval-id>" >&2; exit 1; }
+    api POST "/v1/approvals/${aid}/retry-apply"
     echo
     ;;
 

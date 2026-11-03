@@ -62,6 +62,22 @@ pub struct SetBalloonBody {
     pub balloon_mib: u64,
 }
 
+/// A balloon cannot take more memory than the VM has. FluxVM treats the balloon as Beta, so refuse the
+/// impossible request here with a 400 rather than pass it on. 0 (deflate) is always fine.
+fn check_balloon(requested_mib: u64, configured_mib: u64) -> Result<(), ApiErr> {
+    if requested_mib > configured_mib {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "error": format!(
+                    "balloon_mib {requested_mib} exceeds the VM's configured memory ({configured_mib} MiB)"
+                )
+            })),
+        ));
+    }
+    Ok(())
+}
+
 /// POST /api/vms/{name}/balloon  `{"balloon_mib": N}` (0 deflates)
 pub async fn set_balloon(
     RequireAdmin(_claims): RequireAdmin,
@@ -72,6 +88,12 @@ pub async fn set_balloon(
     checked(&name)?;
     let client = fluxvm_client(&state)?;
     let id = resolve_id(&client, &name).await?;
+    let configured = client
+        .get_memory(id)
+        .await
+        .map_err(bad_gateway)?
+        .configured_mib;
+    check_balloon(body.balloon_mib, configured)?;
     client
         .set_balloon(id, body.balloon_mib)
         .await
@@ -163,6 +185,14 @@ mod tests {
             ready: false,
             idempotency_key: key.map(Into::into),
         }
+    }
+
+    #[test]
+    fn balloon_cannot_exceed_the_vms_memory() {
+        assert!(check_balloon(0, 1024).is_ok());
+        assert!(check_balloon(1024, 1024).is_ok());
+        let (status, _) = check_balloon(1025, 1024).unwrap_err();
+        assert_eq!(status, StatusCode::BAD_REQUEST);
     }
 
     #[test]

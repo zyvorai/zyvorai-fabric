@@ -89,6 +89,13 @@ export interface MerionCockpit {
     /** For a `changeset` approval: the diff to review (see lib/changeset.ts). */
     planned_action?: unknown
   }>
+  /** Approved by a person, but FluxVM could not apply the changeset. Nothing changed in the cell. */
+  failed_applies?: Array<{
+    id: string
+    prompt: string
+    apply_error: string
+    decided_at?: string | null
+  }>
   last_decisions?: Array<{
     action?: string
     phase?: string
@@ -361,6 +368,11 @@ export async function getSessionBrowserView(id: string): Promise<BrowserView> {
 
 export async function getSessionBrowserScreenshot(id: string): Promise<BrowserScreenshot> {
   return apiGet(`/api/sessions/${encodeURIComponent(id)}/browser/screenshot`)
+}
+
+/** Try again to apply a changeset a person approved but FluxVM could not apply. A person asks; nothing retries alone. */
+export async function retryApply(id: string): Promise<unknown> {
+  return apiPost(`/api/approvals/${encodeURIComponent(id)}/retry-apply`, {})
 }
 
 export async function decideApproval(

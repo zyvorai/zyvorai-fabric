@@ -93,6 +93,7 @@ async fn fixture(state: &Arc<AppState>, base: &SessionRecord, app: &Router, user
         preview: None,
         broker_held: true,
         apply_error: None,
+        decided_by: None,
     };
     state.store.save_approval(approval.clone()).await.unwrap();
     let artifact = ArtifactRecord {
