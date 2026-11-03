@@ -9,6 +9,9 @@ import { LoadBar } from '../LoadBar'
 import { GettingStarted } from '../GettingStarted'
 import { StatusBadge } from '../ui'
 import { ConsoleMock } from '../ConsoleMock'
+import { FleetBar } from '../FleetBar'
+import { VMLoad } from '../VMLoad'
+import { EmptyState } from '../ui'
 import { PremiumLoginShell } from '../PremiumLoginShell'
 import { SAMPLE_FLEET } from '../../lib/sampleFleet'
 import { fleetCounts } from '../../lib/fleet'
@@ -122,5 +125,48 @@ describe('PremiumLoginShell backdrop', () => {
   })
   it('draws nothing extra without a backdrop', () => {
     expect(shell({})).not.toContain('login-backdrop')
+  })
+})
+
+describe('FleetBar', () => {
+  const counts = fleetCounts([vm('a', 'running'), vm('b', 'running'), vm('c', 'paused'), vm('d', 'stopped'), vm('e', 'failed')])
+  it('prints every state with VMs as text, failed included, and draws the bar from the same numbers', () => {
+    const html = renderToStaticMarkup(<FleetBar counts={counts} />)
+    expect(html).toContain('5 VMs')
+    for (const t of ['2 running', '1 paused', '1 stopped', '1 failed']) expect(html).toContain(t)
+    expect(html).toContain('width:40%')
+  })
+  it('draws only a failed VM in red; stopped is grey', () => {
+    const html = renderToStaticMarkup(<FleetBar counts={counts} />)
+    expect(html).toContain('var(--zf-danger)')
+    expect(renderToStaticMarkup(<FleetBar counts={fleetCounts([vm('a', 'stopped')])} />)).not.toContain('var(--zf-danger)')
+  })
+  it('says how many a search leaves, and uses the singular for one', () => {
+    expect(renderToStaticMarkup(<FleetBar counts={counts} shown={2} />)).toContain('2 of 5 VMs')
+    expect(renderToStaticMarkup(<FleetBar counts={fleetCounts([vm('a', 'running')])} />)).toContain('1 VM<')
+  })
+})
+
+describe('VMLoad', () => {
+  it('shows CPU and memory bars with their names for a running VM that has a reading', () => {
+    const html = renderToStaticMarkup(<VMLoad name="web-01" state="running" load={{ cpu: 61, mem: 32 }} />)
+    expect(html).toContain('aria-label="web-01 CPU 61%"')
+    expect(html).toContain('aria-label="web-01 memory 32%"')
+  })
+  it('shows nothing for a stopped VM or one with no reading yet, so it never claims 0%', () => {
+    expect(renderToStaticMarkup(<VMLoad name="x" state="stopped" load={{ cpu: 1, mem: 1 }} />)).toBe('')
+    expect(renderToStaticMarkup(<VMLoad name="x" state="running" load={undefined} />)).toBe('')
+  })
+})
+
+describe('EmptyState illustration', () => {
+  it('replaces the icon tile with the picture when one is given, and keeps the words', () => {
+    const html = renderToStaticMarkup(<EmptyState illustration={<i data-art="pic" />} title="No virtual machines" description="Create one." />)
+    expect(html).toContain('data-art="pic"')
+    expect(html).not.toContain('icon-tile')
+    expect(html).toContain('No virtual machines')
+  })
+  it('still draws the icon tile as before', () => {
+    expect(renderToStaticMarkup(<EmptyState icon={<i data-icon="x" />} title="T" />)).toContain('icon-tile')
   })
 })

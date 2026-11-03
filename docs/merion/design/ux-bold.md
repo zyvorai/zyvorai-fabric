@@ -69,6 +69,15 @@ The marketing gate then found a real bug: the sealed-cell pipeline made `/produc
 
 Not done: the Docusaurus `website/` is unchanged.
 
+## Console pages: Virtual Machines
+
+The VM list got the same treatment as the dashboard, on the same shared pieces:
+- **`FleetBar`** replaces the text line above the list with a proportional bar and a count per state. The old line counted running, stopped and paused and left failed VMs out entirely; the bar counts every VM, and it says "N of M" when a search or tag filter narrows the list. Only a failed VM is red (the old line drew stopped red).
+- **Live load on running cards** (`VMLoad`): CPU and memory bars from the same per-VM metrics poll the dashboard uses (every 10 s, running VMs only). `vmLoadFrom` in `lib/fleet.ts` is the one place memory bytes are set against the VM's own allocation; the dashboard uses it too. A stopped VM or one with no reading shows nothing, never 0%.
+- A failed VM's card has a danger edge. The empty state shows the illustration (`EmptyState` has a new optional `illustration` prop).
+
+Not done here: the table view, VM details, create, network and storage pages.
+
 ## The gate and crashed pages
 
 `openPage` in `page-harness.mjs` fails when a page renders the error boundary. Before that, a page that threw looked clean to axe, because an error page has no violations. Five pages (`backups`, `analytics`, `audit`, `system`, `migrations`) threw against the mock's empty answers and so were never really checked; their endpoints are now seeded in `mock-data.mjs` and they are in `PAGES`, so every console page in the gate renders with data. `UNSEEDED_PAGES` is empty; if a page is added that the mock cannot feed, list it there (with a reason) rather than letting the gate pass an error page.

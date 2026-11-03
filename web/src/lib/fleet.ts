@@ -95,3 +95,33 @@ export function loadPercent(value: number | undefined | null): number | null {
 export function loadTone(pct: number): FleetTone {
   return pct >= 80 ? 'danger' : pct >= 50 ? 'warn' : 'proof'
 }
+
+/** One VM's latest reading as CPU % and memory as a % of the VM's own allocation (`memoryMiB`). The runtime reports memory use in
+    bytes, so it has to be set against what the VM was given. A VM with no allocation has no memory share (`null`), never zero. */
+export function vmLoadFrom(
+  vm: { memory: number },
+  m: { cpu_usage: number; memory_usage: number },
+): { cpu: number; mem: number | null } {
+  return { cpu: m.cpu_usage, mem: vm.memory > 0 ? (m.memory_usage / (vm.memory * 1024 * 1024)) * 100 : null }
+}
+
+export interface FleetSegment {
+  key: 'running' | 'paused' | 'stopped' | 'failed' | 'other'
+  label: string
+  count: number
+  /** Share of the fleet, 0 to 1. */
+  share: number
+}
+
+/** The fleet as ordered segments for a proportional bar. Segments with no VMs are left out; an empty fleet has none. */
+export function fleetSegments(c: FleetCounts): FleetSegment[] {
+  if (c.total === 0) return []
+  const all: Array<[FleetSegment['key'], string, number]> = [
+    ['running', 'running', c.running],
+    ['paused', 'paused', c.paused],
+    ['stopped', 'stopped', c.stopped],
+    ['failed', 'failed', c.failed],
+    ['other', 'other', c.other],
+  ]
+  return all.filter(([, , n]) => n > 0).map(([key, label, count]) => ({ key, label, count, share: count / c.total }))
+}
