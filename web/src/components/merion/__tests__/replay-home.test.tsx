@@ -70,6 +70,10 @@ describe('SealedPipeline', () => {
     expect(h).toContain('>waiting<')
     expect(h).toContain('Sealed cell')
   })
+  it('lets the connectors shrink, so four nodes fit a 390px phone (an intrinsic connector width made each step 104px wide)', () => {
+    const h = renderToStaticMarkup(<SealedPipeline stage="idle" labels={labels} />)
+    expect((h.match(/w-0 min-w-4 flex-1/g) ?? []).length).toBe(3)
+  })
   it('shows a failure as failed and never a finished artifact', () => {
     const h = renderToStaticMarkup(<SealedPipeline stage="fail" labels={labels} />)
     expect(h).toContain('>failed<')

@@ -214,6 +214,11 @@ a:hover {
     radial-gradient(ellipse 80% 50% at 50% 0%, var(--zf-hover-tint), transparent 60%),
     var(--zf-canvas);
 }
+.mkt-hero > .zf-aurora {
+  /* fade the glow out toward the bottom so the hero has no hard edge where it meets the next section */
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+}
 .mkt-hero > :not(.zf-aurora) {
   position: relative; /* paints above the aurora layer, which is the hero's first child */
 }
