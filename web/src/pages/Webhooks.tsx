@@ -161,7 +161,7 @@ export default function Webhooks() {
                   onClick={() => setNewType(t)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors capitalize ${
                     newType === t
-                      ? 'bg-[var(--zf-ink)] text-white border-[var(--zf-ink)]'
+                      ? 'bg-[var(--zf-ink)] text-[var(--zf-canvas)] border-[var(--zf-ink)]'
                       : 'text-[var(--zf-muted)] bg-[var(--zf-surface)] border-[var(--zf-hairline)] hover:border-[var(--zf-hairline)]'
                   }`}
                 >

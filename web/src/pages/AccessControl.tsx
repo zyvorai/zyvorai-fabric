@@ -204,7 +204,7 @@ export default function AccessControl() {
             <tbody className="divide-y divide-[var(--zf-hairline)]/30">
               {users.map(user => (
                 <tr key={user.id} className="hover:bg-black/[0.04] transition-colors">
-                  <td className="px-5 py-3"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-[var(--zf-ink)] flex items-center justify-center text-xs font-bold text-white uppercase">{user.username.charAt(0)}</div><span className="text-[var(--zf-ink)] font-medium">{user.username}</span></div></td>
+                  <td className="px-5 py-3"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-[var(--zf-ink)] flex items-center justify-center text-xs font-bold text-[var(--zf-canvas)] uppercase">{user.username.charAt(0)}</div><span className="text-[var(--zf-ink)] font-medium">{user.username}</span></div></td>
                   <td className="px-5 py-3"><span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${roleBadge(user.role)}`}>{user.role}</span></td>
                   <td className="px-5 py-3">
                     <button onClick={() => handleToggle(user.id, user.enabled)} className="flex items-center gap-1.5" aria-label={`${user.enabled ? 'Disable' : 'Enable'} user ${user.username}`}>

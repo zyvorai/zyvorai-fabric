@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- **The accessibility gate now covers the last eight pages** (certificates, compliance, DRS, federation, lifecycle, migration report,
+  replication, site recovery), with seeded data, so every console page that has a plain route is checked. Populating them fixed
+  low-contrast progress bars, an unlabelled slider, an unreadable dark-theme panel, white text on theme-coloured chips, and table
+  headers on a tinted row (all tables' header text is now slightly darker in light theme).
 - **The accessibility gate covers 82 console pages, up from about 25**, and runs the two themes in parallel. Widening it fixed
   low-contrast green, amber and red text across 55 files, unlabelled sliders and selects on the cost estimator and event stream,
   and two chips that failed contrast in dark theme. Eight pages that cannot render against the empty mock are listed as not covered.

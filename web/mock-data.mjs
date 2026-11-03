@@ -275,6 +275,164 @@ const NETD_NETFILES = [
 ]
 const NETD_PORT_FORWARDS = [netd({ id: 'pf-1', name: 'web-https', protocol: 'tcp', host_port: 443, guest_ip: '10.20.0.11', guest_port: 443, enabled: true, description: 'HTTPS to web-01' })]
 
+// --- Seeds for the pages that crash on empty defaults (all invented) ---
+const D = 86400
+const CERT_CAS = [
+  { id: 'ca-root', name: 'Fabric Root CA', ca_type: 'root', subject: 'CN=Fabric Root CA,O=Example', issuer: 'CN=Fabric Root CA,O=Example', serial_number: '01A2B3C4', valid_from: ago(900 * D), valid_to: ago(-3000 * D), key_algorithm: 'RSA', key_size: 4096, status: 'active', issued_count: 2, created: ago(900 * D) },
+  { id: 'ca-int', name: 'Fabric Issuing CA', ca_type: 'intermediate', subject: 'CN=Fabric Issuing CA,O=Example', issuer: 'CN=Fabric Root CA,O=Example', serial_number: '02B3C4D5', valid_from: ago(500 * D), valid_to: ago(-1300 * D), key_algorithm: 'ECDSA', key_size: 384, status: 'active', issued_count: 3, created: ago(500 * D) },
+  { id: 'ca-old', name: 'Legacy CA', ca_type: 'external', subject: 'CN=Legacy CA,O=Example', issuer: 'CN=Legacy CA,O=Example', serial_number: '03C4D5E6', valid_from: ago(2000 * D), valid_to: ago(30 * D), key_algorithm: 'RSA', key_size: 2048, status: 'expired', issued_count: 0, created: ago(2000 * D) },
+]
+const CERTS = [
+  { id: 'crt-1', subject: 'node-a.lab.example', issuer: 'Fabric Issuing CA', serial_number: '10AA01', ca_id: 'ca-int', cert_type: 'host', valid_from: ago(200 * D), valid_to: ago(-165 * D), key_algorithm: 'ECDSA', key_size: 384, san: ['node-a.lab.example', '10.0.0.11'], status: 'active', host_name: 'node-a', fingerprint: 'AB:CD:01:23', created: ago(200 * D) },
+  { id: 'crt-2', subject: 'api.lab.example', issuer: 'Fabric Issuing CA', serial_number: '10AA02', ca_id: 'ca-int', cert_type: 'server', valid_from: ago(350 * D), valid_to: ago(-12 * D), key_algorithm: 'RSA', key_size: 2048, san: ['api.lab.example'], status: 'expiring_soon', service_name: 'fabricd', fingerprint: 'AB:CD:02:34', created: ago(350 * D) },
+  { id: 'crt-3', subject: 'old-svc.lab.example', issuer: 'Legacy CA', serial_number: '10AA03', ca_id: 'ca-old', cert_type: 'service', valid_from: ago(800 * D), valid_to: ago(20 * D), key_algorithm: 'RSA', key_size: 2048, status: 'expired', service_name: 'old-svc', fingerprint: 'AB:CD:03:45', created: ago(800 * D) },
+]
+const CERT_REQUESTS = [
+  { id: 'req-1', subject: 'node-b.lab.example', requestor: 'admin', ca_id: 'ca-int', cert_type: 'host', key_size: 2048, san: ['node-b.lab.example'], status: 'pending', submitted_at: ago(3600) },
+  { id: 'req-2', subject: 'web-01.lab.example', requestor: 'operator', ca_id: 'ca-int', cert_type: 'server', key_size: 2048, status: 'approved', submitted_at: ago(2 * D), reviewed_at: ago(D), reviewed_by: 'admin' },
+  { id: 'req-3', subject: 'test.lab.example', requestor: 'operator', ca_id: 'ca-int', cert_type: 'client', key_size: 1024, status: 'rejected', submitted_at: ago(5 * D), reviewed_at: ago(4 * D), reviewed_by: 'admin', rejection_reason: 'Key size too small' },
+]
+const CERT_ATTESTATIONS = [
+  { id: 'att-1', host_id: 'host-a', hostname: 'node-a', tpm_present: true, tpm_version: '2.0', attestation_status: 'trusted', last_attestation: ago(600), boot_integrity: true, secure_boot_enabled: true, created: ago(30 * D) },
+  { id: 'att-2', host_id: 'host-b', hostname: 'node-b', tpm_present: true, tpm_version: '2.0', attestation_status: 'untrusted', last_attestation: ago(900), boot_integrity: false, secure_boot_enabled: true, created: ago(30 * D) },
+  { id: 'att-3', host_id: 'host-c', hostname: 'node-c', tpm_present: false, attestation_status: 'unknown', boot_integrity: false, secure_boot_enabled: false, created: ago(30 * D) },
+]
+const CERT_BASELINES = [
+  { id: 'sb-1', name: 'CIS Level 1', description: 'Baseline hardening checks', checks: [
+    { check_id: 'c1', name: 'Disk encryption enabled', category: 'storage', severity: 'high', enabled: true },
+    { check_id: 'c2', name: 'Guest agent current', category: 'guest', severity: 'low', enabled: true },
+  ], vm_count: 10, compliant_count: 8, non_compliant_count: 2, last_scan: ago(7200), created: ago(60 * D) },
+  { id: 'sb-2', name: 'PCI Strict', checks: [
+    { check_id: 'c3', name: 'Secure boot', category: 'boot', severity: 'critical', enabled: true },
+  ], vm_count: 4, compliant_count: 4, non_compliant_count: 0, created: ago(20 * D) },
+]
+const CERT_HEALTH = {
+  total_certificates: 3, active: 1, expiring_soon: 1, expired: 1, revoked: 0, pending_requests: 1, ca_count: 3,
+  trusted_hosts: 1, untrusted_hosts: 1, security_baselines: 2, overall_compliance_pct: 86.5,
+  expiring_within_30_days: [{ cert_id: 'crt-2', subject: 'api.lab.example', valid_to: ago(-12 * D), days_remaining: 12 }],
+}
+const COMPLIANCE = {
+  score: 82, total: 4, passed: 2, warnings: 1, failed: 1, categories: ['Network', 'Storage', 'Access'],
+  checks: [
+    { id: 'n1', category: 'Network', name: 'TLS enforced', status: 'pass', description: 'API served over TLS only' },
+    { id: 's1', category: 'Storage', name: 'Backups recent', status: 'warning', description: 'Last backup older than 24h', remediation: 'Run a backup' },
+    { id: 'a1', category: 'Access', name: 'Default admin password changed', status: 'pass', description: 'No default credentials' },
+    { id: 'a2', category: 'Access', name: 'MFA enabled', status: 'fail', description: 'MFA not enforced', remediation: 'Enable MFA in settings' },
+  ],
+  last_scan: ago(1800),
+}
+const DRS_CONFIG = { cluster_id: 'default', enabled: true, automation_level: 'partially_automated', migration_threshold: 3, balance_cpu_weight: 0.5, balance_memory_weight: 0.5, check_interval_seconds: 300, min_improvement_pct: 5, updated: ago(D) }
+const DRS_BALANCE = {
+  cluster_id: 'default', cpu_imbalance_pct: 18.4, memory_imbalance_pct: 12.1, overall_score: 78.5,
+  hosts: [
+    { host_id: 'host-a', hostname: 'node-a', cpu_usage_pct: 72, memory_usage_pct: 65, vm_count: 6, deviation_from_mean_cpu: 14.5, deviation_from_mean_memory: 9 },
+    { host_id: 'host-b', hostname: 'node-b', cpu_usage_pct: 35, memory_usage_pct: 42, vm_count: 3, deviation_from_mean_cpu: -22.5, deviation_from_mean_memory: -14 },
+  ],
+  recommendation_count: 2, last_analyzed: ago(300),
+}
+const DRS_RECS = [
+  { id: 'rec-1', cluster_id: 'default', vm_id: 'vm-1', vm_name: 'web-01', source_host_id: 'host-a', source_hostname: 'node-a', target_host_id: 'host-b', target_hostname: 'node-b', reason: 'Reduce CPU imbalance', priority: 'high', estimated_benefit_pct: 9.5, status: 'pending', created: ago(600) },
+  { id: 'rec-2', cluster_id: 'default', vm_id: 'vm-2', vm_name: 'db-01', source_host_id: 'host-a', source_hostname: 'node-a', target_host_id: 'host-b', target_hostname: 'node-b', reason: 'Free memory on node-a', priority: 'medium', estimated_benefit_pct: 4.2, status: 'completed', created: ago(D), executed_at: ago(D - 60) },
+]
+const DRS_RULES = [
+  { id: 'rule-1', cluster_id: 'default', name: 'Keep web tier apart', rule_type: 'anti_affinity', mandatory: true, vm_ids: ['vm-1', 'vm-3'], enabled: true, created: ago(10 * D) },
+  { id: 'rule-2', cluster_id: 'default', name: 'App with cache', rule_type: 'affinity', mandatory: false, vm_ids: ['vm-2', 'vm-4'], enabled: false, created: ago(5 * D) },
+]
+const FED_OVERVIEW = {
+  generated_at: ago(5),
+  totals: { peers: 3, reachable: 1, hosts: 2, hosts_in_maintenance: 0, vms: 9 },
+  peers: [
+    { id: 'peer-1', name: 'site-east', url: 'https://10.1.0.5:8443', status: 'ok', latency_ms: 12, vm_total: 9,
+      totals: { hosts: 2, hosts_in_maintenance: 0, cpus: 32, memory_mb: 131072 },
+      hosts: [
+        { id: 'ph-1', hostname: 'east-node-a', status: 'online', cpus: 16, memory_mb: 65536, vm_count: 5, cpu_usage_pct: 41, memory_usage_pct: 55 },
+        { id: 'ph-2', hostname: 'east-node-b', status: 'online', cpus: 16, memory_mb: 65536, vm_count: 4, cpu_usage_pct: 28, memory_usage_pct: 37 },
+      ] },
+    { id: 'peer-2', name: 'site-west', url: 'https://10.2.0.5:8443', status: 'unreachable', latency_ms: 0, message: 'connection timed out', vm_total: null },
+    { id: 'peer-3', name: 'site-lab', url: 'https://10.3.0.5:8443', status: 'unauthorized', latency_ms: 20, message: 'token rejected' },
+  ],
+}
+const LC_BASELINES = [
+  { id: 'bl-1', name: 'Security patches 2026-10', description: 'Monthly security patches', baseline_type: 'patch', release_date: ago(20 * D), severity: 'critical', patches: ['KB-1001', 'KB-1002'], host_count: 3, compliant_count: 2, created: ago(20 * D) },
+  { id: 'bl-2', name: 'Agent upgrade 2.4', baseline_type: 'upgrade', release_date: ago(40 * D), severity: 'moderate', patches: ['agent-2.4'], host_count: 3, compliant_count: 3, created: ago(40 * D) },
+]
+const LC_COMPLIANCE = [
+  { id: 'hc-1', host_id: 'host-a', hostname: 'node-a', baseline_id: 'bl-1', baseline_name: 'Security patches 2026-10', status: 'compliant', missing_patches: [], installed_patches: ['KB-1001', 'KB-1002'], last_scanned: ago(3600) },
+  { id: 'hc-2', host_id: 'host-b', hostname: 'node-b', baseline_id: 'bl-1', baseline_name: 'Security patches 2026-10', status: 'non_compliant', missing_patches: ['KB-1002'], installed_patches: ['KB-1001'], last_scanned: ago(3600) },
+  { id: 'hc-3', host_id: 'host-c', hostname: 'node-c', baseline_id: 'bl-2', baseline_name: 'Agent upgrade 2.4', status: 'unknown', missing_patches: [], installed_patches: [], last_scanned: ago(D) },
+]
+const LC_REMEDIATIONS = [
+  { id: 'rem-1', host_id: 'host-b', hostname: 'node-b', baseline_id: 'bl-1', baseline_name: 'Security patches 2026-10', status: 'remediating', progress: 50, patches_applied: 1, patches_total: 2, started_at: ago(600) },
+  { id: 'rem-2', host_id: 'host-c', hostname: 'node-c', baseline_id: 'bl-2', baseline_name: 'Agent upgrade 2.4', status: 'failed', progress: 20, patches_applied: 0, patches_total: 1, started_at: ago(D), completed_at: ago(D - 300), error: 'host unreachable' },
+  { id: 'rem-3', host_id: 'host-a', hostname: 'node-a', baseline_id: 'bl-1', baseline_name: 'Security patches 2026-10', status: 'completed', progress: 100, patches_applied: 2, patches_total: 2, started_at: ago(2 * D), completed_at: ago(2 * D - 900) },
+]
+const LC_ROLLING = [
+  { id: 'ru-1', name: 'October patch wave', baseline_id: 'bl-1', host_ids: ['host-a', 'host-b', 'host-c'], parallel_count: 1, failure_threshold: 1, pre_check_enabled: true, auto_remediate: true, status: 'running', completed_hosts: 1, failed_hosts: 0, total_hosts: 3, current_host: 'node-b', started_at: ago(1800) },
+  { id: 'ru-2', name: 'Agent rollout', baseline_id: 'bl-2', host_ids: ['host-a', 'host-b'], parallel_count: 2, failure_threshold: 1, pre_check_enabled: false, auto_remediate: false, status: 'completed', completed_hosts: 2, failed_hosts: 0, total_hosts: 2, started_at: ago(5 * D), completed_at: ago(5 * D - 1200) },
+]
+const HOSTS = [
+  { id: 'host-a', hostname: 'node-a', address: '10.0.0.11', cluster_id: 'default', datacenter_id: 'dc-1', cpus: 16, memory_mb: 65536, status: 'online', last_heartbeat: ago(5), vm_count: 6, cpu_usage_pct: 72, memory_usage_pct: 65, agent_version: '2.4.0', created: ago(100 * D) },
+  { id: 'host-b', hostname: 'node-b', address: '10.0.0.12', cluster_id: 'default', datacenter_id: 'dc-1', cpus: 16, memory_mb: 65536, status: 'maintenance', last_heartbeat: ago(8), vm_count: 3, cpu_usage_pct: 35, memory_usage_pct: 42, agent_version: '2.3.1', created: ago(100 * D) },
+  { id: 'host-c', hostname: 'node-c', address: '10.0.0.13', cluster_id: 'default', datacenter_id: 'dc-1', cpus: 8, memory_mb: 32768, status: 'offline', vm_count: 0, cpu_usage_pct: 0, memory_usage_pct: 0, created: ago(60 * D) },
+]
+const MIG_REPORT = {
+  total: 3, successful: 1, failed: 1, running: 1, avg_duration: '4m12s', timestamp: ago(60),
+  migrations: [
+    { id: 'mig-1', name: 'web-01-to-node-b', vm_name: 'web-01', status: 'completed', duration: '3m40s', output_path: '/var/lib/fabric/migrations/web-01' },
+    { id: 'mig-2', name: 'db-01-to-node-b', vm_name: 'db-01', status: 'failed', duration: '1m05s', error: 'target datastore full' },
+    { id: 'mig-3', name: 'cache-01-to-node-a', vm_name: 'cache-01', status: 'running' },
+  ],
+}
+const REPL_SITES = [
+  { id: 'site-1', name: 'primary-dc', description: 'Main site', endpoint: 'https://10.0.0.1:8443', site_type: 'primary', status: 'healthy', replication_count: 2, last_sync: ago(120), created: ago(90 * D) },
+  { id: 'site-2', name: 'dr-dc', endpoint: 'https://10.9.0.1:8443', site_type: 'secondary', status: 'degraded', replication_count: 2, last_sync: ago(3 * 3600), created: ago(90 * D) },
+]
+const REPL_CONFIGS = [
+  { id: 'rp-1', vm_id: 'vm-1', vm_name: 'web-01', source_site_id: 'site-1', target_site_id: 'site-2', rpo_minutes: 15, quiesce: true, compression_enabled: true, encryption_enabled: true, bandwidth_limit_mbps: 200, status: 'active', last_sync: ago(300), next_sync: ago(-600), created: ago(30 * D) },
+  { id: 'rp-2', vm_id: 'vm-2', vm_name: 'db-01', source_site_id: 'site-1', target_site_id: 'site-2', rpo_minutes: 5, quiesce: true, compression_enabled: false, encryption_enabled: true, status: 'error', last_sync: ago(3 * 3600), created: ago(30 * D) },
+  { id: 'rp-3', vm_id: 'vm-3', vm_name: 'app-01', source_site_id: 'site-1', target_site_id: 'site-2', rpo_minutes: 30, quiesce: false, compression_enabled: true, encryption_enabled: false, status: 'initial_sync', sync_progress_pct: 42, created: ago(D) },
+]
+const REPL_VIOLATIONS = [
+  { replication_id: 'rp-2', vm_id: 'vm-2', vm_name: 'db-01', avg_sync_time_seconds: 95.5, last_sync_size_bytes: 524288000, total_bytes_transferred: 21474836480, sync_count: 120, failure_count: 7, current_rpo_minutes: 180, rpo_target_minutes: 5, rpo_compliant: false, bandwidth_usage_mbps: 0, collected_at: ago(60) },
+]
+const REPL_HEALTH = {
+  total_replications: 3, active: 1, paused: 0, error: 1, rpo_violations: 1, avg_rpo_minutes: 16.7, total_bytes_transferred_24h: 53687091200,
+  sites: [
+    { site_id: 'site-1', site_name: 'primary-dc', replication_count: 3, health: 'healthy' },
+    { site_id: 'site-2', site_name: 'dr-dc', replication_count: 3, health: 'degraded' },
+  ],
+}
+const SR_EXECUTIONS = [
+  { id: 'ex-1', plan_id: 'plan-1', plan_name: 'Web tier failover', execution_type: 'test_failover', status: 'completed', progress_pct: 100, current_step: 'Done',
+    steps: [{ name: 'Power on web-01', status: 'completed', started_at: ago(7200), completed_at: ago(7000) }, { name: 'Run post script', status: 'completed', started_at: ago(7000), completed_at: ago(6900) }],
+    vms_recovered: 2, vms_total: 2, rto_actual_seconds: 300, started_at: ago(7200), completed_at: ago(6900) },
+  { id: 'ex-2', plan_id: 'plan-2', plan_name: 'Database recovery', execution_type: 'disaster_recovery', status: 'failed', progress_pct: 40, current_step: 'Power on db-01',
+    steps: [{ name: 'Prepare storage', status: 'completed' }, { name: 'Power on db-01', status: 'failed', error: 'datastore unavailable' }, { name: 'Verify', status: 'skipped' }],
+    vms_recovered: 0, vms_total: 1, started_at: ago(D), completed_at: ago(D - 400), error: 'datastore unavailable' },
+  { id: 'ex-3', plan_id: 'plan-1', plan_name: 'Web tier failover', execution_type: 'planned_migration', status: 'running', progress_pct: 55, current_step: 'Replicating final delta',
+    steps: [{ name: 'Replicating final delta', status: 'running', started_at: ago(120) }, { name: 'Power on web-01', status: 'pending' }],
+    vms_recovered: 0, vms_total: 2, started_at: ago(180) },
+]
+const SR_PLANS = [
+  { id: 'plan-1', name: 'Web tier failover', description: 'Recover web VMs at DR site', source_site_id: 'site-1', target_site_id: 'site-2',
+    vm_groups: [{ name: 'web', vm_ids: ['vm-1', 'vm-3'], boot_order: 1, boot_delay_seconds: 30 }],
+    network_mappings: [{ source_network: 'prod-net', target_network: 'dr-net' }],
+    storage_mappings: [{ source_datastore: 'ds-a', target_datastore: 'ds-dr' }],
+    status: 'ready', last_tested: ago(7200), created: ago(60 * D) },
+  { id: 'plan-2', name: 'Database recovery', source_site_id: 'site-1', target_site_id: 'site-2',
+    vm_groups: [{ name: 'db', vm_ids: ['vm-2'], boot_order: 1, boot_delay_seconds: 0 }],
+    network_mappings: [], storage_mappings: [], status: 'untested', created: ago(30 * D) },
+]
+const SR_DASHBOARD = {
+  total_plans: 2, plans_tested: 1, plans_untested: 1, last_test_date: ago(7200), active_executions: 1, total_protected_vms: 3, total_unprotected_vms: 4,
+  avg_rto_seconds: 300, avg_rpo_minutes: 15,
+  sites: [
+    { site_id: 'site-1', site_name: 'primary-dc', status: 'healthy', protected_vms: 3, plans: 2 },
+    { site_id: 'site-2', site_name: 'dr-dc', status: 'degraded', protected_vms: 0, plans: 2 },
+  ],
+  recent_executions: SR_EXECUTIONS,
+}
+
 const AGENTS = ['invoice-check', 'pdf-brief', 'csv-clean', 'contract-clauses', 'log-triage'].map((name) => ({
   name,
   version: '15ab785375eb',
@@ -327,6 +485,31 @@ export function mockBody(path) {
   if (p === '/networkd/network-files') return NETD_NETFILES
   if (p === '/networkd/port-forwards') return NETD_PORT_FORWARDS
   if (p === '/sessions') return { items: SESSIONS }
+  if (p === '/certificates/cas') return CERT_CAS
+  if (p === '/certificates') return CERTS
+  if (p === '/certificates/requests') return CERT_REQUESTS
+  if (p === '/certificates/attestations') return CERT_ATTESTATIONS
+  if (p === '/certificates/security-baselines') return CERT_BASELINES
+  if (p === '/certificates/health') return CERT_HEALTH
+  if (p === '/system/compliance') return COMPLIANCE
+  if (p === '/drs/config/default') return DRS_CONFIG
+  if (p === '/drs/balance/default') return DRS_BALANCE
+  if (p === '/drs/recommendations/default') return DRS_RECS
+  if (p === '/drs/affinity-rules') return DRS_RULES
+  if (p === '/federation/overview') return FED_OVERVIEW
+  if (p === '/lifecycle/baselines') return LC_BASELINES
+  if (p === '/lifecycle/compliance') return LC_COMPLIANCE
+  if (p === '/lifecycle/remediations') return LC_REMEDIATIONS
+  if (p === '/lifecycle/rolling-updates') return LC_ROLLING
+  if (p === '/hosts') return HOSTS
+  if (p === '/migrations/report') return MIG_REPORT
+  if (p === '/replication/sites') return REPL_SITES
+  if (p === '/replication/configs') return REPL_CONFIGS
+  if (p === '/replication/rpo-violations') return REPL_VIOLATIONS
+  if (p === '/replication/health') return REPL_HEALTH
+  if (p === '/site-recovery/plans') return SR_PLANS
+  if (p === '/site-recovery/executions') return SR_EXECUTIONS
+  if (p === '/site-recovery/dashboard') return SR_DASHBOARD
   if (p === '/artifacts') return { items: ARTIFACTS }
   if (p === '/approvals') return { items: APPROVALS }
   if (p === '/audit/agent-actions') return AUDIT

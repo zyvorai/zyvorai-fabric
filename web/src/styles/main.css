@@ -977,7 +977,8 @@ a:hover {
   color: var(--zf-ink);
 }
 .console-main th {
-  color: var(--zf-muted);
+  /* secondary, not muted: a header row often has a faint tint behind it, and muted text on that is 4.25:1 */
+  color: var(--zf-secondary);
   font-weight: 600;
 }
 .console-shell .text-\[\#6e6e73\],

@@ -173,13 +173,13 @@ export default function Certificates() {
             </div>
           </div>
           {health.expiring_within_30_days.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3 text-amber-800">Expiring Within 30 Days</h3>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-[var(--zf-warn-text)]">Expiring Within 30 Days</h3>
               <div className="space-y-2">
                 {health.expiring_within_30_days.map(c => (
                   <div key={c.cert_id} className="flex items-center justify-between p-2 bg-[var(--zf-surface)] rounded">
                     <span className="font-mono text-sm">{c.subject}</span>
-                    <span className="text-sm text-amber-700">{c.days_remaining} days left</span>
+                    <span className="text-sm text-[var(--zf-warn-text)]">{c.days_remaining} days left</span>
                   </div>
                 ))}
               </div>
