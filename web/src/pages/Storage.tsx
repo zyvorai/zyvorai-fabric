@@ -210,7 +210,7 @@ export default function Storage() {
                       <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getTypeColor(typeStr)}`}>
                         {typeStr.toUpperCase()}
                       </span>
-                      <span className={`text-sm font-medium ${pool.state === 'Active' ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-muted)]'}`}>
+                      <span className={`text-sm font-medium ${pool.state === 'Active' ? 'text-[var(--zf-proof-text)]' : pool.state === 'Degraded' ? 'text-[var(--zf-warn-text)]' : pool.state === 'Failed' ? 'text-[var(--zf-danger-text)]' : 'text-[var(--zf-muted)]'}`}>
                         {pool.state}
                       </span>
                       <button onClick={() => setShowCreateVolume(pool.name)} className="zf-btn zf-btn-ghost zf-btn-sm">
