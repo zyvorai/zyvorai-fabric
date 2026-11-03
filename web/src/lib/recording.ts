@@ -44,3 +44,15 @@ export function offsetSeconds(steps: RecordingStep[], s: RecordingStep): number 
   const b = Date.parse(s.at)
   return Number.isFinite(a) && Number.isFinite(b) ? Math.max(0, Math.round((b - a) / 1000)) : 0
 }
+
+/** Where step `i` of `n` sits along the scrubber, 0 to 1, evenly spaced. Even, not by time: the range input under the track moves
+    one step at a time, so a marker spaced by time would not be where the thumb lands, and a burst of steps would pile up on one
+    point. The time offsets are printed as text instead. */
+export function markerPosition(i: number, n: number): number {
+  return n <= 1 ? 0 : Math.max(0, Math.min(1, i / (n - 1)))
+}
+
+/** The text a step is judged by for its tone: what it was and how it ended. */
+export function stepToneText(s: RecordingStep): string {
+  return `${s.action ?? s.kind ?? ''} ${s.phase ?? s.status ?? ''}`.trim()
+}

@@ -1,6 +1,6 @@
 # Bold, dark-first UX: foundation
 
-**Status:** phase 0 (tokens, primitives, seeded mock, gate) and phase 1 (the Merion session page) are built. Phases 2 and 3 (console shell and dashboard, sign-in and marketing) are still to do.
+**Status:** phase 0 (tokens, primitives, seeded mock, gate) and phase 1 (the Merion session page, replay, history and home) are built. Phases 2 and 3 (console shell and dashboard, sign-in and marketing) are still to do.
 
 The [UX plan](ux-plan.md) made the console calm and consistent. This work makes it bold: dark first, depth and glow, graphics that carry meaning, and motion that is purposeful. It builds on the same token system, motion variables and accessibility gate.
 
@@ -34,7 +34,14 @@ The page used to be one 3,200 px column of plain cards with the approval near th
 - **`RunTimeline`**: the run as a vertical timeline from the report. Each entry is worded Done, Held or Failed as well as coloured; failure wins, so "FluxVM could not apply it" is never drawn as done.
 - Pure helpers (`lib/merionView.ts`, `lib/changeset.ts`) have their own tests; the components are rendered with `react-dom/server` in `components/merion/__tests__`.
 
-Not done: an expiry countdown ring (the runtime sends a deadline but not the full lifetime, so there is nothing to draw the ring against), a content diff (contents are masked on the host by design), and the replay scrubber, history table and Merion home, which are the next part of phase 1.
+### Replay, history and home
+
+- **`ReplayScrubber`** (in `SessionReplay`): a track with a marker per recorded step, coloured by how it ended, over a native range input; play/pause steps forward once a second and stops on the last step; the step the scrubber is on is described in words with a Done/Held/Failed chip; the signature verdict is a chip. Markers are spaced evenly by step, not by time, because the range input moves a step at a time and a time-spaced marker would not be where the thumb lands. Time offsets are printed instead.
+- **`StatusChip`**: a status as a dot and its words, coloured from the words (`timelineTone`) unless given. Used for the audit phase and the approval status on the history page.
+- **`SealedPipeline`** on the Merion home: your file, the sealed cell, the extraction, the artifact. The working node pulses; done is green with a check; a failure is red with a cross and never shows a finished artifact. **`DropZone`** is a dashed target that is also a button; the picker stays the keyboard route.
+- The history page is now covered by the gate (it is in `PAGES` with seeded runs, approvals, audit and triggers).
+
+Not done: the history Runs and Triggers tabs are still plain lists; an expiry countdown ring (the runtime sends a deadline but not the full lifetime, so there is nothing to draw the ring against), a content diff (contents are masked on the host by design), and the replay scrubber, history table and Merion home, which are the next part of phase 1.
 
 ## The gate and crashed pages
 

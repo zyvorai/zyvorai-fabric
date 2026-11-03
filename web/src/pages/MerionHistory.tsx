@@ -19,6 +19,7 @@ import {
   TriggerItem,
 } from '../api/agents'
 import { Card, PageHeader } from '../components/ui'
+import { StatusChip } from '../components/merion/StatusChip'
 import {
   ApprovalFilter,
   chainLabel,
@@ -166,7 +167,7 @@ export default function MerionHistory() {
           ))}
         </div>
 
-        {error && <p className="text-sm text-red-600 whitespace-pre-wrap">{error}</p>}
+        {error && <p className="text-sm text-[var(--zf-danger-text)] whitespace-pre-wrap">{error}</p>}
 
         {tab === 'runs' && (
           <Card className="p-5 space-y-3">
@@ -227,8 +228,8 @@ export default function MerionHistory() {
                 <p className="text-sm">
                   <strong>{diff.a.title}</strong> ({when(diff.a.created_at)}) →{' '}
                   <strong>{diff.b.title}</strong> ({when(diff.b.created_at)}):{' '}
-                  <span className="text-emerald-700">+{diff.summary.added}</span>{' '}
-                  <span className="text-red-600">−{diff.summary.removed}</span>{' '}
+                  <span className="text-[var(--zf-proof-text)]">+{diff.summary.added}</span>{' '}
+                  <span className="text-[var(--zf-danger-text)]">−{diff.summary.removed}</span>{' '}
                   <span className="text-[var(--zf-muted)]">{t('hist.unchanged', { n: diff.summary.unchanged })}</span>
                 </p>
                 <pre className="max-h-96 overflow-auto rounded border border-[var(--zf-hairline)] p-3 text-xs font-mono whitespace-pre-wrap">
@@ -335,7 +336,7 @@ export default function MerionHistory() {
                         : `${tr.dir} · ${tr.cron ?? `every ${tr.interval_seconds}s`}`}
                     </span>
                     <span className="text-xs text-[var(--zf-muted)]">{t('hist.runsCount', { n: tr.runs })}</span>
-                    {tr.last_error && <span className="text-xs text-red-600">{tr.last_error}</span>}
+                    {tr.last_error && <span className="text-xs text-[var(--zf-danger-text)]">{tr.last_error}</span>}
                     <button
                       type="button"
                       className="zf-btn zf-btn-ghost zf-btn-sm ml-auto"
@@ -354,7 +355,7 @@ export default function MerionHistory() {
           <Card className="p-5 space-y-3">
             {audit && (
               <p
-                className={`text-sm font-medium ${audit.chain.chain_ok ? 'text-emerald-700' : 'text-red-600'}`}
+                className={`text-sm font-medium ${audit.chain.chain_ok ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-danger-text)]'}`}
               >
                 {chainLabel(audit.chain)}
               </p>
@@ -375,7 +376,7 @@ export default function MerionHistory() {
                     <tr key={r.seq} className="border-t border-[var(--zf-hairline)]">
                       <td className="pr-3 font-mono">{r.seq}</td>
                       <td className="pr-3">{when(r.at)}</td>
-                      <td className="pr-3">{r.phase}</td>
+                      <td className="pr-3"><StatusChip label={r.phase} /></td>
                       <td className="pr-3 font-mono">{r.action}</td>
                       <td>
                         {r.session_id ? (
@@ -414,7 +415,7 @@ export default function MerionHistory() {
             <ul className="divide-y divide-[var(--zf-hairline)]">
               {filterApprovals(approvals, approvalFilter).map((a) => (
                 <li key={a.id} className="py-2 text-sm flex flex-wrap items-center gap-3">
-                  <span className="font-mono text-xs">{a.status}</span>
+                  <StatusChip label={a.status} />
                   <span className="text-[var(--zf-muted)]">{a.kind}</span>
                   <span className="text-[var(--zf-ink)]">{a.subject ?? a.prompt}</span>
                   <span className="ml-auto text-xs text-[var(--zf-muted)]">{when(a.created_at)}</span>

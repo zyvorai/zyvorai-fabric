@@ -17,7 +17,9 @@ import {
 } from '../api/agents'
 import DeployPack from '../components/merion/DeployPack'
 import DeployUseCase from '../components/merion/DeployUseCase'
-import { PageHeader, Card } from '../components/ui'
+import { PageHeader, Card, GlowCard, AuroraBackdrop } from '../components/ui'
+import { SealedPipeline } from '../components/merion/SealedPipeline'
+import { DropZone } from '../components/merion/DropZone'
 import { useToastContext } from '../contexts/ToastContext'
 import { toastFailure } from '../utils/toastError'
 import { useMerionText } from '../i18n/useMerionText'
@@ -154,22 +156,6 @@ export default function MerionHome() {
     }
   }
 
-  const chipClass = (c: 'cell' | 'extract' | 'done') => {
-    const on =
-      (c === 'cell' && (chip === 'cell' || chip === 'extract' || chip === 'done')) ||
-      (c === 'extract' && (chip === 'extract' || chip === 'done')) ||
-      (c === 'done' && chip === 'done')
-    const fail = chip === 'fail'
-    return [
-      'rounded-full px-3 py-1 text-xs font-medium border',
-      fail
-        ? 'border-red-400/50 text-red-600'
-        : on
-          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700'
-          : 'border-[var(--zf-hairline)] text-[var(--zf-muted)]',
-    ].join(' ')
-  }
-
   const artifacts =
     result?.artifacts && result.artifacts.length > 0
       ? result.artifacts.map((a) => a.title).join(', ')
@@ -195,169 +181,166 @@ export default function MerionHome() {
         }
       />
 
-      <div className="max-w-2xl space-y-4">
-        <Card className="p-5 space-y-4">
-          <div className="flex items-start gap-3">
-            <FileText className="w-5 h-5 mt-0.5 text-[var(--zf-secondary)]" />
-            <div>
-              <h2 className="text-base font-semibold text-[var(--zf-ink)]">{demo.title}</h2>
-              <p className="text-sm text-[var(--zf-muted)] mt-1">
-                {demo.description} No browser. Cockpit must show <strong>0 CONNECT</strong>.
-              </p>
-              {demo.model && (
-                <p className="text-sm mt-2 rounded border border-amber-500/40 bg-amber-500/10 p-2">
-                  <strong>{t('home.sendsText')}</strong> After the cell extracts the text, this host sends it to{' '}
-                  <code className="font-mono text-xs">{demo.model.host}</code> (model{' '}
-                  <code className="font-mono text-xs">{demo.model.model}</code>). The cell itself stays
-                  offline. The first run waits for your approval. It is listed under{' '}
-                  <Link to="/app/merion/history" className="underline">
-                    History → Approvals
-                  </Link>
-                  , and you decide it from that run&apos;s cockpit.
+      <div className="max-w-3xl space-y-4">
+        <GlowCard tone="brand" className="relative overflow-hidden p-5">
+          <AuroraBackdrop />
+          <div className="relative space-y-4">
+            <div className="flex items-start gap-3">
+              <FileText className="w-5 h-5 mt-0.5 text-[var(--zf-secondary)]" />
+              <div>
+                <h2 className="text-base font-semibold text-[var(--zf-ink)]">{demo.title}</h2>
+                <p className="text-sm text-[var(--zf-muted)] mt-1">
+                  {demo.description} No browser. Cockpit must show <strong>0 CONNECT</strong>.
                 </p>
-              )}
-            </div>
-          </div>
-
-          {demos.length > 1 && (
-            <div className="flex flex-wrap gap-2" role="tablist" aria-label="Use case">
-              {demos.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={d.id === demo.id}
-                  className={
-                    d.id === demo.id
-                      ? 'zf-btn zf-btn-primary zf-btn-sm'
-                      : 'zf-btn zf-btn-secondary zf-btn-sm'
-                  }
-                  onClick={() => pick(d.id)}
-                  disabled={busy}
-                >
-                  {d.title}
-                  {d.builtin === false ? ' · custom' : ''}
-                </button>
-              ))}
-            </div>
-          )}
-          {demo.builtin === false && (
-            <button
-              type="button"
-              className="zf-btn zf-btn-ghost zf-btn-sm"
-              onClick={() => void remove()}
-              disabled={busy}
-            >
-              <Trash2 className="w-4 h-4 mr-1 inline" /> {t('home.removeCustom')}
-            </button>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={chipClass('cell')}>{t('home.chip.cell')}</span>
-            <span className={chipClass('extract')}>{t('home.chip.extract')}</span>
-            <span className={chipClass('done')}>{t('home.chip.artifact')}</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              ref={inputRef}
-              type="file"
-              accept={accept}
-              className="hidden"
-              multiple
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-            />
-            <button
-              type="button"
-              className="zf-btn zf-btn-secondary zf-btn-sm"
-              onClick={() => inputRef.current?.click()}
-              disabled={busy}
-            >
-              {files.length > 1
-                ? t('home.files', { n: files.length })
-                : file
-                  ? file.name
-                  : needsFile
-                    ? t('home.pickFile', { accept })
-                    : t('home.pickFileOrSample', { accept })}
-            </button>
-            <button
-              type="button"
-              className="zf-btn zf-btn-primary"
-              onClick={() => void run()}
-              disabled={busy}
-            >
-              {busy ? t('home.running') : t('home.run', { title: demo.title })}
-            </button>
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-600 whitespace-pre-wrap border-t border-[var(--zf-hairline)] pt-3">
-              {error}
-            </p>
-          )}
-
-          {batch && (
-            <div className="text-sm space-y-2 border-t border-[var(--zf-hairline)] pt-3">
-              <div>
-                {t('home.batchDone', { ok: batch.ok, count: batch.count })} · CONNECT:{' '}
-                <code className="font-mono">{batch.egress_connects}</code>
-                <span className="text-[var(--zf-muted)]"> · {t('home.batchNote')}</span>
+                {demo.model && (
+                  <p className="text-sm mt-2 rounded border border-amber-500/40 bg-amber-500/10 p-2">
+                    <strong>{t('home.sendsText')}</strong> After the cell extracts the text, this host sends it to{' '}
+                    <code className="font-mono text-xs">{demo.model.host}</code> (model{' '}
+                    <code className="font-mono text-xs">{demo.model.model}</code>). The cell itself stays
+                    offline. The first run waits for your approval. It is listed under{' '}
+                    <Link to="/app/merion/history" className="underline">
+                      History → Approvals
+                    </Link>
+                    , and you decide it from that run&apos;s cockpit.
+                  </p>
+                )}
               </div>
-              <ul className="space-y-1">
-                {batch.results.map((r, i) => (
-                  <li key={i} className="flex flex-wrap items-center gap-2">
-                    <span className={r.ok ? 'text-emerald-700' : 'text-red-600'}>{r.ok ? t('home.done') : t('home.failed')}</span>
-                    <span className="font-mono text-xs">{r.filename || '(unnamed)'}</span>
-                    {r.ok && r.result ? (
-                      <button
-                        type="button"
-                        className="zf-btn zf-btn-ghost zf-btn-sm"
-                        onClick={() => navigate(`/app/merion/${r.result?.session_id}`)}
-                      >
-                        {t('home.openCockpit')}
-                      </button>
-                    ) : (
-                      <span className="text-xs text-[var(--zf-muted)]">{r.error}</span>
-                    )}
-                  </li>
+            </div>
+
+            {demos.length > 1 && (
+              <div className="flex flex-wrap gap-2" role="tablist" aria-label="Use case">
+                {demos.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={d.id === demo.id}
+                    className={
+                      d.id === demo.id
+                        ? 'zf-btn zf-btn-primary zf-btn-sm'
+                        : 'zf-btn zf-btn-secondary zf-btn-sm'
+                    }
+                    onClick={() => pick(d.id)}
+                    disabled={busy}
+                  >
+                    {d.title}
+                    {d.builtin === false ? ' · custom' : ''}
+                  </button>
                 ))}
-              </ul>
-            </div>
-          )}
+              </div>
+            )}
+            {demo.builtin === false && (
+              <button
+                type="button"
+                className="zf-btn zf-btn-ghost zf-btn-sm"
+                onClick={() => void remove()}
+                disabled={busy}
+              >
+                <Trash2 className="w-4 h-4 mr-1 inline" /> {t('home.removeCustom')}
+              </button>
+            )}
 
-          {result && !error && (
-            <div className="text-sm space-y-2 border-t border-[var(--zf-hairline)] pt-3">
-              {result.badge?.sealed === false ? (
-                <div role="alert" className="rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-amber-700 dark:text-amber-300">
-                  <strong>Simulated, not sealed.</strong> {result.honesty}
-                </div>
-              ) : null}
-              <div>
-                {t('home.connects')}: <code className="font-mono">{result.egress_connects ?? 0}</code>
-                {result.model ? (
-                  <span>
-                    {' '}
-                    · {t('home.sentTo')} <code className="font-mono">{result.model.host}</code>
-                  </span>
-                ) : null}
-                {result.honesty ? (
-                  <span className="text-[var(--zf-muted)]"> · {result.honesty}</span>
-                ) : null}
+            <SealedPipeline
+              stage={chip}
+              labels={{ cell: t('home.chip.cell'), extract: t('home.chip.extract'), artifact: t('home.chip.artifact') }}
+            />
+
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                ref={inputRef}
+                type="file"
+                accept={accept}
+                className="hidden"
+                multiple
+                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+              />
+              <div className="w-full">
+                <DropZone
+                  chosen={files.length > 1 ? t('home.files', { n: files.length }) : file ? file.name : null}
+                  prompt={needsFile ? t('home.pickFile', { accept }) : t('home.pickFileOrSample', { accept })}
+                  disabled={busy}
+                  onFiles={setFiles}
+                  onBrowse={() => inputRef.current?.click()}
+                />
               </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="zf-btn zf-btn-primary zf-btn-sm"
-                  onClick={() => navigate(`/app/merion/${result.session_id}`)}
-                >
-                  {t('home.openCockpit')}
-                </button>
-                <span className="text-[var(--zf-muted)] text-xs self-center">{artifacts}</span>
-              </div>
+              <button
+                type="button"
+                className="zf-btn zf-btn-primary"
+                onClick={() => void run()}
+                disabled={busy}
+              >
+                {busy ? t('home.running') : t('home.run', { title: demo.title })}
+              </button>
             </div>
-          )}
-        </Card>
+
+            {error && (
+              <p className="text-sm text-[var(--zf-danger-text)] whitespace-pre-wrap border-t border-[var(--zf-hairline)] pt-3">
+                {error}
+              </p>
+            )}
+
+            {batch && (
+              <div className="text-sm space-y-2 border-t border-[var(--zf-hairline)] pt-3">
+                <div>
+                  {t('home.batchDone', { ok: batch.ok, count: batch.count })} · CONNECT:{' '}
+                  <code className="font-mono">{batch.egress_connects}</code>
+                  <span className="text-[var(--zf-muted)]"> · {t('home.batchNote')}</span>
+                </div>
+                <ul className="space-y-1">
+                  {batch.results.map((r, i) => (
+                    <li key={i} className="flex flex-wrap items-center gap-2">
+                      <span className={r.ok ? 'text-[var(--zf-proof-text)]' : 'text-[var(--zf-danger-text)]'}>{r.ok ? t('home.done') : t('home.failed')}</span>
+                      <span className="font-mono text-xs">{r.filename || '(unnamed)'}</span>
+                      {r.ok && r.result ? (
+                        <button
+                          type="button"
+                          className="zf-btn zf-btn-ghost zf-btn-sm"
+                          onClick={() => navigate(`/app/merion/${r.result?.session_id}`)}
+                        >
+                          {t('home.openCockpit')}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-[var(--zf-muted)]">{r.error}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {result && !error && (
+              <div className="text-sm space-y-2 border-t border-[var(--zf-hairline)] pt-3">
+                {result.badge?.sealed === false ? (
+                  <div role="alert" className="rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-[var(--zf-warn-text)]">
+                    <strong>Simulated, not sealed.</strong> {result.honesty}
+                  </div>
+                ) : null}
+                <div>
+                  {t('home.connects')}: <code className="font-mono">{result.egress_connects ?? 0}</code>
+                  {result.model ? (
+                    <span>
+                      {' '}
+                      · {t('home.sentTo')} <code className="font-mono">{result.model.host}</code>
+                    </span>
+                  ) : null}
+                  {result.honesty ? (
+                    <span className="text-[var(--zf-muted)]"> · {result.honesty}</span>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="zf-btn zf-btn-primary zf-btn-sm"
+                    onClick={() => navigate(`/app/merion/${result.session_id}`)}
+                  >
+                    {t('home.openCockpit')}
+                  </button>
+                  <span className="text-[var(--zf-muted)] text-xs self-center">{artifacts}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </GlowCard>
 
         <Card className="p-5 space-y-3">
           <div className="flex items-start justify-between gap-3">

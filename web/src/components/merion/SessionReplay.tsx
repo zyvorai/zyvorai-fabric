@@ -1,17 +1,22 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getSessionRecording, verifyRecording } from '../../api/agents'
-import { describeStep, offsetSeconds, playedSteps, type SignedRecording } from '../../lib/recording'
+import { describeStep, playedSteps, type SignedRecording } from '../../lib/recording'
 import { Card } from '../ui'
+import { ReplayScrubber } from './ReplayScrubber'
+import { RunTimeline } from './RunTimeline'
+import { StatusChip } from './StatusChip'
 
 /** Steps through a session's signed recording. Content is masked on the host, so this shows what happened and when, not what was said. */
 export default function SessionReplay({ sessionId }: { sessionId: string }) {
   const [rec, setRec] = useState<SignedRecording | null>(null)
   const [verdict, setVerdict] = useState<string>('')
+  const [valid, setValid] = useState(false)
   const [at, setAt] = useState(0)
   const [busy, setBusy] = useState(false)
+  const [playing, setPlaying] = useState(false)
   const [error, setError] = useState('')
 
   const load = async () => {
@@ -23,6 +28,7 @@ export default function SessionReplay({ sessionId }: { sessionId: string }) {
       setRec(signed)
       setAt(0)
       setVerdict(check.valid ? `Signature valid · signer ${(check.signer ?? '').slice(0, 12)}…` : `Not valid: ${check.reason ?? 'unknown'}`)
+      setValid(check.valid)
     } catch (e) {
       const text = e instanceof Error ? e.message : String(e)
       setError(/not enabled|404/i.test(text) ? 'Recording is off on this host (no recording key is set).' : text)
@@ -32,7 +38,22 @@ export default function SessionReplay({ sessionId }: { sessionId: string }) {
   }
 
   const steps = rec?.bundle.steps ?? []
+  // Playing steps forward once a second. A person starts it; nothing plays on load.
+  useEffect(() => {
+    if (!playing) return
+    const id = window.setInterval(() => setAt((i) => Math.min(i + 1, steps.length - 1)), 1000)
+    return () => window.clearInterval(id)
+  }, [playing, steps.length])
+  // ...and it stops by itself on the last step.
+  useEffect(() => {
+    if (playing && steps.length > 0 && at >= steps.length - 1) setPlaying(false)
+  }, [playing, at, steps.length])
   const shown = playedSteps(steps, at)
+  // Pressing play on the last step starts over from the first.
+  const togglePlay = () => {
+    if (!playing && at >= steps.length - 1) setAt(0)
+    setPlaying(!playing)
+  }
   const download = () => {
     if (!rec) return
     const url = URL.createObjectURL(new Blob([JSON.stringify(rec, null, 2)], { type: 'application/json' }))
@@ -61,36 +82,21 @@ export default function SessionReplay({ sessionId }: { sessionId: string }) {
       <p className="text-xs text-[var(--zf-muted)]">
         A signed record of what the host saw. Message text, request bodies and approval wording are left out on purpose.
       </p>
-      {error && <p role="alert" className="text-xs text-[var(--zf-danger)]">{error}</p>}
+      {error && <p role="alert" className="text-xs text-[var(--zf-danger-text)]">{error}</p>}
       {rec && (
         <>
-          <p className="text-xs text-[var(--zf-muted)]">{verdict}</p>
+          <p className="flex items-center gap-2 text-xs text-[var(--zf-muted)]">
+            <StatusChip label={valid ? 'Signed' : 'Not valid'} tone={valid ? 'proof' : 'danger'} />
+            {verdict}
+          </p>
           {steps.length === 0 ? (
             <p className="text-xs text-[var(--zf-muted)]">Nothing was recorded for this session.</p>
           ) : (
             <>
-              <label className="flex items-center gap-3 text-xs text-[var(--zf-muted)]">
-                <span className="tabular-nums w-24">
-                  Step {at + 1} of {steps.length}
-                </span>
-                <input
-                  type="range"
-                  className="flex-1"
-                  aria-label="Replay position"
-                  min={0}
-                  max={steps.length - 1}
-                  value={at}
-                  onChange={(e) => setAt(Number(e.target.value))}
-                />
-                <span className="tabular-nums w-16 text-right">+{offsetSeconds(steps, steps[at])}s</span>
-              </label>
-              <ol className="space-y-1" data-testid="replay-steps">
-                {shown.map((s) => (
-                  <li key={s.n} className={s.n === at ? 'font-medium text-[var(--zf-ink)]' : 'text-[var(--zf-muted)]'}>
-                    <span className="tabular-nums text-[var(--zf-muted)]">+{offsetSeconds(steps, s)}s</span> · {describeStep(s)}
-                  </li>
-                ))}
-              </ol>
+              <ReplayScrubber steps={steps} at={at} onAt={setAt} playing={playing} onTogglePlay={togglePlay} />
+              <div data-testid="replay-steps">
+                <RunTimeline entries={shown.map((s) => ({ label: describeStep(s), kind: s.source, at: s.at }))} />
+              </div>
             </>
           )}
         </>

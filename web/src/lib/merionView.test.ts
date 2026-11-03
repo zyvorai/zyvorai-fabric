@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { describe, expect, it } from 'vitest'
-import { barShare, dropBars, egressState, timelineTone } from './merionView'
+import { barShare, dropBars, egressState, pipelineStates, timelineTone } from './merionView'
 
 describe('egressState', () => {
   it('is sealed only for a reported zero, never for a missing count', () => {
@@ -47,5 +47,19 @@ describe('barShare', () => {
     expect(barShare(15, 10)).toBe(1)
     expect(barShare(1, 0)).toBe(1)
     expect(barShare(1, null)).toBeNull()
+  })
+})
+
+describe('pipelineStates', () => {
+  it('moves one working node along and ends all done', () => {
+    expect(pipelineStates('idle')).toEqual(['todo', 'todo', 'todo', 'todo'])
+    expect(pipelineStates('cell')).toEqual(['done', 'active', 'todo', 'todo'])
+    expect(pipelineStates('extract')).toEqual(['done', 'done', 'active', 'todo'])
+    expect(pipelineStates('done')).toEqual(['done', 'done', 'done', 'done'])
+  })
+  it('never shows a finished artifact after a failure', () => {
+    const f = pipelineStates('fail')
+    expect(f).toContain('fail')
+    expect(f[3]).toBe('todo')
   })
 })
