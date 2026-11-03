@@ -201,7 +201,7 @@ export default function SystemResources() {
               <Zap className="w-4 h-4" />
               Optimization
               {recommendations.length > 0 && (
-                <span className="ml-1 px-2 py-0.5 text-xs bg-[var(--zf-ink)] text-white rounded-full">{recommendations.length}</span>
+                <span className="ml-1 px-2 py-0.5 text-xs bg-[var(--zf-ink)] text-[var(--zf-canvas)] rounded-full">{recommendations.length}</span>
               )}
             </button>
           </div>

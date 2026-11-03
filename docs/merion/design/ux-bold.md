@@ -99,13 +99,15 @@ Seeding them found real problems, now fixed: the audit page's action and error t
 
 ## How much of the console the gate covers
 
-The gate now covers 82 of the console's roughly 100 pages, in light and dark, desktop and phone (`page-harness.mjs`):
-- **`SEEDED_PAGES`** (23): the mock feeds them data, so they render populated and tables, cards and charts are checked.
+The gate now covers 90 of the console's roughly 100 routes (the rest are detail pages with a route parameter), in light and dark, desktop and phone (`page-harness.mjs`):
+- **`SEEDED_PAGES`** (31): the mock feeds them data, so they render populated and tables, cards and charts are checked.
 - **`EMPTY_STATE_PAGES`** (59): they render fine against the mock's empty answers but have no seed data, so they are checked as empty states (structure, labels, and the contrast of what is drawn). Seed one in `mock-data.mjs` and move it to `SEEDED_PAGES` to check it with data. They settle for 0.7 s instead of 1.8 s, since there is nothing to wait for.
-- **`UNSEEDED_PAGES`** (8: certificates, compliance, drs, federation, lifecycle, migration-report, replication, site-recovery): they throw against the empty mock, so they are **not covered**, and `npm run a11y` prints that list on every run.
+- **`UNSEEDED_PAGES`** (none now): a page that throws against the empty mock cannot be checked, and would be listed here, and printed by `npm run a11y` on every run, instead of letting the gate pass an error page. The last eight (certificates, compliance, drs, federation, lifecycle, migration-report, replication, site-recovery) were seeded in `mock-data.mjs`.
 - **`PAGE_TABS`**: a page's other tabs are clicked and scanned too (Network so far).
 
 Widening it from about 25 pages found 36 violations in the 59 new ones: mid-tone green, amber and red text at 2.9 to 4.4:1 (the same three Tailwind classes in 55 files, now the contrast-safe tokens everywhere), three unlabelled sliders on the cost estimator, an unlabelled select on the event stream, a link-blue notification chip on a fixed pale background, and white text on the theme's ink colour in the timeline's active filter.
+
+Populating the last eight found more: a warning-coloured progress bar with white text (2.05:1), a danger bar at 3.5:1, an unlabelled slider, a fixed pale panel whose heading turned near-white in dark theme, solid ink-coloured chips and avatars with white text (ink is light in dark theme, so the text must be the canvas colour), and table header cells at 4.25:1 on a tinted row (every table's header now uses the secondary text colour). One rule to remember: text colours like `text-emerald-700` are right on a fixed pale chip and wrong on a themed surface, so they cannot be swept globally; the `text-*-600` ones, which were used on themed surfaces, could.
 
 The run takes about 7 minutes in one process, so `npm run a11y` runs the two themes at once (`a11y-parallel.mjs`, two processes on two ports).
 

@@ -3,10 +3,17 @@
 ## Unreleased
 
 ### Added
+
 - **Network map: physical NICs are always drawn, and `up` counts as up.** On a host with no bonds, VLANs or taps the map used to show
   no lines and an empty Interfaces column; it now draws the physical NICs (up to 12). Bridges, VXLANs and network files report
   state as `up` or `down`, not networkd's `routable` or `carrier`, so a working interface was drawn grey; both vocabularies are
   recognised now.
+
+- **The accessibility gate now covers the last eight pages** (certificates, compliance, DRS, federation, lifecycle, migration report,
+  replication, site recovery), with seeded data, so every console page that has a plain route is checked. Populating them fixed
+  low-contrast progress bars, an unlabelled slider, an unreadable dark-theme panel, white text on theme-coloured chips, and table
+  headers on a tinted row (all tables' header text is now slightly darker in light theme).
+
 - **The accessibility gate covers 82 console pages, up from about 25**, and runs the two themes in parallel. Widening it fixed
   low-contrast green, amber and red text across 55 files, unlabelled sliders and selects on the cost estimator and event stream,
   and two chips that failed contrast in dark theme. Eight pages that cannot render against the empty mock are listed as not covered.
