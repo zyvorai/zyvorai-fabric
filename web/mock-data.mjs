@@ -185,6 +185,68 @@ const DEMOS = [
   { id: 'invoice-check', title: 'Invoice check', description: 'Check invoices against your rules.', accepts: ['pdf', 'csv'], max_bytes: 8388608, builtin: false, has_sample: false },
 ]
 
+const BACKUPS = [
+  { id: 'bk-0001', vm_name: 'db-primary', backup_type: 'full', size_bytes: 21474836480, compressed: true, created: ago(86400), status: 'completed', storage_location: '/backups/db-primary', retention_days: 30 },
+  { id: 'bk-0002', vm_name: 'db-primary', backup_type: 'incremental', size_bytes: 1610612736, compressed: true, created: ago(43200), status: 'completed', storage_location: '/backups/db-primary', retention_days: 30 },
+  { id: 'bk-0003', vm_name: 'web-01', backup_type: 'full', size_bytes: 8589934592, compressed: false, created: ago(7200), status: 'in_progress', storage_location: '/backups/web-01', retention_days: 14 },
+  { id: 'bk-0004', vm_name: 'batch-7', backup_type: 'full', size_bytes: 0, compressed: false, created: ago(3600), status: 'failed', storage_location: '/backups/batch-7', retention_days: 7 },
+]
+const BACKUP_JOBS = [
+  { id: 'job-1', backup_id: 'bk-0003', vm_name: 'web-01', operation: 'backup', status: 'running', progress: 62, started_at: ago(900) },
+  { id: 'job-2', backup_id: 'bk-0004', vm_name: 'batch-7', operation: 'backup', status: 'failed', progress: 12, started_at: ago(3600), completed_at: ago(3500), error: 'disk image not found' },
+]
+const BACKUP_STATS = { total_backups: 4, total_size_bytes: 31675383808, by_type: { full: 3, incremental: 1 }, by_vm: { 'db-primary': 2, 'web-01': 1, 'batch-7': 1 }, oldest_backup: ago(86400), newest_backup: ago(3600) }
+
+const SYSTEM_PERF = Array.from({ length: 24 }, (_, i) => ({
+  timestamp: ago((23 - i) * 3600),
+  total_vms: 6,
+  running_vms: 3 + (i % 3 === 0 ? 1 : 0),
+  total_cpu_usage: 30 + Math.round(25 * Math.sin(i / 3) + 20),
+  total_memory_usage: 45 + Math.round(10 * Math.cos(i / 4) + 10),
+  total_network_rx: 1200000 + i * 40000,
+  total_network_tx: 800000 + i * 25000,
+}))
+const INSIGHTS = [
+  { type: 'high_cpu', vm_name: 'db-primary', resource: 'cpu', value: 83, threshold: 80, severity: 'warning', recommendation: 'Add a vCPU or move the batch job off this VM.' },
+  { type: 'underutilized', vm_name: 'ci-runner', resource: 'cpu', value: 4, threshold: 10, severity: 'info', recommendation: 'Shrink to 1 vCPU, or stop it outside working hours.' },
+]
+const TOP = [
+  { vm_name: 'db-primary', value: 83 },
+  { vm_name: 'api-01', value: 61 },
+  { vm_name: 'web-01', value: 38 },
+]
+
+const AUDIT_LOGS = [
+  { id: 'au-1', timestamp: ago(600), user: 'admin', action: 'vm.start', resource_type: 'vm', resource_name: 'web-01', status: 'success', ip_address: '10.20.0.5' },
+  { id: 'au-2', timestamp: ago(1800), user: 'asha', action: 'backup.create', resource_type: 'backup', resource_name: 'db-primary', status: 'success', ip_address: '10.20.0.9' },
+  { id: 'au-3', timestamp: ago(3600), user: 'ravi', action: 'vm.delete', resource_type: 'vm', resource_name: 'old-test', status: 'failed', ip_address: '10.20.0.14', error: 'permission denied' },
+  { id: 'au-4', timestamp: ago(7200), user: 'admin', action: 'user.create', resource_type: 'user', resource_name: 'ravi', status: 'success', ip_address: '10.20.0.5' },
+]
+const AUDIT_STATS = { total_logs: 4, by_action: { 'vm.start': 1, 'backup.create': 1, 'vm.delete': 1, 'user.create': 1 }, by_user: { admin: 2, asha: 1, ravi: 1 }, by_status: { success: 3, failed: 1 }, recent_failures: 1 }
+
+const CPU_TOPOLOGY = {
+  total_cpus: 8, sockets: 1, cores_per_socket: 4, threads_per_core: 2,
+  cpus: Array.from({ length: 8 }, (_, i) => ({ id: i, socket_id: 0, core_id: i % 4, thread_id: Math.floor(i / 4), online: true, numa_node: 0 })),
+  online_cpus: [0, 1, 2, 3, 4, 5, 6, 7], offline_cpus: [],
+}
+const NUMA = { nodes: [{ id: 0, cpus: [0, 1, 2, 3, 4, 5, 6, 7], memory_total_mb: 65536, memory_free_mb: 24576, hugepages_2mb_total: 1024, hugepages_2mb_free: 512, hugepages_1gb_total: 4, hugepages_1gb_free: 2 }], distances: [[10]] }
+const SYS_MEMORY = { total_kb: 67108864, free_kb: 25165824, available_kb: 41943040, buffers_kb: 1048576, cached_kb: 12582912 }
+const HUGEPAGES = { size: 'Size2MB', total: 1024, free: 512, reserved: 0, surplus: 0 }
+const RECOMMENDATIONS = [
+  { vm_name: 'db-primary', recommendations: [{ resource: 'memory', current_value: '32 GB', recommended_value: '24 GB', reason: 'Peak use over 30 days was 19 GB.', impact: 'Frees 8 GB for other VMs.' }] },
+]
+
+const MIGRATIONS = [
+  { id: 'mg-1', vm_name: 'web-02', target_host: 'node-b', migration_type: 'live', state: 'syncing', progress_percent: 64, bytes_transferred: 5368709120, started: ago(420) },
+  { id: 'mg-2', vm_name: 'ci-runner', target_host: 'node-c', migration_type: 'offline', state: 'completed', progress_percent: 100, bytes_transferred: 4294967296, started: ago(86400), completed: ago(85000) },
+  { id: 'mg-3', vm_name: 'batch-7', target_host: 'node-b', migration_type: 'storage', state: 'failed', progress_percent: 18, bytes_transferred: 805306368, started: ago(7200), completed: ago(7000), error: 'target pool full' },
+]
+const RUNTIME_CAPS = {
+  apiVersion: 'v1', scope: 'host', orchestrationOwner: 'fabric',
+  migration: [{ backend: 'qemu', live: true, preCopy: true, postCopy: false, multifd: true, requiresSharedStorage: false, transports: ['tcp', 'unix'] }],
+  snapshot: [{ backend: 'qemu', memory: true, disk: true, portable: false }],
+}
+
 const AGENTS = ['invoice-check', 'pdf-brief', 'csv-clean', 'contract-clauses', 'log-triage'].map((name) => ({
   name,
   version: '15ab785375eb',
@@ -211,6 +273,22 @@ export function mockBody(path) {
     }
   }
   if (p === '/system/alerts') return [{ severity: 'warning', message: 'db-primary disk 82% full' }]
+  if (p === '/backups') return BACKUPS
+  if (p === '/backups/jobs') return BACKUP_JOBS
+  if (p === '/backups/stats') return BACKUP_STATS
+  if (p === '/analytics/system') return SYSTEM_PERF
+  if (p === '/analytics/insights') return INSIGHTS
+  if (p === '/analytics/utilization') return { cpu_utilization: 47, memory_utilization: 58, disk_utilization: 71, network_utilization: 22 }
+  if (p === '/analytics/top') return TOP
+  if (p === '/audit/logs') return AUDIT_LOGS
+  if (p === '/audit/stats') return AUDIT_STATS
+  if (p === '/system/cpu/topology') return CPU_TOPOLOGY
+  if (p === '/system/numa/topology') return NUMA
+  if (p === '/system/memory') return SYS_MEMORY
+  if (p === '/system/memory/hugepages') return HUGEPAGES
+  if (p === '/system/optimization/recommendations') return RECOMMENDATIONS
+  if (p === '/migrations') return MIGRATIONS
+  if (p === '/runtime/capabilities') return RUNTIME_CAPS
   if (p === '/sessions') return { items: SESSIONS }
   if (p === '/artifacts') return { items: ARTIFACTS }
   if (p === '/approvals') return { items: APPROVALS }

@@ -71,7 +71,9 @@ Not done: the Docusaurus `website/` is unchanged.
 
 ## The gate and crashed pages
 
-`openPage` in `page-harness.mjs` now fails when a page renders the error boundary. Before that, a page that threw looked clean to axe, because an error page has no violations. Five pages (`backups`, `analytics`, `audit`, `system`, `migrations`) throw against the mock's empty answers; they are listed in `UNSEEDED_PAGES`, are not checked, and `npm run a11y` prints that. Seed each one and move it back into `PAGES`.
+`openPage` in `page-harness.mjs` fails when a page renders the error boundary. Before that, a page that threw looked clean to axe, because an error page has no violations. Five pages (`backups`, `analytics`, `audit`, `system`, `migrations`) threw against the mock's empty answers and so were never really checked; their endpoints are now seeded in `mock-data.mjs` and they are in `PAGES`, so every console page in the gate renders with data. `UNSEEDED_PAGES` is empty; if a page is added that the mock cannot feed, list it there (with a reason) rather than letting the gate pass an error page.
+
+Seeding them found real problems, now fixed: the audit page's action and error text and counters used mid-tone green and red (3.4 to 4.4:1), the analytics time-range select had no accessible name (a critical axe finding), and the analytics "info" badge used the link colour on a pale blue that fails in dark theme.
 
 ## Checks
 

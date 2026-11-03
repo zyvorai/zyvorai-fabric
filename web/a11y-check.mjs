@@ -8,7 +8,7 @@ import { PAGES, UNSEEDED_PAGES, SIZES, serveDist, launch, newConsolePage, openPa
 
 const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
 const verbose = process.argv.includes('--verbose')
-console.log(`not covered (no mock data yet, see page-harness.mjs): ${UNSEEDED_PAGES.join(', ')}`)
+if (UNSEEDED_PAGES.length) console.log(`not covered (no mock data yet, see page-harness.mjs): ${UNSEEDED_PAGES.join(', ')}`)
 const server = serveDist()
 const browser = await launch()
 const focusFailures = []
