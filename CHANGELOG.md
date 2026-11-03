@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- **VM details tabs** sit on one row on wide screens (12 across), two even rows of six on mid widths and four rows of three on phones, instead of an uneven wrap; the running VM's action buttons wrap on phones instead of making the page scroll sideways. A **degraded** storage pool now shows in the warning colour (and a failed one in the danger colour) instead of the muted grey of an inactive one.
 - **Storage pages are checked with data** (pools and volumes seeded in the mock). Fixed low-contrast state and usage text on the storage page and pools page in both themes.
 - **The accessibility gate checks VM details for a stopped and a paused VM** as well as the running one (12 tabs each). No app change was needed.
 - **VM details is covered by the accessibility gate** (all 12 tabs). Fixed: 14 selects with no accessible name, low-contrast danger and

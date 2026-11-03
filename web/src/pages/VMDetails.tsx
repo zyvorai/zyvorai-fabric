@@ -191,7 +191,7 @@ export default function VMDetails() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {canWrite && (
             <>
               {vm.state === 'stopped' || vm.state === 'failed' ? (
@@ -231,8 +231,7 @@ export default function VMDetails() {
       {/* Tabs — auto-fill grid wraps into rows; never forces horizontal page scroll */}
       <div className="border-b border-[var(--zf-hairline)] min-w-0 max-w-full">
         <nav
-          className="grid w-full min-w-0 gap-x-0.5 gap-y-0 -mb-px"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(7.25rem, 1fr))' }}
+          className="grid w-full min-w-0 gap-x-0.5 gap-y-0 -mb-px grid-cols-3 sm:grid-cols-6 min-[1400px]:grid-cols-12!"
           aria-label="VM sections"
         >
           {tabs.map((tab) => {
