@@ -4,8 +4,8 @@
 | Metric | Value |
 |--------|-------|
 | Workspace crates | 54 |
-| Workspace version | 0.4.0 |
-| Web package version | 0.4.0 |
+| Workspace version | 0.5.0 |
+| Web package version | 0.5.0 |
 | React version | 19.3.0 |
 | Rough web route matches | 306 |
 | App.tsx path= count | 114 |

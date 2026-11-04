@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-11-04
+
 ### Added
 - **The accessibility gate fails pages that scroll sideways** (on a phone or desktop), and 14 pages that did on phones are fixed: tab bars and header button rows now wrap, the VM Dataplane sub-tabs scroll inside their bar, and the system cards sit two per row.
 - **VM details tabs** sit on one row on wide screens (12 across), two even rows of six on mid widths and four rows of three on phones, instead of an uneven wrap; the running VM's action buttons wrap on phones instead of making the page scroll sideways. A **degraded** storage pool now shows in the warning colour (and a failed one in the danger colour) instead of the muted grey of an inactive one.
