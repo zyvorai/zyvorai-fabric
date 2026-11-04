@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- **The release workflow can sign the image.** The signing job had no registry login, so `cosign sign` failed with UNAUTHORIZED and the `v0.5.0` release stopped before it created the GitHub release; it now logs in to GHCR first.
+
 ## 0.5.0 - 2026-11-04
 
 ### Added

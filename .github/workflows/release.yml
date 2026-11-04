@@ -137,6 +137,14 @@ jobs:
 
       - uses: sigstore/cosign-installer@v4.1.2
 
+      # cosign pushes the signature to the registry as an image layer, so it needs its own login (this job has none)
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Cosign sign the image by digest (keyless)
         env:
           COSIGN_YES: "true"
