@@ -4,6 +4,7 @@
 
 ### Fixed
 - **The release workflow can sign the image.** The signing job had no registry login, so `cosign sign` failed with UNAUTHORIZED and the `v0.5.0` release stopped before it created the GitHub release; it now logs in to GHCR first.
+- **A manual release run (workflow_dispatch) tags the image.** Tags came only from the git ref, so a dispatch from `main` had none and the image push failed with "tag is needed"; the tag you pass in is now used (as `vX.Y.Z` and `X.Y.Z`; `latest` stays tag-push only).
 
 ## 0.5.0 - 2026-11-04
 
