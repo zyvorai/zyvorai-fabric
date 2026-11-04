@@ -29,9 +29,9 @@ function MirrorTabContent({ sessions, onDelete, onAdopt, onEdit, onCreate, onSyn
 
   return (
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
-      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-semibold">Packet Mirror</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {status && (
             <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.active_sessions} active &middot; {status.mirrored_vms} mirrored VMs

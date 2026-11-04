@@ -34,8 +34,8 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
 
   return (
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
-      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-4 flex-wrap">
           <h2 className="text-xl font-semibold">NAT Gateway</h2>
           <div className="flex bg-[var(--zf-surface)] rounded-lg p-0.5">
             {(['rules', 'pools', 'gateways'] as const).map(v => (
@@ -45,7 +45,7 @@ function NatTabContent({ rules, pools, gateways, onDeleteRule, onDeletePool, onD
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {status && (
             <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.active_rules} active &middot; {status.gateways} gateways

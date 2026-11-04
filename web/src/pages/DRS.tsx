@@ -162,7 +162,7 @@ export default function DRS() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
+      <div className="flex flex-wrap gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['balance', 'recommendations', 'rules', 'placement'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-muted)] hover:bg-black/[0.04]'}`}>

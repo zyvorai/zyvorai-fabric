@@ -108,7 +108,7 @@ export default function SystemResources() {
       )}
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-[var(--zf-canvas)] rounded-lg p-6">
           <div className="flex items-center gap-3 mb-2">
             <Cpu className="w-5 h-5 text-[var(--zf-ink)]" />

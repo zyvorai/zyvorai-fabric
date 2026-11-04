@@ -98,7 +98,7 @@ export default function Replication() {
 
       <PageLoadBanner title="Could not load replication data" headline={loadError} onRetry={() => void loadData()} />
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
+      <div className="flex flex-wrap gap-1 mb-4 bg-[var(--zf-canvas)] rounded-lg p-1">
         {(['dashboard', 'sites', 'configs', 'violations'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'hover:bg-white/[0.03]'}`}>

@@ -140,7 +140,7 @@ export default function Encryption() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 zf-panel-muted p-1">
+      <div className="flex flex-wrap gap-1 mb-4 zf-panel-muted p-1">
         {(['providers', 'policies', 'vms'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`flex-1 px-4 py-2 rounded text-sm font-medium capitalize transition-colors ${activeTab === tab ? 'bg-[var(--zf-link-fill)] text-white' : 'text-[var(--zf-ink)] hover:bg-black/[0.04]'}`}>

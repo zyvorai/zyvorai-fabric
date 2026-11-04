@@ -348,7 +348,7 @@ export default function DataplanePanel({ vmName }: { vmName: string }) {
         </div>
       </div>
 
-      <div className="flex gap-1 border-b border-[var(--zf-hairline)]">
+      <div className="flex gap-1 border-b border-[var(--zf-hairline)] overflow-x-auto">
         {tabs.map((t) => (
           <button
             key={t.id}

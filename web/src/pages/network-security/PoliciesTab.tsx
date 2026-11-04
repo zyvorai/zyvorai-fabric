@@ -79,7 +79,7 @@ function PoliciesTabContent({ policies, identities, onDelete, onAdopt, onAdoptId
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {status && (
             <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.enforced} enforced &middot; {status.pending} pending

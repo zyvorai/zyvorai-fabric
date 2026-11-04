@@ -126,3 +126,8 @@ VM details is now also checked for a **stopped** (`vms/staging-api`) and a **pau
 ### Storage
 
 The storage pools and storage manager pages now have seeded pools (active, degraded, inactive) and volumes in the mock, so they are checked with data (before: empty state only). That also exposed the `storage` page's pool cards. Fixed: green, red and amber text on themed cards in dark theme (3.3 to 3.9:1), amber state text on white (2.05:1), and blue text on a blue tint (4.45:1, now ink). Not covered: the create-pool dialogs and the RBD image list.
+
+### Sideways scroll on phones
+
+The gate now also fails any page or tab whose width exceeds the window (`scrollWidth > innerWidth`), which axe cannot see. It found 14 pages that scrolled sideways at 390px (none on desktop), by up to 250px: eight tab bars of `flex-1` buttons that did not wrap, header button rows with no `flex-wrap` (network security, federation, network interfaces, storage), the VM Dataplane sub-tabs (now scroll inside their bar), and the system page's four-card row (two per row on phones). Fixed in each place; network security's nine tabs share one header pattern and were fixed together.
+
