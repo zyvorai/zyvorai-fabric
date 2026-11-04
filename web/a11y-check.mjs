@@ -18,6 +18,7 @@ const server = serveDist(port)
 const browser = await launch()
 const focusFailures = []
 const crashedTabs = new Set() // a tab whose click threw the page into the error boundary, which axe cannot see
+const sideways = new Set() // a page (or tab) wider than the window: it scrolls sideways, which axe does not see
 const missingTabs = new Set() // a configured tab the page did not have: the list in page-harness.mjs is stale, which must not pass silently
 const found = new Map() // rule id -> { impact, help, nodes: Set<"page theme size: selector"> }
 for (const theme of only ? [only] : ['light', 'dark']) {
@@ -40,6 +41,8 @@ for (const theme of only ? [only] : ['light', 'dark']) {
       // settle every animation first: axe reads the colours of elements that are mid-fade
       await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' })
       const scan = async (label) => {
+        const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+        if (over > 1) sideways.add(`${label} ${theme} ${size}: ${over}px too wide`)
         await page.evaluate(axeSource)
         const { violations } = await page.evaluate(() =>
           // eslint-disable-next-line no-undef
@@ -104,6 +107,8 @@ for (const [id, v] of [...found].sort((a, b) => b[1].nodes.length - a[1].nodes.l
 }
 for (const f of focusFailures) console.log(`FAIL focus ${f}`)
 blocking += focusFailures.length
+for (const t of sideways) console.log(`FAIL scrolls sideways: ${t}`)
+blocking += sideways.size
 for (const t of crashedTabs) console.log(`FAIL tab crashed the page: ${t}`)
 blocking += crashedTabs.size
 for (const t of missingTabs) console.log(`FAIL tab not found: ${t} (update PAGE_TABS in page-harness.mjs)`)

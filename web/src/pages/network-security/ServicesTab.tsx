@@ -29,9 +29,9 @@ function ServicesTabContent({ services, onDelete, onAdopt, onEdit, onCreate, onS
 
   return (
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
-      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-semibold">Service Mesh</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {status && (
             <span className="text-xs text-[var(--zf-muted)] bg-[var(--zf-surface)] rounded-lg px-3 py-1.5 border border-[var(--zf-hairline)]">
               {status.active_services} active &middot; {status.total_backends} backends

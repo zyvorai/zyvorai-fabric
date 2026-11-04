@@ -109,12 +109,12 @@ export default function Federation() {
           ) : (
             overview.peers.map(peer => (
               <div key={peer.id} className="zf-panel mb-4" data-testid={`peer-${peer.id}`}>
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--zf-hairline)]">
+                <div className="flex items-center justify-between flex-wrap gap-2 px-4 py-3 border-b border-[var(--zf-hairline)]">
                   <div>
                     <span className="font-semibold text-[var(--zf-ink)]">{peer.name}</span>
                     <span className="ml-2 text-sm text-[var(--zf-muted)]">{peer.url}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded border ${STATUS_CLASS[peer.status] ?? ''}`}>
                       {PEER_STATUS_LABEL[peer.status] ?? peer.status}
                     </span>

@@ -198,7 +198,7 @@ export default function Storage() {
               const typeStr = getPoolTypeString(pool.pool_type)
               return (
                 <div key={pool.id} className="bg-[var(--zf-canvas)] rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <Database className="w-5 h-5 text-[var(--zf-muted)] shrink-0" />
                       <div className="min-w-0">
@@ -206,7 +206,7 @@ export default function Storage() {
                         <div className="text-sm text-[var(--zf-muted)] font-mono truncate">{pool.path}</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-4 flex-wrap">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getTypeColor(typeStr)}`}>
                         {typeStr.toUpperCase()}
                       </span>

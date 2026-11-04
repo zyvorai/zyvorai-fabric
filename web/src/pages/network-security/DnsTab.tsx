@@ -28,8 +28,8 @@ function DnsTabContent({ zones, policies, onDeleteZone, onDeletePolicy, onAdoptZ
   const [view, setView] = useState<'zones' | 'policies'>('zones')
   return (
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
-      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-4 flex-wrap">
           <h2 className="text-xl font-semibold">DNS Policy</h2>
           <div className="flex bg-[var(--zf-surface)] rounded-lg p-0.5">
             {(['zones', 'policies'] as const).map(v => (
@@ -39,7 +39,7 @@ function DnsTabContent({ zones, policies, onDeleteZone, onDeletePolicy, onAdoptZ
             ))}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {!readOnly && <button onClick={onSync} className="flex items-center gap-2 bg-[var(--zf-surface)] hover:bg-[var(--zf-hairline)] text-[var(--zf-ink)] py-2 px-4 rounded-lg transition text-sm">
             <RefreshCw className="w-4 h-4" /> Sync
           </button>}

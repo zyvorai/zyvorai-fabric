@@ -86,9 +86,9 @@ function NetfilesTabContent({ netfiles, onDelete, onAdopt, onCreate }: NetfilesT
 
   return (
     <div className="bg-[var(--zf-canvas)] rounded-lg border border-[var(--zf-hairline)]">
-      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between">
+      <div className="p-6 border-b border-[var(--zf-hairline)] flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-semibold">Interface Configuration (.network)</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <select
             aria-label="Sort interfaces"
             value={sortBy}
