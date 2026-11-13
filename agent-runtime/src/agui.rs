@@ -407,10 +407,17 @@ pub(crate) async fn agui_run(
 
     let merion = wants_merion_names(&input.forwarded_props);
     let (client_thread, run_id, keep_thread) = (input.thread_id, input.run_id, thread.id);
+    // Echo the client's `state` once so AG-UI clients that expect STATE_SNAPSHOT on run start
+    // see a conforming event. Keep does not mutate agent state through this endpoint; TOOL_CALL*
+    // and STATE_DELTA are still not emitted (tools/context are accepted and ignored).
+    let initial_state = input.state.clone();
     let stream = async_stream::stream! {
         yield Ok(sse_as(&json!({"type": "RUN_STARTED", "threadId": client_thread, "runId": run_id}), merion));
         if !snapshot.is_empty() {
             yield Ok(sse_as(&json!({"type": "MESSAGES_SNAPSHOT", "messages": snapshot}), merion));
+        }
+        if !initial_state.is_null() {
+            yield Ok(sse_as(&json!({"type": "STATE_SNAPSHOT", "snapshot": initial_state}), merion));
         }
         let mut mapper = Mapper::default();
         let mut watch = ApprovalWatch::default();

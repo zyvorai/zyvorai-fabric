@@ -183,6 +183,18 @@ else
   set_env ZYVOR_AGENT_POLICY_TRUSTED_SIGNERS "$PUBKEY"
   ok "Keep mode on; trusted signer registered (public key only)"
 fi
+# Agent / Keep sessions need a host address the guest can reach for the egress broker.
+# Sealed csv-clean does not need this; AG-UI, phone connectors, and Zyntra Keep do.
+# Override with ZYVOR_AGENT_EGRESS_ADVERTISE_HOST before deploy when tap+netns already publishes a gateway.
+if [ -z "${ZYVOR_AGENT_EGRESS_ADVERTISE_HOST:-}" ]; then
+  if ! $SUDO grep -q '^ZYVOR_AGENT_EGRESS_ADVERTISE_HOST=' "$ENV" 2>/dev/null; then
+    set_env ZYVOR_AGENT_EGRESS_ADVERTISE_HOST 169.254.0.1
+    ok "set ZYVOR_AGENT_EGRESS_ADVERTISE_HOST=169.254.0.1 (agent/Keep egress broker)"
+  fi
+else
+  set_env ZYVOR_AGENT_EGRESS_ADVERTISE_HOST "$ZYVOR_AGENT_EGRESS_ADVERTISE_HOST"
+  ok "set ZYVOR_AGENT_EGRESS_ADVERTISE_HOST=$ZYVOR_AGENT_EGRESS_ADVERTISE_HOST"
+fi
 
 # Point fabricd at the runtime.
 CONF=/etc/zyvor-fabricd/zyvor-fabricd.toml
