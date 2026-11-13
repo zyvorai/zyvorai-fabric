@@ -15,7 +15,7 @@ chrono.workspace = true
 rand.workspace = true
 tokio.workspace = true
 rtnetlink = "0.24"
-netlink-packet-route = "0.33"
+netlink-packet-route = "0.34"
 futures.workspace = true
 
 [dev-dependencies]
