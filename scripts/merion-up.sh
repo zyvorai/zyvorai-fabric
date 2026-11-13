@@ -134,16 +134,28 @@ phase_fluxvm() {
   . /etc/os-release 2>/dev/null || true
   if [[ "${ID:-}" == "debian" || "${ID:-}" == "ubuntu" || "${ID_LIKE:-}" == *"debian"* ]]; then
     $SUDO apt-get update -qq
-    $SUDO apt-get install -y -qq build-essential pkg-config libsystemd-dev clang libbpf-dev musl-tools
+    $SUDO apt-get install -y -qq build-essential pkg-config libsystemd-dev clang libbpf-dev musl-tools dnsmasq
   elif command -v dnf >/dev/null; then
-    $SUDO dnf install -y gcc gcc-c++ make pkgconf-pkg-config systemd-devel clang libbpf-devel musl-gcc
+    $SUDO dnf install -y gcc gcc-c++ make pkgconf-pkg-config systemd-devel clang libbpf-devel musl-gcc dnsmasq
   else
     info "unrecognized package manager: install a C toolchain, pkg-config, libsystemd headers, clang and libbpf headers yourself"
   fi
+  command -v dnsmasq >/dev/null 2>&1 && ok "dnsmasq (guest DHCP for tap+netns agent sessions)" \
+    || info "dnsmasq missing: sealed csv-clean still works; AG-UI / Keep agent networking may need it"
   local d="${MERION_FLUXVM_SRC:-/opt/fluxvm-src}"
   $SUDO mkdir -p "$d" && $SUDO chown "$(id -un)" "$d"
-  [[ -d "$d/fluxvm" ]] || git clone https://github.com/zyvorai/fluxvm.git "$d/fluxvm"
-  [[ -d "$d/guestkit" ]] || git clone https://github.com/zyvorai/guestkit.git "$d/guestkit"
+  if [[ -d "$d/fluxvm/.git" ]]; then
+    info "updating existing FluxVM checkout at $d/fluxvm"
+    ( cd "$d/fluxvm" && git fetch --prune origin && git checkout main && git pull --ff-only origin main ) || \
+      info "could not fast-forward FluxVM; building whatever is checked out"
+  else
+    git clone https://github.com/zyvorai/fluxvm.git "$d/fluxvm"
+  fi
+  if [[ -d "$d/guestkit/.git" ]]; then
+    ( cd "$d/guestkit" && git fetch --prune origin && git checkout main && git pull --ff-only origin main ) || true
+  else
+    [[ -d "$d/guestkit" ]] || git clone https://github.com/zyvorai/guestkit.git "$d/guestkit"
+  fi
   ( cd "$d/fluxvm" && $SUDO ./scripts/bootstrap-host.sh vmbr0 && ./scripts/preflight.sh && cargo build --release )
   for b in fluxctl fluxvm-hypervisor; do $SUDO install -m 0755 "$d/fluxvm/target/release/$b" "/usr/local/bin/$b"; done
   [[ -f /etc/fluxvm.toml ]] || $SUDO install -m 0644 "$d/fluxvm/config.example.toml" /etc/fluxvm.toml
