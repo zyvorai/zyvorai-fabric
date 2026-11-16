@@ -89,20 +89,35 @@ impl ConnectionStore {
 
     /// Writes the person's file atomically with mode 0600 (it holds refresh tokens).
     async fn save(&self, user: &str, map: &HashMap<String, Stored>) -> Result<()> {
+        validate_user_id(user).map_err(anyhow::Error::msg)?;
         let path = self.root.join(format!("{user}.json"));
         let tmp = self
             .root
             .join(format!("{user}.json.tmp-{}", uuid::Uuid::new_v4()));
-        let mut options = fs::OpenOptions::new();
-        options.write(true).create_new(true);
-        #[cfg(unix)]
-        options.mode(0o600);
-        let mut file = options.open(&tmp).await?;
-        file.write_all(&serde_json::to_vec_pretty(map)?).await?;
-        file.flush().await?;
-        drop(file);
-        fs::rename(&tmp, &path).await?;
-        Ok(())
+        let path_s = path.display().to_string();
+        let tmp_s = tmp.display().to_string();
+        crate::fs_checked!(
+            path_s,
+            anyhow::anyhow!("refusing a path with '..' segments"),
+            |path_s| {
+                crate::fs_checked!(
+                    tmp_s,
+                    anyhow::anyhow!("refusing a path with '..' segments"),
+                    |tmp_s| {
+                        let mut options = fs::OpenOptions::new();
+                        options.write(true).create_new(true);
+                        #[cfg(unix)]
+                        options.mode(0o600);
+                        let mut file = options.open(&tmp_s).await?;
+                        file.write_all(&serde_json::to_vec_pretty(map)?).await?;
+                        file.flush().await?;
+                        drop(file);
+                        fs::rename(&tmp_s, &path_s).await?;
+                        Ok(())
+                    }
+                )
+            }
+        )
     }
 
     /// Stores (or replaces) the person's refresh token for a connection.

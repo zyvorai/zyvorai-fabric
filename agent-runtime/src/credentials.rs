@@ -3857,7 +3857,7 @@ mod tests {
         ] {
             assert!(
                 !shown.contains(secret),
-                "the status leaked {secret}: {shown}"
+                "the status leaked a secret into source_status JSON"
             );
         }
         // A file source reports too, and a credential without a source does not appear.

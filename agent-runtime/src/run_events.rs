@@ -184,7 +184,10 @@ mod tests {
         assert_eq!(mine.len(), 1, "exactly one event for the run");
         let (event, signature, body) = &mine[0];
         assert_eq!(event, "run.finished");
-        let want = hex::encode(crate::schedules::hmac_sha256(b"whsec", body));
+        let want = hex::encode(crate::schedules::hmac_sha256(
+            crate::fixture::bytes(b"whsec").as_slice(),
+            body,
+        ));
         assert_eq!(signature, &format!("sha256={want}"));
         let text = String::from_utf8_lossy(body);
         for leaked in ["do-not-send", "token=abc", "ana"] {

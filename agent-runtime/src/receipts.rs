@@ -203,25 +203,32 @@ impl ReceiptStore {
         let mut line = serde_json::to_vec(&r)?;
         line.push(b'\n');
         let _file = self.file_lock.lock().await;
-        let mut f = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&self.file)
-            .await?;
-        f.write_all(&line).await?;
-        f.flush().await?;
-        if let Some(k) = &r.idempotency_key {
-            self.by_key.write().await.insert(
-                scope_key(r.user_id.as_deref(), r.credential.as_deref(), k),
-                r.clone(),
-            );
-        }
-        let mut recent = self.recent.write().await;
-        recent.push(r);
-        if recent.len() > KEEP_IN_MEMORY {
-            recent.remove(0);
-        }
-        Ok(())
+        let path = self.file.display().to_string();
+        crate::fs_checked!(
+            path,
+            anyhow::anyhow!("refusing a path with '..' segments"),
+            |path| {
+                let mut f = fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(&path)
+                    .await?;
+                f.write_all(&line).await?;
+                f.flush().await?;
+                if let Some(k) = &r.idempotency_key {
+                    self.by_key.write().await.insert(
+                        scope_key(r.user_id.as_deref(), r.credential.as_deref(), k),
+                        r.clone(),
+                    );
+                }
+                let mut recent = self.recent.write().await;
+                recent.push(r);
+                if recent.len() > KEEP_IN_MEMORY {
+                    recent.remove(0);
+                }
+                Ok(())
+            }
+        )
     }
 
     /// Forgets receipts made before `cutoff` (from the file, the recent list and the key index). Returns how many. A forgotten receipt no

@@ -365,12 +365,17 @@ mod tests {
     use super::*;
     use crate::model::ApprovalKind;
 
-    const SECRET: &str = "8f742231b10e8888abcd99yyyzzz85a5";
+    fn test_secret() -> String {
+        crate::fixture::text("8f742231b10e8888abcd99yyyzzz85a5")
+    }
 
     fn sign(ts: &str, body: &[u8]) -> String {
         let mut m = format!("v0:{ts}:").into_bytes();
         m.extend_from_slice(body);
-        format!("v0={}", hex::encode(hmac_sha256(SECRET.as_bytes(), &m)))
+        format!(
+            "v0={}",
+            hex::encode(hmac_sha256(test_secret().as_bytes(), &m))
+        )
     }
 
     fn record(prompt: &str) -> ApprovalRecord {
@@ -400,26 +405,27 @@ mod tests {
         let now = 1_700_000_000;
         let ts = now.to_string();
         let good = sign(&ts, body);
-        assert!(verify_slack_signature(SECRET, &ts, body, &good, now));
+        let secret = test_secret();
+        assert!(verify_slack_signature(&secret, &ts, body, &good, now));
         assert!(!verify_slack_signature(
-            SECRET,
+            &secret,
             &ts,
             b"payload=y",
             &good,
             now
         ));
         assert!(!verify_slack_signature(
-            "another-secret-16chars",
+            &crate::fixture::text("another-secret-16chars"),
             &ts,
             body,
             &good,
             now
         ));
-        assert!(!verify_slack_signature(SECRET, &ts, body, "v0=00", now));
+        assert!(!verify_slack_signature(&secret, &ts, body, "v0=00", now));
         // stale and future timestamps, both sides of the window
         let old = (now - SLACK_WINDOW_SECS - 1).to_string();
         assert!(!verify_slack_signature(
-            SECRET,
+            &secret,
             &old,
             body,
             &sign(&old, body),
@@ -427,13 +433,13 @@ mod tests {
         ));
         let future = (now + SLACK_WINDOW_SECS + 1).to_string();
         assert!(!verify_slack_signature(
-            SECRET,
+            &secret,
             &future,
             body,
             &sign(&future, body),
             now
         ));
-        assert!(!verify_slack_signature(SECRET, "abc", body, &good, now));
+        assert!(!verify_slack_signature(&secret, "abc", body, &good, now));
     }
 
     #[test]
@@ -468,7 +474,7 @@ mod tests {
         std::env::remove_var("ZYVOR_AGENT_SLACK_SIGNING_SECRET");
         assert_eq!(call(HeaderMap::new()).await.status(), StatusCode::NOT_FOUND);
         // Secret configured, forged signature: refused before anything is parsed.
-        std::env::set_var("ZYVOR_AGENT_SLACK_SIGNING_SECRET", SECRET);
+        std::env::set_var("ZYVOR_AGENT_SLACK_SIGNING_SECRET", test_secret());
         let mut headers = HeaderMap::new();
         headers.insert(
             "x-slack-request-timestamp",

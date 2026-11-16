@@ -139,24 +139,31 @@ fn pin_key(agent: &str, path: &str) -> String {
 }
 
 async fn read_pins(dir: &Path) -> Result<HashMap<String, String>, String> {
-    match tokio::fs::read(pins_path(dir)).await {
-        Ok(bytes) => {
-            serde_json::from_slice(&bytes).map_err(|e| format!("binary pins are unreadable: {e}"))
+    let path = pins_path(dir).display().to_string();
+    crate::fs_checked!(path, "refusing a path with '..' segments".into(), |path| {
+        match tokio::fs::read(&path).await {
+            Ok(bytes) => serde_json::from_slice(&bytes)
+                .map_err(|e| format!("binary pins are unreadable: {e}")),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(HashMap::new()),
+            Err(e) => Err(format!("binary pins could not be read: {e}")),
         }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(HashMap::new()),
-        Err(e) => Err(format!("binary pins could not be read: {e}")),
-    }
+    })
 }
 
 async fn write_pins(dir: &Path, pins: &HashMap<String, String>) -> Result<(), String> {
-    let tmp = dir.join(format!("{PINS_FILE}.tmp"));
+    let tmp = dir.join(format!("{PINS_FILE}.tmp")).display().to_string();
+    let dest = pins_path(dir).display().to_string();
     let bytes = serde_json::to_vec_pretty(pins).map_err(|e| e.to_string())?;
-    tokio::fs::write(&tmp, bytes)
-        .await
-        .map_err(|e| format!("binary pins could not be written: {e}"))?;
-    tokio::fs::rename(&tmp, pins_path(dir))
-        .await
-        .map_err(|e| format!("binary pins could not be written: {e}"))
+    crate::fs_checked!(tmp, "refusing a path with '..' segments".into(), |tmp| {
+        crate::fs_checked!(dest, "refusing a path with '..' segments".into(), |dest| {
+            tokio::fs::write(&tmp, bytes)
+                .await
+                .map_err(|e| format!("binary pins could not be written: {e}"))?;
+            tokio::fs::rename(&tmp, &dest)
+                .await
+                .map_err(|e| format!("binary pins could not be written: {e}"))
+        })
+    })
 }
 
 /// Trust on first use: remember the hash of `id` for `agent`, or refuse a hash that differs from

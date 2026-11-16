@@ -137,19 +137,26 @@ impl AuditLog {
 
         let mut line = serde_json::to_vec(&entry)?;
         line.push(b'\n');
-        let mut file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&self.path)
-            .await
-            .with_context(|| format!("opening {}", self.path.display()))?;
-        file.write_all(&line).await?;
-        file.sync_data().await?;
+        let path = self.path.display().to_string();
+        crate::fs_checked!(
+            path,
+            anyhow::anyhow!("refusing a path with '..' segments"),
+            |path| {
+                let mut file = fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(&path)
+                    .await
+                    .with_context(|| format!("opening {path}"))?;
+                file.write_all(&line).await?;
+                file.sync_data().await?;
 
-        tail.next_seq = entry.seq + 1;
-        tail.last_hash = entry.hash.clone();
-        crate::otlp::emit_entry(&entry);
-        Ok(entry)
+                tail.next_seq = entry.seq + 1;
+                tail.last_hash = entry.hash.clone();
+                crate::otlp::emit_entry(&entry);
+                Ok(entry)
+            }
+        )
     }
 
     /// Newest-last slice of entries, optionally for one session, capped at `limit`.
@@ -208,26 +215,29 @@ fn verify_chain(entries: &[AuditEntry]) -> ChainStatus {
 }
 
 async fn read_entries(path: &Path) -> Result<Vec<AuditEntry>> {
-    let raw = match fs::read_to_string(path).await {
-        Ok(raw) => raw,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
-        Err(error) => return Err(error.into()),
-    };
-    let mut entries = Vec::new();
-    for (line_no, line) in raw.lines().enumerate() {
-        if line.trim().is_empty() {
-            continue;
+    let path = path.display().to_string();
+    crate::fs_checked!(
+        path,
+        anyhow::anyhow!("refusing a path with '..' segments"),
+        |path| {
+            let raw = match fs::read_to_string(&path).await {
+                Ok(raw) => raw,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+                Err(error) => return Err(error.into()),
+            };
+            let mut entries = Vec::new();
+            for (line_no, line) in raw.lines().enumerate() {
+                if line.trim().is_empty() {
+                    continue;
+                }
+                match serde_json::from_str::<AuditEntry>(line) {
+                    Ok(entry) => entries.push(entry),
+                    Err(error) => bail!("{path}:{}: corrupt audit entry: {error}", line_no + 1),
+                }
+            }
+            Ok(entries)
         }
-        match serde_json::from_str::<AuditEntry>(line) {
-            Ok(entry) => entries.push(entry),
-            Err(error) => bail!(
-                "{}:{}: corrupt audit entry: {error}",
-                path.display(),
-                line_no + 1
-            ),
-        }
-    }
-    Ok(entries)
+    )
 }
 
 #[cfg(test)]
