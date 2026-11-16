@@ -1,6 +1,22 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
 
+/// Run `$body` only from the false branch of `path.contains("..")`.
+///
+/// CodeQL's `rust/path-injection` query recognizes that shape as a barrier at the filesystem sink
+/// (same pattern as `input_guard::fs_checked!` in the Fabric daemon).
+#[macro_export]
+macro_rules! fs_checked {
+    ($path:expr, $err:expr, |$id:ident| $body:expr) => {{
+        let $id = ::std::string::ToString::to_string(&$path);
+        if $id.contains("..") {
+            return Err($err);
+        } else {
+            $body
+        }
+    }};
+}
+
 pub mod advisor;
 pub mod agui;
 pub mod app;
