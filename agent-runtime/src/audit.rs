@@ -138,21 +138,25 @@ impl AuditLog {
         let mut line = serde_json::to_vec(&entry)?;
         line.push(b'\n');
         let path = self.path.display().to_string();
-        crate::fs_checked!(path, anyhow::anyhow!("refusing a path with '..' segments"), |path| {
-            let mut file = fs::OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(&path)
-                .await
-                .with_context(|| format!("opening {path}"))?;
-            file.write_all(&line).await?;
-            file.sync_data().await?;
+        crate::fs_checked!(
+            path,
+            anyhow::anyhow!("refusing a path with '..' segments"),
+            |path| {
+                let mut file = fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(&path)
+                    .await
+                    .with_context(|| format!("opening {path}"))?;
+                file.write_all(&line).await?;
+                file.sync_data().await?;
 
-            tail.next_seq = entry.seq + 1;
-            tail.last_hash = entry.hash.clone();
-            crate::otlp::emit_entry(&entry);
-            Ok(entry)
-        })
+                tail.next_seq = entry.seq + 1;
+                tail.last_hash = entry.hash.clone();
+                crate::otlp::emit_entry(&entry);
+                Ok(entry)
+            }
+        )
     }
 
     /// Newest-last slice of entries, optionally for one session, capped at `limit`.
@@ -218,9 +222,7 @@ async fn read_entries(path: &Path) -> Result<Vec<AuditEntry>> {
         |path| {
             let raw = match fs::read_to_string(&path).await {
                 Ok(raw) => raw,
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                    return Ok(Vec::new())
-                }
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
                 Err(error) => return Err(error.into()),
             };
             let mut entries = Vec::new();
