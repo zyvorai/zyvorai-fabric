@@ -107,10 +107,7 @@ impl ConnectionStore {
                         let mut options = fs::OpenOptions::new();
                         options.write(true).create_new(true);
                         #[cfg(unix)]
-                        {
-                            use std::os::unix::fs::OpenOptionsExt;
-                            options.mode(0o600);
-                        }
+                        options.mode(0o600);
                         let mut file = options.open(&tmp_s).await?;
                         file.write_all(&serde_json::to_vec_pretty(map)?).await?;
                         file.flush().await?;
