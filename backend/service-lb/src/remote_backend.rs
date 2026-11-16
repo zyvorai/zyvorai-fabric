@@ -396,10 +396,7 @@ fn remote_active_for_merge(remote: &RemoteBackend, now_unix_ms: u64) -> bool {
         BackendState::Draining => {
             let until = remote.drain_until_unix_ms.unwrap_or(0);
             // now_unix_ms == 0 → do not expire
-            if now_unix_ms > 0 && until > 0 && now_unix_ms > until {
-                return false;
-            }
-            true
+            !(now_unix_ms > 0 && until > 0 && now_unix_ms > until)
         }
     }
 }
