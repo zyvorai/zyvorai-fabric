@@ -14,6 +14,7 @@ permissions:
   contents: write
   packages: write
   id-token: write
+  attestations: write
 
 jobs:
   build:
@@ -151,6 +152,31 @@ jobs:
         env:
           COSIGN_YES: "true"
         run: cosign sign "ghcr.io/${{ github.repository }}@${{ needs.container.outputs.digest }}"
+
+      # Provenance + SBOM attestations (Sigstore keyless, same OIDC identity as cosign above).
+      # Image attestations are pushed to GHCR next to the image digest.
+      - name: Attest build provenance (release archives and charts)
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            release/*.tar.gz
+            release/*.tgz
+            release/SHA256SUMS.txt
+
+      - name: Attest build provenance (container image)
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ needs.container.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest SBOM (container image)
+        uses: actions/attest-sbom@v2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ needs.container.outputs.digest }}
+          sbom-path: release/sbom.spdx.json
+          push-to-registry: true
 
       - name: Push the Merion chart to GHCR (OCI)
         run: |

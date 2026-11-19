@@ -21,6 +21,8 @@ ignore = [
     "RUSTSEC-2025-0040",
     # unsafe-libyaml is unmaintained (no known exploit); it comes in through serde_yaml in cloud-init and fabricctl. Drop this when they move to another YAML crate.
     "RUSTSEC-2024-0449",
+    # chrono is flagged unmaintained (RUSTSEC-2026-0543, all versions; "No safe upgrade is available"). It is a direct dependency of ~10 workspace crates (billing, backup, compliance, ...), so a migration to time/jiff is a separate refactor. Informational advisory, no vulnerability. Expiry: revisit by 2027-02-28; remove once chrono is replaced or a maintained release appears.
+    "RUSTSEC-2026-0543",
 ]
 
 [licenses]
