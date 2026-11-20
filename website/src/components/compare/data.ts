@@ -300,7 +300,7 @@ export const FABRIC_GROUPS: TGroup[] = [
     title: 'Project',
     rows: [
       {label: 'Written in', cells: [cell('Rust'), cell('Perl / C'), cell('Python'), cell('C')]},
-      {label: 'License', cells: [cell('Apache-2.0'), cell('AGPL', 'part'), cell('Apache-2.0'), cell('LGPL', 'part')]},
+      {label: 'License', cells: [cell('Zyvor Production 1.0'), cell('AGPL', 'part'), cell('Zyvor Production 1.0'), cell('LGPL', 'part')]},
     ],
   },
 ];

@@ -72,7 +72,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title="Zyvor Fabric — the private cloud that fits in one daemon"
-      description="VMs, networking, storage, security and AI inference from one ~15 MB Rust daemon on any Linux server with KVM. Open source, Apache-2.0.">
+      description="VMs, networking, storage, security and AI inference from one ~15 MB Rust daemon on any Linux server with KVM. Source-available, Zyvor Production License v1.0.">
       <PageMetadata image="/img/compare-social.png" />
       <Page>
         <HeroShell

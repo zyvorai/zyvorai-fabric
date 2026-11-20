@@ -5,23 +5,11 @@ Source: https://github.com/zyvor-fabricd/zyvor-fabricd
 
 Files: *
 Copyright: 2026 zyvor-fabricd contributors
-License: MIT
+License: LicenseRef-Zyvor-Production-1.0
 
-License: MIT
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- .
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
- .
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
+License: LicenseRef-Zyvor-Production-1.0
+ Zyvor Production License v1.0. Non-production use (evaluation, development,
+ testing, research, education) is free. Production Use requires a commercial
+ license from Zyvor AI Labs Private Limited (sales@zyvor.dev,
+ https://zyvor.dev/buy). The full text is in /usr/share/doc/zyvor-fabricd/LICENSE
+ and in the LICENSE file of the source repository.

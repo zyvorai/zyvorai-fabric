@@ -33,7 +33,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleName: Solvor
         LSApplicationCategoryType: public.app-category.developer-tools
-        NSHumanReadableCopyright: "Copyright 2026 Zyvor. Apache-2.0."
+        NSHumanReadableCopyright: "Copyright 2026 Zyvor. Zyvor Production License v1.0."
         NSUserNotificationsUsageDescription: "Keep tells you when a run finishes or needs your approval."
         NSFaceIDUsageDescription: "Approvals are signed with your fingerprint."
         NSMicrophoneUsageDescription: "Solvor listens when you press the microphone button, to hear a command."

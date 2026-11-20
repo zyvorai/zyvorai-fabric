@@ -14,7 +14,7 @@
   <a href="https://github.com/zyvorai/solvor/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/zyvorai/solvor/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="macOS 26" src="https://img.shields.io/badge/macOS-26-blue">
   <img alt="Swift 5.10" src="https://img.shields.io/badge/Swift-5.10-orange">
-  <img alt="License Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-green">
+  <img alt="License Zyvor Production" src="https://img.shields.io/badge/license-Zyvor%20Production-blue">
 </p>
 
 <p align="center">

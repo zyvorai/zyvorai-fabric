@@ -1,7 +1,7 @@
 {
   "_comment": "Single source for Merion marketing copy. Consumed by website/src/pages/merion.tsx and web/src/components/merion/*. Every Muse-side row must be stated in docs/merion/MERION.md; rows with no source are left out.",
   "tagline": "Your agent gets a real computer. You keep the keys.",
-  "lede": "Merion gives an untrusted AI agent its own sealed computer on hardware you control, while you hold the policy, the credentials and the approvals. Open source.",
+  "lede": "Merion gives an untrusted AI agent its own sealed computer on hardware you control, while you hold the policy, the credentials and the approvals. Source-available.",
   "values": [
     {
       "title": "You run it",
@@ -9,7 +9,7 @@
     },
     {
       "title": "You read it",
-      "body": "Policy is a signed merion.policy.yaml you can diff in git. Apache-2.0."
+      "body": "Policy is a signed merion.policy.yaml you can diff in git. Zyvor Production License v1.0."
     },
     {
       "title": "You take it with you",

@@ -8,7 +8,7 @@
 [![Merion](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Merion)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/merion.yml)
 [![Agent Runtime](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/agent-runtime.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Agent%20Runtime)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/agent-runtime.yml)
 [![AI Workloads](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ai-workloads.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=AI%20Workloads)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ai-workloads.yml)
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0071e3?style=flat-square&labelColor=1d1d1f)](LICENSE)
+[![License: Zyvor Production](https://img.shields.io/badge/license-Zyvor%20Production-0071e3?style=flat-square&labelColor=1d1d1f)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-backend-0071e3?style=flat-square&labelColor=1d1d1f&logo=rust&logoColor=white)](backend/)
 [![React](https://img.shields.io/badge/react-19.2-0071e3?style=flat-square&labelColor=1d1d1f&logo=react&logoColor=white)](web/)
 [![Kubernetes](https://img.shields.io/badge/kubernetes-ready-0071e3?style=flat-square&labelColor=1d1d1f&logo=kubernetes&logoColor=white)](docs/KUBERNETES.md)
@@ -42,7 +42,7 @@
 
 ## 780+ endpoints. 4 front doors. 1 API.
 
-**53** Rust crates  ·  **92** console pages  ·  **31** security audit rounds, **0** outstanding  ·  Apache-2.0, in full
+**53** Rust crates  ·  **92** console pages  ·  **31** security audit rounds, **0** outstanding  ·  Zyvor Production License v1.0
 
 <sub>Counted from source. <a href="docs/PRODUCT_OVERVIEW.md">Methodology</a></sub>
 
@@ -231,7 +231,7 @@ Default ports: **9095** (API and UI) and **7788** (FluxVM on localhost). The ful
 | Cluster model | Single-host or small cluster (multi-host networking available) | Built-in multi-node cluster with its own cluster filesystem (pmxcfs) |
 | Live migration | Disk-copy path GA; native FluxVM transport preview; full HA cutover pre-GA | Built-in cluster migration |
 | AI inference | OpenAI-compatible inference on the same daemon (Beta) | Not part of the product |
-| License | Apache-2.0, in full | AGPL plus an optional subscription |
+| License | Zyvor Production 1.0 (free non-production) | AGPL plus an optional subscription |
 | **Choose Proxmox VE when** | | You need large multi-host clusters with mature shared-storage live migration today, or first-class Windows guests |
 
 ## How it fits together
@@ -310,11 +310,11 @@ make lint && make fmt
 
 ## Support
 
-Free under Apache-2.0. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
+Non-production use is free under the Zyvor Production License v1.0; production use requires a commercial license (sales.dev). If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
 ## License and support
 
-Zyvor Fabric is **free and open source** under the [Apache License, Version 2.0](LICENSE), in full — there is no dual-licensing or separately-licensed core component. You may use, modify, and run it for personal, lab, and commercial production use at no charge, subject to Apache-2.0 (preserve notices / NOTICE where required). See [NOTICE](NOTICE).
+Zyvor Fabric is **source-available** under the [Zyvor Production License v1.0](LICENSE) (SPDX: `LicenseRef-Zyvor-Production-1.0`). Non-production use (evaluation, development, testing, research, education) is free. Production Use requires a paid commercial license from Zyvor AI Labs Private Limited: [sales@zyvor.dev](mailto:sales@zyvor.dev) · [zyvor.dev/buy](https://zyvor.dev/buy); a 30-day trial key is available for production evaluation. See [NOTICE](NOTICE).
 
 **Zyvor Enterprise** adds what production teams ask for: supported releases, deployment and upgrade guidance, priority incident triage, a named technical contact and 24x7 critical intake. Plans and terms: [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md) · [Pricing](https://zyvor.dev/pricing?utm_source=github&utm_medium=fabric&utm_campaign=readme_license) · [sales@zyvor.dev](mailto:sales@zyvor.dev). Support is on the one Zyvor Support meter per worker node per year: Supported INR 59,999 in India / USD 600 elsewhere, Supported Plus INR 119,999 in India / USD 1,200 elsewhere. Prices: INR incl. 18% GST in India; US dollars excl. tax elsewhere. Buy / get a quote: [zyvor.dev/buy](https://zyvor.dev/buy).
 

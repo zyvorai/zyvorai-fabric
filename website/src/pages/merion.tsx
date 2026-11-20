@@ -44,7 +44,7 @@ export default function MerionPage(): ReactNode {
   return (
     <Layout
       title="Merion — your agent gets a real computer"
-      description="An open-source workstation for an untrusted AI agent: a sealed FluxVM cell, signed policy and network rules enforced on the host, on hardware you control.">
+      description="A source-available workstation for an untrusted AI agent: a sealed FluxVM cell, signed policy and network rules enforced on the host, on hardware you control.">
       <Head>
         <meta property="og:image" content={card} />
         <meta name="twitter:card" content="summary_large_image" />

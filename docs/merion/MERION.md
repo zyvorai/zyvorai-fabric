@@ -6,7 +6,7 @@
 
 Merion is a personal workstation for an untrusted agent. Muse got the threat model right; Merion ships the open version Meta cannot: **you run it, you read it, you take it with you.**
 
-Apache-2.0, same as FluxVM. Merion is a **product layer in Fabric** on FluxVM —
+Zyvor Production License v1.0, same as FluxVM. Merion is a **product layer in Fabric** on FluxVM —
 not a third repo and not a second VMM.
 
 **Docs home:** `fabric/docs/merion/` (this tree).  

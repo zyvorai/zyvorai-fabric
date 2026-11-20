@@ -6,7 +6,8 @@ info:
   description: Zyvor Fabric control plane (zyvor-fabricd daemon) — REST and WebSocket API
   version: 0.1.0
   license:
-    name: MIT
+    name: Zyvor Production License v1.0
+    url: https://github.com/zyvorai/zyvorai-fabric/blob/main/LICENSE
 servers:
   - url: http://localhost:9095
     description: Local development server

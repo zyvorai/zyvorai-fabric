@@ -39,7 +39,7 @@ targets:
         NSFaceIDUsageDescription: "Approvals are signed with your face or fingerprint, on this device."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
-        NSHumanReadableCopyright: "Copyright 2026 Zyvor. Apache-2.0."
+        NSHumanReadableCopyright: "Copyright 2026 Zyvor. Zyvor Production License v1.0."
 schemes:
   MerionPhone:
     build:

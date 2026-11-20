@@ -206,7 +206,7 @@ Zyvor Fabric nodes managed by the Kubernetes operator. VMs defined as CRDs along
 | Written in | Rust | Perl/C | Python | C |
 | Memory Safety | Guaranteed (no `unsafe`) | No | N/A | No |
 | Setup Time | 5 min | 2 hours | 2 days | Manual |
-| License | Apache-2.0 | AGPL | Apache-2.0 | LGPL |
+| License | Zyvor Production 1.0 (free non-production) | AGPL | Apache-2.0 | LGPL |
 
 For the deeper, independently-verifiable version of this table (package counts, config file counts, and where Fabric currently loses to the alternatives — not just where it wins), see the [Comparison Matrix](guides/decision-support/comparison-matrix.md).
 
@@ -249,7 +249,7 @@ Endpoint and page counts will drift a little release to release; treat the "+"-s
 
 ## License
 
-Apache License 2.0 — free for commercial use, modification, and distribution, for the entire repository. There is no separately-licensed core component. See [README.md — License](../README.md#license) for the full text and how Enterprise support fits alongside it.
+Zyvor Production License v1.0 for the entire repository: non-production use is free; production use requires a commercial license (sales@zyvor.dev). See [README.md — License](../README.md#license) for the full text and how Enterprise support fits alongside it.
 
 ---
 

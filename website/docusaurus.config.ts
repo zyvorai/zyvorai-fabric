@@ -170,7 +170,7 @@ const config: Config = {
               href: 'https://github.com/zyvorai/zyvorai-fabric/blob/main/CHANGELOG.md',
             },
             {
-              label: 'License (Apache-2.0)',
+              label: 'License (Zyvor Production 1.0)',
               href: 'https://github.com/zyvorai/zyvorai-fabric/blob/main/LICENSE',
             },
           ],
@@ -184,7 +184,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Zyvor. Zyvor Fabric core is Apache-2.0 licensed.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Zyvor. Zyvor Fabric core is under the Zyvor Production License v1.0.`,
     },
     prism: {
       theme: prismThemes.github,

@@ -6,7 +6,7 @@
 
 ### What is Zyvor Fabric?
 
-Zyvor Fabric is an open-source virtual machine management platform built in Rust. It
+Zyvor Fabric is a source-available virtual machine management platform built in Rust. It
 provides a REST API, web UI, and CLI for managing the full lifecycle of virtual
 machines on Linux hosts, using QEMU (and Cloud Hypervisor/Firecracker) via
 [FluxVM](https://github.com/zyvorai/fluxvm), a disposable-VM engine with

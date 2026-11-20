@@ -125,7 +125,7 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 <h1>${theme.brandHtml}</h1>
 <div class="sub">${title}</div>
 <div class="badge">${today}</div>
-<div class="foot">zyvor.dev · Apache License 2.0</div></section>
+<div class="foot">zyvor.dev · Zyvor Production License v1.0</div></section>
 <main>${bodyHtml}</main></body></html>`
 }
 

@@ -174,9 +174,9 @@ const GROUPS: Group[] = [
       {
         label: 'License',
         muse: c('Closed', 'no'),
-        merion: c('Apache-2.0'),
-        fabric: c('Apache-2.0'),
-        flux: c('Apache-2.0'),
+        merion: c('Zyvor Production 1.0'),
+        fabric: c('Zyvor Production 1.0'),
+        flux: c('Zyvor Production 1.0'),
       },
     ],
   },

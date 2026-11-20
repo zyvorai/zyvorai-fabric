@@ -1,6 +1,6 @@
 # Show HN draft
 
-**Title:** Show HN: Merion, read your files in a network-less microVM and see the proof (open source)
+**Title:** Show HN: Merion, read your files in a network-less microVM and see the proof (source-available)
 
 **Body**
 

@@ -96,7 +96,7 @@ blockquote{border-left:3px solid ${ACCENT};padding:.2em .9em;color:#475569;margi
 <h1>${theme.brandHtml}</h1>
 <div class="sub">${sub}</div>
 <div class="badge">${today}</div>
-<div class="foot">zyvor.dev · Apache License 2.0</div></section>
+<div class="foot">zyvor.dev · Zyvor Production License v1.0</div></section>
 <main>${bodyHtml}</main></body></html>`
 }
 

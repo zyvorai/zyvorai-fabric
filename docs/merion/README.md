@@ -7,10 +7,10 @@
 **Your agent gets a real computer. You keep the keys.**
 
 Merion gives an untrusted AI agent its own sealed computer on hardware you control,
-while you hold the policy, the credentials and the approvals. Open source, Apache-2.0.
+while you hold the policy, the credentials and the approvals. Source-available, Zyvor Production License v1.0.
 
 [![Merion CI](https://github.com/zyvorai/fabric/actions/workflows/merion.yml/badge.svg)](../../.github/workflows/merion.yml)
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](../../LICENSE)
+[![License: Zyvor Production](https://img.shields.io/badge/license-Zyvor%20Production-blue.svg)](../../LICENSE)
 ![Rust](https://img.shields.io/badge/runtime-Rust-orange)
 ![Evidence](https://img.shields.io/badge/evidence-software--test-lightgrey)
 
@@ -321,7 +321,7 @@ Muse got the threat model right. Merion is the version you run, read and take wi
 
 | | Meta Muse | Merion |
 |---|---|---|
-| Where it runs | Meta's cloud only; not self-hostable. | Your hardware, under Apache-2.0. |
+| Where it runs | Meta's cloud only; not self-hostable. | Your hardware, under the Zyvor Production License v1.0. |
 | The cell | Its own dedicated cloud VM; a separate Sentinel runs on the same machine, kept apart from the agent at the system level. Meta's announcement does not describe how the agent is separated inside that VM. | A Firecracker/KVM microVM per cell on FluxVM, with its own kernel; the network policy is applied by the host, outside the guest. |
 | Model | Muse Spark, Meta's proprietary model. | Bring your own model socket. |
 | Training data | Users can opt out of interaction data being used for training. | Off by default. Export needs a scoped token. |
@@ -382,4 +382,4 @@ Start with [VENDORS.md](VENDORS.md); it lists what is built, what is reference c
 - [PRODUCTION.md](PRODUCTION.md) — production checklist · [STATUS.md](STATUS.md) — what ships today
 - [Fabric](../../README.md) — the control plane Merion runs on
 
-License: Apache-2.0.
+License: Zyvor Production License v1.0 (free for non-production use; production use requires a commercial license, sales@zyvor.dev).

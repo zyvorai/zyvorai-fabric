@@ -53,7 +53,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>Approvals are signed with your fingerprint.</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright 2026 Zyvor. Apache-2.0.</string>
+	<string>Copyright 2026 Zyvor. Zyvor Production License v1.0.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Solvor listens when you press the microphone button, to hear a command.</string>
 	<key>NSServices</key>

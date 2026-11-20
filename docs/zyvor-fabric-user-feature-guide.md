@@ -247,4 +247,4 @@ _Datacenter hierarchy, resource pools, chargeback, and lifecycle compliance at s
 > **Good to know:** Zyvor Fabric requires Linux with systemd 256+ (Fedora, Ubuntu, Debian, RHEL, or SUSE) and KVM; it is not a hosted or Windows-server product. Some enterprise capabilities carry environmental prerequisites — swtpm for vTPM, an etcd cluster and shared/replicated storage for HA and live migration, and matching hardware/IOMMU for GPU passthrough. Multi-node HA is designed for 3+ nodes; single-server deployments run standalone. The published endpoint and page counts (780+ REST endpoints, 90+ web pages) reflect current documentation and may vary by release, and the macOS Machina workbench is a separate desktop product that consumes the Fabric API rather than part of this daemon.
 
 ---
-_Zyvor Fabric is developed by ZyvorAI Labs. Contact **info@zyvor.dev** · Apache License 2.0._
+_Zyvor Fabric is developed by ZyvorAI Labs. Contact **info@zyvor.dev** · Zyvor Production License v1.0._

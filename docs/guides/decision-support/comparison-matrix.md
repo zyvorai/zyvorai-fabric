@@ -26,7 +26,7 @@ Feature-by-feature comparison of Zyvor Fabric against alternative VM management 
 | **Init system integration** | No systemd dependency — direct netlink for networking, FluxVM-supervised VM processes; the daemon's own packaging/init doesn't require systemd either | Standalone (systemd unit for libvirtd only) | Standalone (custom init scripts) |
 | **Language** | Rust (backend), React (frontend) | C (libvirt), various (bindings) | Perl (backend), JavaScript (frontend) |
 | **Cluster support** | Single-host (multi-host networking available) | Single-host (requires external orchestration) | Built-in multi-node cluster |
-| **License** | Open source | LGPL | AGPL (open source) + subscription |
+| **License** | Zyvor Production 1.0 (free non-production) | LGPL | AGPL (open source) + subscription |
 
 ### Key Architectural Differences
 
