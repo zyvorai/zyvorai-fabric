@@ -121,3 +121,17 @@ POST       /api/ai/routers/{endpoint}/promote    {"variant": "…"}
 ```
 
 Reads need the read role; writes, feedback, purge and promote need write.
+
+## Failover
+
+When the chosen arm cannot be reached (connect error, timeout, or a 5xx
+status before any body byte is streamed), the gateway retries the next-ranked
+arm that has a ready backend. Set `"failover": false` on a router to surface the
+upstream error instead, and `"max_attempts"` (default 2) to bound the tries.
+
+The response carries `x-fabric-variant` (the arm that answered) and
+`x-fabric-failover-from` (comma-separated arms that failed first). Each failed
+attempt is recorded as a trace on the failed arm with its error status, so it
+shows up in that arm's error rate in the A/B report. Note that failover moves
+traffic between arms, so a flaky arm skews the split: check the error column
+before trusting a comparison.

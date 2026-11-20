@@ -143,12 +143,17 @@ hard=$("${CURL[@]}" -i -X POST "$GW" -H "authorization: Bearer $SECRET" -H 'cont
 api POST /api/ai/routers/ai-smoke-front/decide -d '{"messages":[{"role":"user","content":"hi"}]}' | jget 'd["chosen"]=="small"' | grep -q True || fail "decide endpoint"
 ok "cost router sends easy work to 'small' and tool use to 'big'"
 
-echo "== 8. fall back when the chosen arm is down =="
+echo "== 8. fail over when the chosen arm is down =="
 kill "${pids[1]}" 2>/dev/null; sleep 0.3
-code=$(chat c2 "short question" | head -1)
-echo "     (arm down) $code"
-echo "$code" | grep -q 200 && fail "expected 502 from a dead upstream: router only skips arms with no ready backend"
-ok "dead upstream surfaces as an error (arms are skipped only when they have no backend at all)"
+resp=$(chat c2 "short question")
+echo "     (arm down) $(echo "$resp" | head -1)"
+echo "$resp" | head -1 | grep -q 200 || fail "expected failover to a healthy arm: $resp"
+[[ "$(hdr "$resp" x-fabric-variant)" == big ]] || fail "failover should be served by big"
+[[ "$(hdr "$resp" x-fabric-failover-from)" == small ]] || fail "missing x-fabric-failover-from"
+ok "dead 'small' fails over to 'big' and the response says so"
+set_router '{"endpoint":"ai-smoke-front","strategy":"cost","failover":false,"min_quality":0.5,"candidates":[{"name":"big","endpoint":"ai-smoke-big","quality":0.9,"cost_per_mtok_in":5,"cost_per_mtok_out":15},{"name":"small","endpoint":"ai-smoke-small","quality":0.6,"cost_per_mtok_in":0.2,"cost_per_mtok_out":0.6}]}'
+chat c3 "short question" | head -1 | grep -q 200 && fail "failover:false must surface the upstream error"
+ok "failover:false surfaces the error"
 python3 "$HERE/mock-openai.py" "$PORT_SMALL" small 40 & pids[1]=$!; sleep 1
 
 echo "== 9. promote =="

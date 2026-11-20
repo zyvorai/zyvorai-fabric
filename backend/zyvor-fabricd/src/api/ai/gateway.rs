@@ -367,13 +367,18 @@ async fn gateway_inner(
     let mut ep = ep;
     let mut dep = dep;
     let mut route_label: Option<(String, String)> = None;
+    let mut chain: Vec<(InferenceEndpoint, InferenceDeployment, String)> = Vec::new();
     if let Some(router) = super::router::router_for(state, endpoint_name) {
         let input = super::router::RouteInput::from_request(
             &body_bytes,
             &super::router::header_pairs(&parts.headers),
         );
         let decision = super::router::decide(&router, &input, rand::random::<u64>());
-        let mut chosen = None;
+        let max_attempts = if router.failover {
+            router.max_attempts.max(1) as usize
+        } else {
+            1
+        };
         for idx in &decision.order {
             let cand = &router.candidates[*idx];
             let target_ep: Option<InferenceEndpoint> = state
@@ -390,12 +395,14 @@ async fn gateway_inner(
             });
             if let (Some(e), Some(d)) = (target_ep, target_dep) {
                 if dry || !upstream_targets(&e, &d).is_empty() {
-                    chosen = Some((e, d, cand.name.clone()));
-                    break;
+                    chain.push((e, d, cand.name.clone()));
+                    if chain.len() >= max_attempts {
+                        break;
+                    }
                 }
             }
         }
-        let (e, d, variant) = chosen.ok_or((
+        let (e, d, variant) = chain.first().cloned().ok_or((
             StatusCode::SERVICE_UNAVAILABLE,
             "no router candidate has a ready backend".to_string(),
         ))?;
@@ -436,7 +443,6 @@ async fn gateway_inner(
         }
     }
     let trace_id = trace_ctx.as_ref().map(|c| c.id.clone());
-    let req = Request::from_parts(parts.clone(), Body::from(upstream_body));
     let upstream_path = if path.is_empty() {
         "/v1/models".to_string()
     } else if path.starts_with('/') {
@@ -500,24 +506,89 @@ async fn gateway_inner(
         ));
     }
 
-    let proxied = proxy_upstream(
-        &method,
-        &ep,
-        &dep,
-        &upstream_path,
-        req,
-        ConcurrencyGuard {
-            store: state.store.clone(),
-            key_id: if key.prefix == "oidc" {
-                String::new()
-            } else {
-                key.id.clone()
-            },
+    let guard = ConcurrencyGuard {
+        store: state.store.clone(),
+        key_id: if key.prefix == "oidc" {
+            String::new()
+        } else {
+            key.id.clone()
         },
-        streams,
-        trace_ctx.map(|ctx| (state.store.clone(), ctx)),
-    )
-    .await;
+    };
+    if chain.is_empty() {
+        chain.push((
+            ep.clone(),
+            dep.clone(),
+            route_label
+                .as_ref()
+                .map(|(_, v)| v.clone())
+                .unwrap_or_default(),
+        ));
+    }
+    let mut failed_arms: Vec<String> = Vec::new();
+    let mut served = 0usize;
+    let connected = loop {
+        let (aep, adep, _) = &chain[served];
+        let result = connect_upstream(
+            &method,
+            aep,
+            adep,
+            &upstream_path,
+            &parts.headers,
+            &upstream_body,
+        )
+        .await;
+        let retryable = match &result {
+            Err((s, _)) => matches!(
+                *s,
+                StatusCode::BAD_GATEWAY
+                    | StatusCode::SERVICE_UNAVAILABLE
+                    | StatusCode::GATEWAY_TIMEOUT
+            ),
+            Ok((resp, _)) => resp.status().is_server_error(),
+        };
+        if retryable && served + 1 < chain.len() {
+            let (fep, fdep, fvariant) = chain[served].clone();
+            if let Some(mut ctx) = trace_ctx.clone() {
+                ctx.id = uuid::Uuid::new_v4().to_string();
+                ctx.target_endpoint = fep.name.clone();
+                ctx.model = fdep.model.clone();
+                ctx.variant = route_label.as_ref().map(|_| fvariant.clone());
+                let failed_status = match &result {
+                    Ok((resp, _)) => resp.status().as_u16(),
+                    Err((s, _)) => s.as_u16(),
+                };
+                drop(super::traces::TraceSink::new(
+                    state.store.clone(),
+                    ctx,
+                    failed_status,
+                    false,
+                ));
+            }
+            record_breaker(state, endpoint_name, true);
+            failed_arms.push(fvariant);
+            served += 1;
+            continue;
+        }
+        break result;
+    };
+    if let Some((_, variant)) = route_label.as_mut() {
+        *variant = chain[served].2.clone();
+    }
+    if let Some(ctx) = trace_ctx.as_mut() {
+        ctx.target_endpoint = chain[served].0.name.clone();
+        ctx.model = chain[served].1.model.clone();
+        ctx.variant = route_label.as_ref().map(|(_, v)| v.clone());
+    }
+    let proxied = match connected {
+        Ok((resp, streaming)) => relay_upstream(
+            resp,
+            streaming,
+            guard,
+            streams,
+            trace_ctx.map(|ctx| (state.store.clone(), ctx)),
+        ),
+        Err(e) => Err(e),
+    };
     let outcome = match &proxied {
         Ok(resp) if resp.status().is_success() => "SUCCESS",
         _ => "FAILED",
@@ -539,6 +610,11 @@ async fn gateway_inner(
         if let Some((_, variant)) = &route_label {
             if let Ok(v) = HeaderValue::from_str(variant) {
                 resp.headers_mut().insert("x-fabric-variant", v);
+            }
+        }
+        if !failed_arms.is_empty() {
+            if let Ok(v) = HeaderValue::from_str(&failed_arms.join(",")) {
+                resp.headers_mut().insert("x-fabric-failover-from", v);
             }
         }
         if let Some(id) = trace_id
@@ -667,17 +743,16 @@ fn inference_client(
     Ok((client, transport))
 }
 
-#[allow(clippy::too_many_arguments)]
-async fn proxy_upstream(
+/// Connect to the upstream and return its response headers (before any body
+/// byte is read), so the caller can still fail over to another arm.
+async fn connect_upstream(
     method: &Method,
     ep: &InferenceEndpoint,
     dep: &InferenceDeployment,
     upstream_path: &str,
-    req: Request,
-    guard: ConcurrencyGuard,
-    streams: StreamHold,
-    trace: Option<(state_store::StateStore, super::traces::TraceCtx)>,
-) -> Result<Response, (StatusCode, String)> {
+    headers: &axum::http::HeaderMap,
+    body_bytes: &axum::body::Bytes,
+) -> Result<(reqwest::Response, bool), (StatusCode, String)> {
     let targets = upstream_targets(ep, dep);
     if targets.is_empty() {
         return Err((
@@ -686,20 +761,18 @@ async fn proxy_upstream(
         ));
     }
 
-    let session = req
-        .headers()
+    let session = headers
         .get("x-session-id")
         .and_then(|value| value.to_str().ok())
         .map(str::to_string);
-    let incoming_type = req
-        .headers()
+    let incoming_type = headers
         .get(header::CONTENT_TYPE)
         .and_then(|v| v.to_str().ok())
         .unwrap_or("application/json")
         .to_string();
     let deadline = Duration::from_secs(
         request_deadline_secs(
-            req.headers()
+            headers
                 .get("x-request-timeout")
                 .and_then(|value| value.to_str().ok()),
             120,
@@ -707,21 +780,13 @@ async fn proxy_upstream(
         )
         .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?,
     );
-    let body_bytes = axum::body::to_bytes(req.into_body(), body_limit())
-        .await
-        .map_err(|_| {
-            (
-                StatusCode::PAYLOAD_TOO_LARGE,
-                format!("body exceeds {} bytes", body_limit()),
-            )
-        })?;
-    let streaming = wants_stream(&body_bytes);
+    let streaming = wants_stream(body_bytes);
     let vip_first = ep.vip.as_deref().is_some_and(|vip| !vip.is_empty());
     let mut targets = targets;
     apply_affinity(
         &mut targets,
         vip_first,
-        &affinity_key(session.as_deref(), &body_bytes),
+        &affinity_key(session.as_deref(), body_bytes),
     );
     let (client, transport) = inference_client()?;
 
@@ -732,7 +797,7 @@ async fn proxy_upstream(
         &super::upstream::upstream_origin(&transport, &primary, upstream_path),
         &incoming_type,
         deadline,
-        &body_bytes,
+        body_bytes,
     )
     .await;
     if result.is_err() {
@@ -743,13 +808,23 @@ async fn proxy_upstream(
                 &super::upstream::upstream_origin(&transport, alt, upstream_path),
                 &incoming_type,
                 deadline,
-                &body_bytes,
+                body_bytes,
             )
             .await;
         }
     }
-    let upstream_resp = result.map_err(|e| (StatusCode::BAD_GATEWAY, format!("upstream: {e}")))?;
+    let resp = result.map_err(|e| (StatusCode::BAD_GATEWAY, format!("upstream: {e}")))?;
+    Ok((resp, streaming))
+}
 
+/// Relay a connected upstream response to the caller, feeding the trace sink.
+fn relay_upstream(
+    upstream_resp: reqwest::Response,
+    streaming: bool,
+    guard: ConcurrencyGuard,
+    streams: StreamHold,
+    trace: Option<(state_store::StateStore, super::traces::TraceCtx)>,
+) -> Result<Response, (StatusCode, String)> {
     let status =
         StatusCode::from_u16(upstream_resp.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
     let mut builder = Response::builder().status(status);
