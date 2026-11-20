@@ -1,5 +1,5 @@
 # Copyright 2026 Zyvor
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 # Runs INSIDE the guest image (baked in via build-image's copy_in), not on the host.
 # Same unit as fluxvm/systemd/fluxvm-guest-agent.service, kept here so a bake needs only the agent binary.

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 // The vendor gateway. It is deliberately thin: identity in, a user token out, a shard chosen once.
 // Isolation is the runtime's job (a user token reaches only that user's data), so a bug here cannot

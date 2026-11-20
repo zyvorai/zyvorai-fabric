@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 import { useState, useEffect, useCallback } from 'react'
 import { Zap, CheckCircle, AlertTriangle, Loader2, TrendingDown, TrendingUp, Minus } from 'lucide-react'

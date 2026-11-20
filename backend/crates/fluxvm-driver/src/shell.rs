@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! `ShellDriver` backed by FluxVM's vsock guest-agent `Exec` op
 //! (`POST /v1/vms/{id}/agent`) — requires the VM to have been created with

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! Thin REST client for [FluxVM](https://github.com/zyvorai/fluxvm)'s
 //! `/v1/vms...` API — the disposable-VM control plane that is replacing

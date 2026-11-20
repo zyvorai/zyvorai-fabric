@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 """merion-chat: a small web chat for a Keep agent, over the AG-UI endpoint (POST /v1/agui).
 
     MERION_API=http://127.0.0.1:9096 MERION_TOKEN=... ./scripts/merion-chat.py --agent echo-agent      # then open http://127.0.0.1:8787

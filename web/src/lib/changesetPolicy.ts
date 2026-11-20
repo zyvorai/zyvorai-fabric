@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 /** Operator-set auto-approval for one user's agent (docs/merion/design/auto-approve-changesets.md). */
 export interface PolicyForm {

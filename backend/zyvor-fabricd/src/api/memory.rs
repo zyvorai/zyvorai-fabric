@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! Memory density proxies: VMM-process PSS and the balloon (Beta: FluxVM lists balloon as
 //! unit-tested, not live-verified; it needs a running VM on the flux-vm KVM engine).

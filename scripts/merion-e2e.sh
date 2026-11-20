@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 #
 # Merion end-to-end (not smoke): live agent-runtime + FluxVM sandbox stub + merionctl.
 # Exercises signed policy, export-token gates, pack/unpack, cockpit, and a real

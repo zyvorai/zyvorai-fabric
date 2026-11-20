@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 // Shards and placement. A shard is one Keep host (FluxVM + agent-runtime). Keep does not move a user's
 // cells between hosts, so a user is placed once, in their region, and stays there.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 #
 # Narrated Merion speculate -> review -> approve demo. It runs against the live Merion runtime that
 # scripts/merion-e2e.sh starts (MERION_E2E_DEMO=scripts/demo/speculate-demo.sh), so every HTTP call

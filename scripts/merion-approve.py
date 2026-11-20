@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 """keep-approve: a stand-in phone in the terminal, for demos and tests. NOT a real phone.
 
     MERION_API=http://127.0.0.1:19096 MERION_TOKEN=<user token> scripts/merion-approve.py --key phone.key --device demo-phone

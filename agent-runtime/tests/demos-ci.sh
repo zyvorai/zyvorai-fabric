@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 #
 # End-to-end test of the Keep one-click demos, user-defined use cases and signed
 # pack deploys, against the real agent-runtime binary and the FluxVM stand-in

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 //!
 //! When a replica may receive Maglev traffic.
 //! Stale or failed scrapes are unhealthy — they must not look idle.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # backup-vms — Automated VM backup script for zyvor-fabricd
 #
 # Run daily at 2:00 AM by zyvor-fabricd's own in-process scheduler (see

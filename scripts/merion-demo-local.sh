@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # ============================================================================
 # merion-demo-local — try Keep's use cases on this laptop in two minutes. NOT SEALED.
 # ============================================================================

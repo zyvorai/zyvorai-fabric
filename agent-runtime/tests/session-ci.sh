@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # Deploys the real ops agent plus a waiter and a Claude harness, then checks
 # sessions, MCP, schedules, webhooks, loops, delegation, and approval.
 # The FluxVM stand-in runs the guest on this machine. No provider API is called.

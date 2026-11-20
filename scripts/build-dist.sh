@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # scripts/build-dist.sh — build a self-contained user distribution
 # tar.gz: prebuilt zyvor-fabric + FluxVM (+ guestkit vendor agents)
 # binaries, web dashboard, configs, systemd units, and an offline

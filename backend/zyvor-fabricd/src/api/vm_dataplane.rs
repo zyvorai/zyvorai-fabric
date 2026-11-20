@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! Per-VM FluxVM Network Fabric dataplane — orthogonal to Fabric's
 //! label→nftables `/network-policies` SDN. Proxies FluxVM's

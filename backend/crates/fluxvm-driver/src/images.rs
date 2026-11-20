@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! `ImageDriver` backed by FluxVM's image catalog
 //! (`GET/POST/DELETE /v1/images/catalog...`) rather than machinectl's

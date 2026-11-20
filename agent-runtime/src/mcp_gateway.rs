@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! The MCP gateway: tool servers the operator has registered, reached through the egress broker.
 //! (docs/merion/design/mcp-gateway.md)

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 // Dev-only mock API for `npm run dev:mock`: lets the console render every
 // page with no backend, so layout work can be checked and screenshotted.

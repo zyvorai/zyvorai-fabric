@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router'
 import { Suspense, lazy, ReactNode } from 'react'

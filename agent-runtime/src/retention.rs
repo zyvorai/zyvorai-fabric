@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! Retention: an hourly sweep that forgets what the operator has said not to keep. Both settings are off by default, so nothing
 //! disappears unless it was asked for:

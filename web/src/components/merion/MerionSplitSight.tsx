@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 /** Full-bleed Merion cell viewport — split-sight metaphor (a11y vs pixels). No Muse chrome. */
 export default function MerionSplitSight() {

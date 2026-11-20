@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 /** Canonical icon size scale -- use instead of hand-typing w-N h-N pairs. */
 export const ICON_SIZE = {

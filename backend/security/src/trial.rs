@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! A plain 30-day evaluation trial gate, not a cryptographic license
 //! system: the first time the daemon starts, it stamps a start timestamp

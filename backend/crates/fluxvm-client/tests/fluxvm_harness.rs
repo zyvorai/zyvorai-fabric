@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! Phase 1 harness test (see the systemd-removal plan): boots a real
 //! `fluxvm serve` process from the sibling FluxVM checkout and exercises

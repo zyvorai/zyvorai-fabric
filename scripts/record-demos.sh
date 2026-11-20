@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 #
 # Re-record the README / Pages demos into docs/assets/demos/ (needs python3 + Pillow + ffmpeg).
 #   ./scripts/record-demos.sh                 # record every demo

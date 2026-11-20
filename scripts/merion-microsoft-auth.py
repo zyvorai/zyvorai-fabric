@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 """One-time consent for the Microsoft 365 connectors (Outlook mail, calendar): writes a refresh token to a file.
 
 Run it on your own machine. It opens your browser for Microsoft's consent page (authorization code with PKCE on a loopback port),

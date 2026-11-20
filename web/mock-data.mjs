@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 // Seed data for the dev mock (`npm run dev:mock`, via mock-api.ts) and for the screenshot/a11y harness
 // (page-harness.mjs). One place, so a page looks the same in both. Every list used to answer `[]`, which made

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! One-click Keep demos: drop an untrusted file into a sealed cell, get an
 //! artifact back. Every demo never opens a browser and never CONNECTs; the run

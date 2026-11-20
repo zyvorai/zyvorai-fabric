@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! Request-level (layer 7) egress policy for the JSON broker: per-host rules and
 //! a data-loss scan. Both run on what the agent supplied (URL, headers, body)

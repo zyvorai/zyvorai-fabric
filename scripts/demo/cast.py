@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 """Record a command's real output with its real timing, and render it as a terminal GIF/MP4/WebM.
 
   cast.py record OUT.cast.jsonl -- CMD [ARGS...]     run CMD, keep each output line with its time

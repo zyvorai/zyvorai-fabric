@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 #
 # Bake a vLLM + CUDA golden qcow2 for Fabric AI Workloads.
 # Run on a GPU host with virt-customize / virt-install available.

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! `PoolDriver` backed by FluxVM's warm-pool API (`/v1/pools...`) --
 //! pre-boot `size` VMs from a template, pause each once ready, then hand

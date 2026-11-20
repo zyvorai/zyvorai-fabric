@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 #
 # A real Merion speculate -> approve / deny run against a real FluxVM microVM. Run it ON a host that
 # has a Merion runtime (MERION, TOKEN, SID) and a throwaway FluxVM (FLUX, VM) with /work in the guest.

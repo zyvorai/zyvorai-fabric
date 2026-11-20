@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 /** The signed, masked recording a session exports (`GET /v1/sessions/{id}/recording`). */
 export interface RecordingStep {

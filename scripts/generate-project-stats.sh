@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # Generate docs/generated/project-stats.md from the live workspace.
 # CI fails if this file is stale (git diff --exit-code).
 set -euo pipefail

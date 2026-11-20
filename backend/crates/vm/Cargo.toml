@@ -1,5 +1,5 @@
 [package]
-license = "Apache-2.0"
+license = "LicenseRef-Zyvor-Production-1.0"
 name = "zyvor-fabric-vm"
 version = "0.1.0"
 edition = "2021"

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 export { default as PoliciesTab, CreatePolicyModal, EditPolicyModal } from './PoliciesTab'
 export { default as FirewallTab, CreateFirewallProfileModal, EditFirewallProfileModal, CreateFirewallZoneModal, CreateVMFirewallAssignmentModal } from './FirewallTab'

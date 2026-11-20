@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 import { useState } from 'react'
 import { Cpu, MemoryStick, HardDrive, Network, Loader2, AlertCircle } from 'lucide-react'

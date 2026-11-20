@@ -2,7 +2,7 @@
 name = "openstack-compat"
 version = "0.2.1"
 edition = "2021"
-license = "Apache-2.0"
+license = "LicenseRef-Zyvor-Production-1.0"
 authors = ["Zyvor AI Labs"]
 description = "OpenStack-compatible identity, compute, image, network, and volume APIs for Zyvor Fabric."
 

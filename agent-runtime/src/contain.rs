@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 //! Inner containment: run the worker (and any browser it launches) as an
 //! unprivileged user in a bubblewrap container inside the sandbox VM.

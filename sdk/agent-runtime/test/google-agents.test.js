@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
 // The Gmail and Calendar example agents against a fake `ctx.fetch`: what they ask for, which credential they name, what they refuse to build.
 

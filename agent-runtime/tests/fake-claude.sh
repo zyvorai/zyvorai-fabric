@@ -1,6 +1,6 @@
 #!/bin/sh
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # Stand-in for the Claude Code CLI. The first turn asks for approval.
 # After the operator decision is written into PROMPT.md, the next turn exits.
 prompt="${ZYVOR_HARNESS_WORKSPACE:-/opt/zyvor/agent/workspace}/PROMPT.md"
