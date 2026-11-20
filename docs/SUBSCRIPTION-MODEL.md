@@ -11,9 +11,10 @@ Teams that want supported releases and defined response targets can buy an annua
 | Supported | Standard plus priority queue and incident triage | Business hours, faster response |
 | Enterprise | Supported plus a named technical contact and 24x7 critical intake | One-hour initial response target for critical issues |
 
-Support is sized per deployment, with an annual minimum per plan. 
+Support is sized per worker node on the one Zyvor Support meter (per node per year; one meter covers all Apache-2.0 infrastructure on a node, never stacked per product): **Supported USD 600 per node per year (INR 59,472), minimum USD 3,000 (INR 297,360)**; **Supported Plus USD 1,200 (INR 118,944), minimum USD 6,000 (INR 594,720)**. In India the INR rows apply: Supported INR 59,999 per node (minimum 5 nodes, INR 299,995) and Supported Plus INR 119,999 per node (minimum 5 nodes, INR 599,995), including 18% GST. USD prices are excluding tax; INR figures for the USD rows are USD x 99.12 including 18% GST. Minimums are annual contract values. The software itself stays free under Apache-2.0.
 
-Rates are quoted by Zyvor: contact [sales@zyvor.dev](mailto:sales@zyvor.dev).
+
+Buy / get a quote: [zyvor.dev/buy](https://zyvor.dev/buy). Prices: INR incl. 18% GST in India; US dollars excl. tax elsewhere (VAT, GST or sales tax added where applicable). Pay online by UPI, card or netbanking where a buy page exists; international cards work (charged in rupees); or request a US-dollar invoice by bank transfer. Custom pricing: contact [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
 ## Terms
 
