@@ -29,6 +29,7 @@ pub mod gpu_probe;
 pub mod gpus;
 pub mod ipam;
 pub mod janus;
+pub mod judge;
 pub mod keys;
 pub mod lifecycle;
 pub mod limits;

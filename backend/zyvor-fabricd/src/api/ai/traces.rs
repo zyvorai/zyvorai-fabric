@@ -63,6 +63,9 @@ pub struct TracePolicy {
     /// Newest traces kept for this deployment of the store.
     #[serde(default = "default_max_traces")]
     pub max_traces: usize,
+    /// LLM judge that scores finished traces in the background.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub judge: Option<super::judge::JudgeConfig>,
 }
 
 fn yes() -> bool {
@@ -102,6 +105,9 @@ impl TracePolicy {
         }
         if self.max_traces == 0 || self.max_traces > 1_000_000 {
             return Err("max_traces must be between 1 and 1000000".into());
+        }
+        if let Some(j) = &self.judge {
+            j.validate()?;
         }
         Ok(())
     }
@@ -157,6 +163,9 @@ pub struct Trace {
     pub score: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub score_source: Option<String>,
+    /// One-line rationale when the judge model scored this trace.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub judge_reason: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub labels: Vec<String>,
 }
@@ -434,6 +443,7 @@ pub fn build_trace(ctx: &TraceCtx, status: u16, streamed: bool, resp: &[u8]) -> 
         score,
         score_source,
         labels: Vec::new(),
+        judge_reason: None,
     }
 }
 
@@ -503,6 +513,9 @@ pub fn record(
     if let Err(e) = store.save_entity(STORE_TRACES, &trace.id, &trace) {
         tracing::warn!("trace write failed: {e}");
         return;
+    }
+    if let Some(cfg) = ctx.policy.judge.clone() {
+        super::judge::spawn_judge(store.clone(), trace.id.clone(), cfg);
     }
     if WRITES.fetch_add(1, Ordering::Relaxed) % PRUNE_EVERY == PRUNE_EVERY - 1 {
         prune(store, ctx.policy.max_traces);
@@ -790,6 +803,7 @@ mod tests {
             capture_token_ids: true,
             auto_score: None,
             max_traces: 10,
+            judge: None,
         }
     }
 

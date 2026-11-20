@@ -1451,6 +1451,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             get(api::ai::traces::list_traces).delete(api::ai::traces::purge_traces),
         )
         .route("/ai/traces/export", get(api::ai::traces::export_traces))
+        .route("/ai/traces/judge", post(api::ai::judge::judge_batch))
         .route("/ai/traces/{id}", get(api::ai::traces::get_trace))
         .route("/ai/traces/{id}/feedback", post(api::ai::traces::feedback))
         .route(

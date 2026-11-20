@@ -135,3 +135,28 @@ attempt is recorded as a trace on the failed arm with its error status, so it
 shows up in that arm's error rate in the A/B report. Note that failover moves
 traffic between arms, so a flaky arm skews the split: check the error column
 before trusting a comparison.
+
+## LLM-as-judge scoring
+
+Deterministic scorers only catch format problems. To grade quality, point a
+trace policy at another Fabric endpoint that serves a judge model:
+
+```sh
+fabricctl ai trace enable chat --token-ids --judge judge-endpoint \
+  --judge-rubric "Score factual accuracy; penalise invented citations."
+```
+
+After each trace is stored, a background task sends the conversation and the
+answer to the judge and writes `score`, `score_source: "judge"` and a one-line
+`judge_reason` back to the trace. `judge.sample_rate` limits how many traces are
+judged. The judge reply must be JSON `{"score": 0..1, "reason": "..."}`; code
+fences and surrounding text are tolerated, out-of-range scores are discarded.
+
+- Human feedback is never overwritten, even if it arrives while the judge runs.
+- Redacted traces, non-2xx traces and traces without stored text are skipped.
+- Judge calls go straight to the judge endpoint, so they are not traced and do
+  not count against caller API keys.
+- Score existing traces with `fabricctl ai trace judge <endpoint> [--rejudge]`
+  (`POST /api/ai/traces/judge`, up to 200 traces, 4 at a time).
+- A judge is a model, not ground truth: spot-check its scores against human
+  feedback before promoting an arm on them.

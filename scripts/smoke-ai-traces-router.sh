@@ -25,7 +25,7 @@ reset() { # remove ai-smoke-* resources, whether left by an earlier run or made 
   for id in $(api GET /api/ai/keys 2>/dev/null | python3 -c 'import sys,json; print(" ".join(k["id"] for k in json.load(sys.stdin) if k["name"]=="ai-smoke-key"))' 2>/dev/null); do
     api DELETE "/api/ai/keys/$id" >/dev/null 2>&1 || true
   done
-  for s in front big small; do
+  for s in front big small judge; do
     api DELETE "/api/ai/endpoints/ai-smoke-$s" >/dev/null 2>&1 || true
     api DELETE "/api/ai/deployments/ai-smoke-$s" >/dev/null 2>&1 || true
   done
@@ -53,7 +53,7 @@ sleep 1
 api POST /api/ai/models -d '{"name":"ai-smoke-model","source":"hf://x/y","format":"safetensors"}' >/dev/null || true
 api POST /api/ai/profiles -d '{"name":"ai-smoke-profile","runtime":"vllm","gpu":{"vendor":"nvidia","count":1,"minimum_vram_gib":0},"cpu":2,"memory_gib":8}' >/dev/null || true
 # The front door is backed by the same mock as "big"; it is only the entry point.
-for pair in "big:$PORT_BIG" "small:$PORT_SMALL" "front:$PORT_BIG"; do
+for pair in "big:$PORT_BIG" "small:$PORT_SMALL" "front:$PORT_BIG" "judge:$PORT_BIG"; do
   s=${pair%%:*}; port=${pair##*:}
   api POST /api/ai/deployments -d "{\"name\":\"ai-smoke-$s\",\"model\":\"ai-smoke-model\",\"profile\":\"ai-smoke-profile\",\"replicas\":1}" >/dev/null
   api POST /api/ai/endpoints -d "{\"name\":\"ai-smoke-$s\",\"deployment\":\"ai-smoke-$s\",\"protocol\":\"openai\",\"port\":$port,\"vip\":\"127.0.0.1\"}" >/dev/null
@@ -161,8 +161,27 @@ api POST /api/ai/routers/ai-smoke-front/promote -d '{"variant":"big"}' | jget 'd
 for i in 1 2 3 4 5 6 7 8; do [[ "$(hdr "$(chat "p$i" hi)" x-fabric-variant)" == big ]] || fail "promote did not pin traffic"; done
 ok "all traffic on 'big' after promote"
 
+echo "== 10. LLM judge =="
+api POST /api/ai/trace-policies -d '{"endpoint":"ai-smoke-front","judge":{"endpoint":"ai-smoke-judge"}}' >/dev/null
+r=$(chat j1 "judge me")
+JID=$(hdr "$r" x-fabric-trace-id); [[ -n "$JID" ]] || fail "no trace id: $r"
+sleep 2
+api GET "/api/ai/traces/$JID" | jget 'd["score"]==0.9 and d["score_source"]=="judge" and d["judge_reason"]=="mock"' | grep -q True || fail "inline judge: $(api GET /api/ai/traces/$JID)"
+ok "judge scores a fresh trace in the background (fenced JSON reply parsed)"
+api POST "/api/ai/traces/$JID/feedback" -d '{"score":0.1}' >/dev/null
+api POST /api/ai/traces/judge -d '{"endpoint":"ai-smoke-front","rejudge":true,"limit":200}' | jget 'd["failed"]==0' | grep -q True || fail "batch judge failed"
+api GET "/api/ai/traces/$JID" | jget 'd["score"]==0.1 and d["score_source"].startswith("feedback:")' | grep -q True || fail "judge overwrote human feedback"
+ok "human feedback is never overwritten"
+api POST /api/ai/trace-policies -d '{"endpoint":"ai-smoke-front"}' >/dev/null
+for i in 1 2 3; do chat "jb$i" "batch $i" >/dev/null; done
+res=$(api POST /api/ai/traces/judge -d '{"endpoint":"ai-smoke-front","judge":{"endpoint":"ai-smoke-judge"},"limit":200}')
+echo "$res" | jget 'd["judged"]>=3 and d["failed"]==0' | grep -q True || fail "batch judge: $res"
+ok "batch judge scored unscored traces: $res"
+api POST /api/ai/traces/judge -d '{"endpoint":"ai-smoke-front","judge":{"endpoint":"nope"}}' -w '%{http_code}' | grep -q 404 || fail "missing judge endpoint accepted"
+ok "missing judge endpoint rejected"
+
 if [[ -n "${FABRICCTL:-}" ]]; then
-  echo "== 10. fabricctl =="
+  echo "== 11. fabricctl =="
   export ZYVOR_FABRIC_URL="$FABRIC_URL/api" ZYVOR_FABRIC_TOKEN="$TOKEN"
   "$FABRICCTL" ai trace policies >/dev/null && "$FABRICCTL" ai trace list --endpoint ai-smoke-front --limit 2 >/dev/null \
     && "$FABRICCTL" ai router report ai-smoke-front --min-samples 20 >/dev/null || fail "fabricctl"

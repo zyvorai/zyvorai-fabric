@@ -38,6 +38,14 @@ class H(BaseHTTPRequestHandler):
         req = json.loads(self.rfile.read(int(self.headers.get("content-length", 0))) or b"{}")
         msgs = req.get("messages") or [{"content": ""}]
         last = str(msgs[-1].get("content", ""))
+        if "impartial grader" in str(msgs[0].get("content", "")):
+            # Judge mode: rate "big:" answers high and everything else low.
+            answer = last.split("## Assistant answer to grade", 1)[-1].strip()
+            score = 0.9 if answer.startswith("big:") else 0.3
+            reply = "```json\n" + json.dumps({"score": score, "reason": "mock"}) + "\n```"
+            return self._send(200, {"id": "mock", "object": "chat.completion", "model": NAME,
+                "choices": [{"index": 0, "message": {"role": "assistant", "content": reply}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}})
         cut = int(hashlib.sha256(last.encode()).hexdigest(), 16) % 100 < CUTOFF
         finish = "length" if cut else "stop"
         text = f"{NAME}: reply to {last[:40]}"
