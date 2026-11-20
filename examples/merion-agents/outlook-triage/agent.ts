@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { defineAgent } from "@zyvor/fabric-agent";
 
 // Lists your unread Outlook inbox mail: who wrote, the subject, when. Read-only: the `outlook-read` credential can only GET (see

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Docs-site gate (ux-plan step 8): for a set of pages, in both themes, at desktop and phone width:
 // no sideways scroll, no serious/critical axe violation, and Lighthouse accessibility + performance >= 95 (performance >= 88 when CI is set).
 // Run: npm run build && node check-site.mjs [--no-lighthouse | --lighthouse-only]

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { defineAgent } from "@zyvor/fabric-agent";
 
 // The smallest agent that uses a person's memory (see docs/merion/memory/README.md). Drive it from a chat client (POST /v1/agui).

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import Foundation
 
 /// `GET /v1/whoami`: who the token belongs to, so the app never asks the person to type a user id.

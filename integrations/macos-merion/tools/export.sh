@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # Copy this folder into a checkout of the standalone Solvor repository (a snapshot: fabric stays the source of truth).
 #   tools/export.sh ../solvor        then review `git status` there, commit and push
 set -euo pipefail

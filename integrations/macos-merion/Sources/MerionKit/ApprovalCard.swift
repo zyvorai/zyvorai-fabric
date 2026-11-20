@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import Foundation
 
 /// One enrolled device, as `GET /v1/users/{id}/devices` lists it (a user may read their own).

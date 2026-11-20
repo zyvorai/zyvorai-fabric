@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import AppKit
 
 /// A single global key combo (⌥Space by default) that calls `action` whether or not Solvor is the frontmost app.

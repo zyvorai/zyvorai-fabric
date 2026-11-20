@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 main((buf) => {
   let s = buf.toString('utf8')
   s = s.replace(/<!--[\s\S]*?-->/g, ' ')

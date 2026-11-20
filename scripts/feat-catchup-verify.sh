@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # Live-lab Fabric ↔ FluxVM catch-up verification (real FluxVM / KVM host).
 # For CI / stubbed FluxVM use scripts/ci-feat-catchup-stub.sh (sourced by tests/e2e-api-test.sh).
 # Run on the deploy host: PASS=… bash scripts/feat-catchup-verify.sh

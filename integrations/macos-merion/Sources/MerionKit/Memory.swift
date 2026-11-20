@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import Foundation
 
 // A person's opt-in memory (docs/merion/memory) and the receipts of what happened after they approved (docs/merion/receipts).

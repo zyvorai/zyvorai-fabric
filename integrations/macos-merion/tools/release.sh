@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # Build Solvor for release and package it as a .dmg.
 #   tools/release.sh                       # Release build, ad-hoc signed (runs on the Mac that built it), build/Solvor-<version>.dmg
 #   SIGN_IDENTITY="Developer ID Application: Name (TEAMID)" tools/release.sh --sign

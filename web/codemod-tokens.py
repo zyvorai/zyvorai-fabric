@@ -1,3 +1,6 @@
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # Maps literal-hex Tailwind utilities and bg-white onto the --zf-* tokens (ux-plan step 2).
 # The mapping is exactly what main.css's dark-mode redirect block did, so light and dark look the same.
 # Opacity variants (bg-[#0066cc]/20) become bg-[var(--zf-link)]/20, so in dark mode their tint follows the token.

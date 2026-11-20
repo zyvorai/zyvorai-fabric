@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Runs inside the sealed cell on an untrusted upload. Output is plain text on stdout.
 import fs from 'node:fs'
 import zlib from 'node:zlib'

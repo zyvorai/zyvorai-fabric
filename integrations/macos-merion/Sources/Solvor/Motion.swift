@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import SwiftUI
 
 // The animation kit. Everything that moves in Solvor comes from here, so it feels like one hand made it, and so a person who turns on Reduce Motion

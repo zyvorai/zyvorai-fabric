@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { defineAgent } from "@zyvor/fabric-agent";
 
 // Writes a plain-text mail as an Outlook DRAFT, or sends it. Either way the request waits for the person: the credential needs an approval

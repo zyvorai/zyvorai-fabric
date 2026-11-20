@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Accessibility gate (ux-plan step 7): axe-core on the baseline pages in both themes at desktop and phone
 // width, plus a visible-focus check (Tab twice, the focused control must show an outline or ring).
 // Fails on any serious or critical violation (contrast, unlabelled controls, ...) or a missing focus ring.

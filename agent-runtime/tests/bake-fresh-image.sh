@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # scripts/merion-bake-node22-agent.sh: --force must build a NEW image beside the old one (an in-place rebuild fails on a locked image),
 # re-point the template, keep the previous spec for rollback, and never touch the old image. Runs with fake fluxctl and no root.
 # Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.

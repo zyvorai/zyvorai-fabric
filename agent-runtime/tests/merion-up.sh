@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # scripts/merion-up.sh: the preflight refuses honestly, --dry-run changes nothing, and --token-only mints a scoped user token without
 # printing the operator token or writing anything. Uses fake facts and a fake curl; needs no root, KVM or FluxVM.
 # Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.

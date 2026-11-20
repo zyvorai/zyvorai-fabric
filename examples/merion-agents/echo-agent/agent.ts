@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { defineAgent } from "@zyvor/fabric-agent";
 
 // The smallest agent you can drive from a chat client (POST /v1/agui, see docs/merion/AGUI.md): it needs no model, no credentials and no network.

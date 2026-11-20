@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { defineAgent } from "@zyvor/fabric-agent";
 
 // Proposes the steps of a goal. The runtime starts this agent when a person asks for a plan (`POST /v1/goals/{id}/plan`), giving it the goal's

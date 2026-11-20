@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { defineAgent } from "@zyvor/fabric-agent";
 
 // The smallest agent that makes suggestions (docs/merion/suggestions/README.md). It emits one `suggestion.propose` event per item in its input.

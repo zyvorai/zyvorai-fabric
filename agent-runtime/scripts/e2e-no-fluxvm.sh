@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # End-to-end check of the agent runtime binary on real sockets. No FluxVM needed:
 # sessions are seeded on disk and the reviewer is a local mock. Needs Linux-style
 # bash 4 (associative arrays), python3, curl, and outbound HTTPS to example.com/.org.

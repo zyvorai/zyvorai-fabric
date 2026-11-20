@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Sign-in page (unauthenticated): screenshots in both themes and sizes, plus an axe pass.
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'

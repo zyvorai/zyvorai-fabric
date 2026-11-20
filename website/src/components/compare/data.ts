@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /*
  * Facts for the homepage matrix sections. Every entry cites the repo doc it
  * comes from; nothing here is invented. Muse text is "as publicly described".

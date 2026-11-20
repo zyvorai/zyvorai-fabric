@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import Foundation
 
 // Conversations with an agent over AG-UI (docs/merion/AGUI.md) and the stored threads (docs/merion/threads/README.md).

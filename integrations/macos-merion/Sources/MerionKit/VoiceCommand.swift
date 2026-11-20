@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import Foundation
 
 public enum AppScreen: String, Equatable, Sendable { case useCases, runs, approvals, watchFolders, settings }

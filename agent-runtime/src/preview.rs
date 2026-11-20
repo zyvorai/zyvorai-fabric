@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! What a person is shown before they approve a request that sends something.
 //!
 //! An approval that says only "POST to gmail.googleapis.com, 812 bytes, sha256 ..." asks the person to sign something they cannot read. A

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { defineAgent } from "@zyvor/fabric-agent";
 
 // Reads your next day (or few) of Outlook calendar, or adds one event. Adding waits for the person: the `outlook-calendar-write` credential needs

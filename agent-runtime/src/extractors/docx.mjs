@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 main((buf) => {
   const entries = zipEntries(buf)
   const doc = zipRead(buf, entries, 'word/document.xml')

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 """Draws the Solvor app icon and the menu-bar glyph, and writes the asset catalogue.
 
 The mark is an original face (two eyes, a smile) — not a letter, not anyone else's mascot — on an Apple-blue gradient, inside a

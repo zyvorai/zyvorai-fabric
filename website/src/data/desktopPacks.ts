@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /**
  * Mac, Windows, office, developer-tool and browser packs for the /keep page. Mirrors the pack tables in docs/merion/SCENARIOS.md. Merion reads a file
  * the person exports; it does not connect to the machine or drive its desktop.
