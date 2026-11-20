@@ -128,4 +128,4 @@ Please open issues and pull requests there.
 
 ## License
 
-[Zyvor Production License v1.0](LICENSE) (SPDX `LicenseRef-Zyvor-Production-1.0`; see [NOTICE](NOTICE)). Non-production use is free; production use requires a commercial license from Zyvor AI Labs.
+[Zyvor Production License v1.0](LICENSE) (SPDX `LicenseRef-Zyvor-Production-1.0`; see [NOTICE](NOTICE)). A commercial license is required to run it from Zyvor AI Labs.

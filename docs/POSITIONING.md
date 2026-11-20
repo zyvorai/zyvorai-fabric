@@ -33,7 +33,7 @@ Part of the [Zyvor](https://zyvor.dev) product family from ZyvorAI Labs.
 | **Private cloud admin** ("Alex" in [USER_STORIES.md](USER_STORIES.md)) | Day-2 VM lifecycle, backups, incident response | A UI and CLI that don't drift from each other, audit trail for every action | Web console + `fabricctl`, both hitting the identical 780+-endpoint API |
 | **Developer** ("Jordan" in [USER_STORIES.md](USER_STORIES.md)) | Needs VMs for testing/dev without filing a ticket | Self-service, scriptable, fast | CLI + REST API, VM creation in one command |
 
-The economic-buyer row is the one most positioning docs skip. The short version for that persona: Fabric is under the Zyvor Production License v1.0 (free for non-production use; production use needs a commercial license, sales@zyvor.dev); the cost you're actually evaluating is **operational** — one 15MB binary and one config file. Paid Enterprise support/SLAs are separate from the production license.
+The economic-buyer row is the one most positioning docs skip. The short version for that persona: Fabric is under the Zyvor Production License v1.0 (a commercial license is required, sales@zyvor.dev); the cost you're actually evaluating is **operational** — one 15MB binary and one config file. Paid Enterprise support/SLAs are separate from the production license.
 
 ---
 
@@ -141,7 +141,7 @@ Then use the appropriate name for context (product in prose, `zyvor-fabricd` in 
 
 ## License & Support
 
-Zyvor Production License v1.0 (SPDX: LicenseRef-Zyvor-Production-1.0), applied to the entire repository. Non-production use is free; production use requires a commercial license from Zyvor AI Labs Private Limited. Production support, SLAs, and Zyvor Enterprise products are licensed and sold separately — contact [sales@zyvor.dev](mailto:sales@zyvor.dev). Full text: [README.md — License](../README.md#license).
+Zyvor Production License v1.0 (SPDX: LicenseRef-Zyvor-Production-1.0), applied to the entire repository. A commercial license is required to run it from Zyvor AI Labs Private Limited. Production support, SLAs, and Zyvor Enterprise products are licensed and sold separately — contact [sales@zyvor.dev](mailto:sales@zyvor.dev). Full text: [README.md — License](../README.md#license).
 
 ---
 

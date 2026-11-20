@@ -215,7 +215,7 @@ Endpoint and page counts will drift a little release to release; treat the "+"-s
 
 ## License
 
-Zyvor Production License v1.0 for the entire repository: non-production use is free; production use requires a commercial license (sales@zyvor.dev). See [README.md — License](../README.md#license) for the full text and how Enterprise support fits alongside it.
+Zyvor Production License v1.0 for the entire repository: a commercial license is required to run it (sales@zyvor.dev). See [README.md — License](../README.md#license) for the full text and how Enterprise support fits alongside it.
 
 ---
 

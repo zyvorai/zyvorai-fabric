@@ -361,4 +361,4 @@ Start with [VENDORS.md](VENDORS.md); it lists what is built, what is reference c
 - [PRODUCTION.md](PRODUCTION.md) — production checklist · [STATUS.md](STATUS.md) — what ships today
 - [Fabric](../../README.md) — the control plane Merion runs on
 
-License: Zyvor Production License v1.0 (free for non-production use; production use requires a commercial license, sales@zyvor.dev).
+License: Zyvor Production License v1.0 (a commercial license is required, sales@zyvor.dev).
