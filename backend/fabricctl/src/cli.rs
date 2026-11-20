@@ -1076,6 +1076,29 @@ enum AiTraceCmd {
         /// Scorer: non_empty, finish_stop, json_valid, or contains:<text>
         #[arg(long)]
         auto_score: Option<String>,
+        /// Fabric endpoint serving a judge model that scores traces in the background
+        #[arg(long)]
+        judge: Option<String>,
+        /// Grading instructions for the judge (default: a general quality rubric)
+        #[arg(long, requires = "judge")]
+        judge_rubric: Option<String>,
+    },
+    /// Score existing traces with a judge model
+    Judge {
+        /// Endpoint whose traces to judge
+        endpoint: String,
+        /// Judge endpoint (default: the one on the endpoint's capture policy)
+        #[arg(long)]
+        judge: Option<String>,
+        #[arg(long)]
+        rubric: Option<String>,
+        #[arg(long)]
+        variant: Option<String>,
+        /// Re-score traces the judge already scored
+        #[arg(long)]
+        rejudge: bool,
+        #[arg(long, default_value_t = 50)]
+        limit: usize,
     },
     /// Turn capture off for an endpoint
     Disable { endpoint: String },
@@ -3590,6 +3613,8 @@ impl Cli {
                         redact,
                         token_ids,
                         auto_score,
+                        judge,
+                        judge_rubric,
                     } => {
                         let scorer = match auto_score.as_deref() {
                             None => serde_json::Value::Null,
@@ -3609,9 +3634,34 @@ impl Cli {
                             "redact": redact,
                             "capture_token_ids": token_ids,
                             "auto_score": scorer,
+                            "judge": judge.map(|j| serde_json::json!({"endpoint": j, "rubric": judge_rubric})),
                         });
                         let val = api_post(&client, "/ai/trace-policies", &body).await?;
                         println!("Trace capture enabled on '{endpoint}'");
+                        if !matches!(fmt, OutputFormat::Table) {
+                            print_value(&val, fmt);
+                        }
+                    }
+                    AiTraceCmd::Judge {
+                        endpoint,
+                        judge,
+                        rubric,
+                        variant,
+                        rejudge,
+                        limit,
+                    } => {
+                        let body = serde_json::json!({
+                            "endpoint": endpoint,
+                            "judge": judge.map(|j| serde_json::json!({"endpoint": j, "rubric": rubric})),
+                            "variant": variant,
+                            "rejudge": rejudge,
+                            "limit": limit,
+                        });
+                        let val = api_post(&client, "/ai/traces/judge", &body).await?;
+                        println!(
+                            "Judged {} trace(s), skipped {}, failed {}",
+                            val["judged"], val["skipped"], val["failed"]
+                        );
                         if !matches!(fmt, OutputFormat::Table) {
                             print_value(&val, fmt);
                         }

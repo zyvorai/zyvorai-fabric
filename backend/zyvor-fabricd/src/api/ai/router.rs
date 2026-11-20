@@ -1129,6 +1129,7 @@ mod tests {
             redacted: false,
             score,
             score_source: None,
+            judge_reason: None,
             labels: vec![],
         }
     }

@@ -745,7 +745,7 @@ fn inference_client(
 
 /// Connect to the upstream and return its response headers (before any body
 /// byte is read), so the caller can still fail over to another arm.
-async fn connect_upstream(
+pub(super) async fn connect_upstream(
     method: &Method,
     ep: &InferenceEndpoint,
     dep: &InferenceDeployment,
