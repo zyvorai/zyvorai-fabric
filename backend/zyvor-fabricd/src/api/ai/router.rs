@@ -134,8 +134,19 @@ pub struct AiRouter {
     pub allow_override: bool,
     #[serde(default = "default_true")]
     pub enabled: bool,
+    /// On a connect error or 5xx before any byte is streamed, retry the
+    /// next-ranked arm that has a ready backend.
+    #[serde(default = "default_true")]
+    pub failover: bool,
+    /// Arms tried per request, including the first.
+    #[serde(default = "default_max_attempts")]
+    pub max_attempts: u32,
     #[serde(default)]
     pub updated_unix: i64,
+}
+
+fn default_max_attempts() -> u32 {
+    2
 }
 
 fn default_sticky() -> String {
@@ -893,6 +904,8 @@ mod tests {
             hard_prompt_tokens: 2000,
             allow_override: false,
             enabled: true,
+            failover: true,
+            max_attempts: 2,
             updated_unix: 0,
         }
     }
@@ -1185,5 +1198,17 @@ mod tests {
         assert_eq!(percentile(&v, 0.95), 95);
         assert_eq!(percentile(&[], 0.5), 0);
         assert_eq!(percentile(&[7], 0.95), 7);
+    }
+
+    #[test]
+    fn failover_defaults_on_with_two_attempts() {
+        let r: AiRouter = serde_json::from_value(json!({
+            "endpoint": "front",
+            "strategy": "split",
+            "candidates": [{"name":"a","endpoint":"a"},{"name":"b","endpoint":"b"}]
+        }))
+        .unwrap();
+        assert!(r.failover);
+        assert_eq!(r.max_attempts, 2);
     }
 }
