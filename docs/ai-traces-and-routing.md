@@ -160,3 +160,31 @@ fences and surrounding text are tolerated, out-of-range scores are discarded.
   (`POST /api/ai/traces/judge`, up to 200 traces, 4 at a time).
 - A judge is a model, not ground truth: spot-check its scores against human
   feedback before promoting an arm on them.
+
+## Bandit routing
+
+`"strategy": "bandit"` sends traffic where the scores are best, instead of a
+fixed split. It needs scored traces (an `auto_score` or a `judge` on the trace
+policy); without scores every arm stays in warm-up and traffic is spread evenly.
+
+- Each arm gets a Beta posterior from its newest 500 scored traces (a 0..1 score
+  counts as a fractional success). Per request the router draws from every
+  posterior and picks the highest draw (Thompson sampling), so a clearly better
+  arm gets most traffic while a close one still gets enough to be measured.
+- `warmup` (default 20): arms with fewer scored traces than this are sampled
+  first, uniformly among the cold ones.
+- `explore` (default 0.1, max 0.5): share of requests sent to a random arm, so a
+  worse-looking arm can still recover.
+- Scores are cached for 10 seconds, so traffic shifts with a short delay.
+- It optimises score only. Cost and latency are not part of the reward; keep
+  `cost` routing for that, or leave a cheap arm as a candidate you check in the report.
+
+## Sequential testing
+
+The A/B report now shows two p-values per challenger. `p_value` is the classic
+fixed-horizon test and is only valid if you look once, at a sample size you
+chose in advance. `p_sequential` is an always-valid p-value (mixture SPRT, effect
+prior sd 0.1): you may check the report as often as you like and stop the moment
+it drops below 0.05 without inflating false positives. The recommendation uses
+the sequential test, so "promote" can appear early for a large effect but will
+not fire on a lucky early peek. Small effects need more samples to clear it.

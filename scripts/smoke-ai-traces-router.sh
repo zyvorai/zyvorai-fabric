@@ -180,8 +180,28 @@ ok "batch judge scored unscored traces: $res"
 api POST /api/ai/traces/judge -d '{"endpoint":"ai-smoke-front","judge":{"endpoint":"nope"}}' -w '%{http_code}' | grep -q 404 || fail "missing judge endpoint accepted"
 ok "missing judge endpoint rejected"
 
+echo "== 11. bandit router learns from scores =="
+api POST /api/ai/trace-policies -d '{"endpoint":"ai-smoke-front","auto_score":{"kind":"finish_stop"}}' >/dev/null
+api DELETE "/api/ai/traces?endpoint=ai-smoke-front" >/dev/null 2>&1 || true
+set_router '{"endpoint":"ai-smoke-front","strategy":"bandit","explore":0.1,"warmup":5,"control":"big","candidates":[{"name":"big","endpoint":"ai-smoke-big","quality":0.9},{"name":"small","endpoint":"ai-smoke-small","quality":0.6}]}'
+api POST /api/ai/routers/ai-smoke-front/decide -d '{"messages":[{"role":"user","content":"hi"}]}' | jget '"warm-up" in d["reason"]' | grep -q True || fail "bandit should start in warm-up"
+for round in 1 2 3; do
+  for i in $(seq 1 25); do chat "b$round-$i" "question $round $i" >/dev/null; done
+  sleep 11   # the router refreshes its score cache every 10s
+done
+big=0; small=0
+for i in $(seq 1 60); do
+  v=$(hdr "$(chat "bz$i" "late question $i")" x-fabric-variant)
+  [[ $v == big ]] && big=$((big+1)) || small=$((small+1))
+done
+echo "     after learning: big=$big small=$small"
+(( big > small * 2 )) || fail "bandit did not shift traffic to the better arm (big=$big small=$small)"
+ok "bandit moved most traffic to the higher-scoring arm"
+api GET "/api/ai/routers/ai-smoke-front/report?min_samples=10" | jget 'all("p_sequential" in v["vs_control"] for v in d["variants"] if "vs_control" in v)' | grep -q True || fail "report lacks sequential p-value"
+ok "report carries the always-valid sequential p-value"
+
 if [[ -n "${FABRICCTL:-}" ]]; then
-  echo "== 11. fabricctl =="
+  echo "== 12. fabricctl =="
   export ZYVOR_FABRIC_URL="$FABRIC_URL/api" ZYVOR_FABRIC_TOKEN="$TOKEN"
   "$FABRICCTL" ai trace policies >/dev/null && "$FABRICCTL" ai trace list --endpoint ai-smoke-front --limit 2 >/dev/null \
     && "$FABRICCTL" ai router report ai-smoke-front --min-samples 20 >/dev/null || fail "fabricctl"
