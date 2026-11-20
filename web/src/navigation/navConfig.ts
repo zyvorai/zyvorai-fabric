@@ -7,7 +7,7 @@ import {
   HeartPulse, Container, GitBranch, Zap, RefreshCw, Activity, ArrowRightLeft, CheckCircle, Clock,
   FileText, Calendar, TrendingUp, Camera, Save, PackageCheck, Archive, Package, Bell, Terminal,
   BarChart3, AlertTriangle, Bug, HelpCircle, Radio, Lock, Key, Users, Settings, Globe, DollarSign,
-  Upload, Download, Disc, Workflow, FileUp, Map, Inbox, Boxes, Wrench, MoreHorizontal, Code, Bot,
+  Upload, Download, Disc, Workflow, FileUp, Map, Inbox, Boxes, Wrench, MoreHorizontal, Code, Bot, FlaskConical,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -108,6 +108,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: 'Backups', path: '/app/backups', icon: Save },
       { label: 'Container Groups', path: '/app/container-groups', icon: Boxes },
       { label: 'AI Workloads', path: '/app/ai', icon: Bot },
+      { label: 'AI Improve', path: '/app/ai/improve', icon: FlaskConical },
       { label: 'Merion', path: '/app/merion', icon: Shield },
       { label: 'Agents', path: '/app/agents', icon: Bot },
       { label: 'Sessions', path: '/app/sessions', icon: Activity },

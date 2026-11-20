@@ -34,6 +34,7 @@ const Quotas = lazy(() => import('./pages/Quotas'))
 const ContainerGroups = lazy(() => import('./pages/ContainerGroups'))
 const Agents = lazy(() => import('./pages/Agents'))
 const AiWorkloads = lazy(() => import('./pages/AiWorkloads'))
+const AiImprove = lazy(() => import('./pages/AiImprove'))
 const Sessions = lazy(() => import('./pages/Sessions'))
 const MerionHome = lazy(() => import('./pages/MerionHome'))
 const MerionSession = lazy(() => import('./pages/MerionSession'))
@@ -150,6 +151,7 @@ function ConsoleRoutes() {
             <Route path="quotas" element={<Quotas />} />
             <Route path="container-groups" element={<ContainerGroups />} />
             <Route path="ai" element={<AiWorkloads />} />
+            <Route path="ai/improve" element={<AiImprove />} />
             <Route path="agents" element={<Agents />} />
             <Route path="sessions" element={<Sessions />} />
             <Route path="sessions/:id" element={<Sessions />} />

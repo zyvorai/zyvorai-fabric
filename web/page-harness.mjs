@@ -14,7 +14,7 @@ import { mockBody, SEEDED_SESSION_ID } from './mock-data.mjs'
 export const SEEDED_PAGES = ['', 'vms', 'create', 'logs', 'network', 'storage', 'templates', 'agents', 'sessions', 'merion',
   'schedules', 'settings', 'alerts', 'security-dashboard', 'access-control',
   'backups', 'analytics', 'audit', 'system', 'migrations',
-  'certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'vms/web-01', 'vms/staging-api', 'vms/ci-runner', 'storage-pools', 'storage-manager', 'ui-kit']
+  'certificates', 'compliance', 'drs', 'federation', 'lifecycle', 'migration-report', 'replication', 'site-recovery', `merion/${SEEDED_SESSION_ID}`, 'merion/history', 'vms/web-01', 'vms/staging-api', 'vms/ci-runner', 'storage-pools', 'storage-manager', 'ui-kit', 'ai/improve']
 /** Pages that render fine against the mock's empty answers but have no seed data yet. They are checked as empty states (structure,
     labels, contrast of what is drawn), not populated. Seed one in mock-data.mjs and move it to SEEDED_PAGES to check it with data. */
 export const EMPTY_STATE_PAGES = [
@@ -42,6 +42,7 @@ export const PAGE_TABS = {
   replication: ['dashboard', 'sites', 'Replications', 'RPO Violations'],
   'site-recovery': ['DR Dashboard', 'Recovery Plans', 'Execution History'],
   ai: ['Models', 'Deployments', 'Endpoints', 'API keys', 'Nodes', 'Host GPUs'],
+  'ai/improve': ['Traces', 'Capture', 'Routers & A/B'],
   'content-library': ['Libraries', 'Item Browser', 'Guest Customization', 'Host Profiles'],
   'distributed-storage': ['pools', 'policies', 'migrations', 'Datastore Clusters'],
   'edge-dataplane': ['Health', 'Services', 'Groups', 'CNP', 'Endpoints', 'Identities', 'Observe', 'Packet flow', 'Ipcache'],

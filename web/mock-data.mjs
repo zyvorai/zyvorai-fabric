@@ -471,10 +471,31 @@ const STORAGE_VOLUMES = [
   { name: 'db-primary.qcow2', path: '/var/lib/fabric/images/db-primary.qcow2', capacity: 100 * GB, allocation: 64 * GB, format: 'qcow2' },
 ]
 
+// ---- AI Improve (traces, capture policies, routers, A/B report) ----
+const AI_ENDPOINTS = ['assistant', 'assistant-large', 'assistant-small'].map((name) => ({
+  name, deployment: name, protocol: 'openai', port: 8000, vip: '10.20.0.50', routing_strategy: 'least_queue', created: ago(86400), updated: ago(600),
+}))
+const AI_TRACES = [
+  { id: '7f1c0d2e-1111-4a6b-9c3d-000000000001', created_unix: Math.floor((now - 120000) / 1000), endpoint: 'assistant', router: 'assistant', variant: 'small', target_endpoint: 'assistant-small', model: 'qwen3-8b', path: '/v1/chat/completions', status: 200, latency_ms: 412, streamed: false, prompt_tokens: 38, completion_tokens: 64, finish_reason: 'stop', request: { messages: [{ role: 'user', content: 'Summarise the refund policy in two sentences.' }] }, completion: 'Refunds are available within 30 days of purchase. Items must be unused and in original packaging.', prompt_token_ids: [1, 2, 3], completion_token_ids: [4, 5], logprobs: [-0.2, -0.4], request_sha256: 'a'.repeat(64), score: 1, score_source: 'auto' },
+  { id: '7f1c0d2e-1111-4a6b-9c3d-000000000002', created_unix: Math.floor((now - 90000) / 1000), endpoint: 'assistant', router: 'assistant', variant: 'large', target_endpoint: 'assistant-large', model: 'qwen3-72b', path: '/v1/chat/completions', status: 200, latency_ms: 1180, streamed: true, prompt_tokens: 212, completion_tokens: 301, finish_reason: 'length', request: { messages: [{ role: 'user', content: 'Draft a migration plan for moving 40 VMs to the new cluster.' }] }, completion: 'Phase 1: inventory and dependency map…', request_sha256: 'b'.repeat(64), score: 0, score_source: 'auto' },
+  { id: '7f1c0d2e-1111-4a6b-9c3d-000000000003', created_unix: Math.floor((now - 30000) / 1000), endpoint: 'assistant', router: 'assistant', variant: 'small', target_endpoint: 'assistant-small', model: 'qwen3-8b', path: '/v1/chat/completions', status: 200, latency_ms: 365, streamed: false, prompt_tokens: 20, completion_tokens: 12, redacted: true, request_sha256: 'c'.repeat(64) },
+]
+const AI_ROUTER = { endpoint: 'assistant', strategy: 'split', control: 'large', sticky_header: 'x-user-id', enabled: true, candidates: [
+  { name: 'large', endpoint: 'assistant-large', weight: 1, quality: 0.9, cost_per_mtok_in: 1.2, cost_per_mtok_out: 3.6 },
+  { name: 'small', endpoint: 'assistant-small', weight: 1, quality: 0.6, cost_per_mtok_in: 0.1, cost_per_mtok_out: 0.3 } ] }
+const AI_REPORT = { router: 'assistant', control: 'large', min_samples: 30, recommendation: "keep 'large': every challenger scores significantly lower", variants: [
+  { variant: 'large', requests: 66, errors: 0, error_rate: 0, scored: 66, mean_score: 1, latency_p50_ms: 1120, latency_p95_ms: 1710, prompt_tokens: 14000, completion_tokens: 20000, est_cost_usd: 0.0888 },
+  { variant: 'small', requests: 61, errors: 1, error_rate: 0.0164, scored: 61, mean_score: 0.623, latency_p50_ms: 380, latency_p95_ms: 560, prompt_tokens: 12000, completion_tokens: 15000, est_cost_usd: 0.0057, vs_control: { delta: -0.377, z: -6.1, p_value: 0.0000004, significant: true } } ] }
+
 /** The JSON body for an `/api/...` path (without the `/api` prefix and query), or undefined for the default. */
 export function mockBody(path) {
   const p = path.replace(/\/+$/, '')
   if (p === '/auth/me') return MOCK_USER
+  if (p === '/ai/endpoints') return AI_ENDPOINTS
+  if (p === '/ai/traces') return AI_TRACES
+  if (p === '/ai/trace-policies') return [{ endpoint: 'assistant', sample_rate: 1, redact: false, capture_token_ids: true, auto_score: { kind: 'finish_stop' } }]
+  if (p === '/ai/routers') return [AI_ROUTER]
+  if (p === '/ai/routers/assistant/report') return AI_REPORT
   if (p === '/vms') return VMS
   if (p === '/storage/pools') return STORAGE_POOLS
   if (/^\/storage\/pools\/[^/]+\/volumes$/.test(p)) return STORAGE_VOLUMES
