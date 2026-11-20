@@ -49,6 +49,9 @@ Open `/app/ai` after sign-in: **Models**, **Deployments**, **Endpoints**, **API 
 | PCI MIG | Requires `FLUXVM_AI_PCI_MIG=1`; optional `FLUXVM_AI_PCI_MIG_RECORD_ONLY=1` without driver |
 | Raft | `FLUXVM_AI_RAFT_ID` / `PEERS` / `TOKEN` — three processes; rate counters and audit tip on the leader |
 
+Trace capture, the decision router and A/B reports are described in
+[ai-traces-and-routing.md](ai-traces-and-routing.md).
+
 ## Maturity
 
 | Capability | Status |

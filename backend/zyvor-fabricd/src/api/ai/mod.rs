@@ -46,11 +46,13 @@ pub mod raft;
 pub mod reconcile;
 pub mod revisions;
 pub mod rollouts;
+pub mod router;
 pub mod routing;
 pub mod runtime;
 pub mod scheduler;
 pub mod sites;
 pub mod supply;
+pub mod traces;
 pub mod types;
 pub mod upstream;
 

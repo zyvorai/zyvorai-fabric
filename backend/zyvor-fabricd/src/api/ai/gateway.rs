@@ -362,7 +362,81 @@ async fn gateway_inner(
                 (status, e)
             })?;
     }
-    let req = Request::from_parts(parts.clone(), Body::from(body_bytes.clone()));
+    let upstream_path_hint = upstream_hint.clone();
+    let dry = dry_run_enabled();
+    let mut ep = ep;
+    let mut dep = dep;
+    let mut route_label: Option<(String, String)> = None;
+    if let Some(router) = super::router::router_for(state, endpoint_name) {
+        let input = super::router::RouteInput::from_request(
+            &body_bytes,
+            &super::router::header_pairs(&parts.headers),
+        );
+        let decision = super::router::decide(&router, &input, rand::random::<u64>());
+        let mut chosen = None;
+        for idx in &decision.order {
+            let cand = &router.candidates[*idx];
+            let target_ep: Option<InferenceEndpoint> = state
+                .store
+                .get_entity(STORE_ENDPOINTS, &cand.endpoint)
+                .ok()
+                .flatten();
+            let target_dep: Option<InferenceDeployment> = target_ep.as_ref().and_then(|e| {
+                state
+                    .store
+                    .get_entity(STORE_DEPLOYMENTS, &e.deployment)
+                    .ok()
+                    .flatten()
+            });
+            if let (Some(e), Some(d)) = (target_ep, target_dep) {
+                if dry || !upstream_targets(&e, &d).is_empty() {
+                    chosen = Some((e, d, cand.name.clone()));
+                    break;
+                }
+            }
+        }
+        let (e, d, variant) = chosen.ok_or((
+            StatusCode::SERVICE_UNAVAILABLE,
+            "no router candidate has a ready backend".to_string(),
+        ))?;
+        ep = e;
+        dep = d;
+        route_label = Some((endpoint_name.to_string(), variant));
+    }
+    let mut trace_ctx = None;
+    let mut upstream_body = body_bytes.clone();
+    if upstream_path_hint.contains("/v1/") && method == Method::POST {
+        if let Some(policy) = super::traces::policy_for(state, endpoint_name) {
+            if policy.capture_token_ids {
+                upstream_body = super::traces::inject_capture_params(&body_bytes).into();
+            }
+            trace_ctx = Some(super::traces::TraceCtx {
+                id: uuid::Uuid::new_v4().to_string(),
+                started: std::time::Instant::now(),
+                policy,
+                endpoint: endpoint_name.to_string(),
+                router: route_label.as_ref().map(|(r, _)| r.clone()),
+                variant: route_label.as_ref().map(|(_, v)| v.clone()),
+                target_endpoint: ep.name.clone(),
+                model: dep.model.clone(),
+                path: upstream_path_hint.clone(),
+                tenant: key.tenant.clone(),
+                user: parts
+                    .headers
+                    .get("x-user-id")
+                    .and_then(|v| v.to_str().ok())
+                    .map(str::to_string),
+                project: parts
+                    .headers
+                    .get("x-project-id")
+                    .and_then(|v| v.to_str().ok())
+                    .map(str::to_string),
+                request_body: body_bytes.to_vec(),
+            });
+        }
+    }
+    let trace_id = trace_ctx.as_ref().map(|c| c.id.clone());
+    let req = Request::from_parts(parts.clone(), Body::from(upstream_body));
     let upstream_path = if path.is_empty() {
         "/v1/models".to_string()
     } else if path.starts_with('/') {
@@ -405,9 +479,7 @@ async fn gateway_inner(
         "ATTEMPT",
     );
 
-    let dry_run = std::env::var("FLUXVM_AI_DRY_RUN")
-        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-        .unwrap_or(false);
+    let dry_run = dry;
 
     if dry_run && !janus_replica_ready(&dep) {
         audit(
@@ -443,6 +515,7 @@ async fn gateway_inner(
             },
         },
         streams,
+        trace_ctx.map(|ctx| (state.store.clone(), ctx)),
     )
     .await;
     let outcome = match &proxied {
@@ -462,7 +535,17 @@ async fn gateway_inner(
         &resource,
         outcome,
     );
-    proxied
+    proxied.map(|mut resp| {
+        if let Some((_, variant)) = &route_label {
+            if let Ok(v) = HeaderValue::from_str(variant) {
+                resp.headers_mut().insert("x-fabric-variant", v);
+            }
+        }
+        if let Some(id) = trace_id.as_deref().and_then(|id| HeaderValue::from_str(id).ok()) {
+            resp.headers_mut().insert("x-fabric-trace-id", id);
+        }
+        resp
+    })
 }
 
 struct StreamHold {
@@ -589,6 +672,7 @@ async fn proxy_upstream(
     req: Request,
     guard: ConcurrencyGuard,
     streams: StreamHold,
+    trace: Option<(state_store::StateStore, super::traces::TraceCtx)>,
 ) -> Result<Response, (StatusCode, String)> {
     let targets = upstream_targets(ep, dep);
     if targets.is_empty() {
@@ -669,19 +753,32 @@ async fn proxy_upstream(
         copy_response_headers(upstream_resp.headers(), headers);
     }
     let idle = idle_timeout();
+    let mut sink = trace
+        .map(|(store, ctx)| super::traces::TraceSink::new(store, ctx, status.as_u16(), streaming));
     let stream = async_stream::stream! {
         let _guard = guard;
         let _streams = streams;
         let mut chunks = upstream_resp.bytes_stream();
         loop {
             match tokio::time::timeout(idle, chunks.next()).await {
-                Ok(Some(Ok(bytes))) => yield Ok::<_, std::io::Error>(bytes),
+                Ok(Some(Ok(bytes))) => {
+                    if let Some(sink) = sink.as_mut() {
+                        sink.push(&bytes);
+                    }
+                    yield Ok::<_, std::io::Error>(bytes)
+                }
                 Ok(Some(Err(e))) => {
+                    if let Some(sink) = sink.as_mut() {
+                        sink.status = 502;
+                    }
                     yield Err(std::io::Error::other(e));
                     break;
                 }
                 Ok(None) => break,
                 Err(_) => {
+                    if let Some(sink) = sink.as_mut() {
+                        sink.status = 504;
+                    }
                     yield Err(std::io::Error::new(
                         std::io::ErrorKind::TimedOut,
                         "upstream idle timeout",
@@ -1493,6 +1590,12 @@ pub fn sticky_target(replicas: &[String], key: &str) -> Option<String> {
 }
 
 /// True when a ready replica already points at the configured Janus upstream.
+fn dry_run_enabled() -> bool {
+    std::env::var("FLUXVM_AI_DRY_RUN")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+}
+
 fn janus_replica_ready(dep: &InferenceDeployment) -> bool {
     let Some(url) = super::janus::janus_url() else {
         return false;
