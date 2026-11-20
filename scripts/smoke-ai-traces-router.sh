@@ -6,7 +6,7 @@
 # Needs no GPU: two mock OpenAI backends stand in for model arms.
 #   FABRIC_URL=http://127.0.0.1:19095 FABRIC_PASS=... ./scripts/smoke-ai-traces-router.sh
 # Requires a running fabricd, python3 and curl. Creates ai-smoke-* resources and
-# removes them on exit.
+# removes them on exit (KEEP=1 leaves them, and the mock backends, running).
 set -euo pipefail
 
 FABRIC_URL="${FABRIC_URL:-http://127.0.0.1:9095}"
@@ -18,16 +18,22 @@ N="${N:-120}"
 CURL=(curl -sk -m 30)
 
 pids=()
-cleanup() {
-  for p in "${pids[@]:-}"; do [[ -n "$p" ]] && kill "$p" 2>/dev/null || true; done
-  for r in ai-smoke-front; do api DELETE "/api/ai/routers/$r" >/dev/null 2>&1 || true; done
+reset() { # remove ai-smoke-* resources, whether left by an earlier run or made by this one
+  api DELETE "/api/ai/routers/ai-smoke-front" >/dev/null 2>&1 || true
   api DELETE "/api/ai/trace-policies/ai-smoke-front" >/dev/null 2>&1 || true
   api DELETE "/api/ai/traces?endpoint=ai-smoke-front" >/dev/null 2>&1 || true
-  [[ -n "${KEYID:-}" ]] && api DELETE "/api/ai/keys/$KEYID" >/dev/null 2>&1 || true
+  for id in $(api GET /api/ai/keys 2>/dev/null | python3 -c 'import sys,json; print(" ".join(k["id"] for k in json.load(sys.stdin) if k["name"]=="ai-smoke-key"))' 2>/dev/null); do
+    api DELETE "/api/ai/keys/$id" >/dev/null 2>&1 || true
+  done
   for s in front big small; do
     api DELETE "/api/ai/endpoints/ai-smoke-$s" >/dev/null 2>&1 || true
     api DELETE "/api/ai/deployments/ai-smoke-$s" >/dev/null 2>&1 || true
   done
+}
+cleanup() {
+  [[ "${KEEP:-}" == 1 ]] && return 0
+  for p in "${pids[@]:-}"; do [[ -n "$p" ]] && kill "$p" 2>/dev/null || true; done
+  reset
 }
 trap cleanup EXIT
 
@@ -39,6 +45,7 @@ TOKEN=$("${CURL[@]}" -X POST "$FABRIC_URL/api/auth/login" -H 'content-type: appl
   -d "{\"username\":\"$FABRIC_USER\",\"password\":\"$FABRIC_PASS\"}" | jget 'd["token"]')
 api() { local m=$1 p=$2; shift 2; "${CURL[@]}" -X "$m" "$FABRIC_URL$p" -H "authorization: Bearer $TOKEN" -H 'content-type: application/json' "$@"; }
 
+reset
 python3 "$HERE/mock-openai.py" "$PORT_BIG" big 0 & pids+=($!)
 python3 "$HERE/mock-openai.py" "$PORT_SMALL" small 40 & pids+=($!)
 sleep 1
