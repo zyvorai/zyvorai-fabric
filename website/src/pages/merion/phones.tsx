@@ -363,7 +363,6 @@ export default function PhoneVendorPage(): ReactNode {
             items={[
               'Evidence class is software-test: the vendor’s operators can still read a cell’s memory and the secrets in the host environment. Confidential hardware with user-held keys is the goal of Merion 0.2 and is not available.',
               'Merion makes no compliance claim for any country or industry. Questions about data location, model licensing and content rules belong with your own counsel and security team.',
-              'Meta’s Muse is described only as publicly reported. Corrections welcome.',
             ]}
           />
 

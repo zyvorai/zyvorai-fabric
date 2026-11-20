@@ -9,7 +9,7 @@
 # JSON that asserts on values (including the two model sockets) that this same script just wrote.
 # It proves the receipt shape and the pack-round-trip mechanics agree with agent-runtime/src/
 # scoreboard.rs's validation rules; it does not exercise the real egress broker, a real deployed
-# agent's actual model socket configuration, or a real cell. See docs/merion/AHEAD.md.
+# agent's actual model socket configuration, or a real cell.
 # Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
 [ -n "${MERION_SCOREBOARD_OUT+x}" ] || [ -z "${KEEP_SCOREBOARD_OUT:-}" ] || export MERION_SCOREBOARD_OUT="$KEEP_SCOREBOARD_OUT"
 

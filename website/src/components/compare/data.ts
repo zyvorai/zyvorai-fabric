@@ -3,7 +3,7 @@
 
 /*
  * Facts for the homepage matrix sections. Every entry cites the repo doc it
- * comes from; nothing here is invented. Muse text is "as publicly described".
+ * comes from; nothing here is invented.
  */
 
 export type Level = 'yes' | 'part' | 'no' | 'na';
@@ -240,101 +240,6 @@ export const GATE_CHECKS: [check: string, result: string][] = [
 ];
 
 export const runHref = (id: string) => `${GH_DOCS}/pilot-runs/${id}`;
-
-/* ------------------------------------------------------- 5. infra tables */
-/* Fabric: docs/PRODUCT_OVERVIEW.md "Comparison", capability rows only —
- * counts, setup times and "memory safety" claims are deliberately dropped.
- * FluxVM: fluxvm/README.md "vs. libvirt/virsh". */
-
-export type Col = {key: string; label: string; sub?: string; hl?: boolean; dim?: boolean};
-export type TRow = {label: string; cells: Cell[]};
-export type TGroup = {title: string; rows: TRow[]};
-
-const Y = cell('Yes');
-const N = cell('No', 'no');
-
-export const FABRIC_COLS: Col[] = [
-  {key: 'fabric', label: 'Fabric', sub: 'control plane', hl: true},
-  {key: 'proxmox', label: 'Proxmox VE'},
-  {key: 'openstack', label: 'OpenStack'},
-  {key: 'libvirt', label: 'libvirt / virsh'},
-];
-
-export const FABRIC_GROUPS: TGroup[] = [
-  {
-    title: 'Platform',
-    rows: [
-      {label: 'Single binary', cells: [Y, N, N, cell('N/A', 'na')]},
-      {label: 'REST API', cells: [Y, Y, Y, cell('XML-RPC', 'part')]},
-      {label: 'Web UI', cells: [Y, Y, cell('Yes (Horizon)'), N]},
-      {label: 'CLI', cells: [Y, Y, Y, Y]},
-      {label: 'Kubernetes operator', cells: [Y, N, Y, N]},
-      {label: 'Terraform provider', cells: [Y, Y, Y, Y]},
-    ],
-  },
-  {
-    title: 'Networking',
-    rows: [
-      {label: 'Network policies', cells: [cell('Cilium-style'), cell('Basic', 'part'), cell('Neutron'), N]},
-      {label: 'Service mesh', cells: [Y, N, N, N]},
-      {label: 'VPN mesh', cells: [cell('WireGuard'), N, N, N]},
-      {label: 'GPU passthrough', cells: [Y, Y, Y, Y]},
-    ],
-  },
-  {
-    title: 'Operations',
-    rows: [
-      {label: 'Live migration', cells: [cell('Yes (disk-copy GA, native preview)'), Y, Y, Y]},
-      {label: 'Storage live migration', cells: [Y, Y, Y, Y]},
-      {label: 'VM hibernate', cells: [Y, Y, N, Y]},
-      {label: 'VM import', cells: [cell('Yes (VMDK/VDI)'), Y, cell('Limited', 'part'), cell('qemu-img', 'part')]},
-    ],
-  },
-  {
-    title: 'Identity & audit',
-    rows: [
-      {label: 'LDAP / OIDC SSO', cells: [Y, Y, cell('Yes (Keystone)'), N]},
-      {label: 'Multi-tenancy', cells: [Y, Y, Y, N]},
-      {label: 'RBAC', cells: [cell('3-tier'), cell('3-tier'), cell('Keystone'), N]},
-      {label: 'Audit logging', cells: [Y, Y, Y, N]},
-    ],
-  },
-  {
-    title: 'Project',
-    rows: [
-      {label: 'Written in', cells: [cell('Rust'), cell('Perl / C'), cell('Python'), cell('C')]},
-      {label: 'License', cells: [cell('Zyvor Production 1.0'), cell('AGPL', 'part'), cell('Zyvor Production 1.0'), cell('LGPL', 'part')]},
-    ],
-  },
-];
-
-export const FLUX_COLS: Col[] = [
-  {key: 'libvirt', label: 'libvirt / virsh', dim: true},
-  {key: 'flux', label: 'FluxVM', sub: 'fluxctl', hl: true},
-  {key: 'same', label: 'Same job?'},
-];
-
-export const FLUX_GROUPS: TGroup[] = [
-  {
-    title: 'Lifecycle',
-    rows: [
-      {label: 'Define + start', cells: [cell('virsh define + virsh start', 'na'), cell('fluxctl create'), Y]},
-      {label: 'List / inspect', cells: [cell('virsh list / dominfo', 'na'), cell('fluxctl list / get'), Y]},
-      {label: 'Suspend / resume', cells: [cell('virsh suspend / resume', 'na'), cell('fluxctl pause / resume'), Y]},
-      {label: 'Destroy', cells: [cell('virsh destroy', 'na'), cell('fluxctl delete'), Y]},
-    ],
-  },
-  {
-    title: 'Definition & API',
-    rows: [
-      {
-        label: 'VM definition',
-        cells: [cell('XML domain definition', 'na'), cell('JSON spec (fluxctl create --spec vm.json)'), cell('Different format, same purpose', 'part')],
-      },
-      {label: 'REST API', cells: [cell('No REST API', 'no'), cell('Full REST API (fluxctl serve)'), cell('FluxVM adds this')]},
-    ],
-  },
-];
 
 /* ---------------------------------------------------------- 6. quickstart */
 /* Source: scripts/merion-demo-pdf.sh, scripts/merion-pack-demo.sh,

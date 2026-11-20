@@ -18,12 +18,6 @@ Day-to-day operational procedures for running Zyvor Fabric in production environ
 - **[Monitoring Guide](operations/monitoring.md)** -- Health checks, metrics collection, SSE event streaming, notification channel configuration (Email, Slack, Webhook, Teams), and alerting best practices.
 - **[Backup Strategy](operations/backup-strategy.md)** -- Backup types (full and incremental), policy-based scheduling, retention management, restore procedures, and backup verification workflows.
 
-### [Decision Support](decision-support/)
-
-Evaluation materials for comparing Zyvor Fabric against alternative virtualization platforms.
-
-- **[Comparison Matrix](decision-support/comparison-matrix.md)** -- Feature-by-feature comparison of Zyvor Fabric against libvirt/virsh, Proxmox VE, and other VM management tools, with a focus on systemd integration, API completeness, and operational model differences.
-
 ## Related Documentation
 
 - **[Reference Documentation](../reference/)** -- Detailed API specifications, data model definitions, and protocol documentation.

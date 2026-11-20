@@ -26,7 +26,6 @@ const NEW_FEATURES: [string, string][] = [
   ['Approve from Android', 'A native app signs with a hardware-backed key behind your fingerprint. Same signature format as iPhone.'],
 ];
 
-const COMPARE_ROWS = ['Where it runs', 'Policy', 'The cell', 'Model'];
 
 /** The install tabs in marketing.json, shaped for the homepage's terminal component. */
 const INSTALL: Quick[] = marketing.install.map((tab, i) => ({
@@ -40,7 +39,6 @@ const INSTALL: Quick[] = marketing.install.map((tab, i) => ({
 export default function MerionPage(): ReactNode {
   useHashScroll();
   const card = useBaseUrl('/img/social-card.png', {absolute: true});
-  const compare = marketing.compare.filter((r) => COMPARE_ROWS.includes(r.label));
   // "Your agent gets a real computer. You keep the keys." → headline + gradient line.
   const [headline, ...accent] = marketing.tagline.split(/(?<=\.)\s+/);
 
@@ -241,41 +239,18 @@ export default function MerionPage(): ReactNode {
             </p>
           </Section>
 
-          <Section
-            id="muse"
-            eyebrow="Meta Muse vs Merion"
-            title="Same threat model. Different owner."
-            tint>
-            <div className={styles.rows}>
-              {compare.map((r, i) => (
-                <Reveal key={r.label} delay={i * 80} className={styles.row}>
-                  <span className={styles.rowLabel}>{r.label}</span>
-                  <span className={styles.rowMuse}>{r.muse}</span>
-                  <span className={styles.rowMerion}>{r.merion}</span>
-                </Reveal>
-              ))}
-            </div>
-            <Link className={styles.more} to="/compare?t=stack#matrix">
-              The full comparison ›
-            </Link>
-          </Section>
-
           <HonestyBand
             items={[
               marketing.honesty,
-              <>
-                Muse details here are as publicly described; public detail is thin.{' '}
-                <a href="https://github.com/zyvorai/fabric/issues">Corrections welcome.</a>
-              </>,
             ]}
           />
 
-          <CtaBand title="Run the open version.">
+          <CtaBand title="Run it yourself.">
             <Link className="button button--primary button--lg" to="/docs/getting-started/Quick-Start">
               Quick start
             </Link>
-            <Link className="button button--outline button--lg button--secondary" to="/compare">
-              Fabric vs the field
+            <Link className="button button--outline button--lg button--secondary" to="/start">
+              Docs
             </Link>
           </CtaBand>
         </main>

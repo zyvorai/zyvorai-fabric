@@ -2,8 +2,6 @@
 
 # Zyvor Fabric
 
-[Client overview (PDF)](docs/Zyvor-Fabric-Client-Overview.pdf)
-
 [![CI](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/ci.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=CI)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/ci.yml)
 [![Merion](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/keep.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Merion)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/merion.yml)
 [![Agent Runtime](https://img.shields.io/github/actions/workflow/status/zyvorai/zyvorai-fabric/agent-runtime.yml?branch=main&style=flat-square&labelColor=1d1d1f&label=Agent%20Runtime)](https://github.com/zyvorai/zyvorai-fabric/actions/workflows/agent-runtime.yml)
@@ -217,22 +215,7 @@ Default ports: **9095** (API and UI) and **7788** (FluxVM on localhost). The ful
 
 <a id="is-this-for-you"></a>
 
-**Is this for you?** It fits API-first automation, single-host or small-cluster deployments, security-conscious teams, and private inference next to the VMs. Look elsewhere for large multi-host clusters with mature live migration today, a deep libvirt-XML ecosystem, or first-class Windows guests. [The honest version](docs/why-fabric.md#is-this-for-you), the [comparison matrix](docs/guides/decision-support/comparison-matrix.md) and the [FAQ](docs/quick-reference/faq.md).
-
-## Fabric vs Proxmox VE
-
-![Zyvor Fabric vs Proxmox VE: API first, one daemon, private inference next to the VMs](docs/ux/readme-vs.jpg)
-
-| | **Zyvor Fabric** | **Proxmox VE** |
-|---|---|---|
-| Hypervisors | QEMU/KVM, Cloud Hypervisor, Firecracker, via [FluxVM](https://github.com/zyvorai/zyvor-fluxvm) | QEMU/KVM plus LXC containers |
-| Management layer | FluxVM (systemd-free) + one REST API | pvemanager with a Perl backend |
-| Automation | 780+-endpoint JSON REST API, SSE events, Kubernetes operator, Terraform provider included | REST API, `pvesh`, community Terraform providers |
-| Cluster model | Single-host or small cluster (multi-host networking available) | Built-in multi-node cluster with its own cluster filesystem (pmxcfs) |
-| Live migration | Disk-copy path GA; native FluxVM transport preview; full HA cutover pre-GA | Built-in cluster migration |
-| AI inference | OpenAI-compatible inference on the same daemon (Beta) | Not part of the product |
-| License | Zyvor Production 1.0 (free non-production) | AGPL plus an optional subscription |
-| **Choose Proxmox VE when** | | You need large multi-host clusters with mature shared-storage live migration today, or first-class Windows guests |
+**Is this for you?** It fits API-first automation, single-host or small-cluster deployments, security-conscious teams, and private inference next to the VMs. It is not yet the right fit for large multi-host clusters with mature live migration, a deep libvirt-XML ecosystem, or first-class Windows guests. [The honest version](docs/why-fabric.md#is-this-for-you) and the [FAQ](docs/quick-reference/faq.md).
 
 ## How it fits together
 
@@ -246,7 +229,7 @@ Default ports: **9095** (API and UI) and **7788** (FluxVM on localhost). The ful
 | Area | Status (from the repo's own docs) |
 |---|---|
 | VM lifecycle, networking, storage, security, CLI, console, operator, Terraform | Shipped; see [FEATURES.md](FEATURES.md) |
-| Live migration | Disk-copy path GA; native FluxVM transport **preview**; full HA cutover **pre-GA** ([comparison matrix](docs/guides/decision-support/comparison-matrix.md)) |
+| Live migration | Disk-copy path GA; native FluxVM transport **preview**; full HA cutover **pre-GA** |
 | AI Workloads | Single-cluster **Beta**; multi-site HA store stays **Preview**; **not GA** ([at a glance](docs/ai-workloads-at-a-glance.md)) |
 | Merion (was Keep) | Evidence class `software-test`; Merion 0.2 hardware still gated; the Kubernetes chart is rendered and schema-checked but never installed in a cluster ([status](docs/merion/STATUS.md)) |
 | Slack/Teams approvals, OpenTelemetry export, federation view, Android app | Merged. Tested against local fakes; not yet against a live Slack workspace, collector, second daemon or Android device |

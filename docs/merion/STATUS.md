@@ -1,6 +1,6 @@
 # Merion — phases complete (local)
 
-Scoreboard (ahead-of-Muse gate, software-test only): [`AHEAD.md`](AHEAD.md) · `./scripts/merion-scoreboard.sh` · `agent-runtime/src/scoreboard.rs`.
+Scoreboard (software-test only): `./scripts/merion-scoreboard.sh` · `agent-runtime/src/scoreboard.rs`.
 
 | Phase | Status | Where |
 |---|---|---|

@@ -23,7 +23,6 @@ CNP, effective policy, health/ipcache/FQDN refresh).
 | CLI | `fabricctl dataplane …` (`ZYVOR_FABRIC_URL` + `ZYVOR_FABRIC_TOKEN` on HTTPS) |
 | Policy ports | Must be `tcp/PORT` or `udp/PORT` (also `icmp/0` / `icmp6/0`) |
 | Maglev VIP LB | [Service Fabric v6 (BPF schema 4)](ebpf-service-fabric.md) · Edge Dataplane → **Services** |
-| vs other VMMs | [Network Fabric architecture comparison](network-fabric-architecture.md#why-fabric--network-fabric-is-ahead-of-other-vmms) |
 
 Full enablement, troubleshooting, and lab UX checklist:
 [guides/vm-drivers/fluxvm-dataplane.md](guides/vm-drivers/fluxvm-dataplane.md).

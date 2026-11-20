@@ -27,7 +27,7 @@ blockquote{border-left:3px solid #2dd4bf;padding:.2em .9em;color:#475569;margin:
 <div class="sub">A private cloud control plane with no systemd dependency.</div>
 <div class="badge">2026-09-02</div>
 <div class="foot">zyvor.dev · Zyvor Production License v1.0</div></section>
-<main><p>Zyvor Fabric is a complete Rust control plane giving you Proxmox- and KubeVirt-class capabilities without the heavyweight stack. Manage the same infrastructure four ways — CLI, web dashboard, Kubernetes operator, or Terraform — over a single daemon exposing 480+ REST endpoints and live WebSocket channels. VM lifecycle runs through <a href="https://github.com/zyvorai/fluxvm">FluxVM</a>, a disposable-VM engine with no systemd dependency of its own (<code>driver.fluxvm_url</code> in <code>zyvor-fabricd.toml</code>). There are no custom hypervisor patches or kernel modules to maintain, and the daemon itself runs fine under systemd or any other supervisor — it&#39;s no longer a hard requirement.</p>
+<main><p>Zyvor Fabric is a complete Rust control plane giving you VM-platform and KubeVirt-style capabilities without a heavyweight stack. Manage the same infrastructure four ways — CLI, web dashboard, Kubernetes operator, or Terraform — over a single daemon exposing 480+ REST endpoints and live WebSocket channels. VM lifecycle runs through <a href="https://github.com/zyvorai/fluxvm">FluxVM</a>, a disposable-VM engine with no systemd dependency of its own (<code>driver.fluxvm_url</code> in <code>zyvor-fabricd.toml</code>). There are no custom hypervisor patches or kernel modules to maintain, and the daemon itself runs fine under systemd or any other supervisor — it&#39;s no longer a hard requirement.</p>
 <p><strong>480+</strong> REST API endpoints · <strong>4</strong> management interfaces · <strong>40+</strong> Rust backend crates · <strong>6</strong> storage backends · <strong>37+</strong> web dashboard pages · <strong>1</strong> binary, one config, one service</p>
 <p>This is the user-facing onboarding guide — how to access the product, your first workflows, and how to use every feature. A print-ready PDF of the same content sits alongside this file.</p>
 <h2>Contents</h2>
@@ -123,7 +123,7 @@ blockquote{border-left:3px solid #2dd4bf;padding:.2em .9em;color:#475569;margin:
 <li><strong>How:</strong> Web VM detail Hotplug tab (live CPU/memory/disk/NIC) · REST resource endpoints under <code>/api/system/vms/:name/...</code> · emits <code>cpu_hotplug</code>/<code>memory_hotplug</code>/<code>disk_attached</code> events on the SSE stream.</li>
 </ul>
 </li>
-<li><strong>Disk Import &amp; Conversion</strong> — Import VMs from VMDK, VDI, and VHD with auto-conversion to qcow2, and online disk resize via QMP. — <em>Bring machines off VMware or VirtualBox without downtime.</em><ul>
+<li><strong>Disk Import &amp; Conversion</strong> — Import VMs from VMDK, VDI, and VHD with auto-conversion to qcow2, and online disk resize via QMP. — <em>Bring existing VMDK, VDI and VHD machines over without downtime.</em><ul>
 <li><strong>How:</strong> REST <code>POST /api/images/import</code> (VMDK/VDI/VHD → qcow2) and online resize <code>POST /api/images/:id/resize</code> · Web VM Create from imported image (REST/Web only — no <code>fabricctl</code> image command).</li>
 </ul>
 </li>

@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 
-//! Keep scoreboard — the claims we are allowed to make against Muse.
+//! Keep scoreboard — the claims we are allowed to make.
 //!
 //! A scoreboard receipt is not an attestation. It is a signed statement of
 //! what this run actually measured. Hardware flags stay false until a

@@ -1,8 +1,8 @@
 # Merion at a glance
 
-The short version of the open agent workstation; the full pitch is [README.md](README.md). Back to the [README](../../README.md).
+The short version of the agent workstation; the full pitch is [README.md](README.md). Back to the [README](../../README.md).
 
-## Merion — open agent workstation
+## Merion — agent workstation
 
 <p align="center">
   <a href="README.md"><img src="../assets/merion/demo-static.svg" alt="Real output of ./scripts/merion-e2e.sh: 85 checks passed, 0 failed" width="640"></a>
@@ -28,7 +28,7 @@ You run it, you read it, you take it with you. 60+ ready use cases (statements, 
 
 | Start here | |
 |---|---|
-| **Merion README** — pitch, 60-second start, Muse vs Merion | [docs/merion/README.md](README.md) |
+| **Merion README** — pitch, 60-second start | [docs/merion/README.md](README.md) |
 | **Phone makers** — an agent computer per user, keys on the phone | [docs/merion/VENDORS.md](VENDORS.md) · [Pages](https://zyvorai.github.io/fabric/merion/phones) |
 | Pitch + architecture | [docs/merion/MERION.md](MERION.md) |
 | Tutorial 16 — workstation | [docs/tutorials/16-merion-workstation.md](../tutorials/16-merion-workstation.md) |

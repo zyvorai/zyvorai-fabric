@@ -1,10 +1,6 @@
 # Decision Support
 
-This section provides evaluation materials to help teams assess Zyvor Fabric against alternative virtualization platforms and make informed adoption decisions.
-
-## Contents
-
-- **[Comparison Matrix](comparison-matrix.md)** -- Detailed feature-by-feature comparison of Zyvor Fabric against libvirt/virsh, Proxmox VE, and other VM management solutions. Covers API design, networking, storage, security, and operational model differences.
+This section helps teams decide whether Zyvor Fabric fits their environment.
 
 ## When to Choose Zyvor Fabric
 
@@ -15,8 +11,8 @@ Zyvor Fabric is a strong fit when your environment meets these criteria:
 - **Single-host or small-cluster deployments** -- You want lightweight VM management without the operational overhead of full cluster orchestration platforms.
 - **Security-conscious environments** -- You value PAM-based authentication, role-based access control, audit logging, and network policy enforcement built into the platform.
 
-## When to Consider Alternatives
+## When Fabric Is Not Yet the Right Fit
 
-- **Large multi-host clusters with live migration** -- Platforms like Proxmox VE or oVirt provide mature cluster management with shared storage and live migration out of the box.
+- **Large multi-host clusters with live migration** -- Fabric's native live-migration transport is still preview; the disk-copy path is GA.
 - **Existing libvirt ecosystem** -- If your tooling already depends on libvirt's XML domain definitions and virsh, migrating to Zyvor Fabric requires API adaptation.
-- **Windows guest workloads** -- Zyvor Fabric focuses on Linux guests via its QEMU/KVM-based VM drivers. For mixed Windows/Linux environments, consider Proxmox or libvirt with full QEMU/KVM configuration access.
+- **Windows guest workloads** -- Zyvor Fabric focuses on Linux guests via its QEMU/KVM-based VM drivers. Mixed Windows/Linux environments are not yet a good fit.

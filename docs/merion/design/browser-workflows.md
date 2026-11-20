@@ -2,7 +2,7 @@
 
 ## Why
 
-Meta's Muse announcement lists browser automation, forms, travel and shopping as available. For Keep the same job is: the agent works a website
+The job is: the agent works a website
 for you (find, fill, compare), and a person stays in control at the moments that matter: taking the wheel, and pressing the button that
 sends or spends.
 

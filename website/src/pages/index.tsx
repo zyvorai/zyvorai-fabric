@@ -76,7 +76,7 @@ export default function Home(): ReactNode {
     <Layout
       title="Zyvor Fabric — the private cloud that fits in one daemon"
       description="VMs, networking, storage, security and AI inference from one ~15 MB Rust daemon on any Linux server with KVM. Source-available, Zyvor Production License v1.0.">
-      <PageMetadata image="/img/compare-social.png" />
+      <PageMetadata image="/img/social-card.png" />
       <Page>
         <HeroShell
           eyebrow="Zyvor Fabric"
@@ -178,22 +178,11 @@ export default function Home(): ReactNode {
             <Quickstart items={QUICK} />
           </Section>
 
-          <Section
-            eyebrow="Compare"
-            title="How it stacks up."
-            lede="Fabric against Proxmox, OpenStack and libvirt, and the Merion stack against Meta’s Muse, side by side, with the cases where something else is the better choice."
-            tint>
-            <Link className={styles.more} to="/compare">
-              See the matrix ›
-            </Link>
-          </Section>
-
           <HonestyBand
             items={[
               <>
                 Live migration: the disk-copy path is GA; the native FluxVM transport is preview and full HA cutover is
-                pre-GA. For large multi-host clusters with mature shared-storage migration today, Proxmox VE is the safer
-                choice.
+                pre-GA.
               </>,
               <>AI Workloads is single-cluster Beta, not GA.</>,
               <>
@@ -203,12 +192,12 @@ export default function Home(): ReactNode {
             ]}
           />
 
-          <CtaBand title="Run the open version.">
+          <CtaBand title="Run it yourself.">
             <Link className="button button--primary button--lg" to="/docs/getting-started/Quick-Start">
               Quick start
             </Link>
-            <Link className="button button--outline button--lg button--secondary" to="/compare">
-              Compare
+            <Link className="button button--outline button--lg button--secondary" to="/start">
+              Docs
             </Link>
           </CtaBand>
         </main>

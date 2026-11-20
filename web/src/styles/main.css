@@ -344,7 +344,7 @@ a:hover {
   }
 }
 
-/* —— Merion marketing (Muse-caliber product story; no Muse consumer chrome) —— */
+/* —— Merion marketing —— */
 .merion-mkt {
   --keep-steel: #1a2330;
   --keep-mist: #8b9bb0;
@@ -635,7 +635,7 @@ a:hover {
   max-width: 36rem !important;
 }
 
-/* Muse vs Merion full comparison */
+/* Merion stack */
 .merion-mkt-versus {
   margin-top: 8px;
 }
@@ -711,12 +711,6 @@ a:hover {
   color: var(--zf-secondary);
   padding-top: 2px;
 }
-.merion-mkt-versus-muse {
-  font-size: 0.98rem;
-  color: var(--zf-muted);
-  line-height: 1.45;
-  letter-spacing: -0.01em;
-}
 .merion-mkt-versus-merion {
   font-size: 0.98rem;
   color: var(--zf-ink);
@@ -731,13 +725,6 @@ a:hover {
   .merion-mkt-versus-rows li {
     grid-template-columns: 1fr;
     gap: 8px;
-  }
-  .merion-mkt-versus-muse::before {
-    content: 'Muse · ';
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--zf-secondary);
   }
   .merion-mkt-versus-merion::before {
     content: 'Merion · ';

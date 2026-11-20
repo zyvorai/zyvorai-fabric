@@ -2,7 +2,7 @@
 
 **Zyvor Fabric** is the Linux control plane for private cloud infrastructure: VM lifecycle, networking, security, storage, HA, operators, Terraform, and monitoring — with VM execution handled by [FluxVM](https://github.com/zyvorai/fluxvm), a disposable-VM engine with no systemd dependency.
 
-It is **not** positioned as a basic VM manager. It is a **VM operations fabric** and **private cloud control plane** — closer to Proxmox + KubeVirt UX, without the heavyweight multi-package stack.
+It is **not** positioned as a basic VM manager. It is a **VM operations fabric** and **private cloud control plane** — without a heavyweight multi-package stack.
 
 Part of the [Zyvor](https://zyvor.dev) product family from ZyvorAI Labs.
 
@@ -13,14 +13,14 @@ Part of the [Zyvor](https://zyvor.dev) product family from ZyvorAI Labs.
 | Dimension | Positioning |
 |-----------|-------------|
 | **Category** | Pluggable virtualization platform / private cloud control plane |
-| **Analogy** | Proxmox-class UX + KubeVirt-style operations, single Rust daemon |
+| **Shape** | Single Rust daemon with KubeVirt-style operations |
 | **Runtime** | `zyvor-fabricd` — one binary, one config; runs under systemd (still fully supported) or standalone |
 | **Scope** | VMs, network fabric, security policy, storage, HA, migration, observability |
 | **Interfaces** | CLI (`fabricctl`), Web UI, K8s operator, Terraform provider |
 
 ### Elevator pitch
 
-> Zyvor Fabric is a production-grade private cloud control plane for Linux. Deploy in minutes with a single daemon, manage everything through four interfaces, and get enterprise features — RBAC, HA, live migration, GPU passthrough, network policies — without VMware complexity or OpenStack overhead.
+> Zyvor Fabric is a production-grade private cloud control plane for Linux. Deploy in minutes with a single daemon, manage everything through four interfaces, and get enterprise features — RBAC, HA, live migration, GPU passthrough, network policies — without multi-service complexity.
 
 ---
 
@@ -28,12 +28,12 @@ Part of the [Zyvor](https://zyvor.dev) product family from ZyvorAI Labs.
 
 | Persona | Role | What they care about | Where Fabric fits |
 |---------|------|----------------------|--------------------|
-| **Economic buyer** — VP Infrastructure / CTO at a mid-size org | Owns the build-vs-buy decision and the budget | Total cost of ownership vs. VMware/OpenStack licensing, operational headcount, vendor lock-in risk, time-to-value | One binary instead of a multi-server stack; Apache-2.0 core with paid enterprise support as an option, not a requirement — see [License & Support](#license--support) below |
+| **Economic buyer** — VP Infrastructure / CTO at a mid-size org | Owns the build-vs-buy decision and the budget | Total cost of ownership, operational headcount, vendor lock-in risk, time-to-value | One binary instead of a multi-server stack; Zyvor Production License v1.0 (production use needs a commercial license; paid enterprise support is separate) — see [License & Support](#license--support) below |
 | **Platform engineer** ("Morgan" in [USER_STORIES.md](USER_STORIES.md)) | Builds the infrastructure other teams consume | Kubernetes operator, Terraform provider, GitOps-friendly declarative config | `VirtualMachine` CRD + `fabricctl apply -f config.yaml`, both backed by the same REST API as the UI |
 | **Private cloud admin** ("Alex" in [USER_STORIES.md](USER_STORIES.md)) | Day-2 VM lifecycle, backups, incident response | A UI and CLI that don't drift from each other, audit trail for every action | Web console + `fabricctl`, both hitting the identical 780+-endpoint API |
 | **Developer** ("Jordan" in [USER_STORIES.md](USER_STORIES.md)) | Needs VMs for testing/dev without filing a ticket | Self-service, scriptable, fast | CLI + REST API, VM creation in one command |
 
-The economic-buyer row is the one most positioning docs skip. The short version for that persona: Fabric is under the Zyvor Production License v1.0 (free for non-production use; production use needs a commercial license, sales@zyvor.dev); the cost you're actually evaluating against VMware/OpenStack is **operational** — one 15MB binary and one config file vs. hundreds to thousands of packages and multiple dependent services (see the [Comparison Matrix](guides/decision-support/comparison-matrix.md) for the itemized breakdown). Paid Enterprise support/SLAs are separate from the production license.
+The economic-buyer row is the one most positioning docs skip. The short version for that persona: Fabric is under the Zyvor Production License v1.0 (free for non-production use; production use needs a commercial license, sales@zyvor.dev); the cost you're actually evaluating is **operational** — one 15MB binary and one config file. Paid Enterprise support/SLAs are separate from the production license.
 
 ---
 
@@ -50,28 +50,18 @@ Keeping `zyvor-fabricd` as the daemon name avoids breaking installs, Ansible rol
 
 ---
 
-## Competitive Frame
+## What Fabric Offers
 
-### vs. Proxmox / VMware / OpenStack
-
-- **Lighter** — single 15MB binary vs. hundreds (Proxmox) to thousands (OpenStack) of packages
+- **Lighter** — single 15MB binary
 - **No systemd dependency for VM lifecycle** — VMs run under FluxVM's own process supervision, not as systemd units
-- **Rust control plane** — memory-safe by construction (zero `unsafe` Rust, zero shell pipelines); no garbage-collection pauses. We haven't published a benchmarked latency/memory figure with a documented method and environment, so we don't cite one here — see the [Comparison Matrix](guides/decision-support/comparison-matrix.md) for what *is* independently verifiable today (setup time, package count, config file count)
 - **API-first** — 780+ REST endpoints, 3 WebSocket channels, full automation surface
-
-### vs. "Another VM manager"
-
-Zyvor Fabric includes:
-
 - Network policies, VM firewalls, service mesh, QoS, DNS policy, VPN mesh, NAT, packet mirror
 - HA clustering, DRS, fault tolerance, replication, site recovery
 - Distributed storage backends (local, NFS, LVM, ZFS, Ceph)
 - Kubernetes operator + Terraform provider
 - 90+ web pages, security hardening (31-round audit, 194 issues found and fixed, 0 outstanding — [report](SECURITY_AUDIT_REPORT.md)), audit logging, compliance tooling
 
-### When to look elsewhere
-
-Fabric isn't the right fit for every case. See **[Is this for you?](why-fabric.md#is-this-for-you)** and the full **[Comparison Matrix](guides/decision-support/comparison-matrix.md)** for where Proxmox VE, oVirt, or a full libvirt stack currently outmatch it — chiefly: mature multi-host live migration at scale, existing deep libvirt/XML tooling investments, and first-class Windows guest support.
+Fabric isn't the right fit for every case. See **[Is this for you?](why-fabric.md#is-this-for-you)** for the current limits: multi-host live migration at scale, existing deep libvirt/XML tooling investments, and first-class Windows guest support.
 
 ---
 
@@ -86,7 +76,7 @@ Fabric isn't the right fit for every case. See **[Is this for you?](why-fabric.m
 | **Platform** | Linux hypervisor hosts | macOS desktop |
 | **Role** | Control plane / data plane | AI operator + explorer UI |
 | **Status** | Shipping | Not yet built — vision/roadmap only |
-| **Analogy** | Proxmox backend | Lens + K9s + Copilot for infrastructure |
+| **Analogy** | Infrastructure backend | Lens + K9s + Copilot for infrastructure |
 | **AI** | API hooks for automation | Local LLM, RAG, tool-calling into Fabric APIs |
 
 ### Machina vision
@@ -128,7 +118,7 @@ Zyvor Fabric's own roadmap continues independently of Machina: HA, networking de
 
 - "Zyvor Fabric — private cloud control plane for Linux, with a pluggable VM driver"
 - "VM operations fabric for Linux"
-- "Proxmox-class capabilities, single-daemon simplicity"
+- "Enterprise capabilities, single-daemon simplicity"
 - "Part of the Zyvor product family"
 
 ### Avoid
@@ -160,6 +150,5 @@ Zyvor Production License v1.0 (SPDX: LicenseRef-Zyvor-Production-1.0), applied t
 - Product: [zyvor.dev](https://zyvor.dev)
 - Repository: [github.com/zyvorai/fabric](https://github.com/zyvorai/fabric)
 - Naming: [NAMING.md](NAMING.md)
-- Comparison matrix: [guides/decision-support/comparison-matrix.md](guides/decision-support/comparison-matrix.md)
 - Documentation: [docs/index.md](index.md)
 - Client decks: [client-presentations/](client-presentations/)

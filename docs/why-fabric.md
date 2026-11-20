@@ -6,9 +6,9 @@ What Fabric is, the problems it answers, and whether it fits you. Back to the [R
 
 **Zyvor Fabric** is a production-grade private cloud control plane for Linux. One ~15MB Rust daemon (`zyvor-fabricd`) gives you VM lifecycle, software-defined networking, pluggable storage, security policy, and **OpenAI-compatible AI inference** — managed through four interfaces (**CLI, Web, Kubernetes operator, Terraform**) that all talk to the same API, so nothing drifts between them.
 
-It targets the gap between two extremes: **manual QEMU/KVM + shell scripts** (no security, no multi-user access, doesn't scale) and **VMware/OpenStack-class stacks** (hundreds to thousands of packages, dedicated ops teams, days to stand up). Fabric deploys in about 5 minutes, runs on any Linux server with KVM — no vCenter, no systemd hard-requirement — and still ships the things enterprise buyers actually ask for: RBAC, audit logging, HA clustering, live migration, GPU passthrough, Maglev load balancing, and a 780+-endpoint REST API for automation.
+It targets the gap between two extremes: **manual QEMU/KVM + shell scripts** (no security, no multi-user access, doesn't scale) and **heavyweight multi-server stacks** (hundreds to thousands of packages, dedicated ops teams, days to stand up). Fabric deploys in about 5 minutes, runs on any Linux server with KVM — no vCenter, no systemd hard-requirement — and still ships the things enterprise buyers actually ask for: RBAC, audit logging, HA clustering, live migration, GPU passthrough, Maglev load balancing, and a 780+-endpoint REST API for automation.
 
-Fabric doesn't implement VM execution itself — that's a deliberate design choice, not a gap. It's the orchestration, API, auth, and UX layer on top of two independent sibling projects: **[FluxVM](https://github.com/zyvorai/fluxvm)** (the VM engine) and **[GuestKit](https://github.com/zyvorai/guestkit)** (offline disk tooling). Each is independently useful, Apache-2.0 licensed, and separately adoptable.
+Fabric doesn't implement VM execution itself — that's a deliberate design choice, not a gap. It's the orchestration, API, auth, and UX layer on top of two independent sibling projects: **[FluxVM](https://github.com/zyvorai/fluxvm)** (the VM engine) and **[GuestKit](https://github.com/zyvorai/guestkit)** (offline disk tooling). Each is independently useful and separately adoptable.
 
 > **Naming:** the product is **Zyvor Fabric**; the daemon/unit/paths stay `zyvor-fabricd`. Canonical repo: [zyvorai/fabric](https://github.com/zyvorai/fabric). See [docs/NAMING.md](NAMING.md) and [docs/POSITIONING.md](POSITIONING.md).
 
@@ -44,8 +44,8 @@ Zyvor Fabric is a strong fit when:
 
 Look elsewhere when:
 
-- **You need large multi-host clusters with mature live migration today** — Proxmox VE or oVirt offer more battle-tested shared-storage live migration out of the box; Fabric's native live-migration transport is still preview (see [Comparison Matrix](guides/decision-support/comparison-matrix.md)).
+- **You need large multi-host clusters with mature live migration today** — Fabric's native live-migration transport is still preview; the disk-copy path is GA.
 - **You're deep in an existing libvirt ecosystem** — Fabric talks to FluxVM's own REST API, not libvirt's XML domain definitions; migrating existing libvirt tooling means API adaptation, not a drop-in swap.
-- **You need first-class Windows guest support** — Fabric focuses on Linux guests via QEMU/KVM; for mixed Windows/Linux fleets, Proxmox or full libvirt access is more mature there.
+- **You need first-class Windows guest support** — Fabric focuses on Linux guests via QEMU/KVM; mixed Windows/Linux fleets are not yet a good fit.
 
-Full comparison against libvirt/virsh and Proxmox VE: **[docs/guides/decision-support/comparison-matrix.md](guides/decision-support/comparison-matrix.md)**. Common questions: **[FAQ](quick-reference/faq.md)**.
+Common questions: **[FAQ](quick-reference/faq.md)**.

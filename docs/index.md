@@ -69,9 +69,6 @@ Step-by-step walkthroughs for common workflows.
 
 | Document | Description |
 |----------|-------------|
-| Zyvor Fabric vs. Proxmox | Feature and architecture comparison |
-| Zyvor Fabric vs. OpenStack | Scope, complexity, and deployment comparison |
-| Zyvor Fabric vs. libvirt | Integration model and management layer comparison |
 | Storage Backend Selection | Choosing between Local, NFS, LVM, ZFS, and Ceph |
 | Networking Architecture | Overlay vs. flat networking decisions |
 
@@ -528,7 +525,7 @@ Standalone component: durable agent sessions in a FluxVM sandbox, or on a GitHub
 
 ## Product Positioning
 
-- [docs/POSITIONING.md](POSITIONING.md) — Zyvor Fabric vs. Machina, naming model, messaging
+- [docs/POSITIONING.md](POSITIONING.md) — naming model, messaging
 - [client-presentations/](client-presentations/) — Client-facing HTML slide decks
 
 ---

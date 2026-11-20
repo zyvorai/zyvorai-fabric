@@ -10,9 +10,7 @@ attested key release below do not, and none of it has run on confidential hardwa
 evidence, honestly labeled). **Merion 0.2** is this document's user-held key path
 after a hardware run — see [../merion/MERION-0.2.md](../merion/MERION-0.2.md).
 
-Modelled on the "Confidential VM with a user-held key"
-that Meta announced for Muse; the public details are thin, so the requirements
-below are ours rather than a copy of theirs.
+The design is a "Confidential VM with a user-held key"; the requirements below are ours.
 
 ## Goal
 

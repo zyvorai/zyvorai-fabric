@@ -8,7 +8,7 @@ Presentation materials for client meetings, organized by audience and purpose. A
 
 | Document | Audience | Purpose |
 |----------|----------|---------|
-| [01 - Executive Overview](01-executive-overview.html) | C-suite, VPs, Directors | Business value, ROI, competitive positioning |
+| [01 - Executive Overview](01-executive-overview.html) | C-suite, VPs, Directors | Business value, ROI |
 
 ## Technical Presentations
 
@@ -22,7 +22,6 @@ Presentation materials for client meetings, organized by audience and purpose. A
 
 | Document | Audience | Purpose |
 |----------|----------|---------|
-| [05 - Competitive Analysis](05-competitive-analysis.html) | Decision makers, Evaluation teams | Feature comparison vs libvirt, Proxmox, OpenStack, VMware |
 | [07 - Live Demo Script](07-live-demo-script.html) | All audiences | Guided demo walkthrough with talking points |
 
 ## Operations Presentations
@@ -49,9 +48,8 @@ For a comprehensive client briefing (2-3 hours), present in this order:
 2. **Technical Architecture** (30 min) -- build credibility
 3. **Feature Deep Dive** (30 min) -- showcase capabilities
 4. **Security & Compliance** (20 min) -- address concerns
-5. **Competitive Analysis** (15 min) -- differentiate
-6. **Live Demo** (30 min) -- prove it works
-7. **Deployment Guide** (15 min) -- path to production
+5. **Live Demo** (30 min) -- prove it works
+6. **Deployment Guide** (15 min) -- path to production
 
 ## Quick Pitch (30 minutes)
 
@@ -59,7 +57,3 @@ For a shorter pitch, use:
 
 1. **Executive Overview** (15 min)
 2. **Live Demo** (15 min)
-
-## Positioning
-
-See [Product Positioning](../POSITIONING.md) for Zyvor Fabric vs. Machina messaging.

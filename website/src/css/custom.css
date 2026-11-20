@@ -164,7 +164,7 @@
 }
 
 /* ---------------------------------------------------------------------
- * Hero / section typography used by the Fabric homepage (ComparePage) across repos.
+ * Hero / section typography used by the Fabric homepage across repos.
  * ------------------------------------------------------------------- */
 .hero__title {
   font-size: clamp(2.75rem, 6.5vw, 5.5rem);

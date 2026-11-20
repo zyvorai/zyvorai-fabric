@@ -16,7 +16,6 @@ while you hold the policy, the credentials and the approvals. Source-available, 
 
 [**Try it in 60 seconds**](#try-it-in-60-seconds) ·
 [How it works](#how-keep-works) ·
-[Merion vs Muse](#merion-vs-meta-muse) ·
 [Docs](MERION.md) ·
 [Website](https://zyvorai.github.io/fabric/merion)
 
@@ -62,7 +61,6 @@ branching still need a real FluxVM host. [Where each claim stops](VERIFICATION.m
 - [Build your own use case](#build-your-own-use-case)
 - [Install it on a host](#install-it-on-a-host)
 - [Security profiles and what we do not claim](#security-profiles-and-what-we-do-not-claim)
-- [Merion vs Meta Muse](#merion-vs-meta-muse)
 - [Where everything lives](#where-everything-lives)
 - [FAQ](#faq)
 
@@ -315,27 +313,8 @@ Merion runs on FluxVM's security profiles:
 > **the host can still see inside the VM.** We will not claim otherwise. The cockpit shows an
 > honesty badge, and the UI must never say "the operator cannot read this" while the class is `software-test`.
 
-## Merion vs Meta Muse
-
-Muse got the threat model right. Merion is the version you run, read and take with you. The Muse-side details below come from Meta's own announcement (first source under the table) and public reporting, and may change.
-
-| | Meta Muse | Merion |
-|---|---|---|
-| Where it runs | Meta's cloud only; not self-hostable. | Your hardware, under the Zyvor Production License v1.0. |
-| The cell | Its own dedicated cloud VM; a separate Sentinel runs on the same machine, kept apart from the agent at the system level. Meta's announcement does not describe how the agent is separated inside that VM. | A Firecracker/KVM microVM per cell on FluxVM, with its own kernel; the network policy is applied by the host, outside the guest. |
-| Model | Muse Spark, Meta's proprietary model. | Bring your own model socket. |
-| Training data | Users can opt out of interaction data being used for training. | Off by default. Export needs a scoped token. |
-| Policy | Set by Meta. | A signed `merion.policy.yaml` you can diff in git. |
-| Secrets | Credentials injected at the network boundary. | The same idea: the vault injects on the host, and the agent never sees a real secret. |
-| Browser | An accessibility-tree browser agent. | The same idea: the agent sees structure, you see pixels. |
-| Operator access | Governed by Meta's operational policies, not cryptography. | The same limit today, stated up front (see above). |
-
-Full matrix: [homepage matrix](https://zyvorai.github.io/fabric/?t=stack#matrix). Longer read: [Merion vs Meta Muse](https://zyvor.dev/blog/keep-vs-meta-muse).
-
 **Merion and personal-agent apps.** Apps offer chat clients, connectors and durable tasks; Merion is the sealed runtime under such an app: a microVM, a host-enforced deny-all
 network policy and device-signed approvals. They fit together more than they compete; see [Merion and personal-agent apps](MERION-AND-AGENT-APPS.md), including where Merion is behind today.
-
-Sources for the Muse column: [Meta, "Introducing Muse", 2026-09](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/) (the VM, Sentinel, launch platforms iOS, Android and web plus WhatsApp, and the announced Confidential VM) · [MarkTechPost, 2026-09-08](https://www.marktechpost.com/2026/09/08/meta-introduces-muse-a-personal-ai-agent-that-runs-on-its-own-dedicated-secure-cloud-computer/) · [Vellum, "Official Muse Breakdown"](https://www.vellum.ai/blog/official-muse-breakdown) · [DEV Community, "Meta Muse and the Secure VM Bet"](https://dev.to/ifynx_studio/meta-muse-and-the-secure-vm-bet-personal-agents-that-act-without-owning-your-secrets-1ik4). Zyvor is not affiliated with Meta; if a Muse row is out of date, please open an issue.
 
 ## Where everything lives
 

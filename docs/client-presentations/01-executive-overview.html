@@ -63,9 +63,8 @@
     <div>
       <h3>Too Complex</h3>
       <ul>
-        <li>VMware vSphere requires dedicated infrastructure teams</li>
-        <li>OpenStack needs 1,000+ packages and days to deploy</li>
-        <li>Proxmox locks you into Debian with 200+ package dependencies</li>
+        <li>Traditional virtualization stacks require dedicated infrastructure teams</li>
+        <li>Multi-service platforms need hundreds of packages and days to deploy</li>
       </ul>
       <h3 style="margin-top: 24px;">Too Basic</h3>
       <ul>
@@ -77,7 +76,7 @@
     <div>
       <h3>Too Expensive</h3>
       <ul>
-        <li>VMware licensing costs continue to escalate post-Broadcom</li>
+        <li>Per-socket licensing costs continue to escalate</li>
         <li>Cloud-only strategies create vendor lock-in</li>
         <li>Unpredictable monthly costs make budgeting difficult</li>
       </ul>
@@ -250,49 +249,15 @@
   </div>
 </div>
 
-<!-- Slide 7: Competitive Advantage -->
+<!-- Slide 8: Use Cases -->
 <div class="slide">
-  <h1>Competitive Advantages</h1>
-  <p class="subtitle">Why Zyvor Fabric wins</p>
-  <table>
-    <tr>
-      <th>Dimension</th>
-      <th>Zyvor Fabric</th>
-      <th>Proxmox VE</th>
-      <th>OpenStack</th>
-      <th>VMware vSphere</th>
-    </tr>
-    <tr>
-      <td>Deployment</td>
-      <td class="highlight">1 binary, 5 min</td>
-      <td>200+ pkgs, 2 hrs</td>
-      <td>1000+ pkgs, 2 days</td>
-      <td>Proprietary installer</td>
-    </tr>
-    <tr>
-      <td>License Cost</td>
-      <td class="highlight">Free non-production (Zyvor Production License v1.0)</td>
-      <td>Free (AGPL) + paid support</td>
-      <td>Free (Apache)</td>
-      <td>$$$ per socket</td>
-    </tr>
-    <tr>
-      <td>Memory Safety</td>
-      <td class="highlight">Guaranteed (Rust)</td>
-      <td>No (Perl/C)</td>
-      <td>N/A (Python)</td>
-      <td>No (C++)</td>
-    </tr>
-    <tr>
-      <td>API Endpoints</td>
-      <td class="highlight">520+</td>
-      <td>~50</td>
-      <td>~200</td>
-      <td>Proprietary SDK</td>
-    </tr>
-    <tr>
-      <td>Web console</td>
-      <td class="highlight">Yes ( cloud-init integration means VMs come up pre-configured. Templates enable consistent environments across the team.</p>
+  <h1>Use Cases</h1>
+  <p class="subtitle">Where Zyvor Fabric fits</p>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <h3>Development and Test</h3>
+        <p>Cloud-init integration means VMs come up pre-configured. Templates enable consistent environments across the team.</p>
       </div>
       <div class="card">
         <h3>Edge and Branch Office</h3>
@@ -300,12 +265,12 @@
       </div>
       <div class="card">
         <h3>Private Cloud</h3>
-        <p>Multi-node clustering with HA, live migration, and shared storage delivers a private cloud experience without OpenStack complexity.</p>
+        <p>Multi-node clustering with HA, live migration, and shared storage delivers a private cloud experience without multi-service complexity.</p>
       </div>
     </div>
     <div>
       <div class="card">
-        <h3>VMware Migration</h3>
+        <h3>VM Import and Migration</h3>
         <p>Import existing VMs from VMDK format. Familiar web UI eases the transition. REST API enables automated migration at scale. Non-production use is free under the Zyvor Production License v1.0.</p>
       </div>
       <div class="card">

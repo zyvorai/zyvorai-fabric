@@ -6,7 +6,7 @@ This doc is the capability tour and the one authoritative metrics table for Zyvo
 
 Organizations running Linux infrastructure need a unified control plane for virtual machines, networking, storage, and security. Existing solutions are either:
 
-- **Too heavy** — VMware vSphere, Proxmox, and OpenStack require complex multi-server deployments, dedicated storage infrastructure, and specialized operations teams
+- **Too heavy** — traditional virtualization stacks require complex multi-server deployments, dedicated storage infrastructure, and specialized operations teams
 - **Too basic** — Manual QEMU/KVM management with shell scripts doesn't scale and lacks security, monitoring, or multi-user access
 - **Too locked-in** — Cloud-only solutions (AWS, Azure, GCP) create vendor dependency with unpredictable costs
 
@@ -37,13 +37,7 @@ Zyvor Fabric runs entirely without systemd via [FluxVM](https://github.com/zyvor
 
 ### 2. Single Binary, Zero Dependencies
 
-| | Zyvor Fabric | Proxmox | OpenStack |
-|----------|---------|---------|-----------|
-| Deployment unit | 1 binary (15MB) | 200+ packages | 1000+ packages |
-| Config | 1 config file | 50+ config files | 100+ config files |
-| Setup time | 5 min | 2+ hours | 2+ days |
-| OS support | Runs on any Linux | Debian only | Ubuntu/RHEL |
-| User store | SQLite | PostgreSQL required | MySQL + RabbitMQ + Memcached |
+One ~15MB binary, one config file, a SQLite user store, and about 5 minutes to set up. It runs on any Linux.
 
 ### 3. Security-First Architecture
 
@@ -181,34 +175,6 @@ Zyvor Fabric nodes managed by the Kubernetes operator. VMs defined as CRDs along
 
 ---
 
-## Comparison
-
-| Feature | Zyvor Fabric | Proxmox VE | OpenStack | libvirt/virsh |
-|---------|:--------:|:----------:|:---------:|:-------------:|
-| Single-binary deployment | Yes | No | No | N/A |
-| REST API | 780+ endpoints | ~50 | ~200 | XML-RPC |
-| Web UI | Yes | Yes | Yes (Horizon) | No |
-| CLI | Yes | Yes | Yes | Yes |
-| Kubernetes Operator | Yes | No | Yes | No |
-| Terraform Provider | Yes | Yes | Yes | Yes |
-| Network Policies | Cilium-style | Basic | Neutron | No |
-| Service Mesh | Yes | No | No | No |
-| VPN Mesh | WireGuard | No | No | No |
-| GPU Passthrough | Yes | Yes | Yes | Yes |
-| Live Migration | Yes (disk-copy GA, native preview) | Yes | Yes | Yes |
-| LDAP/OIDC SSO | Yes | Yes | Yes (Keystone) | No |
-| Multi-tenancy | Yes | Yes | Yes | No |
-| RBAC | 3-tier | 3-tier | Keystone | No |
-| VM Hibernate | Yes | Yes | No | Yes |
-| Storage Live Migration | Yes | Yes | Yes | Yes |
-| VM Import (VMDK/VDI) | Yes | Yes | Limited | qemu-img |
-| Audit Logging | Yes | Yes | Yes | No |
-| Written in | Rust | Perl/C | Python | C |
-| Memory Safety | Guaranteed (no `unsafe`) | No | N/A | No |
-| Setup Time | 5 min | 2 hours | 2 days | Manual |
-| License | Zyvor Production 1.0 (free non-production) | AGPL | Apache-2.0 | LGPL |
-
-For the deeper, independently-verifiable version of this table (package counts, config file counts, and where Fabric currently loses to the alternatives — not just where it wins), see the [Comparison Matrix](guides/decision-support/comparison-matrix.md).
 
 ---
 

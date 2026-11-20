@@ -6,7 +6,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import MarketingLayout from '../../components/MarketingLayout'
 import MerionDemoStoryboard from '../../components/merion/MerionDemoStoryboard'
 import MerionSplitSight from '../../components/merion/MerionSplitSight'
-import MerionMuseCompare from '../../components/merion/MerionMuseCompare'
 import MerionInstall from '../../components/merion/MerionInstall'
 import MerionDemoFrame from '../../components/merion/MerionDemoFrame'
 import marketing from '../../../../docs/merion/marketing.json'
@@ -131,9 +130,7 @@ export default function MerionPage() {
         </section>
 
         <section className="merion-mkt-section">
-          <p className="merion-mkt-eyebrow">Meta Muse vs Merion</p>
-          <h2>Same threat model. Different owner.</h2>
-          <MerionMuseCompare />
+          <p className="merion-mkt-eyebrow">Honest limits</p>
           <p className="merion-mkt-honesty">Honest about the limits: {marketing.honesty}</p>
         </section>
 

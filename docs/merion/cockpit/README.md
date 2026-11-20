@@ -21,7 +21,7 @@ optional — see [confine.md](../confine.md) and [demos/pdf-brief.md](../demos/p
 **Visible taint:** untrusted brokered reads paint `tainted_by`; list which egress
 rules just went to `ask`. Hidden eBPF alone is not the product.
 
-**Not yet a full Muse-style split desktop:** terminal pane, file browser, and
+**Not yet a full split desktop:** terminal pane, file browser, and
 input takeover are still product goals — see [browser/README.md](../browser/README.md).
 
 **Attestation receipt (0.1 honest / 0.2 soft):** cockpit returns an `attestation`

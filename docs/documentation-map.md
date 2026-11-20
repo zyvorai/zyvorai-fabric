@@ -13,9 +13,9 @@ The full table of Fabric documentation by area. The complete catalog is [index.m
 | Naming / clone URL | [docs/NAMING.md](NAMING.md) | | | Networking (SDN + modes) | [docs/networking.md](networking.md) |
 | Product positioning | [docs/POSITIONING.md](POSITIONING.md) | | | VM edge dataplane (Network Fabric v4) | [docs/network-fabric-architecture.md](network-fabric-architecture.md) · [operator guide](guides/vm-drivers/fluxvm-dataplane.md) |
 | Product overview + metrics | [docs/PRODUCT_OVERVIEW.md](PRODUCT_OVERVIEW.md) | | | Service Fabric v6 (Maglev VIP LB) | [docs/ebpf-service-fabric.md](ebpf-service-fabric.md) |
-| Comparison matrix | [docs/guides/decision-support/comparison-matrix.md](guides/decision-support/comparison-matrix.md) | | | **AI Workloads (Beta)** | [docs/ai-workloads.md](ai-workloads.md) · [Tutorial 15](tutorials/15-ai-workloads.md) |
+| |  | | | **AI Workloads (Beta)** | [docs/ai-workloads.md](ai-workloads.md) · [Tutorial 15](tutorials/15-ai-workloads.md) |
 | FAQ | [docs/quick-reference/faq.md](quick-reference/faq.md) | | | Agent Runtime | [agent-runtime/README.md](../agent-runtime/README.md) · [Tutorials 11–14](tutorials/README.md) |
-| | | | | **Merion** (open agent workstation) | [docs/merion/MERION.md](merion/MERION.md) · [PRODUCTION.md](merion/PRODUCTION.md) · [Tutorials 16–17](tutorials/README.md) · [marketing `/keep`](https://zyvorai.github.io/fabric/merion) · [CI](../.github/workflows/merion.yml) · [`scripts/merion-live-lab.sh`](../scripts/merion-live-lab.sh) · console `/keep` |
+| | | | | **Merion** (agent workstation) | [docs/merion/MERION.md](merion/MERION.md) · [PRODUCTION.md](merion/PRODUCTION.md) · [Tutorials 16–17](tutorials/README.md) · [marketing `/keep`](https://zyvorai.github.io/fabric/merion) · [CI](../.github/workflows/merion.yml) · [`scripts/merion-live-lab.sh`](../scripts/merion-live-lab.sh) · console `/keep` |
 | | | | | Web UX | [docs/web-ui.md](web-ui.md) |
 | | | | | User stories | [docs/USER_STORIES.md](USER_STORIES.md) |
 | | | | | OpenStack compatibility | [docs/openstack-compat.md](openstack-compat.md) · [Tutorial](tutorials/08-openstack-clients.md) |

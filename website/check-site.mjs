@@ -13,7 +13,7 @@ import puppeteer from 'puppeteer'
 
 const BASE = '/zyvorai-fabric' // docusaurus baseUrl
 const PORT = 3120
-const PAGES = ['/start', '/', '/docs/getting-started/Quick-Start', '/docs/tutorials/', '/docs/reference/api', '/merion', '/compare', '/support']
+const PAGES = ['/start', '/', '/docs/getting-started/Quick-Start', '/docs/tutorials/', '/docs/reference/api', '/merion', '/support']
 const SIZES = { desktop: [1440, 900], phone: [390, 844] }
 const THEMES = ['light', 'dark']
 const SCORE_FLOOR = 95

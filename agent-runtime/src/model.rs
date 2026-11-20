@@ -138,7 +138,7 @@ pub struct AgentManifest {
     pub cell_backend: Option<CellBackend>,
 }
 
-/// Where the agent talks to an LLM. Swap Grok / local GGUF / vLLM / Muse-class
+/// Where the agent talks to an LLM. Swap Grok / local GGUF / vLLM / hosted
 /// APIs without rebuilding the cell.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ModelSocket {

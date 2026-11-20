@@ -5,8 +5,7 @@ sidebar_position: 11
 # Merion for a phone vendor
 
 How an Android maker, or any company with a phone and an account system, offers its users a personal agent that
-runs on a **cloud computer of its own** while the **phone holds the keys**. This is the shape Meta's Muse
-describes; Merion is the version the vendor runs, reads and can take apart.
+runs on a **cloud computer of its own** while the **phone holds the keys**. Merion is software the vendor runs, reads and can take apart.
 
 This page is a blueprint and a list of what exists. It is honest about what does not. Read
 [the limits](#what-you-can-and-cannot-claim) before you promise anything to a user.
@@ -175,13 +174,6 @@ Merion does not answer these; a vendor entering a regulated market has to. They 
   delete it? (Merion has no per-user erase; artifacts expire only if you set a TTL.)
 - Which model licences allow your use, and who is responsible for the model's output?
 - What review does your security team need before a cell runs code or a browser on a user's behalf?
-
-## Compared with Muse
-
-The comparison in [the overview](README.md#merion-vs-meta-muse) rests on press reports, not an audit of Muse. In short:
-Muse is Meta's cloud with Meta's model; Merion is software the vendor runs, on its hardware, with its choice of model
-and its own account system, and it states its limits up front. Where Muse is a finished consumer product, Merion is
-the machinery under one: the vendor still builds the app, the gateway, the operations and the trust programme.
 
 ## What is next
 

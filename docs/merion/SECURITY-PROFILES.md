@@ -41,9 +41,7 @@ The cockpit `attestation` object (console Merion view and `/keep/cockpit`) carri
 
 Measured is `software-test`, not a TEE claim: *the host can still see a measured VM.*
 That is intentional. Until Merion 0.2 runs on real SNP/TDX hardware with a user-held key,
-Merion does not claim the operator cannot read the guest. Muse's Secure VM is described
-as having the same limit today; public detail on Muse is thin, so treat that as a
-characterization, not an audit.
+Merion does not claim the operator cannot read the guest.
 
 See also [Merion 0.2](MERION-0.2.md), [confidential agent VMs](../design/confidential-agent-vms.md),
 and FluxVM's [security profiles](https://github.com/zyvorai/fluxvm/blob/main/docs/security-profiles.md).

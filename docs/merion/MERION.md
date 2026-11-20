@@ -4,7 +4,7 @@
 
 **Pitch:** *the agent gets a real computer; you keep the keys, the policy, and the right to leave.*
 
-Merion is a personal workstation for an untrusted agent. Muse got the threat model right; Merion ships the open version Meta cannot: **you run it, you read it, you take it with you.**
+Merion is a personal workstation for an untrusted agent. Merion is the version you run on your own hardware: **you run it, you read it, you take it with you.**
 
 Zyvor Production License v1.0, same as FluxVM. Merion is a **product layer in Fabric** on FluxVM —
 not a third repo and not a second VMM.
@@ -45,9 +45,9 @@ Until Merion 0.2 on real SNP/TDX hardware with a user-held wrapping key:
 
 > **The host can still see a measured VM.**
 
-Evidence class `software-test` must never be marketed as “the operator cannot read this.” Muse Secure VM has the same limit today; they put it in a footnote. We put it here.
+Evidence class `software-test` must never be marketed as “the operator cannot read this.” We state it up front.
 
-## What Muse got right
+## Design principles
 
 Treat the model as compromised the moment it reads a webpage.
 
@@ -57,24 +57,9 @@ Treat the model as compromised the moment it reads a webpage.
 - Approvals are capabilities bound to a connector, not a sentence in the chat.
 - Browser driver sees an accessibility tree, not raw DOM + JS.
 
-## Why Merion beats Muse on purpose
+## Stack
 
-| | Muse | Merion |
-|---|---|---|
-| Where it runs | Meta cloud only | Laptop, mini-PC, FluxVM host, rented SNP/TDX — same API |
-| Policy | Closed Sentinel | Signed `merion.policy.yaml` you can diff in git |
-| Cell | Its own dedicated cloud VM; Sentinel on the same machine, kept apart at the system level (Meta) | Firecracker / KVM microVM via FluxVM; the network policy is applied by the host, outside the guest |
-| Model | Married to Muse Spark | BYO model socket |
-| Training | Trajectories may train after sanitization | Training default **off**; export needs a scoped token |
-| Host eBPF | Not a tenant-owned pin you can show | FluxVM TC: `deny_udp` + gateway-only ports; cockpit CONNECT 0 |
-| Proof on stage | Trust Meta’s story | Merion audit journal + FluxVM `drop_reasons` (PacketWolf optional) |
-| Operator / confidential | Operator may open the VM | Confidential = no host recover; measured says so honestly |
-| Leave | Hard | `merionctl pack` / `unpack` onto another FluxVM |
-| Client surface | Fat client helper surface | vsock admin; no SSH to the agent |
-
-**Stack:** Muse (closed cloud agent) → **Merion** (product) → **Fabric** (control plane) → **FluxVM** (cell + host eBPF).
-
-Muse: agent computer in Meta’s cloud. Merion: same idea on *your* FluxVM — signed policy, and CONNECT 0 from Merion’s journal + FluxVM’s pin.
+**Merion** (product) → **Fabric** (control plane) → **FluxVM** (cell + host eBPF). Signed policy, and CONNECT 0 from Merion’s journal + FluxVM’s pin.
 
 ## Architecture
 
@@ -124,7 +109,7 @@ Security profiles (FluxVM Phase 6):
 
 Lab gate: `./scripts/merion-live-lab.sh`. Guest boot needs a FluxVM template (Tutorial 11).
 
-## Merion 0.2 — Muse’s “later,” without the wait-as-product
+## Merion 0.2
 
 - User-held unwrap (phone / YubiKey) onto an attested guest.
 - Attestation receipt on the phone: image hash, profile achieved, evidence class.
@@ -143,7 +128,7 @@ Lab gate: `./scripts/merion-live-lab.sh`. Guest boot needs a FluxVM template (Tu
 
 ```
 fabric/docs/merion/
-  KEEP.md           # pitch, Muse deltas, honesty clause
+  KEEP.md           # pitch, honesty clause
   KEEP-0.2.md       # hardware gate
   STATUS.md
   confine.md        # FluxVM host eBPF (deny_udp)

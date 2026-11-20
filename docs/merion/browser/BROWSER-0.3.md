@@ -1,6 +1,6 @@
 # Merion Browser 0.3
 
-Measured appliance — not Muse consumer chrome. Model proposes `open` / `snapshot` /
+Measured appliance. Model proposes `open` / `snapshot` /
 `act`; Chromium, CDP, cookies, and the proxy stay host objects.
 
 ## Shipped in this cut
@@ -18,7 +18,7 @@ Measured appliance — not Muse consumer chrome. Model proposes `open` / `snapsh
 | Honesty badge | live JSON on cockpit (`evidence=… · browser=a11y-only · proxy=strict`) |
 | Dual cookie jars | `cookie_jar: agent\|operator` — operator jar blocks agent tools |
 
-## Not Muse
+## Scope
 
 No avatar, glasses, Shopify graph, or WhatsApp chat. Approvals stay one-screen /
 webhook. Training default off.

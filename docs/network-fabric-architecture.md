@@ -205,57 +205,7 @@ HTTPS labs: `export ZYVOR_FABRIC_URL=https://127.0.0.1:9095` and `export ZYVOR_F
 
 Ship [`configs/fluxvm-dataplane.toml`](../configs/fluxvm-dataplane.toml) (`mode = "ebpf"`). Compose/k8s mount it as `/etc/fluxvm.toml`, mount host `/sys/fs/bpf`, and raise memlock (`SYS_RESOURCE` / `ulimit memlock=-1`). The image must include `/usr/lib/fluxvm/bpf/fluxvm_tc.bpf.o` and, for a direct uplink, `fluxvm_direct.bpf.o` beside it. After the first green attach (`attached=true`, schema version whatever FluxVM reports — 11 on a current attach), set `required = true` for fail-closed production. Service Fabric is not attached to direct taps.
 
-## Why Fabric + Network Fabric is ahead of other VMMs
-
-Most hypervisor stacks still treat VM egress as **host netfilter theater**: libvirt/iptables chains, a shared bridge + firewall, or QEMU user-mode NAT. Fabric puts **operator UX (API · Web · CLI)** on top of FluxVM's **TC/eBPF VM-edge dataplane**, so policy, rate limits, and telemetry are first-class — not afterthought scripts.
-
-```mermaid
-flowchart LR
-  subgraph traditional [Traditional VMM path]
-    TGuest[Guest] --> TTap[TAP / bridge]
-    TTap --> TNft[iptables / nft / virbr0]
-    TNft --> TOut[Host / WAN]
-  end
-
-  subgraph fabricPath [Fabric + FluxVM Network Fabric schema v4]
-    FGuest[Guest] --> FTap[TAP / netns veth]
-    FTap --> FEbpf["TC eBPF on VM edge\nLPM · L4 · Mbps/PPS · flows"]
-    FEbpf --> FOut[Host / Cilium / Fabric SDN]
-    UX[Web Dataplane tab · fabricctl · REST] -.->|live map rewrite| FEbpf
-  end
-```
-
-```mermaid
-quadrantChart
-    title Control-plane maturity vs packet-path speed
-    x-axis Slow / rebuild-heavy --> Fast / in-kernel maps
-    y-axis Scripted / host-only --> API + UI + telemetry
-    quadrant-1 Ahead today
-    quadrant-2 UX without speed
-    quadrant-3 Legacy baseline
-    quadrant-4 Fast but opaque
-    Libvirt nft: [0.25, 0.30]
-    Shared bridge FW: [0.35, 0.35]
-    QEMU usernet: [0.15, 0.20]
-    Cloud hypervisor raw: [0.55, 0.25]
-    Firecracker CNI: [0.60, 0.40]
-    Fabric plus Network Fabric schema v4: [0.88, 0.90]
-```
-
-| Capability | libvirt / virsh + nft | Shared bridge + host FW | QEMU user NAT | Typical microVM + CNI | **Fabric + Network Fabric schema v4** |
-|---|---|---|---|---|---|
-| Per-VM L3/L4 egress allowlists | Manual chains | Host-wide rules | Soft / limited | Pod-oriented | **First-class** `allow_cidrs` + `tcp\|udp/PORT` |
-| Live policy without detach | Flush/reload gaps | Blast radius | Restart usernet | CNI reconcile | **In-place BPF map update** (~100–120 ms p50 in lab) |
-| Mbps / PPS egress caps | Separate tc/htb | Rare | Soft | Depends on CNI | **Maps on the same classifier** |
-| Dual-stack L3+L4 | Easy to drift | Often IPv4-only | Limited | Varies | **One TC program** |
-| Per-VM stats + LRU flows via API | tcpdump / conntrack | Host-centric | Almost none | Sidecar / Hubble-ish | **`/dataplane/stats` + `/flows`** |
-| Operator UX | virsh + shell | Same | Same | kubectl-heavy | **VM → Dataplane tab · `fabricctl dataplane` · 4 REST verbs** |
-| Host SDN still available | You build it | You build it | N/A | NetworkPolicy | **Fabric `/network-policies` orthogonal** |
-| Cilium coexistence | iptables fights | Same | N/A | Native | **`mode=cilium` — FluxVM owns VM edge only** |
-
-> The ~100–120ms p50 map-update figure above is a lab observation from the development environment, not a published benchmark with a documented methodology across hardware/kernel versions — treat it as indicative, not a guaranteed SLA.
-
-**Shipped in Fabric UX (all wired; lab UX verified):**
+## Shipped in Fabric UX
 
 | Surface | Status · Policy · Stats · Flows |
 |---------|----------------------------------|

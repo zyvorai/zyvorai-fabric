@@ -117,7 +117,7 @@ const BEATS: Beat[] = [
   },
 ];
 
-/** Muse's pattern: a short accordion on the left, one big visual on the right. */
+/** A short accordion on the left, one big visual on the right. */
 export default function MerionStory(): ReactNode {
   const [active, setActive] = useState(0);
   return (
