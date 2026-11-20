@@ -1473,8 +1473,14 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/ai/routers/{endpoint}/decide",
             post(api::ai::router::explain_decision),
         )
-        .route("/ai/routers/{endpoint}/report", get(api::ai::router::report))
-        .route("/ai/routers/{endpoint}/promote", post(api::ai::router::promote))
+        .route(
+            "/ai/routers/{endpoint}/report",
+            get(api::ai::router::report),
+        )
+        .route(
+            "/ai/routers/{endpoint}/promote",
+            post(api::ai::router::promote),
+        )
         .route(
             "/ai/sites",
             get(api::ai::sites::list_sites).post(api::ai::sites::put_site),

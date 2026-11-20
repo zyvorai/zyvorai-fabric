@@ -9,7 +9,7 @@
 //!
 //! * `rules`  – first matching rule wins (prompt size, tools, keywords, header, model).
 //! * `cost`   – cheapest candidate that clears the quality bar. Hard requests
-//!              (long prompt or tools) raise the bar.
+//!   (long prompt or tools) raise the bar.
 //! * `split`  – weighted A/B split, sticky per user or session.
 //!
 //! Every candidate is an A/B arm: its name is stamped on the trace, and
@@ -156,14 +156,23 @@ impl AiRouter {
         let mut seen = std::collections::HashSet::new();
         for c in &self.candidates {
             if c.name.is_empty() || c.name.len() > 64 || !seen.insert(c.name.as_str()) {
-                return Err(format!("candidate name '{}' is empty, too long or repeated", c.name));
+                return Err(format!(
+                    "candidate name '{}' is empty, too long or repeated",
+                    c.name
+                ));
             }
             if !(0.0..=1.0).contains(&c.quality) || c.quality.is_nan() {
-                return Err(format!("candidate '{}': quality must be between 0 and 1", c.name));
+                return Err(format!(
+                    "candidate '{}': quality must be between 0 and 1",
+                    c.name
+                ));
             }
             for p in [c.cost_per_mtok_in, c.cost_per_mtok_out] {
                 if !p.is_finite() || p < 0.0 {
-                    return Err(format!("candidate '{}': prices must be zero or more", c.name));
+                    return Err(format!(
+                        "candidate '{}': prices must be zero or more",
+                        c.name
+                    ));
                 }
             }
         }
@@ -181,7 +190,8 @@ impl AiRouter {
         if self.strategy == RouteStrategy::Split && self.candidates.iter().all(|c| c.weight == 0) {
             return Err("split needs at least one candidate with weight above 0".into());
         }
-        if self.strategy == RouteStrategy::Rules && self.rules.is_empty() && self.default.is_none() {
+        if self.strategy == RouteStrategy::Rules && self.rules.is_empty() && self.default.is_none()
+        {
             return Err("rules strategy needs rules or a default".into());
         }
         for q in [self.min_quality].into_iter().chain(self.hard_quality) {
@@ -290,7 +300,10 @@ fn rule_matches(m: &RouteMatch, i: &RouteInput) -> bool {
     if m.has_tools.is_some_and(|t| t != i.has_tools) {
         return false;
     }
-    if m.model.as_ref().is_some_and(|want| i.model.as_ref() != Some(want)) {
+    if m.model
+        .as_ref()
+        .is_some_and(|want| i.model.as_ref() != Some(want))
+    {
         return false;
     }
     if let Some((name, want)) = &m.header {
@@ -300,7 +313,11 @@ fn rule_matches(m: &RouteMatch, i: &RouteInput) -> bool {
     }
     if !m.contains_any.is_empty() {
         let hay = i.last_user.to_lowercase();
-        if !m.contains_any.iter().any(|k| hay.contains(&k.to_lowercase())) {
+        if !m
+            .contains_any
+            .iter()
+            .any(|k| hay.contains(&k.to_lowercase()))
+        {
             return false;
         }
     }
@@ -340,7 +357,11 @@ pub fn decide(r: &AiRouter, i: &RouteInput, roll: u64) -> Decision {
     }
     let (primary, reason) = match r.strategy {
         RouteStrategy::Rules => {
-            let hit = r.rules.iter().enumerate().find(|(_, rule)| rule_matches(&rule.when, i));
+            let hit = r
+                .rules
+                .iter()
+                .enumerate()
+                .find(|(_, rule)| rule_matches(&rule.when, i));
             match hit {
                 Some((n, rule)) => (index_of(r, &rule.to), format!("rule {n} -> {}", rule.to)),
                 None => {
@@ -396,14 +417,20 @@ pub fn decide(r: &AiRouter, i: &RouteInput, roll: u64) -> Decision {
                     break;
                 }
             }
-            (pick, format!("split {}/{}", r.candidates[pick].weight, total))
+            (
+                pick,
+                format!("split {}/{}", r.candidates[pick].weight, total),
+            )
         }
     };
     finish(r, primary, reason)
 }
 
 fn index_of(r: &AiRouter, name: &str) -> usize {
-    r.candidates.iter().position(|c| c.name == name).unwrap_or(0)
+    r.candidates
+        .iter()
+        .position(|c| c.name == name)
+        .unwrap_or(0)
 }
 
 fn best_quality(r: &AiRouter, i: &RouteInput) -> usize {
@@ -549,11 +576,15 @@ pub fn build_report(r: &AiRouter, traces: &[Trace], min_samples: u64) -> Report 
         let sc = scores(ts);
         let mut lat: Vec<u64> = ts.iter().map(|t| t.latency_ms).collect();
         lat.sort_unstable();
-        let errors = ts.iter().filter(|t| !(200..300).contains(&t.status)).count() as u64;
+        let errors = ts
+            .iter()
+            .filter(|t| !(200..300).contains(&t.status))
+            .count() as u64;
         let (pt, ct) = ts.iter().fold((0u64, 0u64), |(p, c), t| {
             (p + t.prompt_tokens, c + t.completion_tokens)
         });
-        let vs_control = if c.name == control || (sc.len() as u64) < min_samples
+        let vs_control = if c.name == control
+            || (sc.len() as u64) < min_samples
             || (control_scores.len() as u64) < min_samples
         {
             None
@@ -564,7 +595,11 @@ pub fn build_report(r: &AiRouter, traces: &[Trace], min_samples: u64) -> Report 
             variant: c.name.clone(),
             requests: ts.len() as u64,
             errors,
-            error_rate: if ts.is_empty() { 0.0 } else { errors as f64 / ts.len() as f64 },
+            error_rate: if ts.is_empty() {
+                0.0
+            } else {
+                errors as f64 / ts.len() as f64
+            },
             scored: sc.len() as u64,
             mean_score: (!sc.is_empty()).then(|| mean_var(&sc).0),
             latency_p50_ms: percentile(&lat, 0.5),
@@ -603,8 +638,16 @@ fn recommend(variants: &[VariantStats], control: &str) -> String {
             da.total_cmp(&db)
         });
     match best {
-        Some(v) => format!("promote '{}': significantly better than '{control}'", v.variant),
-        None if judged.iter().all(|v| v.vs_control.as_ref().is_some_and(|c| c.significant && c.delta < 0.0)) => {
+        Some(v) => format!(
+            "promote '{}': significantly better than '{control}'",
+            v.variant
+        ),
+        None if judged.iter().all(|v| {
+            v.vs_control
+                .as_ref()
+                .is_some_and(|c| c.significant && c.delta < 0.0)
+        }) =>
+        {
             format!("keep '{control}': every challenger scores significantly lower")
         }
         None => "keep collecting: no significant difference yet".into(),
@@ -623,7 +666,11 @@ fn load_router(state: &AppState, endpoint: &str) -> Result<AiRouter, ApiErr> {
 
 /// Router attached to a front-door endpoint, when enabled.
 pub fn router_for(state: &AppState, endpoint: &str) -> Option<AiRouter> {
-    let r: AiRouter = state.store.get_entity(STORE_ROUTERS, endpoint).ok().flatten()?;
+    let r: AiRouter = state
+        .store
+        .get_entity(STORE_ROUTERS, endpoint)
+        .ok()
+        .flatten()?;
     r.enabled.then_some(r)
 }
 
@@ -656,7 +703,9 @@ pub async fn put_router(
     Json(mut router): Json<AiRouter>,
 ) -> Result<Json<AiRouter>, ApiErr> {
     crate::validation::validate_entity_name(&router.endpoint).map_err(|(s, m)| err(s, m))?;
-    router.validate().map_err(|m| err(StatusCode::BAD_REQUEST, m))?;
+    router
+        .validate()
+        .map_err(|m| err(StatusCode::BAD_REQUEST, m))?;
     let names = std::iter::once(router.endpoint.as_str())
         .chain(router.candidates.iter().map(|c| c.endpoint.as_str()));
     for name in names {
@@ -676,7 +725,13 @@ pub async fn put_router(
         .store
         .save_entity(STORE_ROUTERS, &router.endpoint, &router)
         .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    audit(&state, &claims.sub, "UPSERT", &format!("ai/routers/{}", router.endpoint), "SUCCESS");
+    audit(
+        &state,
+        &claims.sub,
+        "UPSERT",
+        &format!("ai/routers/{}", router.endpoint),
+        "SUCCESS",
+    );
     Ok(Json(router))
 }
 
@@ -691,7 +746,13 @@ pub async fn delete_router(
         .store
         .delete_entity(STORE_ROUTERS, &endpoint)
         .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    audit(&state, &claims.sub, "DELETE", &format!("ai/routers/{endpoint}"), "SUCCESS");
+    audit(
+        &state,
+        &claims.sub,
+        "DELETE",
+        &format!("ai/routers/{endpoint}"),
+        "SUCCESS",
+    );
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -707,7 +768,11 @@ pub async fn explain_decision(
     let hs = header_pairs(&headers);
     let input = RouteInput::from_request(&body, &hs);
     let d = decide(&r, &input, rand::random::<u64>());
-    let order: Vec<&str> = d.order.iter().map(|n| r.candidates[*n].name.as_str()).collect();
+    let order: Vec<&str> = d
+        .order
+        .iter()
+        .map(|n| r.candidates[*n].name.as_str())
+        .collect();
     Ok(Json(json!({
         "chosen": order[0],
         "order": order,
@@ -719,7 +784,11 @@ pub async fn explain_decision(
 
 pub fn header_pairs(h: &axum::http::HeaderMap) -> Vec<(String, String)> {
     h.iter()
-        .filter_map(|(k, v)| v.to_str().ok().map(|v| (k.as_str().to_string(), v.to_string())))
+        .filter_map(|(k, v)| {
+            v.to_str()
+                .ok()
+                .map(|v| (k.as_str().to_string(), v.to_string()))
+        })
         .collect()
 }
 
@@ -748,7 +817,11 @@ pub async fn report(
             1_000_000,
         )
         .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    Ok(Json(build_report(&r, &traces, q.min_samples.unwrap_or(30).max(2))))
+    Ok(Json(build_report(
+        &r,
+        &traces,
+        q.min_samples.unwrap_or(30).max(2),
+    )))
 }
 
 #[derive(Debug, Deserialize)]
@@ -825,7 +898,8 @@ mod tests {
     }
 
     fn chat(text: &str) -> Vec<u8> {
-        serde_json::to_vec(&json!({"model":"m","messages":[{"role":"user","content":text}]})).unwrap()
+        serde_json::to_vec(&json!({"model":"m","messages":[{"role":"user","content":text}]}))
+            .unwrap()
     }
 
     fn input(text: &str) -> RouteInput {
@@ -843,7 +917,8 @@ mod tests {
         let r = router(RouteStrategy::Cost);
         let long = "x".repeat(9000);
         assert_eq!(decide(&r, &input(&long), 0).order[0], 0);
-        let tools = serde_json::to_vec(&json!({"messages":[],"tools":[{"type":"function"}]})).unwrap();
+        let tools =
+            serde_json::to_vec(&json!({"messages":[],"tools":[{"type":"function"}]})).unwrap();
         let d = decide(&r, &RouteInput::from_request(&tools, &[]), 0);
         assert_eq!(d.order[0], 0);
         assert!(d.reason.contains("hard"));
@@ -869,11 +944,17 @@ mod tests {
         let mut r = router(RouteStrategy::Rules);
         r.rules = vec![
             RouteRule {
-                when: RouteMatch { contains_any: vec!["REFUND".into()], ..Default::default() },
+                when: RouteMatch {
+                    contains_any: vec!["REFUND".into()],
+                    ..Default::default()
+                },
                 to: "big".into(),
             },
             RouteRule {
-                when: RouteMatch { max_prompt_tokens: Some(50), ..Default::default() },
+                when: RouteMatch {
+                    max_prompt_tokens: Some(50),
+                    ..Default::default()
+                },
                 to: "small".into(),
             },
         ];
@@ -922,7 +1003,8 @@ mod tests {
         r.candidates[1].weight = 1;
         let mut zero = 0;
         for n in 0..1000 {
-            let i = RouteInput::from_request(&chat("x"), &[("x-user-id".into(), format!("user{n}"))]);
+            let i =
+                RouteInput::from_request(&chat("x"), &[("x-user-id".into(), format!("user{n}"))]);
             if decide(&r, &i, 0).order[0] == 0 {
                 zero += 1;
             }
@@ -971,7 +1053,10 @@ mod tests {
         assert!(r.validate().is_err());
         let mut r = router(RouteStrategy::Rules);
         assert!(r.validate().is_err(), "rules need a rule or default");
-        r.rules = vec![RouteRule { when: RouteMatch::default(), to: "nope".into() }];
+        r.rules = vec![RouteRule {
+            when: RouteMatch::default(),
+            to: "nope".into(),
+        }];
         assert!(r.validate().is_err());
         let mut r = router(RouteStrategy::Cost);
         r.candidates[0].quality = 1.5;
@@ -990,8 +1075,12 @@ mod tests {
 
     #[test]
     fn compare_detects_a_real_difference_only() {
-        let a: Vec<f64> = (0..100).map(|n| if n % 10 < 5 { 1.0 } else { 0.0 }).collect();
-        let b: Vec<f64> = (0..100).map(|n| if n % 10 < 8 { 1.0 } else { 0.0 }).collect();
+        let a: Vec<f64> = (0..100)
+            .map(|n| if n % 10 < 5 { 1.0 } else { 0.0 })
+            .collect();
+        let b: Vec<f64> = (0..100)
+            .map(|n| if n % 10 < 8 { 1.0 } else { 0.0 })
+            .collect();
         let c = compare(&a, &b, 0.05).unwrap();
         assert!(c.delta > 0.29 && c.significant && c.p_value < 0.01);
         let same = compare(&a, &a, 0.05).unwrap();
@@ -1036,8 +1125,18 @@ mod tests {
         let r = router(RouteStrategy::Split);
         let mut ts = Vec::new();
         for n in 0..60u64 {
-            ts.push(trace("big", Some(if n % 10 < 5 { 1.0 } else { 0.0 }), 200, 100 + n));
-            ts.push(trace("small", Some(if n % 10 < 9 { 1.0 } else { 0.0 }), if n == 0 { 500 } else { 200 }, 50 + n));
+            ts.push(trace(
+                "big",
+                Some(if n % 10 < 5 { 1.0 } else { 0.0 }),
+                200,
+                100 + n,
+            ));
+            ts.push(trace(
+                "small",
+                Some(if n % 10 < 9 { 1.0 } else { 0.0 }),
+                if n == 0 { 500 } else { 200 },
+                50 + n,
+            ));
         }
         let rep = build_report(&r, &ts, 30);
         assert_eq!(rep.control, "big");
@@ -1045,7 +1144,11 @@ mod tests {
         assert_eq!(small.requests, 60);
         assert_eq!(small.errors, 1);
         assert!(small.vs_control.as_ref().unwrap().significant);
-        assert!(rep.recommendation.contains("promote 'small'"), "{}", rep.recommendation);
+        assert!(
+            rep.recommendation.contains("promote 'small'"),
+            "{}",
+            rep.recommendation
+        );
         // 60 traces x (1M in, 0.5M out) at $5 / $15 per Mtok.
         let big = rep.variants.iter().find(|v| v.variant == "big").unwrap();
         assert!((big.est_cost_usd - 60.0 * (5.0 + 7.5)).abs() < 1e-6);
@@ -1055,7 +1158,10 @@ mod tests {
     #[test]
     fn report_waits_for_enough_samples() {
         let r = router(RouteStrategy::Split);
-        let ts = vec![trace("big", Some(1.0), 200, 10), trace("small", Some(0.0), 200, 10)];
+        let ts = vec![
+            trace("big", Some(1.0), 200, 10),
+            trace("small", Some(0.0), 200, 10),
+        ];
         let rep = build_report(&r, &ts, 30);
         assert!(rep.recommendation.starts_with("keep collecting"));
         assert!(rep.variants.iter().all(|v| v.vs_control.is_none()));
@@ -1066,7 +1172,10 @@ mod tests {
         let r = router(RouteStrategy::Split);
         let rep = build_report(&r, &[trace("ghost", Some(1.0), 200, 1)], 30);
         assert_eq!(rep.variants.len(), 2);
-        assert!(rep.variants.iter().all(|v| v.requests == 0 && v.mean_score.is_none()));
+        assert!(rep
+            .variants
+            .iter()
+            .all(|v| v.requests == 0 && v.mean_score.is_none()));
     }
 
     #[test]

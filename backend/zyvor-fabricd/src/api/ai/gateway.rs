@@ -541,7 +541,10 @@ async fn gateway_inner(
                 resp.headers_mut().insert("x-fabric-variant", v);
             }
         }
-        if let Some(id) = trace_id.as_deref().and_then(|id| HeaderValue::from_str(id).ok()) {
+        if let Some(id) = trace_id
+            .as_deref()
+            .and_then(|id| HeaderValue::from_str(id).ok())
+        {
             resp.headers_mut().insert("x-fabric-trace-id", id);
         }
         resp
@@ -664,6 +667,7 @@ fn inference_client(
     Ok((client, transport))
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn proxy_upstream(
     method: &Method,
     ep: &InferenceEndpoint,

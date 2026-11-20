@@ -1121,10 +1121,16 @@ enum AiTraceCmd {
 #[derive(Subcommand)]
 enum AiRouterCmd {
     List,
-    Info { endpoint: String },
+    Info {
+        endpoint: String,
+    },
     /// Create or replace a router from a JSON file (`-` reads stdin)
-    Apply { file: String },
-    Delete { endpoint: String },
+    Apply {
+        file: String,
+    },
+    Delete {
+        endpoint: String,
+    },
     /// Which arm would this request body (JSON file, `-` for stdin) take?
     Decide {
         endpoint: String,
@@ -1140,7 +1146,10 @@ enum AiRouterCmd {
         min_samples: Option<u64>,
     },
     /// Send all traffic to one arm
-    Promote { endpoint: String, variant: String },
+    Promote {
+        endpoint: String,
+        variant: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -3681,7 +3690,8 @@ impl Cli {
                         print_value(&val, fmt);
                     }
                     AiRouterCmd::Apply { file } => {
-                        let body: serde_json::Value = serde_json::from_str(&read_file_or_stdin(&file)?)?;
+                        let body: serde_json::Value =
+                            serde_json::from_str(&read_file_or_stdin(&file)?)?;
                         let val = api_post(&client, "/ai/routers", &body).await?;
                         println!("Router applied");
                         if !matches!(fmt, OutputFormat::Table) {
@@ -3727,12 +3737,9 @@ impl Cli {
                     }
                     AiRouterCmd::Promote { endpoint, variant } => {
                         let body = serde_json::json!({ "variant": variant });
-                        let val = api_post(
-                            &client,
-                            &format!("/ai/routers/{endpoint}/promote"),
-                            &body,
-                        )
-                        .await?;
+                        let val =
+                            api_post(&client, &format!("/ai/routers/{endpoint}/promote"), &body)
+                                .await?;
                         println!("Router '{endpoint}' now sends all traffic to '{variant}'");
                         if !matches!(fmt, OutputFormat::Table) {
                             print_value(&val, fmt);

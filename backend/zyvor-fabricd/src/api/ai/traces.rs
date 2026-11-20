@@ -387,7 +387,10 @@ pub fn build_trace(ctx: &TraceCtx, status: u16, streamed: bool, resp: &[u8]) -> 
         serde_json::from_slice::<Value>(&ctx.request_body).ok()
     };
     let (score, score_source) = match &ctx.policy.auto_score {
-        Some(s) => (Some(auto_score(s, status, &parsed)), Some("auto".to_string())),
+        Some(s) => (
+            Some(auto_score(s, status, &parsed)),
+            Some("auto".to_string()),
+        ),
         None => (None, None),
     };
     let keep_text = !redact && parsed.completion.len() <= ctx.policy.max_body_bytes;
@@ -411,9 +414,21 @@ pub fn build_trace(ctx: &TraceCtx, status: u16, streamed: bool, resp: &[u8]) -> 
         finish_reason: parsed.finish_reason.clone(),
         request,
         completion: keep_text.then(|| parsed.completion.clone()),
-        prompt_token_ids: if redact { None } else { parsed.prompt_token_ids.clone() },
-        completion_token_ids: if redact { None } else { parsed.completion_token_ids.clone() },
-        logprobs: if redact { None } else { parsed.logprobs.clone() },
+        prompt_token_ids: if redact {
+            None
+        } else {
+            parsed.prompt_token_ids.clone()
+        },
+        completion_token_ids: if redact {
+            None
+        } else {
+            parsed.completion_token_ids.clone()
+        },
+        logprobs: if redact {
+            None
+        } else {
+            parsed.logprobs.clone()
+        },
         request_sha256: sha256_hex(&ctx.request_body),
         redacted: redact,
         score,
@@ -437,7 +452,15 @@ pub struct TraceSink {
 impl TraceSink {
     pub fn new(store: state_store::StateStore, ctx: TraceCtx, status: u16, streamed: bool) -> Self {
         let cap = ctx.policy.max_body_bytes.saturating_mul(4);
-        Self { store, ctx, buf: Vec::new(), cap, overflow: false, status, streamed }
+        Self {
+            store,
+            ctx,
+            buf: Vec::new(),
+            cap,
+            overflow: false,
+            status,
+            streamed,
+        }
     }
 
     pub fn push(&mut self, chunk: &[u8]) {
@@ -456,14 +479,26 @@ impl TraceSink {
 
 impl Drop for TraceSink {
     fn drop(&mut self) {
-        record(&self.store, &self.ctx, self.status, self.streamed, &self.buf);
+        record(
+            &self.store,
+            &self.ctx,
+            self.status,
+            self.streamed,
+            &self.buf,
+        );
     }
 }
 
 static WRITES: AtomicU64 = AtomicU64::new(0);
 
 /// Persist a finished trace and prune old ones now and then. Never fails the request.
-pub fn record(store: &state_store::StateStore, ctx: &TraceCtx, status: u16, streamed: bool, resp: &[u8]) {
+pub fn record(
+    store: &state_store::StateStore,
+    ctx: &TraceCtx,
+    status: u16,
+    streamed: bool,
+    resp: &[u8],
+) {
     let trace = build_trace(ctx, status, streamed, resp);
     if let Err(e) = store.save_entity(STORE_TRACES, &trace.id, &trace) {
         tracing::warn!("trace write failed: {e}");
@@ -508,8 +543,12 @@ pub struct TraceQuery {
 
 pub fn matches(t: &Trace, q: &TraceQuery) -> bool {
     q.endpoint.as_deref().is_none_or(|e| t.endpoint == e)
-        && q.router.as_deref().is_none_or(|r| t.router.as_deref() == Some(r))
-        && q.variant.as_deref().is_none_or(|v| t.variant.as_deref() == Some(v))
+        && q.router
+            .as_deref()
+            .is_none_or(|r| t.router.as_deref() == Some(r))
+        && q.variant
+            .as_deref()
+            .is_none_or(|v| t.variant.as_deref() == Some(v))
         && q.model.as_deref().is_none_or(|m| t.model == m)
         && q.since.is_none_or(|s| t.created_unix >= s)
         && q.min_score.is_none_or(|m| t.score.is_some_and(|s| s >= m))
@@ -567,10 +606,16 @@ pub async fn feedback(
     Json(req): Json<FeedbackRequest>,
 ) -> Result<Json<Trace>, ApiErr> {
     if !req.score.is_finite() || !(0.0..=1.0).contains(&req.score) {
-        return Err(err(StatusCode::BAD_REQUEST, "score must be between 0 and 1"));
+        return Err(err(
+            StatusCode::BAD_REQUEST,
+            "score must be between 0 and 1",
+        ));
     }
     if req.labels.len() > 16 || req.labels.iter().any(|l| l.is_empty() || l.len() > 64) {
-        return Err(err(StatusCode::BAD_REQUEST, "at most 16 labels of 1-64 characters"));
+        return Err(err(
+            StatusCode::BAD_REQUEST,
+            "at most 16 labels of 1-64 characters",
+        ));
     }
     let updated = state
         .store
@@ -585,7 +630,13 @@ pub async fn feedback(
             Ok::<_, String>(t)
         })
         .map_err(|e| err(StatusCode::NOT_FOUND, e.to_string()))?;
-    audit(&state, &claims.sub, "FEEDBACK", &format!("ai/traces/{id}"), "SUCCESS");
+    audit(
+        &state,
+        &claims.sub,
+        "FEEDBACK",
+        &format!("ai/traces/{id}"),
+        "SUCCESS",
+    );
     Ok(Json(updated))
 }
 
@@ -680,7 +731,9 @@ pub async fn put_policy(
     Json(policy): Json<TracePolicy>,
 ) -> Result<Json<TracePolicy>, ApiErr> {
     crate::validation::validate_entity_name(&policy.endpoint).map_err(|(s, m)| err(s, m))?;
-    policy.validate().map_err(|m| err(StatusCode::BAD_REQUEST, m))?;
+    policy
+        .validate()
+        .map_err(|m| err(StatusCode::BAD_REQUEST, m))?;
     if state
         .store
         .get_entity::<super::types::InferenceEndpoint>(super::STORE_ENDPOINTS, &policy.endpoint)
@@ -693,7 +746,13 @@ pub async fn put_policy(
         .store
         .save_entity(STORE_TRACE_POLICIES, &policy.endpoint, &policy)
         .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    audit(&state, &claims.sub, "UPSERT", &format!("ai/trace-policies/{}", policy.endpoint), "SUCCESS");
+    audit(
+        &state,
+        &claims.sub,
+        "UPSERT",
+        &format!("ai/trace-policies/{}", policy.endpoint),
+        "SUCCESS",
+    );
     Ok(Json(policy))
 }
 
@@ -707,7 +766,13 @@ pub async fn delete_policy(
         .store
         .delete_entity(STORE_TRACE_POLICIES, &endpoint)
         .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    audit(&state, &claims.sub, "DELETE", &format!("ai/trace-policies/{endpoint}"), "SUCCESS");
+    audit(
+        &state,
+        &claims.sub,
+        "DELETE",
+        &format!("ai/trace-policies/{endpoint}"),
+        "SUCCESS",
+    );
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -797,10 +862,9 @@ mod tests {
         assert_eq!(out["return_token_ids"], json!(true));
         assert_eq!(out["logprobs"], json!(false));
         assert_eq!(inject_capture_params(b"plain"), b"plain".to_vec());
-        let s: Value = serde_json::from_slice(&inject_capture_params(
-            br#"{"messages":[],"stream":true}"#,
-        ))
-        .unwrap();
+        let s: Value =
+            serde_json::from_slice(&inject_capture_params(br#"{"messages":[],"stream":true}"#))
+                .unwrap();
         assert_eq!(s["stream_options"]["include_usage"], json!(true));
     }
 
@@ -810,7 +874,16 @@ mod tests {
         assert_eq!(auto_score(&AutoScore::NonEmpty, 200, &p), 1.0);
         assert_eq!(auto_score(&AutoScore::FinishStop, 200, &p), 1.0);
         assert_eq!(auto_score(&AutoScore::JsonValid, 200, &p), 0.0);
-        assert_eq!(auto_score(&AutoScore::Contains { needle: "ell".into() }, 200, &p), 1.0);
+        assert_eq!(
+            auto_score(
+                &AutoScore::Contains {
+                    needle: "ell".into()
+                },
+                200,
+                &p
+            ),
+            1.0
+        );
         assert_eq!(auto_score(&AutoScore::NonEmpty, 500, &p), 0.0);
         p.completion = r#"{"a":1}"#.into();
         assert_eq!(auto_score(&AutoScore::JsonValid, 200, &p), 1.0);
@@ -840,7 +913,7 @@ mod tests {
     #[test]
     fn oversized_bodies_are_not_stored() {
         let mut p = policy();
-        p.max_body_bytes = 5;
+        p.max_body_bytes = 4;
         let t = build_trace(&ctx(p), 200, false, CHAT.as_bytes());
         assert!(t.request.is_none() && t.completion.is_none());
     }
@@ -877,7 +950,10 @@ mod tests {
         assert!(q(|_| {}));
         assert!(q(|q| q.variant = Some("a".into())));
         assert!(!q(|q| q.variant = Some("b".into())));
-        assert!(!q(|q| q.min_score = Some(0.5)), "unscored trace has no score to match");
+        assert!(
+            !q(|q| q.min_score = Some(0.5)),
+            "unscored trace has no score to match"
+        );
         assert!(q(|q| q.scored = Some(false)));
     }
 
