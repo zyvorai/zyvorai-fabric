@@ -1,6 +1,6 @@
 # Fabric on Kubernetes
 
-Run **Zyvor Fabric** (control plane + FluxVM) as in-cluster workloads — the same packaging UX as [Ragnarok](https://github.com/zyvorai/ragnarok) (manifests, Helm, remote `ctr import`), adapted for Fabric’s privilege model.
+Run **Zyvor Fabric** (control plane + FluxVM) as in-cluster workloads — the same packaging UX as Ragnarok (manifests, Helm, remote `ctr import`), adapted for Fabric’s privilege model.
 
 > Fabric is **not** a restricted Deployment app. It needs `hostNetwork`, KVM, and host networking privileges — the same reasons [docker-compose.yml](../docker-compose.yml) uses `network_mode: host` and `/dev/kvm`.
 

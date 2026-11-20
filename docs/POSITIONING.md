@@ -141,7 +141,7 @@ Then use the appropriate name for context (product in prose, `zyvor-fabricd` in 
 
 ## License & Support
 
-Zyvor Production License v1.0 (SPDX: LicenseRef-Zyvor-Production-1.0), applied to the entire repository. A commercial license is required to run it from Zyvor AI Labs Private Limited. Production support, SLAs, and Zyvor Enterprise products are licensed and sold separately — contact [sales@zyvor.dev](mailto:sales@zyvor.dev). Full text: [README.md — License](../README.md#license).
+Zyvor Production License v1.0 (SPDX: LicenseRef-Zyvor-Production-1.0), applied to the entire repository. Non-production use is free; production use requires a commercial license from Zyvor AI Labs Private Limited. Production support, SLAs, and Zyvor Enterprise products are licensed and sold separately — contact [sales@zyvor.dev](mailto:sales@zyvor.dev). Full text: [README.md — License](../README.md#license).
 
 ---
 
