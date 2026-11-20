@@ -1447,6 +1447,41 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             axum::routing::delete(api::ai::nodes::delete_mig_slice),
         )
         .route(
+            "/ai/traces",
+            get(api::ai::traces::list_traces).delete(api::ai::traces::purge_traces),
+        )
+        .route("/ai/traces/export", get(api::ai::traces::export_traces))
+        .route("/ai/traces/{id}", get(api::ai::traces::get_trace))
+        .route("/ai/traces/{id}/feedback", post(api::ai::traces::feedback))
+        .route(
+            "/ai/trace-policies",
+            get(api::ai::traces::list_policies).post(api::ai::traces::put_policy),
+        )
+        .route(
+            "/ai/trace-policies/{endpoint}",
+            get(api::ai::traces::get_policy).delete(api::ai::traces::delete_policy),
+        )
+        .route(
+            "/ai/routers",
+            get(api::ai::router::list_routers).post(api::ai::router::put_router),
+        )
+        .route(
+            "/ai/routers/{endpoint}",
+            get(api::ai::router::get_router).delete(api::ai::router::delete_router),
+        )
+        .route(
+            "/ai/routers/{endpoint}/decide",
+            post(api::ai::router::explain_decision),
+        )
+        .route(
+            "/ai/routers/{endpoint}/report",
+            get(api::ai::router::report),
+        )
+        .route(
+            "/ai/routers/{endpoint}/promote",
+            post(api::ai::router::promote),
+        )
+        .route(
             "/ai/sites",
             get(api::ai::sites::list_sites).post(api::ai::sites::put_site),
         )

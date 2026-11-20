@@ -1051,6 +1051,105 @@ enum AiCmd {
     Capacity,
     /// Recent AI audit events
     Events,
+    /// Captured inference traces: policy, list, score, export
+    #[command(subcommand)]
+    Trace(AiTraceCmd),
+    /// Decision routers and A/B experiments behind an endpoint
+    #[command(subcommand)]
+    Router(AiRouterCmd),
+}
+
+#[derive(Subcommand)]
+enum AiTraceCmd {
+    /// Turn capture on for an endpoint (replaces its policy)
+    Enable {
+        endpoint: String,
+        /// Fraction of requests recorded, 0..1
+        #[arg(long, default_value_t = 1.0)]
+        sample_rate: f64,
+        /// Keep only hashes and sizes, no prompt or completion text
+        #[arg(long)]
+        redact: bool,
+        /// Ask the backend for token IDs and logprobs (vLLM)
+        #[arg(long)]
+        token_ids: bool,
+        /// Scorer: non_empty, finish_stop, json_valid, or contains:<text>
+        #[arg(long)]
+        auto_score: Option<String>,
+    },
+    /// Turn capture off for an endpoint
+    Disable { endpoint: String },
+    /// Show capture policies
+    Policies,
+    /// List recent traces
+    List {
+        #[arg(long)]
+        endpoint: Option<String>,
+        #[arg(long)]
+        router: Option<String>,
+        #[arg(long)]
+        variant: Option<String>,
+        #[arg(long, default_value_t = 20)]
+        limit: usize,
+    },
+    /// Show one trace
+    Get { id: String },
+    /// Attach a 0..1 score to a trace
+    Score {
+        id: String,
+        score: f64,
+        #[arg(long)]
+        label: Vec<String>,
+    },
+    /// Write traces as JSONL to stdout (`--format sft` for fine-tuning rows)
+    Export {
+        #[arg(long)]
+        endpoint: Option<String>,
+        #[arg(long)]
+        router: Option<String>,
+        #[arg(long)]
+        variant: Option<String>,
+        #[arg(long)]
+        min_score: Option<f64>,
+        #[arg(long, default_value = "raw")]
+        format: String,
+        #[arg(long, default_value_t = 10000)]
+        limit: usize,
+    },
+}
+
+#[derive(Subcommand)]
+enum AiRouterCmd {
+    List,
+    Info {
+        endpoint: String,
+    },
+    /// Create or replace a router from a JSON file (`-` reads stdin)
+    Apply {
+        file: String,
+    },
+    Delete {
+        endpoint: String,
+    },
+    /// Which arm would this request body (JSON file, `-` for stdin) take?
+    Decide {
+        endpoint: String,
+        file: String,
+        /// Extra request header, NAME=VALUE (repeatable)
+        #[arg(long)]
+        header: Vec<String>,
+    },
+    /// A/B report: score, latency, errors and cost per arm
+    Report {
+        endpoint: String,
+        #[arg(long)]
+        min_samples: Option<u64>,
+    },
+    /// Send all traffic to one arm
+    Promote {
+        endpoint: String,
+        variant: String,
+    },
 }
 
 #[derive(Subcommand)]
@@ -1412,6 +1511,42 @@ fn extract_info(v: &serde_json::Value) -> String {
             .to_string()
     } else {
         parts.join(", ")
+    }
+}
+
+/// `?a=1&b=2` from the options that are set; values are percent-encoded.
+fn trace_query(pairs: &[(&str, Option<String>)]) -> String {
+    let parts: Vec<String> = pairs
+        .iter()
+        .filter_map(|(k, v)| {
+            v.as_ref().map(|v| {
+                let enc: String = v
+                    .bytes()
+                    .map(|b| match b {
+                        b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' => {
+                            (b as char).to_string()
+                        }
+                        _ => format!("%{b:02X}"),
+                    })
+                    .collect();
+                format!("{k}={enc}")
+            })
+        })
+        .collect();
+    if parts.is_empty() {
+        String::new()
+    } else {
+        format!("?{}", parts.join("&"))
+    }
+}
+
+fn read_file_or_stdin(path: &str) -> Result<String> {
+    if path == "-" {
+        let mut s = String::new();
+        std::io::Read::read_to_string(&mut std::io::stdin(), &mut s)?;
+        Ok(s)
+    } else {
+        Ok(std::fs::read_to_string(path)?)
     }
 }
 
@@ -3446,6 +3581,169 @@ impl Cli {
                     AiKeyCmd::Delete { id } => {
                         api_delete(&client, &format!("/ai/keys/{id}")).await?;
                         println!("Deleted API key '{id}'");
+                    }
+                },
+                AiCmd::Trace(sub) => match sub {
+                    AiTraceCmd::Enable {
+                        endpoint,
+                        sample_rate,
+                        redact,
+                        token_ids,
+                        auto_score,
+                    } => {
+                        let scorer = match auto_score.as_deref() {
+                            None => serde_json::Value::Null,
+                            Some(s) if s.starts_with("contains:") => {
+                                serde_json::json!({"kind": "contains", "needle": &s["contains:".len()..]})
+                            }
+                            Some(s @ ("non_empty" | "finish_stop" | "json_valid")) => {
+                                serde_json::json!({ "kind": s })
+                            }
+                            Some(other) => anyhow::bail!(
+                                "unknown scorer '{other}' (non_empty, finish_stop, json_valid, contains:<text>)"
+                            ),
+                        };
+                        let body = serde_json::json!({
+                            "endpoint": endpoint,
+                            "sample_rate": sample_rate,
+                            "redact": redact,
+                            "capture_token_ids": token_ids,
+                            "auto_score": scorer,
+                        });
+                        let val = api_post(&client, "/ai/trace-policies", &body).await?;
+                        println!("Trace capture enabled on '{endpoint}'");
+                        if !matches!(fmt, OutputFormat::Table) {
+                            print_value(&val, fmt);
+                        }
+                    }
+                    AiTraceCmd::Disable { endpoint } => {
+                        api_delete(&client, &format!("/ai/trace-policies/{endpoint}")).await?;
+                        println!("Trace capture disabled on '{endpoint}'");
+                    }
+                    AiTraceCmd::Policies => {
+                        let val = api_get(&client, "/ai/trace-policies").await?;
+                        print_value(&val, fmt);
+                    }
+                    AiTraceCmd::List {
+                        endpoint,
+                        router,
+                        variant,
+                        limit,
+                    } => {
+                        let q = trace_query(&[
+                            ("endpoint", endpoint),
+                            ("router", router),
+                            ("variant", variant),
+                            ("limit", Some(limit.to_string())),
+                        ]);
+                        let val = api_get(&client, &format!("/ai/traces{q}")).await?;
+                        print_value(&val, fmt);
+                    }
+                    AiTraceCmd::Get { id } => {
+                        let val = api_get(&client, &format!("/ai/traces/{id}")).await?;
+                        print_value(&val, fmt);
+                    }
+                    AiTraceCmd::Score { id, score, label } => {
+                        let body = serde_json::json!({"score": score, "labels": label});
+                        let val =
+                            api_post(&client, &format!("/ai/traces/{id}/feedback"), &body).await?;
+                        println!("Scored trace '{id}' {score}");
+                        if !matches!(fmt, OutputFormat::Table) {
+                            print_value(&val, fmt);
+                        }
+                    }
+                    AiTraceCmd::Export {
+                        endpoint,
+                        router,
+                        variant,
+                        min_score,
+                        format: export_format,
+                        limit,
+                    } => {
+                        let q = trace_query(&[
+                            ("endpoint", endpoint),
+                            ("router", router),
+                            ("variant", variant),
+                            ("min_score", min_score.map(|m| m.to_string())),
+                            ("format", Some(export_format)),
+                            ("limit", Some(limit.to_string())),
+                        ]);
+                        let res = client
+                            .get(format!("{}/ai/traces/export{q}", api_base()))
+                            .send()
+                            .await?;
+                        if !res.status().is_success() {
+                            let status = res.status();
+                            let body = res.text().await.unwrap_or_default();
+                            anyhow::bail!("{}: {}", status, body);
+                        }
+                        print!("{}", res.text().await?);
+                    }
+                },
+                AiCmd::Router(sub) => match sub {
+                    AiRouterCmd::List => {
+                        let val = api_get(&client, "/ai/routers").await?;
+                        print_value(&val, fmt);
+                    }
+                    AiRouterCmd::Info { endpoint } => {
+                        let val = api_get(&client, &format!("/ai/routers/{endpoint}")).await?;
+                        print_value(&val, fmt);
+                    }
+                    AiRouterCmd::Apply { file } => {
+                        let body: serde_json::Value =
+                            serde_json::from_str(&read_file_or_stdin(&file)?)?;
+                        let val = api_post(&client, "/ai/routers", &body).await?;
+                        println!("Router applied");
+                        if !matches!(fmt, OutputFormat::Table) {
+                            print_value(&val, fmt);
+                        }
+                    }
+                    AiRouterCmd::Delete { endpoint } => {
+                        api_delete(&client, &format!("/ai/routers/{endpoint}")).await?;
+                        println!("Deleted router '{endpoint}'");
+                    }
+                    AiRouterCmd::Decide {
+                        endpoint,
+                        file,
+                        header,
+                    } => {
+                        let mut req = client
+                            .post(format!("{}/ai/routers/{endpoint}/decide", api_base()))
+                            .header("content-type", "application/json")
+                            .body(read_file_or_stdin(&file)?);
+                        for h in header {
+                            let (k, v) = h
+                                .split_once('=')
+                                .ok_or_else(|| anyhow::anyhow!("--header wants NAME=VALUE"))?;
+                            req = req.header(k, v);
+                        }
+                        let res = req.send().await?;
+                        if !res.status().is_success() {
+                            let status = res.status();
+                            let body = res.text().await.unwrap_or_default();
+                            anyhow::bail!("{}: {}", status, body);
+                        }
+                        let val: serde_json::Value = res.json().await?;
+                        print_value(&val, fmt);
+                    }
+                    AiRouterCmd::Report {
+                        endpoint,
+                        min_samples,
+                    } => {
+                        let q = trace_query(&[("min_samples", min_samples.map(|n| n.to_string()))]);
+                        let val =
+                            api_get(&client, &format!("/ai/routers/{endpoint}/report{q}")).await?;
+                        print_value(&val, fmt);
+                    }
+                    AiRouterCmd::Promote { endpoint, variant } => {
+                        let body = serde_json::json!({ "variant": variant });
+                        let val =
+                            api_post(&client, &format!("/ai/routers/{endpoint}/promote"), &body)
+                                .await?;
+                        println!("Router '{endpoint}' now sends all traffic to '{variant}'");
+                        if !matches!(fmt, OutputFormat::Table) {
+                            print_value(&val, fmt);
+                        }
                     }
                 },
                 AiCmd::Gpus => {
