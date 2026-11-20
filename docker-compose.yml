@@ -1,0 +1,83 @@
+# EVAL profile -- local Docker/Podman development only. See docs/DOCKER.md
+# for host prerequisites (nbd kernel module, /dev/kvm, rootful engine,
+# cgroup v2) and for docker-compose.prod.example.yml, the hardened profile.
+#
+# Both services use network_mode: host: zyvor-fabricd's nftables/rtnetlink
+# calls need to act on the host's real network namespace to manage actual
+# VM traffic, and it's what lets zyvor-fabricd reach fluxvm at its default
+# 127.0.0.1:7788 with no config changes -- the same reason FluxVM's own
+# Kubernetes DaemonSet uses hostNetwork: true.
+#
+# Port is overridable (e.g. to run alongside a bare-metal zyvor-fabricd on
+# the same host, or to avoid a clash): ZYVOR_FABRICD_PORT=19095 docker
+# compose up -d. Backed by the ZYVOR_FABRICD_LISTEN env var the daemon
+# itself reads (backend/zyvor-fabricd/src/config.rs) -- the same override
+# a bare-metal install can set in /etc/zyvor-fabricd/zyvor-fabricd.env.
+services:
+  zyvor-fabricd:
+    build: .
+    container_name: zyvor-fabricd
+    network_mode: host
+    depends_on:
+      fluxvm:
+        condition: service_started
+    environment:
+      ZYVOR_FABRICD_LISTEN: "0.0.0.0:${ZYVOR_FABRICD_PORT:-9095}"
+      # Eval-only, deliberately fixed and documented -- not a real secret.
+      ZYVOR_FABRICD_ADMIN_PASSWORD: ${ZYVOR_FABRICD_ADMIN_PASSWORD:-eval-admin-only}
+    volumes:
+      - zyvor-fabricd-data:/var/lib/zyvor-fabricd
+      - zyvor-fabricd-etc:/etc/zyvor-fabricd
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - NET_RAW
+      - MKNOD
+      - SYS_PTRACE
+      - NET_BIND_SERVICE
+      - SETUID
+      - SETGID
+      - SYS_CHROOT
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:${ZYVOR_FABRICD_PORT:-9095}/health >/dev/null && curl -sf http://localhost:${ZYVOR_FABRICD_PORT:-9095}/readyz >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Built separately -- see scripts/build-container-images.sh -- because
+  # its build needs the sibling guestkit repo as a second BuildKit build
+  # context, which this compose file's build: key can't express portably
+  # across Docker Compose and Podman Compose versions.
+  fluxvm:
+    image: zyvor-fabric-fluxvm:local
+    container_name: fluxvm
+    network_mode: host
+    cgroup: host
+    command: ["fluxvm", "--config", "/etc/fluxvm.toml", "serve"]
+    devices:
+      - /dev/kvm
+    volumes:
+      - fluxvm-data:/var/lib/fluxvm
+      - fluxvm-run:/run/fluxvm
+      - /run/netns:/run/netns
+      - /sys/fs/bpf:/sys/fs/bpf
+      - ./configs/fluxvm-dataplane.toml:/etc/fluxvm.toml:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - NET_BIND_SERVICE
+      - NET_RAW
+      - SYS_CHROOT
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
+
+volumes:
+  zyvor-fabricd-data:
+  zyvor-fabricd-etc:
+  fluxvm-data:
+  fluxvm-run:

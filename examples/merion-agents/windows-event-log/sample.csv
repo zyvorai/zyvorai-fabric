@@ -1,0 +1,8 @@
+"TimeCreated","Id","LevelDisplayName","ProviderName","Message"
+"9/25/2026 8:01:44 AM","7036","Information","Service Control Manager","The Example Update service entered the running state."
+"9/25/2026 8:02:10 AM","7","Error","Example Disk Driver","The device, \Device\Harddisk1\DR1, has a bad block."
+"9/25/2026 8:03:51 AM","10016","Warning","Example DCOM","The application-specific permission settings do not grant Local Activation permission."
+"9/25/2026 8:04:02 AM","7036","Information","Service Control Manager","The Example Search service entered the stopped state."
+"9/25/2026 8:05:30 AM","7","Error","Example Disk Driver","The device, \Device\Harddisk1\DR1, has a bad block."
+"9/25/2026 8:06:12 AM","1014","Warning","Example DNS Client","Name resolution for the name example.test timed out."
+"9/25/2026 8:07:44 AM","7036","Information","Service Control Manager","The Example Backup service entered the running state."

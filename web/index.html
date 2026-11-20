@@ -1,0 +1,29 @@
+<!--
+Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/zyvor-favicon.svg" />
+    <link rel="apple-touch-icon" href="/zyvor-favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Zyvor Fabric — private cloud control plane for Linux. VMs, networking, storage, and security." />
+    <title>Zyvor Fabric</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('zyvor-fabricd-theme');
+          // Dark is the default for a first visit; a stored choice (either way) always wins.
+          var dark = stored ? stored === 'dark' : true;
+          if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

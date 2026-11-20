@@ -1,0 +1,6 @@
+Acct XX1234 debited by Rs 1,250.00 on 12-03-25 at CAFE LUMA. Avl bal Rs 18,430.50.
+Acct XX1234 credited with Rs 25,000.00 on 13-03-25 salary ACME LTD.
+Your OTP for the transaction is 482913. Do not share it with anyone.
+Card XX9876 spent USD 39.99 at STREAMCO on 14-03-25. International transaction.
+Card XX9876 transaction of Rs 4,999.00 at GADGETMART was declined. Limit exceeded.
+Acct XX1234 debited by Rs 799.00 on 15-03-25 at STREAMCO. Auto-renewal.

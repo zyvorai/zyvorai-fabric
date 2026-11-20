@@ -1,0 +1,4 @@
+{"bomFormat":"CycloneDX","specVersion":"1.5","components":[
+{"name":"left-pad","version":"1.3.0","licenses":[{"license":{"id":"MIT"}}]},
+{"name":"internal-lib","version":"0.4.1"}],
+"vulnerabilities":[{"id":"CVE-2026-0001","ratings":[{"severity":"high"}]}]}

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zyvor-fabricd-config
+  namespace: zyvor-fabric
+  labels:
+    app: zyvor-fabric
+    app.kubernetes.io/component: fabricd
+data:
+  zyvor-fabricd.toml: |
+    # Lab / in-cluster profile — TLS off (terminate at Ingress if needed).
+    # Auth stays on; admin password comes from Secret zyvor-fabric-secrets
+    # via ZYVOR_FABRICD_ADMIN_PASSWORD. Prefer scripts that generate a random
+    # secret, or FABRIC_LAB_DEFAULTS=1 for lab Admin@321.
+    [daemon]
+    listen = "0.0.0.0:9095"
+    cors_origins = ["*"]
+
+    [storage]
+    path = "/var/lib/zyvor-fabricd"
+    image_path = "/var/lib/zyvor-fabricd/images"
+
+    [network]
+    bridge = "br0"
+
+    [tls]
+    enabled = false
+
+    [driver]
+    fluxvm_url = "http://127.0.0.1:7788"

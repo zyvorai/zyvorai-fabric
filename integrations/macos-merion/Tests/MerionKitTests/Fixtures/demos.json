@@ -1,0 +1,32 @@
+{
+ "demos": [
+  {
+   "accepts": [
+    "pdf"
+   ],
+   "browser": "none",
+   "builtin": true,
+   "description": "Drop a PDF, get a one-page brief.md.",
+   "egress": "deny",
+   "has_sample": true,
+   "id": "pdf-brief",
+   "max_bytes": 33554432,
+   "model": null,
+   "title": "PDF brief"
+  },
+  {
+   "accepts": [
+    "csv"
+   ],
+   "browser": "none",
+   "builtin": true,
+   "description": "Drop a CSV, get clean.csv plus a report: blanks and duplicates removed, formula cells neutralised.",
+   "egress": "deny",
+   "has_sample": true,
+   "id": "csv-clean",
+   "max_bytes": 300000,
+   "model": null,
+   "title": "CSV cleanup"
+  }
+ ]
+}

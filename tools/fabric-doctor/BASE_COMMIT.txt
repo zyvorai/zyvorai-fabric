@@ -1,0 +1,3 @@
+Repository: https://github.com/zyvorai/fabric
+Reviewed base commit: 5c5fecf33022117422c6d02245a414f84be1cbc0
+Feature: Fabric Doctor / Production Preflight + Safe Support Bundle

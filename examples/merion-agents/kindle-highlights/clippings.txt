@@ -1,0 +1,20 @@
+The Example Book (Jane Author)
+- Your Highlight on page 12 | location 120-121 | Added on Monday, 1 September 2026 09:00:00
+
+A synthetic highlight about nothing in particular.
+==========
+The Example Book (Jane Author)
+- Your Note on page 12 | location 121 | Added on Monday, 1 September 2026 09:01:00
+
+A synthetic note.
+==========
+The Example Book (Jane Author)
+- Your Highlight on page 40 | location 400-402 | Added on Tuesday, 2 September 2026 20:15:00
+
+Another synthetic highlight.
+==========
+A Second Example (John Writer)
+- Your Highlight on page 7 | location 70-71 | Added on Wednesday, 3 September 2026 07:30:00
+
+One more, from another book.
+==========

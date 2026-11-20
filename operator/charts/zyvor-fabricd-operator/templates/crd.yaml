@@ -1,0 +1,74 @@
+# Minimal OpenAPI-shaped CRD for VirtualMachine (matches operator/src/crd.rs).
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: virtualmachines.zyvor-fabricd.io
+  labels:
+    {{- include "zyvor-fabricd-operator.labels" . | nindent 4 }}
+spec:
+  group: zyvor-fabricd.io
+  names:
+    kind: VirtualMachine
+    listKind: VirtualMachineList
+    plural: virtualmachines
+    shortNames:
+      - vm
+    singular: virtualmachine
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: State
+          type: string
+          jsonPath: .status.state
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                cpus:
+                  type: integer
+                memory:
+                  type: integer
+                cloudInit:
+                  type: object
+                  properties:
+                    userData:
+                      type: string
+                    networkConfig:
+                      type: string
+                tpm:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    version:
+                      type: string
+                vnc:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    port:
+                      type: integer
+            status:
+              type: object
+              properties:
+                state:
+                  type: string
+                ip:
+                  type: string
+                node:
+                  type: string

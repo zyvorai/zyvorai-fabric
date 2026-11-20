@@ -1,0 +1,11 @@
+version: 1
+default_egress: deny
+allow:
+  - host: "127.0.0.1"
+    methods: [GET]
+    action: fabric-read
+    ask: never
+deny:
+  - host: "*.onion"
+taint:
+  on_untrusted_page: block_egress_until_ask

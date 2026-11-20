@@ -1,0 +1,267 @@
+#!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+#
+# Super-easy Fabric + FluxVM stack ship.
+#
+#   ./scripts/ship sus@HOST              # lab quick redeploy + verify
+#   ./scripts/ship sus@HOST --full       # first install (deps + firewall)
+#   FABRIC_ADMIN_PASSWORD=… ./scripts/ship sus@HOST --prod
+#
+# Flags: --full --prod --fabric-only --fluxvm-only --skip-verify --dry-run
+# Exit: 0 OK · 1 deploy/verify fail · 2 misconfig
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FABRIC_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$FABRIC_ROOT"
+exec </dev/null
+
+FULL=0
+PROD=0
+FABRIC_ONLY=0
+FLUXVM_ONLY=0
+SKIP_VERIFY=0
+DRY_RUN=0
+TARGET=""
+
+usage() {
+  cat <<EOF
+Usage: ./scripts/ship USER@HOST [flags]
+
+Ship FluxVM + Fabric to one host, then run production readiness.
+
+  --full           Full install (no --quick; open firewall on Fabric)
+  --prod           Production profile (requires FABRIC_ADMIN_PASSWORD;
+                   forbids lab Admin@321)
+  --fabric-only    Skip FluxVM deploy
+  --fluxvm-only    Skip Fabric deploy
+  --skip-verify    Skip production readiness
+  --dry-run        Print plan only
+  -h, --help       This help
+
+Env:
+  FLUXVM_ROOT / FABRIC_ROOT   sibling overrides
+  FABRIC_LAB_DEFAULTS=1       default for lab (set automatically unless --prod)
+  FABRIC_ADMIN_PASSWORD / ZYVOR_FABRICD_ADMIN_PASSWORD
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    --full) FULL=1; shift ;;
+    --prod) PROD=1; shift ;;
+    --fabric-only) FABRIC_ONLY=1; shift ;;
+    --fluxvm-only) FLUXVM_ONLY=1; shift ;;
+    --skip-verify) SKIP_VERIFY=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    -*)
+      echo "misconfig: unknown flag $1" >&2
+      usage >&2
+      exit 2
+      ;;
+    *)
+      if [[ -n "$TARGET" ]]; then
+        echo "misconfig: unexpected argument $1" >&2
+        exit 2
+      fi
+      TARGET="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$TARGET" ]]; then
+  echo "misconfig: missing USER@HOST" >&2
+  usage >&2
+  exit 2
+fi
+
+if [[ "$FABRIC_ONLY" -eq 1 && "$FLUXVM_ONLY" -eq 1 ]]; then
+  echo "misconfig: --fabric-only and --fluxvm-only are mutually exclusive" >&2
+  exit 2
+fi
+
+# Parse USER@HOST or HOST USER (only user@host supported for ship simplicity)
+if [[ "$TARGET" == *@* ]]; then
+  SSH_USER="${TARGET%@*}"
+  SSH_HOST="${TARGET#*@}"
+else
+  echo "misconfig: use USER@HOST (got: $TARGET)" >&2
+  exit 2
+fi
+SSH_TARGET="${SSH_USER}@${SSH_HOST}"
+FABRIC_URL="https://${SSH_HOST}:9095"
+FLUXVM_LOCAL_URL="http://127.0.0.1:7788"
+
+resolve_fluxvm_root() {
+  if [[ -n "${FLUXVM_ROOT:-}" && -x "${FLUXVM_ROOT}/scripts/deploy-remote.sh" ]]; then
+    printf '%s' "$FLUXVM_ROOT"
+    return
+  fi
+  local cand
+  for cand in \
+    "$(cd "$FABRIC_ROOT/.." && pwd)/fluxvm" \
+    "$(cd "$FABRIC_ROOT/.." && pwd)/FluxVM"
+  do
+    if [[ -x "$cand/scripts/deploy-remote.sh" ]]; then
+      printf '%s' "$cand"
+      return
+    fi
+  done
+  return 1
+}
+
+if [[ "$PROD" -eq 1 ]]; then
+  PASSWORD="${FABRIC_ADMIN_PASSWORD:-${ZYVOR_FABRICD_ADMIN_PASSWORD:-}}"
+  if [[ -z "$PASSWORD" ]]; then
+    echo "misconfig: --prod requires FABRIC_ADMIN_PASSWORD or ZYVOR_FABRICD_ADMIN_PASSWORD" >&2
+    exit 2
+  fi
+  if [[ "$PASSWORD" == "Admin@321" ]]; then
+    echo "misconfig: --prod forbids lab password Admin@321" >&2
+    exit 2
+  fi
+  unset FABRIC_LAB_DEFAULTS || true
+  export FABRIC_ADMIN_PASSWORD="$PASSWORD"
+  export ZYVOR_FABRICD_ADMIN_PASSWORD="$PASSWORD"
+else
+  export FABRIC_LAB_DEFAULTS="${FABRIC_LAB_DEFAULTS:-1}"
+  # Keep lab login stable across redeploys (stale .admin_password vs auth.db).
+  export FORCE_ADMIN_RESET="${FORCE_ADMIN_RESET:-1}"
+  PASSWORD="${FABRIC_ADMIN_PASSWORD:-${ZYVOR_FABRICD_ADMIN_PASSWORD:-Admin@321}}"
+fi
+
+FLUXVM_ROOT_RESOLVED=""
+if [[ "$FABRIC_ONLY" -eq 0 ]]; then
+  if ! FLUXVM_ROOT_RESOLVED="$(resolve_fluxvm_root)"; then
+    echo "misconfig: FluxVM sibling not found (tried ../fluxvm, ../FluxVM). Set FLUXVM_ROOT= or use --fabric-only" >&2
+    exit 2
+  fi
+fi
+
+QUICK_FLAGS=()
+FABRIC_EXTRA=()
+if [[ "$FULL" -eq 0 ]]; then
+  QUICK_FLAGS+=(--quick)
+else
+  FABRIC_EXTRA+=(--open-firewall)
+fi
+
+echo "╔══════════════════════════════════════════════════════════╗"
+echo "║  ship → ${SSH_TARGET}"
+echo "║  profile: $([ "$PROD" -eq 1 ] && echo prod || echo lab)  mode: $([ "$FULL" -eq 1 ] && echo full || echo quick)"
+echo "║  fabric:  ${FABRIC_URL}"
+echo "║  fluxvm:  ${FLUXVM_ROOT_RESOLVED:-skipped}"
+echo "╚══════════════════════════════════════════════════════════╝"
+
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  echo "[dry-run] would deploy FluxVM: $([ "$FABRIC_ONLY" -eq 0 ] && echo yes || echo no)"
+  echo "[dry-run] would deploy Fabric: $([ "$FLUXVM_ONLY" -eq 0 ] && echo yes || echo no)"
+  echo "[dry-run] would verify: $([ "$SKIP_VERIFY" -eq 0 ] && echo yes || echo no)"
+  exit 0
+fi
+
+# ── FluxVM ──────────────────────────────────────────────────────────
+if [[ "$FABRIC_ONLY" -eq 0 ]]; then
+  echo ""
+  echo "########## 1/3 FluxVM ##########"
+  # Prefer key auth for non-interactive ship
+  FVM_ARGS=("$SSH_TARGET")
+  FVM_ARGS+=("${QUICK_FLAGS[@]+"${QUICK_FLAGS[@]}"}")
+  FVM_ARGS+=(--key)
+  echo "+ ${FLUXVM_ROOT_RESOLVED}/scripts/deploy-remote.sh ${FVM_ARGS[*]}"
+  "${FLUXVM_ROOT_RESOLVED}/scripts/deploy-remote.sh" "${FVM_ARGS[@]}"
+fi
+
+# ── Fabric ──────────────────────────────────────────────────────────
+if [[ "$FLUXVM_ONLY" -eq 0 ]]; then
+  echo ""
+  echo "########## 2/3 Fabric ##########"
+  FAB_ARGS=(remote "$SSH_TARGET")
+  FAB_ARGS+=("${QUICK_FLAGS[@]+"${QUICK_FLAGS[@]}"}")
+  FAB_ARGS+=("${FABRIC_EXTRA[@]+"${FABRIC_EXTRA[@]}"}")
+  echo "+ ./scripts/deploy ${FAB_ARGS[*]}"
+  ./scripts/deploy "${FAB_ARGS[@]}"
+fi
+
+if [[ "$SKIP_VERIFY" -eq 1 ]]; then
+  echo ""
+  echo "########## skip-verify ##########"
+  echo "Dashboard  ${FABRIC_URL}"
+  echo "Password   $([ "$PROD" -eq 1 ] && echo '(from FABRIC_ADMIN_PASSWORD)' || echo 'lab Admin@321 or sudo cat /var/lib/zyvor-fabricd/.admin_password')"
+  exit 0
+fi
+
+# ── Verify on host (FluxVM is loopback-only) ────────────────────────
+echo ""
+echo "########## 3/3 Verify ##########"
+
+resolve_password_remote() {
+  if [[ -n "${FABRIC_ADMIN_PASSWORD:-}" ]]; then
+    printf '%s' "$FABRIC_ADMIN_PASSWORD"
+    return
+  fi
+  if [[ -n "${ZYVOR_FABRICD_ADMIN_PASSWORD:-}" ]]; then
+    printf '%s' "$ZYVOR_FABRICD_ADMIN_PASSWORD"
+    return
+  fi
+  # Prefer remote file, then lab default
+  local remote_pw
+  remote_pw="$(ssh -o BatchMode=yes -o ConnectTimeout=10 "$SSH_TARGET" \
+    'sudo cat /var/lib/zyvor-fabricd/.admin_password 2>/dev/null | tr -d "\n"' || true)"
+  if [[ -n "$remote_pw" ]]; then
+    printf '%s' "$remote_pw"
+    return
+  fi
+  if [[ "$PROD" -eq 0 ]]; then
+    printf '%s' 'Admin@321'
+    return
+  fi
+  return 1
+}
+
+PASSWORD="$(resolve_password_remote)" || {
+  echo "FAIL: could not resolve admin password for verify login" >&2
+  exit 1
+}
+
+# Ensure readiness scripts exist on remote (rsync just shipped sources)
+ssh -o BatchMode=yes "$SSH_TARGET" 'bash -s' <<REMOTE
+set -euo pipefail
+chmod +x ~/zyvor-fabric/scripts/test-production-readiness.sh 2>/dev/null || true
+chmod +x ~/.deployments/fluxvm/scripts/test-production-readiness.sh 2>/dev/null || true
+
+# Fabric readiness against local HTTPS
+TOKEN=\$(curl -sk -X POST https://127.0.0.1:9095/api/auth/login \\
+  -H "Content-Type: application/json" \\
+  -d '{"username":"admin","password":"'"$PASSWORD"'"}' \\
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["token"])')
+test -n "\$TOKEN"
+
+echo "=== Fabric production readiness ==="
+FABRIC_URL=https://127.0.0.1:9095 FLUXVM_URL=http://127.0.0.1:7788 FABRIC_TOKEN="\$TOKEN" \\
+  ~/zyvor-fabric/scripts/test-production-readiness.sh
+
+echo "=== FluxVM production readiness ==="
+FABRIC_URL=https://127.0.0.1:9095 FLUXVM_URL=http://127.0.0.1:7788 \\
+  ~/.deployments/fluxvm/scripts/test-production-readiness.sh
+REMOTE
+
+echo ""
+echo "╔══════════════════════════════════════════════════════════╗"
+echo "║  Ship complete                                          ║"
+echo "╠══════════════════════════════════════════════════════════╣"
+echo "║  Dashboard   ${FABRIC_URL}"
+echo "║  Health      ${FABRIC_URL}/health  (curl -sk)"
+echo "║  FluxVM      ${FLUXVM_LOCAL_URL} on host (SSH tunnel if needed)"
+if [[ "$PROD" -eq 1 ]]; then
+  echo "║  Login       admin / (FABRIC_ADMIN_PASSWORD)"
+else
+  echo "║  Login       admin / Admin@321  (or sudo cat …/.admin_password)"
+fi
+echo "║  Redeploy    ./scripts/ship ${SSH_TARGET}"
+echo "╚══════════════════════════════════════════════════════════╝"
+echo "PASS: stack shipped and verified"
+exit 0

@@ -1,0 +1,4 @@
+"HostName","TaskName","Next Run Time","Status","Logon Mode","Last Run Time","Last Result","Author","Task To Run","Scheduled Task State","Run As User"
+"EXAMPLE-PC","\Example\Backup","9/27/2026 2:00:00 AM","Ready","Interactive/Background","9/26/2026 2:00:00 AM","0","Example Software","C:\Program Files\Example\backup.exe","Enabled","SYSTEM"
+"EXAMPLE-PC","\Example\Updater","N/A","Ready","Interactive/Background","9/25/2026 9:00:00 AM","1","Example Software","C:\Program Files\Example\update.exe","Enabled","SYSTEM"
+"EXAMPLE-PC","\Microsoft\Windows\Defrag\ScheduledDefrag","N/A","Disabled","Interactive/Background","N/A","267011","Microsoft","%windir%\system32\defrag.exe -c -h -o -$","Disabled","SYSTEM"

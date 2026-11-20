@@ -1,0 +1,5 @@
+2026-09-25T10:00:01 INFO service started
+2026-09-25T10:00:05 ERROR timeout after 30s calling db-1
+2026-09-25T10:00:09 ERROR timeout after 45s calling db-2
+2026-09-25T10:01:00 WARN slow query 1200ms
+2026-09-25T10:02:10 ERROR connection reset by peer

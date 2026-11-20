@@ -1,0 +1,22 @@
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+[Unit]
+Description=Keep browser a11y driver (Playwright private)
+After=chromium-cdp.service
+Requires=chromium-cdp.service
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+WorkingDirectory=/opt/zyvor/browser
+Environment=HOME=/home/agent
+Environment=NODE_PATH=/opt/zyvor/browser/node_modules
+Environment=ZYVOR_BROWSER_CDP=http://127.0.0.1:9222
+Environment=ZYVOR_BROWSER_DRIVER_PORT=9230
+ExecStart=/usr/local/bin/node /opt/zyvor/browser/driver.mjs
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

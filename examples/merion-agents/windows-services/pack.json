@@ -1,0 +1,36 @@
+{
+  "kind": "usecase",
+  "name": "windows-services",
+  "title": "Windows services",
+  "description": "Drop in `Get-Service` exported as CSV and get the status and start-type counts and the service names.",
+  "accepts": [
+    "csv"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Status and start type",
+      "columns": [
+        "status",
+        "starttype",
+        "servicetype"
+      ],
+      "top": 6
+    },
+    {
+      "kind": "csv_columns",
+      "title": "Services",
+      "columns": [
+        "displayname"
+      ],
+      "top": 10
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "windows-services.md",
+  "sample_file": "sample.csv"
+}

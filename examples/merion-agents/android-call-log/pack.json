@@ -1,0 +1,47 @@
+{
+  "kind": "usecase",
+  "name": "android-call-log",
+  "title": "Call log",
+  "description": "Drop in a call-log CSV exported from your phone and see calls by type, who you talk to most and the first rows.",
+  "accepts": [
+    "csv"
+  ],
+  "extract": "text",
+  "sample_file": "calls.csv",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Calls by type",
+      "columns": [
+        "type"
+      ],
+      "top": 6
+    },
+    {
+      "kind": "csv_columns",
+      "title": "Who you talk to (by name)",
+      "columns": [
+        "name"
+      ],
+      "top": 10
+    },
+    {
+      "kind": "csv_columns",
+      "title": "Numbers",
+      "columns": [
+        "number"
+      ],
+      "top": 10
+    },
+    {
+      "kind": "table",
+      "title": "First rows",
+      "max_rows": 8
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "calls.md"
+}

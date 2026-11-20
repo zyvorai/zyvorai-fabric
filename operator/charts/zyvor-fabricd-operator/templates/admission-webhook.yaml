@@ -1,0 +1,21 @@
+{{- if .Values.admissionWebhook.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: zyvor-fabricd-inference
+webhooks:
+  - name: inference.zyvor-fabricd.io
+    failurePolicy: Fail
+    sideEffects: None
+    admissionReviewVersions: ["v1"]
+    rules:
+      - apiGroups: ["zyvor-fabricd.io"]
+        apiVersions: ["v1alpha1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["inferencedeployments"]
+    clientConfig:
+      url: {{ printf "%s/api/ai/admit/%s" .Values.admissionWebhook.fabricdUrl .Values.admissionWebhook.token | quote }}
+      {{- with .Values.admissionWebhook.caBundle }}
+      caBundle: {{ . | quote }}
+      {{- end }}
+{{- end }}

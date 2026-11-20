@@ -1,0 +1,14 @@
+CompileSwiftSources normal arm64 com.apple.xcode.tools.swift.compiler (in target 'MyApp' from project 'MyApp')
+/Users/dev/MyApp/Sources/Login.swift:42:17: error: cannot find 'session' in scope
+/Users/dev/MyApp/Sources/Cart.swift:10:9: warning: variable 'x' was never mutated; consider changing to 'let' constant
+/Users/dev/MyApp/Sources/Cart.swift:31:9: warning: variable 'x' was never mutated; consider changing to 'let' constant
+/Users/dev/MyApp/Sources/Profile.swift:7:5: error: cannot find 'session' in scope
+** BUILD FAILED **
+
+
+The following build commands failed:
+	CompileSwiftSources normal arm64 com.apple.xcode.tools.swift.compiler (in target 'MyApp' from project 'MyApp')
+(2 failures)
+Test Case '-[MyAppTests.CartTests testTotal]' failed (0.002 seconds).
+Test Suite 'CartTests' failed at 2026-09-20 10:11:12.345.
+	 Executed 12 tests, with 1 failure (0 unexpected) in 0.031 (0.033) seconds

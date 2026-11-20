@@ -1,0 +1,71 @@
+{
+  "kind": "usecase",
+  "name": "receivables-ageing",
+  "title": "Receivables from mail",
+  "description": "Drop in a mail export and list the invoices mentioned (most chased first), what is overdue or paid, and the amounts.",
+  "accepts": [
+    "mbox",
+    "eml"
+  ],
+  "extract": "eml",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Invoice numbers (most mentioned first)",
+      "pattern": "(?i)\\b(INV[-/][A-Z0-9][A-Z0-9/-]*)",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Overdue or unpaid",
+      "keywords": [
+        "overdue",
+        "unpaid",
+        "past due",
+        "reminder",
+        "outstanding",
+        "not received"
+      ],
+      "max_lines": 10
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Payments received",
+      "keywords": [
+        "payment received",
+        "received your payment",
+        "paid on",
+        "utr",
+        "transaction id"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Due dates",
+      "keywords": [
+        "due date",
+        "due on",
+        "due by",
+        "pay by"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "(?:₹|Rs\\.?|INR|USD|EUR|GBP|\\$|€|£)\\s?[0-9][0-9,]*(?:\\.[0-9]{2})?",
+      "max_matches": 15
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Who is writing",
+      "pattern": "From: .*?<([^>]+)>",
+      "max_matches": 8,
+      "group": 1
+    }
+  ],
+  "artifact_title": "receivables.md",
+  "sample_file": "sample.mbox"
+}

@@ -1,0 +1,218 @@
+name: Operator
+
+on:
+  push:
+    paths:
+      - "operator/**"
+      - ".github/workflows/operator.yml"
+  pull_request:
+    paths:
+      - "operator/**"
+      - ".github/workflows/operator.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: azure/setup-helm@v5
+        with:
+          version: "3.14.4"
+      - name: Cargo test
+        run: cd operator && cargo test
+      - name: Helm template lint
+        run: |
+          helm template test operator/charts/zyvor-fabricd-operator > /tmp/operator.yaml
+          grep -q 'ZYVOR_FABRICD_URL' /tmp/operator.yaml
+          grep -q 'virtualmachines.zyvor-fabricd.io' /tmp/operator.yaml
+          grep -q 'containergroups.zyvor-fabricd.io' /tmp/operator.yaml
+          grep -q 'resources: \["containergroups"' /tmp/operator.yaml
+
+  kind-e2e:
+    runs-on: ubuntu-latest
+    needs: [build]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.15.2
+        with:
+          cluster_name: fabric-operator
+
+      - uses: azure/setup-helm@v5
+        with:
+          version: "3.14.4"
+
+      - name: Build operator image
+        run: |
+          docker build -t zyvor-fabricd-operator:e2e -f operator/Dockerfile operator
+          kind load docker-image zyvor-fabricd-operator:e2e --name fabric-operator
+
+      - name: Install fabricd HTTP stub
+        run: |
+          kubectl create ns fabric-system || true
+          kubectl -n fabric-system apply -f - <<'EOF'
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: fabricd-stub
+          data:
+            stub.py: |
+              from http.server import BaseHTTPRequestHandler, HTTPServer
+              import json
+              VMS = {}
+              class H(BaseHTTPRequestHandler):
+                  def _json(self, code, obj):
+                      body = json.dumps(obj).encode()
+                      self.send_response(code)
+                      self.send_header("Content-Type", "application/json")
+                      self.send_header("Content-Length", str(len(body)))
+                      self.end_headers()
+                      self.wfile.write(body)
+                  def do_GET(self):
+                      if self.path.startswith("/api/vms/"):
+                          name = self.path.rsplit("/", 1)[-1]
+                          if name in VMS:
+                              self._json(200, VMS[name])
+                          else:
+                              self._json(404, {"error": "not found"})
+                      elif self.path == "/api/vms":
+                          self._json(200, list(VMS.values()))
+                      elif self.path == "/health":
+                          self._json(200, {"status": "ok"})
+                      else:
+                          self._json(404, {"error": "no"})
+                  def do_POST(self):
+                      n = int(self.headers.get("Content-Length", 0))
+                      raw = self.rfile.read(n) if n else b"{}"
+                      try:
+                          data = json.loads(raw.decode() or "{}")
+                      except Exception:
+                          data = {}
+                      if self.path == "/api/vms":
+                          name = data.get("name", "unnamed")
+                          VMS[name] = {"name": name, "state": "running", "ip": "10.0.0.5", **data}
+                          self._json(201, VMS[name])
+                      elif self.path.endswith("/start"):
+                          name = self.path.split("/")[-2]
+                          if name in VMS:
+                              VMS[name]["state"] = "running"
+                          self._json(200, {"ok": True})
+                      elif "/cloud-init" in self.path:
+                          self._json(200, {"ok": True})
+                      else:
+                          self._json(200, {"ok": True})
+                  def do_DELETE(self):
+                      name = self.path.rsplit("/", 1)[-1]
+                      VMS.pop(name, None)
+                      self.send_response(204)
+                      self.end_headers()
+                  def log_message(self, *a):
+                      pass
+              HTTPServer(("0.0.0.0", 9095), H).serve_forever()
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: fabricd-stub
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: fabricd-stub
+            template:
+              metadata:
+                labels:
+                  app: fabricd-stub
+              spec:
+                containers:
+                  - name: stub
+                    image: python:3.12-slim
+                    command: ["python3", "/stub/stub.py"]
+                    ports:
+                      - containerPort: 9095
+                    volumeMounts:
+                      - name: stub
+                        mountPath: /stub
+                volumes:
+                  - name: stub
+                    configMap:
+                      name: fabricd-stub
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: zyvor-fabricd
+          spec:
+            selector:
+              app: fabricd-stub
+            ports:
+              - port: 9095
+                targetPort: 9095
+          EOF
+          kubectl -n fabric-system rollout status deploy/fabricd-stub --timeout=120s
+
+      - name: Helm install operator
+        run: |
+          helm upgrade --install fabric-op operator/charts/zyvor-fabricd-operator \
+            --namespace fabric-system --create-namespace \
+            -f operator/charts/zyvor-fabricd-operator/ci/kind-e2e-values.yaml
+          kubectl -n fabric-system get deploy
+          kubectl -n fabric-system rollout status deploy -l app.kubernetes.io/instance=fabric-op --timeout=180s
+
+      - name: Diagnose operator pod
+        if: failure()
+        run: |
+          kubectl -n fabric-system get pods -o wide
+          kubectl -n fabric-system describe pods -l app.kubernetes.io/instance=fabric-op
+          kubectl -n fabric-system logs -l app.kubernetes.io/instance=fabric-op --all-containers --prefix --tail=200 || true
+          kubectl -n fabric-system logs -l app.kubernetes.io/instance=fabric-op --all-containers --prefix --previous --tail=200 || true
+
+      - name: Create VirtualMachine CR and wait for status
+        run: |
+          kubectl apply -f - <<'EOF'
+          apiVersion: zyvor-fabricd.io/v1alpha1
+          kind: VirtualMachine
+          metadata:
+            name: e2e-vm
+            namespace: default
+          spec:
+            image: test.qcow2
+            cpus: 1
+            memory: 512
+          EOF
+          STATE=""
+          for i in $(seq 1 60); do
+            STATE=$(kubectl get vm e2e-vm -o jsonpath='{.status.state}' 2>/dev/null || true)
+            if [ -n "$STATE" ] && [ "$STATE" != "unknown" ]; then
+              echo "VM status=$STATE"
+              break
+            fi
+            sleep 2
+          done
+          kubectl get vm e2e-vm -o yaml
+          if [ -z "$STATE" ] || [ "$STATE" = "unknown" ]; then
+            echo "::error::VirtualMachine e2e-vm never reported a status.state (last value: '${STATE:-<empty>}')"
+            exit 1
+          fi
+
+      - name: Diagnose reconcile failure
+        if: failure()
+        run: |
+          kubectl -n fabric-system get pods -o wide
+          kubectl -n fabric-system logs -l app.kubernetes.io/instance=fabric-op --all-containers --prefix --tail=500 || true
+          kubectl get vm e2e-vm -o yaml || true
+          kubectl get events -A --sort-by=.lastTimestamp || true
+
+      - name: Delete VirtualMachine CR
+        run: |
+          kubectl delete vm e2e-vm --wait=true --timeout=120s
+
+      - name: Helm uninstall
+        if: always()
+        run: |
+          helm uninstall fabric-op -n fabric-system || true
+          kubectl delete ns fabric-system --wait=false || true

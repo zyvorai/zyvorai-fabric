@@ -1,0 +1,37 @@
+{
+  "kind": "usecase",
+  "name": "windows-scheduled-tasks",
+  "title": "Windows scheduled tasks",
+  "description": "Drop in `schtasks /query /fo csv /v` output and get the task names, states, results and the accounts they run as.",
+  "accepts": [
+    "csv"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "State, result and account",
+      "columns": [
+        "status",
+        "scheduled task state",
+        "last result",
+        "run as user"
+      ],
+      "top": 8
+    },
+    {
+      "kind": "csv_columns",
+      "title": "Tasks",
+      "columns": [
+        "taskname"
+      ],
+      "top": 10
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "scheduled-tasks.md",
+  "sample_file": "sample.csv"
+}

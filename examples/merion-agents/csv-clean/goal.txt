@@ -1,0 +1,1 @@
+Read /home/agent/work/input.csv only. Write artifact clean.csv and report.md. No browser. No hosts.

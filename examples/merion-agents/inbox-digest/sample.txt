@@ -1,0 +1,81 @@
+From: Priya Nair <priya@example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 08:12:00 +0530
+Subject: Vendor renewal: can you confirm by Friday?
+
+Hi, the vendor renewal needs a decision this week.
+Can you confirm the seat count by Friday?
+Please reply with a yes or no so I can close it out.
+
+From: Acme Billing <billing@example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 09:40:00 +0530
+Subject: Invoice INV-2041 is ready
+
+Your invoice INV-2041 is ready.
+Amount due: 480.00, payment due in 14 days.
+This is an automated message. Do not reply.
+
+From: Priya Nair <priya@example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 11:05:00 +0530
+Subject: Re: Vendor renewal: can you confirm by Friday?
+
+Following up on the renewal. Let me know if the seat count changed.
+Thanks,
+Priya
+
+From: Daniel Okafor <daniel@example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 12:30:00 +0530
+Subject: Meeting: Q4 planning, Wednesday
+
+Sharing the agenda for the Q4 planning meeting on Wednesday.
+Calendar invite to follow. Can we reschedule if the design review runs long?
+
+From: The Weekly Byte <no-reply@newsletter.example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 13:00:00 +0530
+Subject: The Weekly Byte: 5 tools worth a look
+
+This week: five tools worth a look.
+View in browser | Unsubscribe
+
+From: Northwind Cafe <no-reply@promo.example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 14:15:00 +0530
+Subject: 30% off this weekend
+
+Our weekend sale: 30% off everything.
+Unsubscribe at any time.
+
+From: Acme Billing <billing@example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 15:45:00 +0530
+Subject: Payment received: receipt for INV-2038
+
+Thanks, we received your payment. Your receipt for INV-2038 is attached.
+Refund requests are handled within five days.
+
+From: Daniel Okafor <daniel@example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 16:20:00 +0530
+Subject: Re: Meeting: Q4 planning, Wednesday
+
+Moving the call at 3pm. Can you send the slides before the meeting?
+Urgent: I need them ASAP so I can print copies.
+
+From: Jo Lindqvist <jo@example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 17:00:00 +0530
+Subject: Action required: contract signature
+
+Action required: the contract is waiting for your signature.
+Please reply once it is signed.
+
+From: Acme Billing <billing@example.com>
+To: you@example.com
+Date: Mon, 21 Sep 2026 18:10:00 +0530
+Subject: Overdue: invoice INV-2029
+
+Your invoice INV-2029 is overdue. Amount due: 120.00.

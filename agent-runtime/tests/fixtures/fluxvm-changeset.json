@@ -1,0 +1,43 @@
+{
+  "apply_started_at": null,
+  "base_files": 0,
+  "changes": {
+    "added": [
+      "/tmp/specdir/a.txt"
+    ],
+    "deleted": [],
+    "modified": [],
+    "unchanged": 0
+  },
+  "command": "mkdir -p /tmp/specdir && echo hello > /tmp/specdir/a.txt",
+  "created_at": 1791528465,
+  "error": null,
+  "exit_code": 0,
+  "expires_at": 1791529065,
+  "id": "8cc8fbbb-e605-42bd-b974-e631fd0d4f09",
+  "paths": [
+    "/tmp"
+  ],
+  "run_via": "fork",
+  "sandbox_id": "cdbceacb-b691-48c8-a8e5-4f29b99f8213",
+  "side_effects": {
+    "destinations": [],
+    "egress": "blocked",
+    "non_replayable": [],
+    "replayable": [
+      "1 file change(s) under /tmp"
+    ]
+  },
+  "staged": {
+    "/tmp/specdir/a.txt": {
+      "blob": "000000",
+      "mode": 420,
+      "size": 6
+    }
+  },
+  "state": "pending",
+  "stderr": "",
+  "stdout": "",
+  "unstaged": [],
+  "updated_at": 1791528465
+}

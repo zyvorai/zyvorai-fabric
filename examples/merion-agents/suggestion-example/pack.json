@@ -1,0 +1,15 @@
+{
+  "kind": "agent",
+  "name": "suggestion-example",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 512 },
+    "egress_mode": "deny",
+    "confinement": "strict",
+    "suggestions": true
+  },
+  "goal": {
+    "title": "Suggest things to do",
+    "text": "Emit the suggestions in the input. No model, no network."
+  }
+}

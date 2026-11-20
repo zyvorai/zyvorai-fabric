@@ -1,0 +1,48 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
+/// <reference types="vitest/config" />
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { mockApi } from './mock-api.ts'
+
+export default defineConfig(({ mode }) => ({
+  plugins: [react(), tailwindcss(), ...(mode === 'mock' ? [mockApi()] : [])],
+  // Default target predates top-level await, which @novnc/novnc's ESM
+  // build uses -- es2022 is baseline-supported by every browser this
+  // app already requires (native ES modules, CSS nesting, etc).
+  oxc: {
+    target: 'es2022',
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'es2022',
+    },
+  },
+  build: {
+    target: 'es2022',
+  },
+  test: {
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      reportsDirectory: './coverage',
+    },
+  },
+  server: {
+    port: 3000,
+    // Merion marketing copy is shared from ../docs/merion/marketing.json.
+    fs: { allow: ['..'] },
+    proxy: mode === 'mock' ? undefined : {
+      '/api': {
+        target: 'http://localhost:9095',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:9095',
+        ws: true,
+      },
+    },
+  },
+}))

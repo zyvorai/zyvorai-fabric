@@ -1,0 +1,30 @@
+{
+  "kind": "usecase",
+  "name": "sales-register-sheet",
+  "title": "Sales register sheet",
+  "description": "Drop in an Excel sales register and see rows per customer and the first rows.",
+  "accepts": [
+    "xlsx"
+  ],
+  "extract": "xlsx",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Customers",
+      "columns": [
+        "customer"
+      ],
+      "top": 10
+    },
+    {
+      "kind": "table",
+      "title": "First rows",
+      "max_rows": 15
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "sales-register.md"
+}

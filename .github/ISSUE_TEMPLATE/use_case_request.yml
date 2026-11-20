@@ -1,0 +1,39 @@
+name: Use case request
+description: Ask for a new Merion use case (a pack that reads a file and summarises it)
+labels: ["use-case"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A use case is one small JSON file, so this is the easiest thing to contribute. See docs/merion/CONTRIBUTING-PACKS.md.
+        **Do not paste real personal or financial data.** Describe the layout or attach a synthetic example.
+  - type: input
+    id: file
+    attributes:
+      label: What file goes in?
+      description: For example "a bank's monthly statement CSV", "a WhatsApp chat export", "a photo of a utility bill".
+    validations:
+      required: true
+  - type: textarea
+    id: get
+    attributes:
+      label: How does a person get that file?
+      description: The command, export menu or app button. If it needs a developer, say so.
+    validations:
+      required: true
+  - type: textarea
+    id: out
+    attributes:
+      label: What should come out?
+      description: The three things a person wants from the file.
+    validations:
+      required: true
+  - type: dropdown
+    id: help
+    attributes:
+      label: Can you help build it?
+      options:
+        - I can write the pack
+        - I can provide a synthetic sample
+        - I can test it on real files myself
+        - Just requesting

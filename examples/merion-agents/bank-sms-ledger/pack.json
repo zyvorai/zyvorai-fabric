@@ -1,0 +1,62 @@
+{
+  "kind": "usecase",
+  "name": "bank-sms-ledger",
+  "title": "Bank SMS ledger",
+  "description": "Drop in saved bank and card SMS alerts and get money out, money in, amounts, where it went and what needs attention.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Money out",
+      "keywords": [
+        "debited",
+        "spent",
+        "paid",
+        "withdrawn"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Money in",
+      "keywords": [
+        "credited",
+        "received",
+        "refund",
+        "deposited"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Needs attention",
+      "keywords": [
+        "declined",
+        "failed",
+        "international",
+        "limit",
+        "blocked",
+        "suspicious"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts seen",
+      "pattern": "(?:Rs\\.?|INR|USD|EUR|GBP|\\$|€|£)\\s?[0-9][0-9,]*(?:\\.[0-9]{2})?",
+      "max_matches": 12
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Where it went",
+      "pattern": "\\bat ([A-Z][A-Z0-9]+(?: [A-Z][A-Z0-9]+)?)",
+      "max_matches": 8,
+      "group": 1
+    }
+  ],
+  "artifact_title": "sms-ledger.md",
+  "sample_file": "sample.txt"
+}

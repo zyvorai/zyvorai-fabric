@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Keep chat</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <aside class="list" aria-label="Chats, goals, memory and what was done">
+      <header class="list-head">
+        <div class="tabs" role="tablist" aria-label="Sections">
+          <button id="tab-chats" type="button" role="tab" aria-selected="true" aria-controls="pane-chats" class="tab active">Chats</button>
+          <button id="tab-goals" type="button" role="tab" aria-selected="false" aria-controls="pane-goals" class="tab">Goals</button>
+          <button id="tab-memory" type="button" role="tab" aria-selected="false" aria-controls="pane-memory" class="tab">Memory</button>
+          <button id="tab-done" type="button" role="tab" aria-selected="false" aria-controls="pane-done" class="tab">Done</button>
+        </div>
+        <button id="new" type="button" class="icon" aria-label="New chat" title="New chat">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+
+      <section id="pane-chats" class="pane" role="tabpanel" aria-labelledby="tab-chats">
+        <ul id="threads" class="threads"></ul>
+        <p id="threads-empty" class="list-empty" hidden>No chats yet.<br>Say hello to start one.</p>
+      </section>
+
+      <section id="pane-goals" class="pane" role="tabpanel" aria-labelledby="tab-goals" hidden>
+        <div class="card">
+          <div class="switch-row">
+            <div>
+              <strong id="sug-state">Suggestions are off</strong>
+              <p class="fine-print">Off: agents suggest nothing. On: an agent may suggest things to do; nothing happens until you accept one.</p>
+            </div>
+            <button id="sug-toggle" type="button" class="primary small" aria-pressed="false">Turn on</button>
+          </div>
+        </div>
+        <h3 id="sug-h" class="sub-h" hidden>Suggested for you</h3>
+        <ul id="sug-list" class="mem"></ul>
+        <p id="sug-msg" class="msgline" role="status"></p>
+        <form id="goal-form" class="card form" autocomplete="off">
+          <label class="sr" for="goal-title">Goal</label>
+          <input id="goal-title" type="text" placeholder="A goal, e.g. Plan the weekend trip" maxlength="120" required>
+          <label class="sr" for="goal-steps">Steps, one per line</label>
+          <textarea id="goal-steps" rows="3" placeholder="One step per line (or leave empty and ask your agent to plan it)"></textarea>
+          <label class="check"><input id="goal-auto" type="checkbox"> Run the steps automatically</label>
+          <button type="submit" class="primary">Add goal</button>
+          <p id="goal-msg" class="msgline" role="status"></p>
+        </form>
+        <ul id="goals" class="goals"></ul>
+        <p id="goals-empty" class="list-empty" hidden>No goals yet.<br>Add one above, or accept a suggestion.</p>
+      </section>
+
+      <section id="pane-done" class="pane" role="tabpanel" aria-labelledby="tab-done" hidden>
+        <p class="fine-print pad">What was actually done after you approved it, newest first. The message itself is not kept here, only what it was and how it ended.</p>
+        <ul id="done" class="done"></ul>
+        <p id="done-empty" class="list-empty" hidden>Nothing yet.<br>A send or a new event you approve shows up here.</p>
+      </section>
+
+      <section id="pane-memory" class="pane" role="tabpanel" aria-labelledby="tab-memory" hidden>
+        <div class="card">
+          <div class="switch-row">
+            <div>
+              <strong id="mem-state">Memory is off</strong>
+              <p class="fine-print">Off: your agent remembers nothing about you. On: only what you add or accept below.</p>
+            </div>
+            <button id="mem-toggle" type="button" class="primary small" aria-pressed="false">Turn on</button>
+          </div>
+        </div>
+        <div id="mem-body" hidden>
+          <form id="mem-form" class="card form" autocomplete="off">
+            <label class="sr" for="mem-text">A note to remember</label>
+            <input id="mem-text" type="text" placeholder="e.g. I prefer window seats" maxlength="2000" required>
+            <div class="row">
+              <label class="sr" for="mem-kind">Kind</label>
+              <select id="mem-kind"><option value="preference">Preference</option><option value="fact">Fact</option><option value="note" selected>Note</option></select>
+              <button type="submit" class="primary small">Remember</button>
+            </div>
+            <p id="mem-msg" class="msgline" role="status"></p>
+          </form>
+          <h3 id="mem-props-h" class="sub-h" hidden>Suggested by your agent</h3>
+          <ul id="mem-props" class="mem"></ul>
+          <h3 class="sub-h">What it remembers</h3>
+          <ul id="mem-items" class="mem"></ul>
+          <p id="mem-empty" class="list-empty" hidden>Nothing yet.</p>
+        </div>
+      </section>
+    </aside>
+
+    <main class="chat" aria-label="Chat with {{AGENT}}">
+      <header class="chat-head">
+        <button id="back" type="button" class="icon back" aria-label="Back to chats">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="avatar" id="avatar" aria-hidden="true"></div>
+        <div class="who">
+          <h1 id="agent-name">{{AGENT}}</h1>
+          <p id="status" class="status" role="status">Runs on your Keep host</p>
+        </div>
+      </header>
+
+      <section class="stage">
+        <ol id="log" class="log" aria-live="polite" aria-relevant="additions text"></ol>
+        <div id="hello" class="hello">
+          <div class="hello-card">
+            <div class="avatar big" id="hello-avatar" aria-hidden="true"></div>
+            <h3>Ask <span id="hello-name">{{AGENT}}</span></h3>
+            <p>Your messages go to an agent that runs on your own Keep host. Nothing it asks to send or spend happens until you approve it on your device.</p>
+          </div>
+        </div>
+      </section>
+
+      <form id="form" class="composer" autocomplete="off">
+        <div class="field" id="field">
+          <label for="input" class="sr">Message</label>
+          <textarea id="input" rows="1" placeholder="Message" maxlength="16000" required></textarea>
+        </div>
+        <button id="send" type="submit" class="send" aria-label="Send" title="Send">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 19V6M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+      <p class="fine">Approvals are decided on your own device. This chat can show that one is waiting, but it cannot approve or deny anything.</p>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

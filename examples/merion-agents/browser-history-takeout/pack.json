@@ -1,0 +1,39 @@
+{
+  "kind": "usecase",
+  "name": "browser-history-takeout",
+  "title": "Browser history (Google Takeout)",
+  "description": "Drop in Google Takeout's `BrowserHistory.json` and get the most visited sites, how the pages were reached and the titles.",
+  "accepts": [
+    "json"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Sites (most visited first)",
+      "pattern": "\"url\":\\s*\"https?://(?:www\\.)?([^/\"]+)",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "How pages were reached",
+      "pattern": "\"page_transition\":\\s*\"(\\w+)\"",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Titles",
+      "pattern": "\"title\":\\s*\"([^\"]{3,100})\"",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "browser-history.md",
+  "sample_file": "sample.json"
+}

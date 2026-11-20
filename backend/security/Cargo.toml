@@ -1,0 +1,24 @@
+[package]
+name = "security"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+axum.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+jsonwebtoken = { version = "11", features = ["aws_lc_rs"] }
+bcrypt = "0.19"
+tower = "0.5"
+tower-http = { version = "0.7", features = ["auth"] }
+rusqlite = { version = "0.42", features = ["bundled"] }
+uuid.workspace = true
+pam = "0.8"
+totp-rs = { workspace = true }
+base32 = { workspace = true }
+base64 = "0.23"

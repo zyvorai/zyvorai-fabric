@@ -1,0 +1,55 @@
+{
+  "kind": "usecase",
+  "name": "mac-update-history",
+  "title": "Mac update history",
+  "description": "Drop in `softwareupdate --history` and get what was installed, which versions, when, and which were betas.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Updates installed",
+      "pattern": "(?m)^(.+?)\\s{2,}\\d[\\w.]*\\s+\\d{2}/\\d{2}/\\d{4}",
+      "max_matches": 20,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Versions",
+      "pattern": "(?m)^.+?\\s{2,}(\\d[\\w.]*)\\s+\\d{2}/\\d{2}/\\d{4}",
+      "max_matches": 12,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Dates (as the Mac prints them)",
+      "pattern": "(\\d{2}/\\d{2}/\\d{4}), \\d{2}:\\d{2}:\\d{2}",
+      "max_matches": 20,
+      "group": 1
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Betas",
+      "keywords": [
+        "beta"
+      ],
+      "max_lines": 10
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Command Line Tools",
+      "keywords": [
+        "command line tools"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "mac-update-history.md",
+  "sample_file": "sample.txt"
+}

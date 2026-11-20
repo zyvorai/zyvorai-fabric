@@ -1,0 +1,23 @@
+{{- if .Values.fabricd.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "zyvor-fabric.fullname" . }}-fabricd
+  labels:
+    {{- include "zyvor-fabric.labels" . | nindent 4 }}
+    app.kubernetes.io/component: fabricd
+    app: zyvor-fabricd
+spec:
+  type: {{ .Values.fabricd.service.type }}
+  ports:
+  - name: http
+    port: {{ .Values.fabricd.service.port }}
+    targetPort: 9095
+    protocol: TCP
+    {{- if and (eq .Values.fabricd.service.type "NodePort") .Values.fabricd.service.nodePort }}
+    nodePort: {{ .Values.fabricd.service.nodePort }}
+    {{- end }}
+  selector:
+    {{- include "zyvor-fabric.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: fabricd
+{{- end }}

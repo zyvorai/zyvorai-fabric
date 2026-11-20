@@ -1,0 +1,35 @@
+{
+  "name": "payments",
+  "vip": "203.0.113.20",
+  "port": 443,
+  "protocol": "tcp",
+  "algorithm": "maglev",
+  "mode": "nat",
+  "exposure": "north-south",
+  "snat_address": "192.0.2.10",
+  "advertise": false,
+  "health_check": {
+    "kind": "tcp",
+    "timeout_ms": 500,
+    "unhealthy_threshold": 3,
+    "healthy_threshold": 2
+  },
+  "backends": [
+    {
+      "address": "10.40.1.21",
+      "port": 8443,
+      "weight": 2,
+      "enabled": true,
+      "state": "ready"
+    },
+    {
+      "address": "10.40.2.21",
+      "port": 8443,
+      "weight": 1,
+      "enabled": true,
+      "state": "draining",
+      "drain_until_unix_ms": 1788850000000
+    }
+  ],
+  "maglev_table_size": 4093
+}

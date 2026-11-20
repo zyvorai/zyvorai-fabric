@@ -1,0 +1,53 @@
+{
+  "kind": "usecase",
+  "name": "github-issues",
+  "title": "GitHub issues",
+  "description": "Drop in `gh issue list --json` output and get open versus closed, authors, labels, issues opened per month and the titles.",
+  "accepts": [
+    "json"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "By state",
+      "pattern": "\"state\":\"(\\w+)\"",
+      "max_matches": 5,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Authors",
+      "pattern": "\"login\":\"([^\"]+)\"",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Labels",
+      "pattern": "\"id\":\"LA_[^\"]*\",\"name\":\"([^\"]+)\"",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Opened per month",
+      "pattern": "\"createdAt\":\"(\\d{4}-\\d{2})-\\d{2}",
+      "max_matches": 12,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Titles",
+      "pattern": "\"title\":\"([^\"]+)\"",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "github-issues.md",
+  "sample_file": "sample.json"
+}

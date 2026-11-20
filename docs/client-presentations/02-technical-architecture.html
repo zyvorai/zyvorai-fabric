@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zyvor Fabric - Technical Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0e0e0; }
+  .slide { min-height: 100vh; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #222; }
+  .slide h1 { font-size: 2.8em; margin-bottom: 20px; color: #60a5fa; }
+  .slide h2 { font-size: 2em; margin-bottom: 16px; color: #93c5fd; }
+  .slide h3 { font-size: 1.4em; margin-bottom: 12px; color: #bfdbfe; }
+  .slide p, .slide li { font-size: 1.2em; line-height: 1.8; margin-bottom: 8px; }
+  .slide ul, .slide ol { padding-left: 30px; }
+  .slide code { background: #1e293b; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; color: #7dd3fc; }
+  .slide pre { background: #1e293b; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 16px 0; }
+  .slide pre code { background: none; padding: 0; }
+  .slide table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .slide th, .slide td { padding: 12px 16px; text-align: left; border: 1px solid #334155; }
+  .slide th { background: #1e293b; color: #93c5fd; }
+  .slide .highlight { color: #34d399; font-weight: bold; }
+  .slide .subtitle { font-size: 1.4em; color: #94a3b8; margin-bottom: 30px; }
+  .slide .badge { display: inline-block; background: #1e3a5f; color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-size: 0.9em; margin: 4px; }
+  .title-slide { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center; }
+  .title-slide h1 { font-size: 3.5em; color: #60a5fa; }
+  .title-slide .subtitle { font-size: 1.6em; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .metric { text-align: center; padding: 20px; }
+  .metric .number { font-size: 3em; color: #34d399; font-weight: bold; }
+  .metric .label { font-size: 1em; color: #94a3b8; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin: 8px 0; }
+  .card h3 { color: #60a5fa; }
+  @media print { .slide { page-break-after: always; min-height: auto; padding: 40px; } }
+
+  .brand-line { font-size: 1em; color: #f97316; margin-top: 24px; font-weight: 600; }
+  .brand-line a { color: #f97316; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide title-slide">
+  <h1>Technical Architecture</h1>
+  <p class="subtitle">Zyvor Fabric Platform Internals</p>
+  <p style="font-size: 1.2em; color: #64748b; margin-top: 20px;">
+    40+ Rust crates, 87K lines of code, built on systemd and Linux KVM
+  </p>
+  <div style="margin-top: 40px;">
+    <span class="badge">Rust 2021</span>
+    <span class="badge">Axum 0.8</span>
+    <span class="badge">Tokio 1.44</span>
+    <span class="badge">React 19</span>
+    <span class="badge">systemd 256+</span>
+  </div>
+</div>
+
+<!-- Slide 2: System Architecture -->
+<div class="slide">
+  <h1>System Architecture</h1>
+  <p class="subtitle">Layered design with clean separation of concerns</p>
+  <pre style="font-size: 1.05em; line-height: 1.5;"><code>
+  Client Layer          CLI (zyvorctl)    Web UI    Web UI (React)
+                              \              |              /
+  Automation Layer       K8s Operator        |        Terraform Provider
+                              \              |              /
+                               +-------------+--------------+
+                               |                            |
+  API Layer                    |     zyvor-fabricd daemon        |
+                               |  +----------------------+  |
+                               |  | Axum HTTP Server     |  |
+                               |  | 520+ REST endpoints  |  |
+                               |  | 3 WebSocket channels |  |
+                               |  +----------------------+  |
+                               |  | Auth  | RBAC | Audit |  |
+                               |  +----------------------+  |
+                               +-------------+--------------+
+                                             |
+  Service Layer          +-------------------+-------------------+
+                         |         |         |         |         |
+                       VM Ops   Storage  Networking  Security  Monitoring
+                         |         |         |         |         |
+  Driver Layer        FluxVM   qemu-img   nftables    PAM    Prometheus
+                      driver    lvm/zfs   wireguard   JWT      metrics
+                         |         |         |         |         |
+  System Layer          Linux KVM / QEMU (no systemd dependency)
+  </code></pre>
+</div>
+
+<!-- Slide 3: Technology Stack -->
+<div class="slide">
+  <h1>Technology Stack</h1>
+  <div class="two-col">
+    <div>
+      <table>
+        <tr><th>Layer</th><th>Technology</th></tr>
+        <tr><td>Language</td><td>Rust (2021 edition)</td></tr>
+        <tr><td>Async Runtime</td><td>Tokio 1.44</td></tr>
+        <tr><td>Web Framework</td><td>Axum 0.8</td></tr>
+        <tr><td>Serialization</td><td>serde + serde_json</td></tr>
+        <tr><td>Error Handling</td><td>anyhow + thiserror</td></tr>
+        <tr><td>CLI Parsing</td><td>clap 4.5</td></tr>
+        <tr><td>Web UI</td><td>React 19 + Vite (marketing + /app console)</td></tr>
+        <tr><td>UUID Generation</td><td>uuid (v4, v5)</td></tr>
+        <tr><td>Date/Time</td><td>chrono</td></tr>
+        <tr><td>Regex</td><td>regex 1.11</td></tr>
+        <tr><td>Compression</td><td>tar + flate2</td></tr>
+      </table>
+    </div>
+    <div>
+      <table>
+        <tr><th>Layer</th><th>Technology</th></tr>
+        <tr><td>Web UI Framework</td><td>React 19</td></tr>
+        <tr><td>Web UI Language</td><td>TypeScript</td></tr>
+        <tr><td>Web UI Build</td><td>Vite</td></tr>
+        <tr><td>Web UI Styling</td><td>TailwindCSS</td></tr>
+        <tr><td>VM Driver</td><td>FluxVM (no systemd dependency)</td></tr>
+        <tr><td>Hypervisor</td><td>Linux KVM / QEMU</td></tr>
+        <tr><td>Monitoring</td><td>Prometheus</td></tr>
+        <tr><td>VPN</td><td>WireGuard</td></tr>
+        <tr><td>Firewall</td><td>nftables</td></tr>
+        <tr><td>Auth</td><td>PAM + JWT + bcrypt</td></tr>
+        <tr><td>Config Format</td><td>TOML</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: Workspace Overview -->
+<div class="slide">
+  <h1>40+ Crate Workspace</h1>
+  <p class="subtitle">Modular architecture with clear boundaries</p>
+  <div class="three-col">
+    <div class="card">
+      <h3>Core Platform (6)</h3>
+      <ul>
+        <li><code>Zyvor Fabric</code> - Main daemon</li>
+        <li><code>zyvorctl</code> - CLI tool</li>
+        <li>Web UI — marketing + <code>/app</code> console</li>
+        <li><code>vm-model</code> - Data models</li>
+        <li><code>state-store</code> - Persistence</li>
+        <li><code>security</code> - Auth and RBAC</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>VM Infrastructure (7)</h3>
+      <ul>
+        <li><code>driver-core</code> - Driver abstractions</li>
+        <li><code>fluxvm-driver</code> - VM lifecycle via FluxVM</li>
+        <li><code>fluxvm-client</code> - FluxVM REST/WebSocket client</li>
+        <li><code>zyvor-fabric-vm-driver</code> - mkosi image builds</li>
+        <li><code>cloud-init</code> - Cloud config</li>
+        <li><code>tpm-support</code> - TPM/vTPM</li>
+        <li><code>vnc-proxy</code> - VNC console</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Networking (8)</h3>
+      <ul>
+        <li><code>networking</code> - Core network</li>
+        <li><code>network-policy</code> - Cilium-style policies</li>
+        <li><code>vm-firewall</code> - Per-VM nftables</li>
+        <li><code>service-mesh</code> - Load balancing</li>
+        <li><code>vpn-mesh</code> - WireGuard tunnels</li>
+        <li><code>dns-policy</code> - DNS management</li>
+        <li><code>traffic-shaping</code> - QoS</li>
+        <li><code>nat-gateway</code> - NAT rules</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Storage and Data (4)</h3>
+      <ul>
+        <li><code>storage</code> - 6 backends</li>
+        <li><code>distributed-storage</code> - Replication</li>
+        <li><code>replication</code> - Sync engine</li>
+        <li><code>content-library</code> - Images/ISOs</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Cluster and HA (5)</h3>
+      <ul>
+        <li><code>datacenter</code> - Multi-node</li>
+        <li><code>host-agent</code> - Node agent</li>
+        <li><code>predictive-drs</code> - Scheduling</li>
+        <li><code>fault-tolerance</code> - Failover</li>
+        <li><code>site-recovery</code> - DR</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Operations (6)</h3>
+      <ul>
+        <li><code>prometheus-exporter</code> - Metrics</li>
+        <li><code>encryption</code> - At-rest crypto</li>
+        <li><code>certificate-manager</code> - TLS certs</li>
+        <li><code>lifecycle-manager</code> - Workflows</li>
+        <li><code>resource-pools</code> - Quotas</li>
+        <li><code>lock-manager</code> - Concurrency</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: API Design -->
+<div class="slide">
+  <h1>API Design</h1>
+  <p class="subtitle">520+ REST endpoints, 3 WebSocket channels</p>
+  <div class="two-col">
+    <div>
+      <h3>REST API Structure</h3>
+      <table>
+        <tr><th>Domain</th><th>Endpoints</th></tr>
+        <tr><td>VM Lifecycle</td><td>CRUD, start, stop, restart, pause, resume, clone, snapshot, migrate, import</td></tr>
+        <tr><td>Storage</td><td>Pools, volumes, snapshots, replication, cloud images, ISOs</td></tr>
+        <tr><td>Networking</td><td>Policies, firewall, VPN mesh, service mesh, DNS, QoS, NAT, monitoring</td></tr>
+        <tr><td>Security</td><td>Auth, tokens, users, roles, API keys, audit logs, certificates</td></tr>
+        <tr><td>Cluster</td><td>Nodes, DRS, failover, site recovery, resource pools</td></tr>
+        <tr><td>Monitoring</td><td>Metrics, alerts, notifications, scheduling, health checks</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Design Principles</h3>
+      <ul>
+        <li>RESTful with consistent URL patterns</li>
+        <li>JSON request/response bodies</li>
+        <li>Versioned: <code>/api/v1/</code></li>
+        <li>Pagination, filtering, sorting on list endpoints</li>
+        <li>Consistent error response format</li>
+      </ul>
+    </div>
+    <div>
+      <h3>WebSocket Channels</h3>
+      <div class="card">
+        <h3>Terminal Console</h3>
+        <p>xterm.js-based terminal access to VMs over WebSocket. Authenticated with JWT. Supports resize events.</p>
+      </div>
+      <div class="card">
+        <h3>VNC Console</h3>
+        <p>noVNC proxy for graphical desktop access. Proxied through Zyvor Fabric with token-based authentication.</p>
+      </div>
+      <div class="card">
+        <h3>Real-time Events</h3>
+        <p>Live VM state changes, metrics updates, and alert notifications pushed to connected clients.</p>
+      </div>
+      <h3 style="margin-top: 20px;">Authentication</h3>
+      <ul>
+        <li>JWT Bearer tokens on all endpoints</li>
+        <li>WebSocket auth via query parameter or upgrade header</li>
+        <li>API keys for service-to-service calls</li>
+        <li>Rate limiting: 5 attempts / 5 minutes on auth</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: Security Model -->
+<div class="slide">
+  <h1>Security Model</h1>
+  <p class="subtitle">Defense in depth, validated by 31-round audit</p>
+  <div class="two-col">
+    <div>
+      <h3>Authentication</h3>
+      <ul>
+        <li>PAM integration for system user authentication</li>
+        <li>JWT tokens with configurable expiration</li>
+        <li>Token revocation and blacklisting</li>
+        <li>bcrypt password hashing (cost factor 12)</li>
+        <li>LDAP and OIDC/OAuth2 for enterprise SSO</li>
+        <li>API keys with scoped permissions</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Authorization</h3>
+      <ul>
+        <li><span class="highlight">Admin</span> -- full platform access</li>
+        <li><span class="highlight">User</span> -- VM operations, limited config</li>
+        <li><span class="highlight">Viewer</span> -- read-only access</li>
+        <li>RBAC enforced on every API endpoint</li>
+        <li>Multi-tenancy with project isolation</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Input Validation</h3>
+      <ul>
+        <li>Every user-facing parameter validated</li>
+        <li>Command injection prevention (no shell pipelines)</li>
+        <li>Path traversal protection with canonicalization</li>
+        <li>SSRF prevention on user-provided URLs</li>
+        <li>SQL injection prevention (parameterized queries)</li>
+        <li>Entity ID sanitization in state store</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Operational Security</h3>
+      <ul>
+        <li>Audit logging on all lifecycle operations</li>
+        <li>Credential redaction in API responses</li>
+        <li>Auto-generated secrets with 0600 permissions</li>
+        <li>Security headers on all HTTP responses</li>
+        <li>Rate limiting on authentication endpoints</li>
+        <li>TLS certificate management built in</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: Networking Stack -->
+<div class="slide">
+  <h1>Networking Stack</h1>
+  <p class="subtitle">8 dedicated crates for enterprise networking</p>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+    <div class="card">
+      <h3>Network Policy</h3>
+      <p>Cilium-style label-based ingress/egress rules. Define which VMs can communicate using selectors and rules.</p>
+    </div>
+    <div class="card">
+      <h3>VM Firewall</h3>
+      <p>Per-VM firewall profiles and zones implemented via nftables. Stateful inspection with connection tracking.</p>
+    </div>
+    <div class="card">
+      <h3>Service Mesh</h3>
+      <p>Virtual IP load balancing with round-robin, least-connections, random, and IP-hash algorithms.</p>
+    </div>
+    <div class="card">
+      <h3>VPN Mesh</h3>
+      <p>WireGuard tunnels with point-to-point, hub-spoke, and full-mesh topologies for secure inter-VM networking.</p>
+    </div>
+    <div class="card">
+      <h3>Traffic Shaping</h3>
+      <p>QoS with guaranteed/maximum rates, burst capacity, and priority-based bandwidth allocation per VM.</p>
+    </div>
+    <div class="card">
+      <h3>DNS Policy</h3>
+      <p>Zone management, upstream server configuration, and domain blocking for VM DNS resolution control.</p>
+    </div>
+    <div class="card">
+      <h3>NAT Gateway</h3>
+      <p>Masquerade, SNAT, DNAT, and hairpin NAT for flexible network address translation configurations.</p>
+    </div>
+    <div class="card">
+      <h3>Net Monitor</h3>
+      <p>Per-VM bandwidth tracking with configurable threshold alerts and historical usage data.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: Storage Architecture -->
+<div class="slide">
+  <h1>Storage Architecture</h1>
+  <p class="subtitle">6 backends with unified management API</p>
+  <div class="two-col">
+    <div>
+      <table>
+        <tr><th>Backend</th><th>Use Case</th><th>Features</th></tr>
+        <tr><td>Local</td><td>Single server, development</td><td>qcow2/raw, CoW clones</td></tr>
+        <tr><td>NFS</td><td>Shared storage, small clusters</td><td>Network mounts, migration</td></tr>
+        <tr><td>LVM</td><td>Performance, dedicated storage</td><td>Thick provisioning</td></tr>
+        <tr><td>LVM-thin</td><td>Overcommit, snapshots</td><td>Thin provisioning, CoW</td></tr>
+        <tr><td>ZFS</td><td>Data integrity, replication</td><td>Checksums, send/receive</td></tr>
+        <tr><td>Ceph/RBD</td><td>Distributed, HA clusters</td><td>Replication, health monitoring</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Storage Operations</h3>
+      <ul>
+        <li>Volume CRUD with attach/detach</li>
+        <li>Online disk resize (qemu-img + QMP)</li>
+        <li>Snapshot create/restore with retention</li>
+        <li>Live storage migration between pools</li>
+        <li>Cloud image catalog with auto-download</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Disk Formats</h3>
+      <ul>
+        <li><code>qcow2</code> -- default, supports snapshots and CoW</li>
+        <li><code>raw</code> -- maximum performance</li>
+        <li><code>vmdk</code> -- VMware import compatibility</li>
+        <li><code>vdi</code> -- VirtualBox import compatibility</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Cloud Image Catalog</h3>
+      <p>Built-in downloader for official cloud images:</p>
+      <ul>
+        <li>Ubuntu (22.04, 24.04)</li>
+        <li>Fedora (39, 40, 41)</li>
+        <li>Debian (12, 13)</li>
+        <li>AlmaLinux (8, 9)</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Backup and Recovery</h3>
+      <ul>
+        <li>Automated daily backups via systemd timer</li>
+        <li>Incremental backup support</li>
+        <li>Configurable retention policies</li>
+        <li>Per-VM backup from any interface</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9: Performance Characteristics -->
+<div class="slide">
+  <h1>Performance Characteristics</h1>
+  <p class="subtitle">Rust delivers predictable, low-latency performance</p>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;">
+    <div class="metric">
+      <div class="number">&lt;1ms</div>
+      <div class="label">API Response Time</div>
+    </div>
+    <div class="metric">
+      <div class="number">~20MB</div>
+      <div class="label">Daemon RSS</div>
+    </div>
+    <div class="metric">
+      <div class="number">0</div>
+      <div class="label">GC Pauses</div>
+    </div>
+    <div class="metric">
+      <div class="number">~15MB</div>
+      <div class="label">Binary Size</div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div>
+      <h3>Why Rust Matters</h3>
+      <ul>
+        <li><span class="highlight">Zero-cost abstractions</span> -- high-level code compiles to optimal machine code</li>
+        <li><span class="highlight">No garbage collector</span> -- deterministic performance with no stop-the-world pauses</li>
+        <li><span class="highlight">Async/await</span> -- Tokio runtime handles thousands of concurrent connections</li>
+        <li><span class="highlight">Memory safety</span> -- compile-time guarantees eliminate runtime crashes</li>
+        <li><span class="highlight">Safe concurrency</span> -- data races caught at compile time</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Concurrency Model</h3>
+      <ul>
+        <li>Tokio multi-threaded async runtime</li>
+        <li>Per-VM mutexes prevent race conditions</li>
+        <li>Lock manager for coordinated operations</li>
+        <li>Async D-Bus calls to systemd</li>
+        <li>Non-blocking I/O throughout the stack</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Scalability</h3>
+      <ul>
+        <li>Tested with hundreds of concurrent VMs</li>
+        <li>Linear scaling with available hardware</li>
+        <li>Minimal overhead per managed VM</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Integration Points -->
+<div class="slide">
+  <h1>Integration Points</h1>
+  <p class="subtitle">Designed for enterprise ecosystems</p>
+  <div class="three-col">
+    <div class="card">
+      <h3>Infrastructure as Code</h3>
+      <ul>
+        <li>Terraform provider with plan/apply</li>
+        <li>Kubernetes operator (CRDs)</li>
+        <li>Declarative YAML config</li>
+        <li>REST API for custom tooling</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Identity and Access</h3>
+      <ul>
+        <li>LDAP directory integration</li>
+        <li>OIDC / OAuth2 SSO</li>
+        <li>PAM for system users</li>
+        <li>API keys for automation</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Monitoring</h3>
+      <ul>
+        <li>Prometheus <code>/metrics</code> endpoint</li>
+        <li>Grafana dashboard compatible</li>
+        <li>Webhook notifications with retry</li>
+        <li>Email, Slack, Teams alerts</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>CI/CD Pipelines</h3>
+      <ul>
+        <li>REST API for Jenkins/GitLab</li>
+        <li>CLI for shell scripts</li>
+        <li>JSON/YAML output formats</li>
+        <li>VM templates for consistency</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Networking</h3>
+      <ul>
+        <li>Bridge and VLAN support</li>
+        <li>WireGuard VPN tunnels</li>
+        <li>nftables firewall rules</li>
+        <li>IPv4 and IPv6 dual-stack</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Storage Systems</h3>
+      <ul>
+        <li>NFS mount integration</li>
+        <li>LVM volume groups</li>
+        <li>ZFS pool management</li>
+        <li>Ceph/RBD cluster access</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 11: Project Statistics -->
+<div class="slide">
+  <h1>Project Statistics</h1>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;">
+    <div class="metric">
+      <div class="number">40+</div>
+      <div class="label">Rust Crates</div>
+    </div>
+    <div class="metric">
+      <div class="number">87K</div>
+      <div class="label">Lines of Code</div>
+    </div>
+    <div class="metric">
+      <div class="number">165</div>
+      <div class="label">Rust Source Files</div>
+    </div>
+    <div class="metric">
+      <div class="number">130</div>
+      <div class="label">TypeScript Files</div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div>
+      <table>
+        <tr><th>Metric</th><th>Value</th></tr>
+        <tr><td>Backend crates</td><td>40</td></tr>
+        <tr><td>REST API endpoints</td><td>520+</td></tr>
+        <tr><td>WebSocket endpoints</td><td>3</td></tr>
+        <tr><td>API handler files</td><td>47</td></tr>
+        <tr><td>Web dashboard pages</td><td>37+</td></tr>
+        <tr><td>Security audit rounds</td><td>31</td></tr>
+        <tr><td>Security issues fixed</td><td>194</td></tr>
+        <tr><td>License</td><td>Zyvor Production 1.0 (free non-production)</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Code Quality Practices</h3>
+      <ul>
+        <li>Zero <code>unsafe</code> Rust blocks</li>
+        <li>Zero compiler warnings policy</li>
+        <li>Comprehensive input validation</li>
+        <li>Parameterized SQL queries throughout</li>
+        <li>Structured error handling with <code>thiserror</code></li>
+        <li>Tracing-based structured logging</li>
+        <li>Integration test suite</li>
+        <li>Continuous security review</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 12: Summary -->
+<div class="slide title-slide">
+  <h1>Built for Engineers, by Engineers</h1>
+  <p class="subtitle">A platform you can trust to run your workloads</p>
+  <div style="margin-top: 30px;">
+    <p style="font-size: 1.3em; color: #94a3b8;">
+      40+ crates. 87K lines of Rust. Zero unsafe code. 31-round security audit.
+    </p>
+  </div>
+  <div style="margin-top: 40px;">
+    <span class="badge">Memory Safe</span>
+    <span class="badge">Async Native</span>
+    <span class="badge">Security Audited</span>
+    <span class="badge">Production Ready</span>
+  </div>
+</div>
+
+</body>
+</html>

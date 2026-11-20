@@ -1,0 +1,532 @@
+{
+  "routes": [
+    {
+      "label": "Dashboard",
+      "path": "/",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "Favorites",
+      "path": "/favorites",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "Virtual Machines",
+      "path": "/vms",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "Machines",
+      "path": "/machines",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "Profiles",
+      "path": "/profiles",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "Datacenters",
+      "path": "/datacenters",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "VM Browser",
+      "path": "/vm-browser",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "Network",
+      "path": "/network",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "Net Security",
+      "path": "/network-security",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "Edge Dataplane",
+      "path": "/edge-dataplane",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "Storage",
+      "path": "/storage",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "Storage Pools",
+      "path": "/storage-pools",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "Distributed Storage",
+      "path": "/distributed-storage",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "Resource Pools",
+      "path": "/resource-pools",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "System",
+      "path": "/system",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "System Health",
+      "path": "/system-health",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "Containers",
+      "path": "/containers",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "DRS",
+      "path": "/drs",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Fault Tolerance",
+      "path": "/fault-tolerance",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Replication",
+      "path": "/replication",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Site Recovery",
+      "path": "/site-recovery",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Migrations",
+      "path": "/migrations",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Migration Wizard",
+      "path": "/migration-wizard",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Templates",
+      "path": "/templates",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Content Library",
+      "path": "/content-library",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Schedules",
+      "path": "/schedules",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Autoscale",
+      "path": "/autoscale",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Snapshots",
+      "path": "/snapshots",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Backups",
+      "path": "/backups",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Container Groups",
+      "path": "/container-groups",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Agents",
+      "path": "/agents",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Sessions",
+      "path": "/sessions",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Quotas",
+      "path": "/quotas",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Lifecycle",
+      "path": "/lifecycle",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Bulk Operations",
+      "path": "/bulk-operations",
+      "category": "Operations",
+      "legacy": false
+    },
+    {
+      "label": "Logs",
+      "path": "/logs",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Analytics",
+      "path": "/analytics",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Audit",
+      "path": "/audit",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Notifications",
+      "path": "/notifications",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Alerts",
+      "path": "/alerts",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Timeline",
+      "path": "/timeline",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Processes",
+      "path": "/processes",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Kernel",
+      "path": "/kernel",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Debug Tools",
+      "path": "/debug",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Explain",
+      "path": "/explain",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Live Metrics",
+      "path": "/live-metrics",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Event Stream",
+      "path": "/event-stream",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Optimizer",
+      "path": "/resource-optimizer",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Capacity",
+      "path": "/capacity-planning",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Service Map",
+      "path": "/service-map",
+      "category": "Monitoring",
+      "legacy": false
+    },
+    {
+      "label": "Security Dashboard",
+      "path": "/security-dashboard",
+      "category": "Security",
+      "legacy": false
+    },
+    {
+      "label": "Encryption",
+      "path": "/encryption",
+      "category": "Security",
+      "legacy": false
+    },
+    {
+      "label": "Certificates",
+      "path": "/certificates",
+      "category": "Security",
+      "legacy": false
+    },
+    {
+      "label": "Compliance",
+      "path": "/compliance",
+      "category": "Security",
+      "legacy": false
+    },
+    {
+      "label": "Access Control",
+      "path": "/access-control",
+      "category": "Security",
+      "legacy": false
+    },
+    {
+      "label": "Plugins",
+      "path": "/plugins",
+      "category": "Security",
+      "legacy": false
+    },
+    {
+      "label": "Webhooks",
+      "path": "/webhooks",
+      "category": "Tools",
+      "legacy": false
+    },
+    {
+      "label": "Cost Estimator",
+      "path": "/cost-estimator",
+      "category": "Tools",
+      "legacy": false
+    },
+    {
+      "label": "VM Compare",
+      "path": "/vm-compare",
+      "category": "Tools",
+      "legacy": false
+    },
+    {
+      "label": "VM Health Check",
+      "path": "/vm-healthcheck",
+      "category": "Tools",
+      "legacy": false
+    },
+    {
+      "label": "Notification Center",
+      "path": "/notification-center",
+      "category": "Tools",
+      "legacy": false
+    },
+    {
+      "label": "Readiness",
+      "path": "/migration-readiness",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "History",
+      "path": "/migration-history",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Report",
+      "path": "/migration-report",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Migration Templates",
+      "path": "/migration-templates",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Batch Migration",
+      "path": "/batch-migration",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "ISO Images",
+      "path": "/iso-images",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Upload Disk",
+      "path": "/upload-disk",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Download Disk",
+      "path": "/download-disk",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Image Builder",
+      "path": "/image-builder",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Pipeline",
+      "path": "/pipeline",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Disk Images",
+      "path": "/disk-images",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Disk Converter",
+      "path": "/disk-converter",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Backup Scheduler",
+      "path": "/backup-scheduler",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Batch Import",
+      "path": "/batch-import",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Snapshot Mgr",
+      "path": "/snapshot-manager",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Storage Mgr",
+      "path": "/storage-manager",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Manifest Builder",
+      "path": "/manifest-builder",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Job Monitor",
+      "path": "/job-monitor",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Network Topology",
+      "path": "/network-topology",
+      "category": "More \u2014 images, migrations & managers",
+      "legacy": false
+    },
+    {
+      "label": "Create VM",
+      "path": "/create",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "VM Console",
+      "path": "/vms/:name/console",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "Login",
+      "path": "/login",
+      "category": "Auth",
+      "legacy": false
+    },
+    {
+      "label": "Zones",
+      "path": "/zones",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "Settings",
+      "path": "/settings",
+      "category": "Core",
+      "legacy": false
+    },
+    {
+      "label": "VM Pools",
+      "path": "/vm-pools",
+      "category": "Infrastructure",
+      "legacy": false
+    },
+    {
+      "label": "API Playground",
+      "path": "/playground",
+      "category": "Tools",
+      "legacy": false
+    },
+    {
+      "label": "VM Wizard",
+      "path": "/vm-wizard",
+      "category": "Core",
+      "legacy": false
+    }
+  ]
+}

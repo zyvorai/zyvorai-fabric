@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fabric ↔ FluxVM DevOps probe contract",
+  "description": "Load-balancer and CI gates must use these paths and fields. Keep in sync with zyvorai/fluxvm docs/contracts/fabric-fluxvm-readyz.json.",
+  "fabric": {
+    "listen_default": "http://127.0.0.1:9095",
+    "health": {
+      "path": "/health",
+      "auth": false,
+      "ok_status": [200]
+    },
+    "readyz": {
+      "path": "/readyz",
+      "auth": false,
+      "ok_status": [200],
+      "not_ready_status": [503],
+      "required_fields": ["ok", "store", "fluxvm"],
+      "ok_rule": "ok == store && fluxvm.ok (FluxVM body is nested under fluxvm)"
+    }
+  },
+  "fluxvm": {
+    "listen_default": "http://127.0.0.1:7788",
+    "healthz": {
+      "path": "/healthz",
+      "auth": false,
+      "ok_status": [200],
+      "body": { "ok": true }
+    },
+    "readyz": {
+      "path": "/readyz",
+      "auth": false,
+      "ok_status": [200],
+      "not_ready_status": [503],
+      "required_fields": ["ok"],
+      "optional_fields": ["kvm", "state_dir", "dataplane", "secure_containers"],
+      "secure_containers_shape": {
+        "available": "bool",
+        "shim_installed": "bool",
+        "guest_image_present": "bool"
+      },
+      "notes": "dataplane may report schema_version 9 locally; Fabric proxies aggregate DataplaneStats until FluxVM exposes per-direction ppstat on REST. Catch-up fields: status.pod_ingress_required/attached, stats.pod_policy; QGA under /v1/vms/{id}/qga/*; migration receivers under /v1/migration/receivers."
+    }
+  },
+  "compose": {
+    "network_mode": "host",
+    "fabric_reaches_fluxvm_at": "http://127.0.0.1:7788"
+  }
+}

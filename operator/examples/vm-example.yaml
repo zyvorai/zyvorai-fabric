@@ -1,0 +1,27 @@
+apiVersion: zyvor-fabricd.io/v1alpha1
+kind: VirtualMachine
+metadata:
+  name: ubuntu-vm
+  namespace: default
+spec:
+  image: /var/lib/zyvor-fabricd/images/ubuntu-22.04.qcow2
+  cpus: 4
+  memory: 4096
+  cloudInit:
+    userData: |
+      #cloud-config
+      users:
+        - name: ubuntu
+          sudo: ALL=(ALL) NOPASSWD:ALL
+          shell: /bin/bash
+          ssh_authorized_keys:
+            - ssh-rsa AAAA...
+      packages:
+        - qemu-guest-agent
+        - docker.io
+  tpm:
+    enabled: true
+    version: "2.0"
+  vnc:
+    enabled: true
+    port: 5900

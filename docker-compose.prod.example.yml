@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────
+# Zyvor Fabric — PRODUCTION EXAMPLE
+#
+# Copy and customize before use:
+#   cp docker-compose.prod.example.yml docker-compose.prod.yml
+#   cp configs/zyvor-fabricd-prod.toml.example configs/zyvor-fabricd-prod.toml
+#   # Edit secrets (ZYVOR_FABRICD_ADMIN_PASSWORD, ZYVOR_FABRICD_JWT_SECRET)
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Assumes zyvor-fabricd and zyvor-fabric-fluxvm images are already built
+# and pushed to a registry you control (adapt scripts/build-container-images.sh
+# with PUSH=1 and a REGISTRY, or build+tag them yourself) -- pin a real TAG,
+# do not use :latest in production. See docs/DOCKER.md for host prerequisites
+# (nbd kernel module, /dev/kvm, rootful engine, cgroup v2) -- unchanged from
+# the eval profile, this file only hardens auth/TLS/secrets.
+#
+# Port is overridable the same way as the eval profile: ZYVOR_FABRICD_PORT=19095.
+# ─────────────────────────────────────────────────────────────
+services:
+  zyvor-fabricd:
+    image: ${REGISTRY:?set REGISTRY}/zyvor-fabricd:${TAG:?set TAG e.g. v1.0.1}
+    container_name: zyvor-fabricd
+    network_mode: host
+    depends_on:
+      fluxvm:
+        condition: service_started
+    environment:
+      ZYVOR_FABRICD_ADMIN_PASSWORD: ${ZYVOR_FABRICD_ADMIN_PASSWORD:?set ZYVOR_FABRICD_ADMIN_PASSWORD}
+      ZYVOR_FABRICD_JWT_SECRET: ${ZYVOR_FABRICD_JWT_SECRET:?set ZYVOR_FABRICD_JWT_SECRET}
+      ZYVOR_FABRICD_LISTEN: "0.0.0.0:${ZYVOR_FABRICD_PORT:-9095}"
+    volumes:
+      - zyvor-fabricd-data:/var/lib/zyvor-fabricd
+      - zyvor-fabricd-etc:/etc/zyvor-fabricd
+      # Overrides the eval config baked into the image -- see
+      # configs/zyvor-fabricd-prod.toml.example.
+      - ./configs/zyvor-fabricd-prod.toml:/etc/zyvor-fabricd/zyvor-fabricd.toml:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - NET_RAW
+      - MKNOD
+      - SYS_PTRACE
+      - NET_BIND_SERVICE
+      - SETUID
+      - SETGID
+      - SYS_CHROOT
+      - SYS_RESOURCE
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sfk https://localhost:${ZYVOR_FABRICD_PORT:-9095}/health >/dev/null && curl -sfk https://localhost:${ZYVOR_FABRICD_PORT:-9095}/readyz >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  fluxvm:
+    image: ${REGISTRY:?set REGISTRY}/zyvor-fabric-fluxvm:${TAG:?set TAG e.g. v1.0.1}
+    container_name: fluxvm
+    network_mode: host
+    cgroup: host
+    command: ["fluxvm", "--config", "/etc/fluxvm.toml", "serve"]
+    devices:
+      - /dev/kvm
+    volumes:
+      - fluxvm-data:/var/lib/fluxvm
+      - fluxvm-run:/run/fluxvm
+      - /run/netns:/run/netns
+      # eBPF edge confinement (as in the eval profile).
+      - /sys/fs/bpf:/sys/fs/bpf
+      - ./configs/fluxvm-dataplane.toml:/etc/fluxvm.toml:ro
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - NET_BIND_SERVICE
+      - NET_RAW
+      - SYS_CHROOT
+      - SYS_RESOURCE
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
+
+volumes:
+  zyvor-fabricd-data:
+  zyvor-fabricd-etc:
+  fluxvm-data:
+  fluxvm-run:

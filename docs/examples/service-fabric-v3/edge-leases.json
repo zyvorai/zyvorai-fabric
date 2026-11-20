@@ -1,0 +1,14 @@
+[
+  {
+    "service": "payments",
+    "node": "edge-a",
+    "epoch": 42,
+    "expires_unix_ms": 1788850000000
+  },
+  {
+    "service": "payments",
+    "node": "edge-b",
+    "epoch": 42,
+    "expires_unix_ms": 1788850000000
+  }
+]

@@ -1,0 +1,19 @@
+Process:               MyApp [1234]
+Path:                  /Applications/MyApp.app/Contents/MacOS/MyApp
+Identifier:            com.example.myapp
+Version:               1.4 (88)
+Code Type:             ARM-64 (Native)
+Date/Time:             2026-09-20 10:11:12.345 +0530
+OS Version:            macOS 26.0 (25A354)
+
+Exception Type:        EXC_BAD_ACCESS (SIGSEGV)
+Exception Codes:       KERN_INVALID_ADDRESS at 0x0000000000000010
+Crashed Thread:        0  Dispatch queue: com.apple.main-thread
+
+Application Specific Information:
+attempted to dereference a nil view controller
+
+Thread 0 Crashed:: Dispatch queue: com.apple.main-thread
+0   MyApp                         	0x0000000100003f20 -[CartViewController total] + 48
+1   MyApp                         	0x0000000100004a10 -[CartViewController viewDidLoad] + 120
+2   UIKitCore                     	0x00000001a2b3c4d0 -[UIViewController loadViewIfRequired] + 1024

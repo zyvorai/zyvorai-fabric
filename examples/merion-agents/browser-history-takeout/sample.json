@@ -1,0 +1,33 @@
+{
+  "Browser History": [
+    {
+      "favicon_url": "https://example.com/favicon.ico",
+      "page_transition": "LINK",
+      "title": "Example Docs",
+      "url": "https://example.com/docs",
+      "client_id": "AAAA",
+      "time_usec": 1790000000000000
+    },
+    {
+      "page_transition": "TYPED",
+      "title": "Example Docs API",
+      "url": "https://example.com/docs/api",
+      "client_id": "AAAA",
+      "time_usec": 1790000100000000
+    },
+    {
+      "page_transition": "LINK",
+      "title": "News front page",
+      "url": "https://news.example.org/",
+      "client_id": "AAAA",
+      "time_usec": 1790000200000000
+    },
+    {
+      "page_transition": "LINK",
+      "title": "Example Docs",
+      "url": "https://example.com/docs",
+      "client_id": "AAAA",
+      "time_usec": 1790000300000000
+    }
+  ]
+}

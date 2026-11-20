@@ -1,0 +1,1552 @@
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+openapi: 3.0.0
+info:
+  title: Zyvor Fabric API
+  description: Zyvor Fabric control plane (zyvor-fabricd daemon) — REST and WebSocket API
+  version: 0.1.0
+  license:
+    name: Zyvor Production License v1.0
+    url: https://github.com/zyvorai/zyvorai-fabric/blob/main/LICENSE
+servers:
+  - url: http://localhost:9095
+    description: Local development server
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      tags: [Machina v0.1]
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+
+  /api/auth/login:
+    post:
+      summary: Authenticate and obtain JWT
+      tags: [Machina v0.1, Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+
+  /api/auth/me:
+    get:
+      summary: Current authenticated user
+      tags: [Machina v0.1, Auth]
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: Unauthorized
+
+  /api/logs:
+    get:
+      summary: System journal logs
+      tags: [Machina v0.1, Observability]
+      parameters:
+        - $ref: '#/components/parameters/LogLines'
+        - $ref: '#/components/parameters/LogPriority'
+        - $ref: '#/components/parameters/LogGrep'
+      responses:
+        '200':
+          description: Log entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogResponse'
+
+  /api/vms/{name}/logs:
+    get:
+      summary: VM journal logs
+      tags: [Machina v0.1, Observability]
+      parameters:
+        - $ref: '#/components/parameters/VmName'
+        - $ref: '#/components/parameters/LogLines'
+        - $ref: '#/components/parameters/LogPriority'
+        - $ref: '#/components/parameters/LogGrep'
+      responses:
+        '200':
+          description: VM log entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogResponse'
+
+  /api/events:
+    get:
+      summary: Recent VM lifecycle events
+      tags: [Machina v0.1, Observability]
+      responses:
+        '200':
+          description: Event list (newest first, max 100)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VMEvent'
+
+  /api/events/stream:
+    get:
+      summary: Real-time VM events (Server-Sent Events)
+      tags: [Machina v0.1, Observability]
+      description: |
+        SSE stream of VM lifecycle events. Send `Authorization: Bearer <token>` header.
+        Event types include `vm.started`, `vm.stopped`, `vm.error`, etc.
+      responses:
+        '200':
+          description: text/event-stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      responses:
+        '200':
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/vms:
+    get:
+      summary: List all VMs
+      tags: [Machina v0.1, VMs]
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 200
+      responses:
+        '200':
+          description: Paginated VM list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VMListResponse'
+
+    post:
+      summary: Create a new VM
+      tags: [VMs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVMRequest'
+      responses:
+        '201':
+          description: VM created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VM'
+
+  /api/vms/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+
+    get:
+      summary: Get VM details
+      responses:
+        '200':
+          description: VM details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VM'
+        '404':
+          description: VM not found
+
+    delete:
+      summary: Delete a VM
+      responses:
+        '204':
+          description: VM deleted
+        '404':
+          description: VM not found
+
+  /api/vms/{name}/start:
+    post:
+      summary: Start a VM
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VM started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: started
+
+  /api/vms/{name}/stop:
+    post:
+      summary: Stop a VM
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VM stopped
+
+  /api/vms/{name}/restart:
+    post:
+      summary: Restart a VM
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VM restarted
+
+  /api/vms/{name}/metrics:
+    get:
+      summary: Get VM metrics
+      tags: [Machina v0.1, Observability]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VM metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VMMetrics'
+
+  /api/vms/{name}/dataplane/status:
+    get:
+      summary: FluxVM Network Fabric dataplane status
+      tags: [Tier-1, VMs, Dataplane]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dataplane attach/schema status
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/vms/{name}/dataplane/policy:
+    get:
+      summary: Get VM edge dataplane policy
+      tags: [Tier-1, VMs, Dataplane]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: VmNetworkPolicy
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+    post:
+      summary: Set VM edge dataplane policy
+      tags: [Tier-1, VMs, Dataplane]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Saved VmNetworkPolicy
+
+  /api/vms/{name}/dataplane/stats:
+    get:
+      summary: VM edge dataplane counters
+      tags: [Tier-1, VMs, Dataplane]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: DataplaneStats
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/vms/{name}/dataplane/flows:
+    get:
+      summary: VM edge dataplane sampled flows
+      tags: [Tier-1, VMs, Dataplane]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Flow list
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/vms/{name}/cloud-init:
+    post:
+      summary: Configure cloud-init for a VM
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloudInitConfig'
+      responses:
+        '200':
+          description: cloud-init configured
+
+  /api/vms/compare:
+    get:
+      summary: api · vms · compare
+      tags: [Tier-1, VMs]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/users:
+    get:
+      summary: api · users
+      tags: [Tier-1, Auth]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/webhooks:
+    get:
+      summary: api · webhooks
+      tags: [Tier-1, Integrations]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/services/map:
+    get:
+      summary: api · services · map
+      tags: [Tier-1, Services]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/network/topology:
+    get:
+      summary: api · network · topology
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/migrations/history:
+    get:
+      summary: api · migrations · history
+      tags: [Tier-1, Migrations]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/migrations/readiness:
+    get:
+      summary: api · migrations · readiness
+      tags: [Tier-1, Migrations]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/migrations/report:
+    get:
+      summary: api · migrations · report
+      tags: [Tier-1, Migrations]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/images:
+    get:
+      summary: api · images
+      tags: [Tier-1, Images]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/images/iso:
+    get:
+      summary: api · images · iso
+      tags: [Tier-1, Images]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/isos:
+    get:
+      summary: api · isos
+      tags: [Tier-1, Dashboard]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/info:
+    get:
+      summary: api · system · info
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/metrics:
+    get:
+      summary: api · system · metrics
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/kernel:
+    get:
+      summary: api · system · kernel
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/containers:
+    get:
+      summary: api · system · containers
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/security:
+    get:
+      summary: api · system · security
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/alerts:
+    get:
+      summary: api · system · alerts
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/alerts/rules:
+    get:
+      summary: api · system · alerts · rules
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/compliance:
+    get:
+      summary: api · system · compliance
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/processes:
+    get:
+      summary: api · system · processes
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/memory:
+    get:
+      summary: api · system · memory
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/debug/top:
+    get:
+      summary: api · system · debug · top
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/explain/cpu:
+    get:
+      summary: api · system · explain · cpu
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/system/timeseries:
+    get:
+      summary: api · system · timeseries
+      tags: [Tier-1, System]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/jobs:
+    get:
+      summary: api · jobs
+      tags: [Tier-1, Jobs]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/pipeline/jobs:
+    get:
+      summary: api · pipeline · jobs
+      tags: [Tier-1, Jobs]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/compliance/results:
+    get:
+      summary: api · compliance · results
+      tags: [Tier-1, Compliance]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/audit/logs:
+    get:
+      summary: api · audit · logs
+      tags: [Tier-1, Audit]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/ft/vms:
+    get:
+      summary: api · ft · vms
+      tags: [Tier-1, HA]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/certificates/health:
+    get:
+      summary: api · certificates · health
+      tags: [Tier-1, Certificates]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/certificates:
+    get:
+      summary: api · certificates
+      tags: [Tier-1, Certificates]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/billing/pricing:
+    get:
+      summary: api · billing · pricing
+      tags: [Tier-1, Billing]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/billing/usage:
+    get:
+      summary: api · billing · usage
+      tags: [Tier-1, Billing]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/links:
+    get:
+      summary: api · networkd · links
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/bridges:
+    get:
+      summary: api · networkd · bridges
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/bonds:
+    get:
+      summary: api · networkd · bonds
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/vlans:
+    get:
+      summary: api · networkd · vlans
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/macvtaps:
+    get:
+      summary: api · networkd · macvtaps
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/taps:
+    get:
+      summary: api · networkd · taps
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/network-files:
+    get:
+      summary: api · networkd · network files
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/link-files:
+    get:
+      summary: api · networkd · link files
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/port-forwards:
+    get:
+      summary: api · networkd · port forwards
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/vxlans:
+    get:
+      summary: api · networkd · vxlans
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/networkd/sriov:
+    get:
+      summary: api · networkd · sriov
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/services:
+    get:
+      summary: api · services
+      tags: [Tier-1, Services]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/nat-rules:
+    get:
+      summary: api · nat rules
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/nat-pools:
+    get:
+      summary: api · nat pools
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/nat-gateways:
+    get:
+      summary: api · nat gateways
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/firewall-profiles:
+    get:
+      summary: api · firewall profiles
+      tags: [Tier-1, Security]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/firewall-zones:
+    get:
+      summary: api · firewall zones
+      tags: [Tier-1, Security]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/firewall-assignments:
+    get:
+      summary: api · firewall assignments
+      tags: [Tier-1, Security]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/qos-policies:
+    get:
+      summary: api · qos policies
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/dns-zones:
+    get:
+      summary: api · dns zones
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/dns-policies:
+    get:
+      summary: api · dns policies
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/vpn-tunnels:
+    get:
+      summary: api · vpn tunnels
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/vpn-networks:
+    get:
+      summary: api · vpn networks
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/mirror-sessions:
+    get:
+      summary: api · mirror sessions
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/monitor-policies:
+    get:
+      summary: api · monitor policies
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/network-policies:
+    get:
+      summary: api · network policies
+      tags: [Tier-1, Security]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/network-policies/status:
+    get:
+      summary: api · network policies · status
+      tags: [Tier-1, Security]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/identities:
+    get:
+      summary: api · identities
+      tags: [Tier-1, Security]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/services/status:
+    get:
+      summary: api · services · status
+      tags: [Tier-1, Services]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/qos-policies/status:
+    get:
+      summary: api · qos policies · status
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/monitor-policies/status:
+    get:
+      summary: api · monitor policies · status
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/firewall/status:
+    get:
+      summary: api · firewall · status
+      tags: [Tier-1, Security]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/nat-rules/status:
+    get:
+      summary: api · nat rules · status
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/mirror-sessions/status:
+    get:
+      summary: api · mirror sessions · status
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/vpn-tunnels/status:
+    get:
+      summary: api · vpn tunnels · status
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/drs/recommendations/default:
+    get:
+      summary: api · drs · recommendations · default
+      tags: [Tier-1, HA]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/webhooks/deliveries:
+    get:
+      summary: api · webhooks · deliveries
+      tags: [Tier-1, Integrations]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/templates:
+    get:
+      summary: api · templates
+      tags: [Tier-1, VMs]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/migrations:
+    get:
+      summary: api · migrations
+      tags: [Tier-1, Migrations]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/backups:
+    get:
+      summary: api · backups
+      tags: [Tier-1, Backups]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/schedules:
+    get:
+      summary: api · schedules
+      tags: [Tier-1, Schedules]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/profiles:
+    get:
+      summary: api · profiles
+      tags: [Tier-1, VMs]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/zones:
+    get:
+      summary: api · zones
+      tags: [Tier-1, HA]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/floating-ips:
+    get:
+      summary: api · floating ips
+      tags: [Tier-1, Network]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /api/config/snapshot:
+    get:
+      summary: api · config · snapshot
+      tags: [Tier-1, Dashboard]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /api/events/retention:
+    get:
+      summary: api · events · retention
+      tags: [Tier-1, Observability]
+      responses:
+        '200':
+          description: JSON payload
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    VmName:
+      name: name
+      in: path
+      required: true
+      schema:
+        type: string
+    LogLines:
+      name: lines
+      in: query
+      schema:
+        type: integer
+        default: 100
+        maximum: 1000
+    LogPriority:
+      name: priority
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 7
+    LogGrep:
+      name: grep
+      in: query
+      schema:
+        type: string
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        totp_code:
+          type: string
+          nullable: true
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user_id:
+          type: string
+        role:
+          type: string
+        username:
+          type: string
+
+    MeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        role:
+          type: string
+
+    LogEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+        hostname:
+          type: string
+        unit:
+          type: string
+        message:
+          type: string
+        priority:
+          type: string
+
+    LogResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEntry'
+        count:
+          type: integer
+
+    VMEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        event_type:
+          type: string
+          enum:
+            - created
+            - started
+            - stopped
+            - paused
+            - resumed
+            - deleted
+            - cloned
+            - migrated
+            - snapshot_created
+            - snapshot_reverted
+            - error
+            - auto_healed
+        vm_name:
+          type: string
+        detail:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+
+    VMListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VM'
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+
+    VM:
+      type: object
+      properties:
+        name:
+          type: string
+        state:
+          type: string
+          enum: [running, stopped, paused, unknown]
+        cpus:
+          type: integer
+        memory:
+          type: integer
+          description: Memory in MB
+        image:
+          type: string
+        ip:
+          type: string
+          nullable: true
+        pid:
+          type: integer
+          nullable: true
+
+    CreateVMRequest:
+      type: object
+      required:
+        - name
+        - image
+      properties:
+        name:
+          type: string
+        image:
+          type: string
+        cpus:
+          type: integer
+          default: 2
+        memory:
+          type: integer
+          default: 2048
+          description: Memory in MB
+
+    VMMetrics:
+      type: object
+      properties:
+        cpu_usage:
+          type: number
+          format: double
+        memory_usage:
+          type: integer
+        disk_usage:
+          type: integer
+        network_rx:
+          type: integer
+        network_tx:
+          type: integer
+
+    CloudInitConfig:
+      type: object
+      required:
+        - instance_id
+        - hostname
+      properties:
+        instance_id:
+          type: string
+        hostname:
+          type: string
+        user_data:
+          type: string
+          nullable: true
+        meta_data:
+          type: object
+          nullable: true
+        network_config:
+          type: object
+          nullable: true
+
+security:
+  - bearerAuth: []

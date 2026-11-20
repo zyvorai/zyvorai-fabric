@@ -1,0 +1,7 @@
+ref,exception_type,channel,amount,ageing_bucket,branch
+X-001,Unmatched debit,UPI,1250.00,0-2 days,BR-101
+X-002,Amount mismatch,IMPS,5000.00,3-7 days,BR-101
+X-003,Unmatched debit,UPI,799.00,0-2 days,BR-204
+X-004,Unmatched credit,NEFT,45000.00,8-30 days,BR-204
+X-005,Unmatched debit,UPI,300.00,0-2 days,BR-310
+X-006,Duplicate entry,ATM,2000.00,3-7 days,BR-310

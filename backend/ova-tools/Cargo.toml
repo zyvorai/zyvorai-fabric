@@ -1,0 +1,12 @@
+[package]
+name = "ova-tools"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+input-guard = { path = "../crates/input-guard" }
+quick-xml = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }

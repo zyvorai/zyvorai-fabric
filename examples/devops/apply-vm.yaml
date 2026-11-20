@@ -1,0 +1,5 @@
+name: web-ci
+image: /var/lib/zyvor-fabricd/images/ubuntu-22.04.qcow2
+cpus: 2
+memory: 2048
+tenant: ci

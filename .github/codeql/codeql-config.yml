@@ -1,0 +1,6 @@
+name: Fabric CodeQL
+disable-default-queries: false
+# The local model pack is not a published query pack. `packs:` only accepts
+# scope/name refs, and a relative path is ignored ("Invalid CodeQL pack
+# specification"). security.yml installs this pack onto the CodeQL search
+# path and passes --model-packs=zyvor/fabric-models to run-queries.

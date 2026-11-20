@@ -1,0 +1,5 @@
+name,amount,note
+Ann,5,ok
+ Ann ,5,ok
+,,
+Bob,-3.5,=HYPERLINK("http://example.com")

@@ -1,0 +1,17 @@
+[package]
+license = "LicenseRef-Zyvor-Production-1.0"
+name = "zyvor-fabric-vm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror.workspace = true
+tokio = { version = "1.53", features = ["full"] }
+tracing = "0.1"
+uuid = { version = "1.26", features = ["v4", "serde"] }
+zyvor-fabric-system = { path = "../system" }
+
+[dev-dependencies]
+tempfile = "3.27"

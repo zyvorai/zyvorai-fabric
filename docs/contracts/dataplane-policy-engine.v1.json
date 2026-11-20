@@ -1,0 +1,25 @@
+{
+  "title": "Fabric VM-edge policy_control v1",
+  "module": "policy_control",
+  "actions": ["open", "audit", "guard", "invert", "block", "allow"],
+  "drop_reasons": [
+    "NONE",
+    "POLICY_DENIED",
+    "DEFAULT_DENY",
+    "PORT_DENIED",
+    "RATE_LIMIT",
+    "AUDIT_WOULD_DROP",
+    "UNKNOWN"
+  ],
+  "endpoints": {
+    "control": "POST /api/vms/{name}/dataplane/policy/control",
+    "explain": "GET /api/vms/{name}/dataplane/explain?dest=&port=&proto=",
+    "dry_run": "GET /api/vms/{name}/dataplane/dry-run",
+    "templates": "GET /api/dataplane/templates"
+  },
+  "non_goals": [
+    "Does not write Cilium-private maps",
+    "Not Hubble gRPC",
+    "Not Fabric SDN /network-policies"
+  ]
+}

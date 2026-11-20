@@ -1,0 +1,25 @@
+version: 1
+default_egress: deny
+allow:
+  - host: api.stripe.com
+    methods: [POST]
+    action: checkout
+    ask: always
+  - host: api.github.com
+    methods: [GET]
+    action: read
+    ask: first
+  - host: example.com
+    methods: [GET]
+deny:
+  - host: "*.onion"
+taint:
+  trusted_hosts: [api.github.com, example.com]
+  on_untrusted_page: block_egress_until_ask
+browser:
+  enabled: true
+  allow_hosts: [example.com, github.com, api.github.com]
+  block_file_url: true
+  max_tabs: 8
+  snapshot_only: true
+  downloads: deny

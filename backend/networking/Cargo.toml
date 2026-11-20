@@ -1,0 +1,22 @@
+[package]
+name = "networking"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+input-guard = { path = "../crates/input-guard" }
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+rand.workspace = true
+tokio.workspace = true
+rtnetlink = "0.24"
+netlink-packet-route = "0.34"
+futures.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

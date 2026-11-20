@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'zyvor-fabricd'
+    static_configs:
+      - targets: ['localhost:9095']
+    metrics_path: '/metrics'
+
+  # FluxVM MicroVM schedule→Running histograms (fluxvm-microvm controller/node-agent).
+  # Set MICROVM_METRICS_ADDR=off on the MicroVM process to disable.
+  - job_name: 'fluxvm-microvm'
+    static_configs:
+      - targets: ['localhost:9108']
+    metrics_path: '/metrics'
+    # Optional: scrape via Fabric proxy instead of direct bind:
+    # metrics_path: '/api/dataplane/microvm-metrics'
+    # static_configs: [{ targets: ['localhost:9095'] }]

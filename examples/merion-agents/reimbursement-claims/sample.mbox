@@ -1,0 +1,23 @@
+From priya@example.test Mon Sep 22 09:00:00 2026
+From: Priya <priya@example.test>
+Date: Mon, 22 Sep 2026 09:00:00 +0000
+Subject: Reimbursement: client visit cab
+Content-Type: text/plain
+
+Please reimburse Rs 850 for a cab to the client visit on 19 Sep. Receipt attached.
+
+From rahul@example.test Tue Sep 23 10:00:00 2026
+From: Rahul <rahul@example.test>
+Date: Tue, 23 Sep 2026 10:00:00 +0000
+Subject: Claim: hotel and meals, Pune trip
+Content-Type: text/plain
+
+Hotel Rs 3,400 and client dinner Rs 800 for the Pune trip. Total Rs 4,200.
+
+From hr@example.test Wed Sep 24 11:00:00 2026
+From: HR <hr@example.test>
+Date: Wed, 24 Sep 2026 11:00:00 +0000
+Subject: Re: Claim: hotel and meals, Pune trip
+Content-Type: text/plain
+
+Approved: Rs 4,200 will be paid on Friday. Priya's cab claim is pending, we need the receipt in PDF.

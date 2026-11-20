@@ -1,0 +1,63 @@
+{
+  "dashboard": {
+    "title": "zyvor-fabricd Dashboard",
+    "panels": [
+      {
+        "title": "Total VMs",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "zyvor_fabricd_vms_total",
+            "legendFormat": "Total VMs"
+          }
+        ]
+      },
+      {
+        "title": "Running VMs",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "zyvor_fabricd_vms_running",
+            "legendFormat": "Running"
+          }
+        ]
+      },
+      {
+        "title": "VM States",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "zyvor_fabricd_vms_running",
+            "legendFormat": "Running"
+          },
+          {
+            "expr": "zyvor_fabricd_vms_stopped",
+            "legendFormat": "Stopped"
+          }
+        ]
+      },
+      {
+        "title": "VM Operations",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(zyvor_fabricd_vm_starts_total[5m])",
+            "legendFormat": "Starts"
+          },
+          {
+            "expr": "rate(zyvor_fabricd_vm_stops_total[5m])",
+            "legendFormat": "Stops"
+          },
+          {
+            "expr": "rate(zyvor_fabricd_vm_creates_total[5m])",
+            "legendFormat": "Creates"
+          },
+          {
+            "expr": "rate(zyvor_fabricd_vm_deletes_total[5m])",
+            "legendFormat": "Deletes"
+          }
+        ]
+      }
+    ]
+  }
+}

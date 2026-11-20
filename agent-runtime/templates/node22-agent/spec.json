@@ -1,0 +1,9 @@
+{
+  "name": "node22-agent",
+  "backend": "qemu",
+  "image": "/var/lib/fluxvm/images/node22-agent.qcow2",
+  "vcpus": 1,
+  "memory_mib": 2048,
+  "network": {"mode": "tap", "netns": true, "mac": "52:54:00:9f:a9:1e"},
+  "agent": {"enabled": true}
+}

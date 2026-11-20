@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="t d">
+  <title id="t">Merion for a phone vendor: architecture</title>
+  <desc id="d">The phone talks to the vendor's gateway, which places each user on one Merion shard. Each shard is a host running the Merion runtime and FluxVM cells. Approvals go to the phone through the vendor's push relay, and the model is the vendor's choice, called through the vault.</desc>
+  <style>
+    text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif;fill:#1d1d1f}
+    .h{font-size:16px;font-weight:650}
+    .t{font-size:13px}
+    .s{font-size:12px;fill:#6e6e73}
+    .z{font-size:11px;font-weight:650;letter-spacing:.12em}
+    .c{text-anchor:middle}
+    .box{stroke-width:1.5}
+    .v{fill:#f3efff;stroke:#7c5cd6}
+    .k{fill:#eaf3ff;stroke:#0071e3}
+    .ph{fill:#f5f5f7;stroke:#8e8e93}
+    .dash{stroke-dasharray:6 5}
+    .flow{fill:none;stroke:#0071e3;stroke-width:2;stroke-dasharray:7 6;marker-end:url(#a);animation:d 1.3s linear infinite}
+    .push{stroke:#7c5cd6;marker-end:url(#b)}
+    @keyframes d{to{stroke-dashoffset:-13}}
+    @media (prefers-reduced-motion:reduce){.flow{animation:none}}
+  </style>
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9z" fill="#0071e3"/></marker>
+    <marker id="b" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9z" fill="#7c5cd6"/></marker>
+  </defs>
+  <rect x="1" y="1" width="1198" height="678" rx="24" fill="#fff" stroke="#e5e5ea" stroke-width="2"/>
+
+  <!-- zones -->
+  <rect x="24" y="52" width="560" height="536" rx="20" fill="#faf8ff" stroke="#cdbff2"/>
+  <rect x="616" y="52" width="560" height="536" rx="20" fill="#f4f9ff" stroke="#b7d5fb"/>
+  <text class="z" x="44" y="80" style="fill:#5a3fb0">THE VENDOR OWNS</text>
+  <text class="z" x="636" y="80" style="fill:#0058b8">MERION PROVIDES</text>
+
+  <!-- phone -->
+  <rect x="50" y="108" width="140" height="272" rx="26" class="box ph"/>
+  <rect x="59" y="122" width="122" height="244" rx="18" fill="#fff" stroke="#d2d2d7"/>
+  <text class="t c" x="120" y="146" style="font-weight:650">Vendor app</text>
+  <rect x="68" y="160" width="104" height="104" rx="12" fill="#eaf3ff" stroke="#b7d5fb"/>
+  <text class="t c" x="120" y="184" style="font-weight:650">Approve?</text>
+  <text class="s c" x="120" y="202">Send this email</text>
+  <rect x="82" y="220" width="76" height="26" rx="13" fill="#0071e3"/>
+  <text class="t c" x="120" y="238" style="fill:#fff;font-weight:650">Sign</text>
+  <text class="s c" x="120" y="290">Key pair made in the</text>
+  <text class="s c" x="120" y="306">phone's keystore.</text>
+  <text class="s c" x="120" y="322">The private key</text>
+  <text class="s c" x="120" y="338">never leaves it.</text>
+  <text class="h" x="50" y="404">The user's phone</text>
+
+  <!-- gateway -->
+  <rect x="290" y="108" width="222" height="196" rx="16" class="box v"/>
+  <text class="h" x="308" y="136">Vendor gateway</text>
+  <text class="t" x="308" y="162">Login and SSO (yours)</text>
+  <text class="t" x="308" y="182">Puts each user on one shard</text>
+  <text class="t" x="308" y="202">Mints short-lived user tokens</text>
+  <text class="t" x="308" y="222">Enrols the phone's key</text>
+  <text class="t" x="308" y="242">Rate limits and usage rollup</text>
+  <text class="s" x="308" y="276">Reference code:</text>
+  <text class="s" x="308" y="292">reference/vendor-gateway</text>
+
+  <!-- push relay -->
+  <rect x="290" y="340" width="222" height="132" rx="16" class="box v dash"/>
+  <text class="h" x="308" y="368">Push relay</text>
+  <text class="t" x="308" y="392">Turns Merion's signed message</text>
+  <text class="t" x="308" y="410">into your push: FCM, Mi Push,</text>
+  <text class="t" x="308" y="428">HMS, OPPO, vivo</text>
+  <text class="s" x="308" y="454">Interface built; adapters are yours</text>
+
+  <!-- model -->
+  <rect x="60" y="508" width="452" height="64" rx="16" class="box v"/>
+  <text class="h" x="78" y="534">The vendor's choice of model</text>
+  <text class="s" x="78" y="554">Qwen, DeepSeek, GLM, a local server, or its own (OpenAI-compatible).</text>
+
+  <!-- shards -->
+    <rect x="650" y="100" width="500" height="120" rx="16" class="box k"/>
+    <text class="h" x="670" y="128">Shard A</text>
+    <text class="s" x="740" y="128">region 1 · one host</text>
+    <text class="s" x="670" y="148">Merion runtime + FluxVM</text>
+    <rect x="670" y="162" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="696" y="185">ana</text>
+    <rect x="730" y="162" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="756" y="185">ben</text>
+    <rect x="790" y="162" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="816" y="185">chen</text>
+    <rect x="850" y="162" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3" class="dash"/><text class="s c" x="876" y="185">…</text>
+    <text class="t" x="940" y="128">A sealed cell per job</text>
+    <text class="t" x="940" y="148">Signed policy, no egress</text>
+    <text class="t" x="940" y="168">Vault: the agent holds no key</text>
+    <text class="t" x="940" y="188">Approvals and audit journal</text>
+    <rect x="650" y="236" width="500" height="120" rx="16" class="box k"/>
+    <text class="h" x="670" y="264">Shard B</text>
+    <text class="s" x="740" y="264">region 1 · one host</text>
+    <text class="s" x="670" y="284">Merion runtime + FluxVM</text>
+    <rect x="670" y="298" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="696" y="321">dev</text>
+    <rect x="730" y="298" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="756" y="321">eli</text>
+    <rect x="790" y="298" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="816" y="321">fay</text>
+    <rect x="850" y="298" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3" class="dash"/><text class="s c" x="876" y="321">…</text>
+    <text class="t" x="940" y="264">A sealed cell per job</text>
+    <text class="t" x="940" y="284">Signed policy, no egress</text>
+    <text class="t" x="940" y="304">Vault: the agent holds no key</text>
+    <text class="t" x="940" y="324">Approvals and audit journal</text>
+    <rect x="650" y="372" width="500" height="120" rx="16" class="box k"/>
+    <text class="h" x="670" y="400">Shard C</text>
+    <text class="s" x="740" y="400">region 2 · one host</text>
+    <text class="s" x="670" y="420">Merion runtime + FluxVM</text>
+    <rect x="670" y="434" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="696" y="457">gus</text>
+    <rect x="730" y="434" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="756" y="457">hui</text>
+    <rect x="790" y="434" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3"/><text class="s c" x="816" y="457">ivy</text>
+    <rect x="850" y="434" width="52" height="38" rx="8" fill="#fff" stroke="#0071e3" class="dash"/><text class="s c" x="876" y="457">…</text>
+    <text class="t" x="940" y="400">A sealed cell per job</text>
+    <text class="t" x="940" y="420">Signed policy, no egress</text>
+    <text class="t" x="940" y="440">Vault: the agent holds no key</text>
+    <text class="t" x="940" y="460">Approvals and audit journal</text>
+
+  <!-- flows -->
+  <path class="flow" d="M190 190 H286" />
+  <path class="flow" d="M286 214 H190" />
+  <text class="s c" x="238" y="176">login, calls</text>
+  <path class="flow" d="M512 180 C580 180 590 160 646 160"/>
+  <path class="flow" d="M512 200 C580 200 590 296 646 296"/>
+  <path class="flow" d="M512 220 C580 220 590 432 646 432"/>
+  <text class="s c" x="580" y="98">scoped token</text>
+  <text class="s c" x="580" y="112">reaches one user</text>
+  <path class="flow push" d="M646 452 C590 452 570 420 516 420"/>
+  <text class="s c" x="586" y="474">signed message</text>
+  <path class="flow push" d="M290 424 H176 V386"/>
+  <text class="s c" x="236" y="416">push</text>
+  <path class="flow" d="M700 492 V540 H516"/>
+  <text class="s" x="600" y="556">model call, key added by the vault</text>
+
+  <!-- legend -->
+  <rect x="44" y="612" width="14" height="14" rx="4" class="box v"/><text class="s" x="66" y="624">Vendor runs it</text>
+  <rect x="180" y="612" width="14" height="14" rx="4" class="box k"/><text class="s" x="202" y="624">Merion provides it</text>
+  <rect x="330" y="612" width="14" height="14" rx="4" class="box v dash"/><text class="s" x="352" y="624">Interface only: vendor writes the adapter</text>
+  <text class="s" x="44" y="650">Merion stays a single-host building block. The vendor runs many hosts and routes each user to one.</text>
+</svg>

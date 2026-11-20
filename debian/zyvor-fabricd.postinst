@@ -1,0 +1,22 @@
+#!/bin/sh
+# postinst for zyvor-fabricd — replaces what systemd-sysusers/tmpfiles
+# previously provisioned (systemd-removal migration plan, Phase 6).
+# Directories are also created defensively by the daemon itself at startup
+# (see backend/zyvor-fabricd/src/daemon.rs::ensure_runtime_dirs); done here
+# too so they exist with the right ownership/mode from first boot.
+set -e
+
+case "$1" in
+    configure)
+        getent group zyvor-fabricd >/dev/null || addgroup --system zyvor-fabricd
+        mkdir -p /var/lib/zyvor-fabricd/images
+        mkdir -p /var/lib/zyvor-fabricd/state
+        chmod 0750 /var/lib/zyvor-fabricd/state
+        mkdir -p /run/zyvor-fabricd
+        mkdir -p /var/log/zyvor-fabricd
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

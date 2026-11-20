@@ -1,0 +1,33 @@
+{
+  "kind": "usecase",
+  "name": "recon-exceptions",
+  "title": "Reconciliation exceptions",
+  "description": "Drop in a reconciliation exceptions CSV and get exceptions counted by type, channel and ageing, and the first rows.",
+  "accepts": [
+    "csv"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Exceptions by type, channel and age",
+      "columns": [
+        "exception_type",
+        "channel",
+        "ageing_bucket"
+      ],
+      "top": 6
+    },
+    {
+      "kind": "table",
+      "title": "First rows",
+      "max_rows": 10
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "recon-exceptions.md",
+  "sample_file": "sample.csv"
+}

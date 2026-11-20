@@ -1,0 +1,24 @@
+zyvor-fabricd (0.2.0-1) unstable; urgency=medium
+
+  * Docker/Podman deployment support, wired up against FluxVM.
+  * Hybrid Apple-style web UX; terminal UI (zyvorctl-tui) removed.
+  * Fix memory limit/usage endpoints 404ing on every real VM (cgroup
+    path resolved via the driver instead of a name-based lookup that
+    never matched FluxVM's UUID-keyed cgroups).
+  * Fix memory/disk/NIC hotplug and snapshot creation failing under a
+    fresh QMP reconnect between related monitor commands.
+  * Raise QMP read timeout from 10s to 300s: snapshot-save's vmstate
+    dump can legitimately run past 10s under disk contention.
+  * Fix VNC canvas rendering at 0x0 and swallowed console-open errors.
+  * Rename Ephemera VM driver integration to FluxVM.
+  * Relicense to Apache License 2.0.
+  * Numerous documentation accuracy fixes (CLI examples, GPU
+    passthrough capabilities, stale rebrand references).
+
+ -- zyvor-fabricd contributors <zyvor-fabricd@example.com>  Thu, 03 Sep 2026 00:00:00 +0000
+
+zyvor-fabricd (0.1.0-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- zyvor-fabricd contributors <zyvor-fabricd@example.com>  Thu, 19 Feb 2026 00:00:00 +0000

@@ -1,0 +1,63 @@
+[daemon]
+# Listen address for REST API
+listen = "127.0.0.1:9095"
+# External base URL for OpenStack catalog / clients (scheme://host:port).
+# When unset, derived from listen + TLS (0.0.0.0 → 127.0.0.1).
+# Override with ZYVOR_FABRICD_PUBLIC_URL.
+# public_url = "https://fabric.example.com:9095"
+# CORS allowed origins (default: ["http://127.0.0.1:9095"])
+# cors_origins = ["http://127.0.0.1:9095", "https://myhost.example.com"]
+
+[storage]
+# Path to store VM state
+path = "/var/lib/zyvor-fabricd"
+# Path to store VM images
+image_path = "/var/lib/zyvor-fabricd/images"
+
+[backup]
+# Backup storage directory
+backup_dir = "/var/lib/zyvor-fabricd/backups"
+# Days to retain backups before automatic cleanup (default: 7)
+# retention_days = 7
+# Default backup type: "full" or "incremental" (default: "full")
+# backup_type = "full"
+
+[network]
+# Default network bridge
+bridge = "br0"
+
+[driver]
+# VM lifecycle is handled entirely by FluxVM (https://github.com/zyvorai/fluxvm),
+# a disposable-VM engine with no systemd dependency of its own. Bridged VMs use
+# per-VM netns taps. Network Fabric schema v4 (TC/eBPF edge dataplane) is proxied at
+# /api/vms/{name}/dataplane/* when FluxVM runs with
+# [sandbox.dataplane] mode = "ebpf" (see configs/fluxvm-dataplane.toml).
+# Pluggable storage backends (LVM/NBD/Ceph) are wired on create.
+# Agent sandboxes are productized via sibling agent-runtime
+# ([agent_runtime] below), not the classic VM driver.
+# FluxVM's REST API base URL.
+# fluxvm_url = "http://127.0.0.1:7788"
+# Bearer token for FluxVM's auth layer, if it has auth.tokens configured.
+# fluxvm_token = "..."
+# FluxVM MicroVM Prometheus histograms (default http://127.0.0.1:9108/metrics).
+# microvm_metrics_url = "http://127.0.0.1:9108/metrics"
+# microvm_metrics_url = "off"
+
+# Optional proxy to zyvor-fabric-agent-runtime (Agents/Sessions UI).
+# [agent_runtime]
+# base_url = "http://127.0.0.1:9096"
+# token = "..."   # or ZYVOR_FABRICD_AGENT_RUNTIME_TOKEN
+
+[auth]
+# Enable JWT-based authentication (default: true)
+enabled = true
+# JWT signing secret: auto-generated and persisted to /var/lib/zyvor-fabricd/.jwt_secret
+# if not set here or via ZYVOR_FABRICD_JWT_SECRET env var.
+# jwt_secret = "..."
+# SQLite user database path
+# db_path = "/var/lib/zyvor-fabricd/auth.db"
+# Token lifetime in hours (default: 24)
+# token_expiration_hours = 24
+# Admin password: auto-generated and written to /var/lib/zyvor-fabricd/.admin_password
+# if not set here or via ZYVOR_FABRICD_ADMIN_PASSWORD env var. Only used on first startup.
+# default_admin_password = "..."

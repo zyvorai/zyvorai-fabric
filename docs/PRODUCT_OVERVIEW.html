@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Zyvor Fabric Product Overview</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Zyvor Fabric Product Overview</h1>
+</header>
+<h1 id="Zyvor Fabric-enterprise-vm-management-platform">Zyvor Fabric —
+Enterprise VM Management Platform</h1>
+<h2 id="the-problem">The Problem</h2>
+<p>Organizations running Linux infrastructure need a unified way to
+manage virtual machines. Existing solutions are either:</p>
+<ul>
+<li><strong>Too heavy</strong> — traditional virtualization stacks
+require complex multi-server deployments, dedicated storage
+infrastructure, and specialized operations teams</li>
+<li><strong>Too basic</strong> — Manual QEMU/KVM management with shell
+scripts doesn’t scale and lacks security, monitoring, or multi-user
+access</li>
+<li><strong>Too locked-in</strong> — Cloud-only solutions (AWS, Azure,
+GCP) create vendor dependency with unpredictable costs</li>
+</ul>
+<p><strong>Zyvor Fabric fills the gap</strong> — a single-binary VM
+management platform that runs on any Linux server with systemd,
+providing enterprise features without enterprise complexity.</p>
+<hr />
+<h2 id="what-is-Zyvor Fabric">What Is Zyvor Fabric?</h2>
+<p>Zyvor Fabric is a production-grade virtual machine management platform
+built in Rust. It drives VMs through FluxVM with a
+complete management layer:</p>
+<ul>
+<li><strong>One binary, one config file, one systemd service</strong> —
+deploys in under 5 minutes</li>
+<li><strong>520+ REST API endpoints</strong> with JWT authentication,
+RBAC, and audit logging</li>
+<li><strong>4 management interfaces</strong> — CLI, web
+dashboard, Kubernetes operator, Terraform provider</li>
+<li><strong>Enterprise features</strong> — HA clustering, live
+migration, GPU passthrough, backup/restore, network policies</li>
+</ul>
+<pre><code>sudo systemctl enable --now zyvor-fabricd
+# That&#39;s it. Platform is running.</code></pre>
+<hr />
+<h2 id="key-differentiators">Key Differentiators</h2>
+<h3 id="built-on-fluxvm-not-a-custom-hypervisor">1. Built on FluxVM
+(Not a Custom Hypervisor Stack)</h3>
+<p>Zyvor Fabric launches guests through FluxVM — a disposable-VM engine
+with no systemd dependency of its own. This means:</p>
+<ul>
+<li>No custom kernel modules or hypervisor patches</li>
+<li>VMs are first-class systemd units with journal logging, socket
+activation, and watchdog support</li>
+<li>Works on Fedora, Ubuntu, Debian, RHEL, SUSE — any distro with
+systemd 256+</li>
+<li>Upstream-maintained VM lifecycle, not a fork</li>
+</ul>
+<h3 id="single-binary-zero-dependencies">2. Single Binary, Zero
+Dependencies</h3>
+<p>One 15MB binary, one config file, a SQLite user store, and about 5 minutes to set up. It runs on any Linux.</p>
+<h3 id="security-first-architecture">3. Security-First Architecture</h3>
+<p>The entire codebase has undergone a <strong>30-round security
+audit</strong> with 174 issues identified and fixed (9 consecutive clean
+rounds — audit complete):</p>
+<ul>
+<li><strong>Zero unsafe Rust</strong> — memory-safe by construction</li>
+<li><strong>Zero shell pipelines</strong> — all subprocess calls use
+safe argument passing</li>
+<li><strong>JWT + RBAC</strong> on every API endpoint (Admin/User/Viewer
+roles)</li>
+<li><strong>bcrypt password hashing</strong> with auto-generated secrets
+(0600 file permissions)</li>
+<li><strong>Rate limiting</strong> on authentication (5 attempts/5
+min)</li>
+<li><strong>Input validation</strong> on every user-facing
+parameter</li>
+<li><strong>Audit logging</strong> on all VM lifecycle operations</li>
+<li><strong>Path traversal protection</strong> with
+canonicalization</li>
+<li><strong>SQL injection prevention</strong> — all queries
+parameterized</li>
+</ul>
+<h3 id="rust-performance">4. Rust Performance</h3>
+<ul>
+<li><strong>Sub-millisecond API response times</strong> — async Axum +
+Tokio runtime</li>
+<li><strong>Low memory footprint</strong> — ~20MB RSS for the
+daemon</li>
+<li><strong>No garbage collection pauses</strong> — predictable
+latency</li>
+<li><strong>Safe concurrency</strong> — per-VM mutexes prevent race
+conditions</li>
+</ul>
+<hr />
+<h2 id="feature-overview">Feature Overview</h2>
+<h3 id="vm-lifecycle">VM Lifecycle</h3>
+<ul>
+<li>Create, start, stop, restart, pause, resume, delete, <strong>per-VM
+backup</strong></li>
+<li>Full and linked cloning with CoW support</li>
+<li><strong>Hibernate (suspend-to-disk)</strong> and resume from
+snapshot</li>
+<li>Templates for rapid deployment</li>
+<li>Declarative config via YAML
+(<code>fabricctl apply -f config.yaml</code>)</li>
+<li>Multiple disk formats: qcow2, raw, vmdk, vdi</li>
+<li><strong>VM import</strong> from VMDK, VDI, VHD (auto-convert to
+qcow2)</li>
+<li><strong>Online disk resize</strong> (qemu-img + QMP
+block_resize)</li>
+</ul>
+<h3 id="storage">Storage</h3>
+<ul>
+<li><strong>6 backends</strong>: Local, NFS, LVM, LVM-thin, ZFS,
+Ceph/RBD</li>
+<li>Volume CRUD with attach/detach, resize, clone</li>
+<li>Snapshot create/restore with retention policies</li>
+<li>ZFS replication with incremental send/receive</li>
+<li>Ceph cluster health monitoring and RBD image management</li>
+<li><strong>Storage live migration</strong> — move VM disks between
+pools without downtime</li>
+<li><strong>Cloud image downloader</strong> — built-in catalog (Ubuntu,
+Fedora, Debian, Alma)</li>
+<li><strong>ISO management</strong> — download, list, delete ISO
+images</li>
+</ul>
+<h3 id="networking">Networking</h3>
+<ul>
+<li><strong>Network Policies</strong> — Cilium-style label-based
+ingress/egress rules</li>
+<li><strong>VM Firewall</strong> — Per-VM firewall profiles and zones
+via nftables</li>
+<li><strong>Service Mesh</strong> — Virtual IP load balancing
+(round-robin, least-conn, random, IP-hash)</li>
+<li><strong>QoS / Traffic Shaping</strong> — Guaranteed/max rate, burst,
+priority-based bandwidth</li>
+<li><strong>DNS Policy</strong> — Zone management, upstream servers,
+domain blocking</li>
+<li><strong>VPN Mesh</strong> — WireGuard tunnels (point-to-point,
+hub-spoke, full-mesh)</li>
+<li><strong>Packet Mirror</strong> — Traffic capture for debugging</li>
+<li><strong>NAT Gateway</strong> — Masquerade, SNAT, DNAT, hairpin
+NAT</li>
+<li><strong>Network Monitor</strong> — Per-VM bandwidth tracking with
+threshold alerts</li>
+</ul>
+<h3 id="security-identity">Security &amp; Identity</h3>
+<ul>
+<li>JWT authentication with configurable token expiration</li>
+<li><strong>LDAP and OIDC/OAuth2</strong> integration for enterprise
+SSO</li>
+<li>3-tier RBAC (Admin / User / Viewer) enforced on every endpoint</li>
+<li><strong>Multi-tenancy</strong> — project isolation with member roles
+and quotas</li>
+<li>API keys for service-to-service authentication</li>
+<li>TLS/HTTPS with certificate management</li>
+<li>Audit logging with JSON/CSV export</li>
+<li>Encryption at rest</li>
+<li>Rate limiting on authentication and API keys</li>
+<li><strong>30-round security audit</strong> — 174 issues fixed, 9
+consecutive clean rounds, audit complete</li>
+<li><strong>Storage pool name validation</strong> — LVM, ZFS, Ceph pool
+names validated</li>
+<li><strong>SSRF prevention</strong> on all user-provided URLs</li>
+<li><strong>Entity ID sanitization</strong> in state store</li>
+<li><strong>Credential redaction</strong> in API responses</li>
+<li><strong>WebSocket authentication</strong> on console and VNC
+endpoints</li>
+</ul>
+<h3 id="high-availability">High Availability</h3>
+<ul>
+<li>Predictive DRS (Distributed Resource Scheduling)</li>
+<li><strong>Affinity / anti-affinity rules</strong> for VM placement
+constraints</li>
+<li>Fault tolerance with automatic failover and fencing</li>
+<li>Distributed storage replication</li>
+<li>Site recovery with failover/reprotect workflows</li>
+<li><strong>Resource overcommit policies</strong> (CPU/memory/storage
+ratios)</li>
+</ul>
+<h3 id="monitoring-automation">Monitoring &amp; Automation</h3>
+<ul>
+<li>Prometheus metrics exporter (<code>/metrics</code> endpoint)</li>
+<li><strong>Metrics retention policies</strong> with configurable
+cleanup</li>
+<li>Analytics dashboard with historical data</li>
+<li>Multi-channel notifications: Email, Slack, <strong>Webhook with
+retry + backoff</strong>, Microsoft Teams</li>
+<li>VM scheduling (once, daily, weekly)</li>
+<li>Backup/restore with retention policies and incremental backups</li>
+<li><strong>Per-VM backup</strong> from web UI (single or
+bulk)</li>
+<li><strong>Automated daily backups</strong> via an internal scheduler
+inside the daemon (2:00 AM), not a separate systemd timer</li>
+<li><strong>Automated weekly state store cleanup</strong> via the same
+internal scheduler (Sunday 3:00 AM)</li>
+<li><strong>Backup configuration</strong> via the <code>[backup]</code>
+section in <code>zyvor-fabricd.toml</code></li>
+<li><strong>Post-install auto-verify</strong> — smoke test runs
+automatically after deploy/reinstall (API, auth, VM CRUD, backups)</li>
+<li><strong>Deep health check</strong> — API, disk space, DB integrity,
+credentials, timers, memory, KVM</li>
+<li><strong>TLS certificate generation</strong> — self-signed certs with
+SAN via <code>fabricctl tls</code></li>
+<li><strong>Shell completions</strong> — Bash tab completion for
+<code>fabricctl</code> and <code>fabricctl</code></li>
+<li>Resource quotas, pools, and datacenter abstractions</li>
+<li><strong>Database schema migrations</strong> with version
+tracking</li>
+</ul>
+<h3 id="console-access">Console Access</h3>
+<ul>
+<li>WebSocket terminal via xterm.js (browser-based SSH)</li>
+<li>VNC graphical console via noVNC proxy</li>
+<li>Authenticated with same JWT tokens as API</li>
+</ul>
+<h3 id="cloud-virtualization">Cloud &amp; Virtualization</h3>
+<ul>
+<li>cloud-init integration (NoCloud datasource)</li>
+<li>TPM/vTPM support (1.2 and 2.0 via swtpm)</li>
+<li>GPU passthrough (NVIDIA, AMD, Intel GVT-g)</li>
+<li><strong>Live migration</strong> with iterative rsync pre-copy and
+cutover</li>
+<li>CPU pinning and NUMA optimization</li>
+<li><strong>IPv6 support</strong> — dual-stack nftables (ip + ip6)</li>
+<li><strong>API versioning</strong> — all endpoints under
+<code>/api/</code> and <code>/api/v1/</code></li>
+</ul>
+<hr />
+<h2 id="management-interfaces">Management Interfaces</h2>
+<h3 id="cli-fabricctl">CLI (<code>fabricctl</code>)</h3>
+<p>Scriptable command-line tool with JSON/YAML/table output:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">fabricctl</span> list <span class="at">-o</span> json</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">fabricctl</span> create myvm <span class="at">--image</span><span class="op">=</span>ubuntu.qcow2 <span class="at">--cpus</span><span class="op">=</span>4 <span class="at">--memory</span><span class="op">=</span>4G</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">fabricctl</span> start myvm</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">fabricctl</span> apply <span class="at">-f</span> infrastructure.yaml</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">fabricctl</span> policy list</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ex">fabricctl</span> ceph health my-pool</span></code></pre></div>
+<h3 id="terminal-ui-removed">Terminal UI (removed)</h3>
+<p>The former <code>fabricctl</code> has been removed. Use the web console under <code>/app</code> or <code>fabricctl</code>.</p>
+<p> Per-VM actions: <code>s</code> start, <code>t</code>
+stop, <code>r</code> restart, <code>b</code> backup, <code>d</code>
+delete.</p>
+<h3 id="web-dashboard">Web Dashboard</h3>
+<p>React-based UI with 37+ pages, command palette (Ctrl+K), light Apple console,
+real-time WebSocket updates, and bulk operations. Per-VM actions: start,
+stop, pause, backup, console, details. Bulk actions: start, stop,
+backup, delete.</p>
+<h3 id="kubernetes-operator">Kubernetes Operator</h3>
+<p>Manage VMs as <code>VirtualMachine</code> CRDs with automatic
+reconciliation:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">apiVersion</span><span class="kw">:</span><span class="at"> Zyvor Fabric.io/v1</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kind</span><span class="kw">:</span><span class="at"> VirtualMachine</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">metadata</span><span class="kw">:</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> web-server</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">spec</span><span class="kw">:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">image</span><span class="kw">:</span><span class="at"> ubuntu-22.04.qcow2</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">cpus</span><span class="kw">:</span><span class="at"> </span><span class="dv">4</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">memory</span><span class="kw">:</span><span class="at"> </span><span class="dv">4096</span></span></code></pre></div>
+<h3 id="terraform-provider">Terraform Provider</h3>
+<p>Declarative VM provisioning with full plan/apply workflow:</p>
+<pre class="hcl"><code>resource &quot;zyvor_fabric_vm&quot; &quot;web&quot; {
+  name   = &quot;web-server&quot;
+  image  = &quot;ubuntu-22.04.qcow2&quot;
+  cpus   = 4
+  memory = 4096
+}</code></pre>
+<hr />
+<h2 id="architecture">Architecture</h2>
+<pre><code>                    +-----------+    +-----------+    +----------+
+                    |   fabricctl   |    | fabricctl |    |  Web UI  |
+                    |   (CLI)   |    |            |    | (React)  |
+                    +-----+-----+    +-----+-----+    +----+-----+
+                          |                |               |
+                +---------+----------+     |      +--------+
+                |         |          |     |      |
+           +----v----+   |   +------v-----v------v-------+
+           |   K8s   |   |   |       zyvor-fabricd daemon      |
+           |Operator |   |   |   REST API + WebSocket      |
+           +---------+   |   +---+----+----+----+----+----+
+                          |       |    |    |    |    |
+           +-----------+  |       |    |    |    |    |
+           | Terraform |--+       |    |    |    |    |
+           | Provider  |         |    |    |    |    |
+           +-----------+         |    |    |    |    |
+                                  v    v    v    v    v
+                           FluxVM</code></pre>
+<hr />
+<h2 id="deployment-models">Deployment Models</h2>
+<h3 id="single-server">Single Server</h3>
+<p>One Linux server running Zyvor Fabric with local storage. Suitable for
+development, testing, small teams, and edge deployments.</p>
+<p><strong>Requirements:</strong> Linux with systemd 256+, 4GB RAM
+minimum</p>
+<h3 id="multi-node-cluster">Multi-Node Cluster</h3>
+<p>Multiple Zyvor Fabric nodes with etcd-based clustering, shared storage
+(NFS/Ceph), live migration, and HA failover.</p>
+<p><strong>Requirements:</strong> 3+ nodes, shared storage, etcd
+cluster</p>
+<h3 id="kubernetes-managed">Kubernetes-Managed</h3>
+<p>Zyvor Fabric nodes managed by the Kubernetes operator. VMs defined as
+CRDs alongside containerized workloads.</p>
+<p><strong>Requirements:</strong> Kubernetes cluster with zyvor-fabricd
+operator deployed</p>
+<hr />
+<h2 id="technology-stack">Technology Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Language</td>
+<td>Rust (2021 edition)</td>
+</tr>
+<tr>
+<td>Async Runtime</td>
+<td>Tokio 1.44</td>
+</tr>
+<tr>
+<td>Web Framework</td>
+<td>Axum 0.8</td>
+</tr>
+<tr>
+<td>Web console</td>
+<td></p>
+<hr />
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="one-command-deployment">One-Command Deployment</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Deploy everything (auto-sudo — no manual sudo needed)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> deploy</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># That&#39;s it. Zyvor Fabric is running.</span></span></code></pre></div>
+<h3 id="step-by-step">Step-by-Step</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install dependencies (auto-sudo)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> deps</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Build</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> build</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Run tests</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> test</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Install and start (auto-sudo)</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> install</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> start</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Read admin password</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> password</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Run interactive demo</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> demo</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Create your first VM</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="ex">fabricctl</span> create myvm <span class="at">--image</span><span class="op">=</span>/path/to/image.qcow2 <span class="at">--cpus</span><span class="op">=</span>4 <span class="at">--memory</span><span class="op">=</span>4096</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="ex">fabricctl</span> start myvm</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Open web dashboard</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="ex">open</span> http://localhost:9095</span></code></pre></div>
+<h3 id="management-commands">Management Commands</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> status      <span class="co"># Check service status</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> verify      <span class="co"># Post-install smoke test (API, auth, VM CRUD, backups)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> health      <span class="co"># Deep health check (disk, DB, timers, resources)</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> logs        <span class="co"># Follow logs</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> restart     <span class="co"># Restart service (auto-sudo)</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> reinstall   <span class="co"># Rebuild + reinstall + auto-verify (auto-sudo)</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> upgrade     <span class="co"># Git pull + reinstall (auto-sudo)</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> uninstall   <span class="co"># Remove everything (auto-sudo)</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> doctor      <span class="co"># System readiness check</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> tls         <span class="co"># Generate self-signed TLS certificate</span></span></code></pre></div>
+<h3 id="backup-commands">Backup Commands</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> backup now      <span class="co"># Run backup immediately</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> backup enable   <span class="co"># Enable daily backup timer (2:00 AM)</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> backup disable  <span class="co"># Disable backup timer</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> backup status   <span class="co"># Show timer state + storage info</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./fabricctl</span> backup logs     <span class="co"># Follow backup logs</span></span></code></pre></div>
+<hr />
+<p><em>For technical details, see the <a
+href="architecture.md">Architecture Guide</a>, <a href="api.md">API
+Reference</a>, and <a href="security.md">Security
+Documentation</a>.</em></p>
+</body>
+</html>

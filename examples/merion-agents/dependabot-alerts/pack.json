@@ -1,0 +1,60 @@
+{
+  "kind": "usecase",
+  "name": "dependabot-alerts",
+  "title": "Dependabot alerts",
+  "description": "Drop in the Dependabot alerts JSON and get severities, states, packages, ecosystems, manifests and the advisory summaries.",
+  "accepts": [
+    "json"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Alert states",
+      "pattern": "\"number\":[0-9]+,\"state\":\"(\\w+)\"",
+      "max_matches": 5,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Severity",
+      "pattern": "\"security_vulnerability\":\\{\"package\":\\{[^}]*\\},\"severity\":\"(\\w+)\"",
+      "max_matches": 5,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Ecosystems",
+      "pattern": "\"dependency\":\\{\"package\":\\{\"ecosystem\":\"([^\"]+)\"",
+      "max_matches": 6,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Packages",
+      "pattern": "\"dependency\":\\{\"package\":\\{\"ecosystem\":\"[^\"]+\",\"name\":\"([^\"]+)\"",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Manifests",
+      "pattern": "\"manifest_path\":\"([^\"]+)\"",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Advisories",
+      "pattern": "\"summary\":\"([^\"]{5,140})\"",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "dependabot.md",
+  "sample_file": "sample.json"
+}

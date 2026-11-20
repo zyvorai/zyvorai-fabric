@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zyvor Fabric - Feature Deep Dive</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0e0e0; }
+  .slide { min-height: 100vh; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #222; }
+  .slide h1 { font-size: 2.8em; margin-bottom: 20px; color: #60a5fa; }
+  .slide h2 { font-size: 2em; margin-bottom: 16px; color: #93c5fd; }
+  .slide h3 { font-size: 1.4em; margin-bottom: 12px; color: #bfdbfe; }
+  .slide p, .slide li { font-size: 1.2em; line-height: 1.8; margin-bottom: 8px; }
+  .slide ul, .slide ol { padding-left: 30px; }
+  .slide code { background: #1e293b; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; color: #7dd3fc; }
+  .slide pre { background: #1e293b; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 16px 0; }
+  .slide pre code { background: none; padding: 0; }
+  .slide table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .slide th, .slide td { padding: 12px 16px; text-align: left; border: 1px solid #334155; }
+  .slide th { background: #1e293b; color: #93c5fd; }
+  .slide .highlight { color: #34d399; font-weight: bold; }
+  .slide .subtitle { font-size: 1.4em; color: #94a3b8; margin-bottom: 30px; }
+  .slide .badge { display: inline-block; background: #1e3a5f; color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-size: 0.9em; margin: 4px; }
+  .title-slide { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center; }
+  .title-slide h1 { font-size: 3.5em; color: #60a5fa; }
+  .title-slide .subtitle { font-size: 1.6em; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .metric { text-align: center; padding: 20px; }
+  .metric .number { font-size: 3em; color: #34d399; font-weight: bold; }
+  .metric .label { font-size: 1em; color: #94a3b8; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin: 8px 0; }
+  .card h3 { color: #60a5fa; }
+  @media print { .slide { page-break-after: always; min-height: auto; padding: 40px; } }
+
+  .brand-line { font-size: 1em; color: #f97316; margin-top: 24px; font-weight: 600; }
+  .brand-line a { color: #f97316; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide title-slide">
+  <h1>Feature Deep Dive</h1>
+  <p class="subtitle">Complete Capability Walkthrough</p>
+  <p style="font-size: 1.2em; color: #64748b; margin-top: 20px;">
+    Every feature you need to manage VMs at scale -- built into one platform.
+  </p>
+</div>
+
+<!-- Slide 2: VM Lifecycle Management -->
+<div class="slide">
+  <h1>VM Lifecycle Management</h1>
+  <p class="subtitle">Full control from creation to decommission</p>
+  <div class="two-col">
+    <div>
+      <h3>Core Operations</h3>
+      <ul>
+        <li><span class="highlight">Create</span> -- from disk image, cloud image, or template</li>
+        <li><span class="highlight">Start / Stop / Restart</span> -- graceful and forced options</li>
+        <li><span class="highlight">Pause / Resume</span> -- freeze VM state in memory</li>
+        <li><span class="highlight">Hibernate</span> -- suspend to disk, resume from snapshot</li>
+        <li><span class="highlight">Delete</span> -- with optional disk cleanup</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Advanced Operations</h3>
+      <ul>
+        <li><span class="highlight">Clone</span> -- full or linked (CoW) cloning</li>
+        <li><span class="highlight">Template</span> -- convert VM to reusable template</li>
+        <li><span class="highlight">Import</span> -- from VMDK, VDI, VHD (auto-convert to qcow2)</li>
+        <li><span class="highlight">Migrate</span> -- live migration to another host</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Configuration Options</h3>
+      <table>
+        <tr><th>Setting</th><th>Capability</th></tr>
+        <tr><td>CPU</td><td>1-128 vCPUs, pinning, NUMA</td></tr>
+        <tr><td>Memory</td><td>256MB - 512GB, hotplug</td></tr>
+        <tr><td>Disk</td><td>qcow2, raw, vmdk, vdi</td></tr>
+        <tr><td>Network</td><td>Bridge, NAT, host-only</td></tr>
+        <tr><td>GPU</td><td>NVIDIA, AMD, Intel GVT-g</td></tr>
+        <tr><td>TPM</td><td>1.2 and 2.0 via swtpm</td></tr>
+        <tr><td>cloud-init</td><td>NoCloud datasource</td></tr>
+        <tr><td>Boot</td><td>UEFI, Secure Boot</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Declarative Config</h3>
+      <pre><code>zyvorctl apply -f infrastructure.yaml</code></pre>
+      <p>Define desired state in YAML. zyvorctl reconciles automatically.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Cloud Image Support -->
+<div class="slide">
+  <h1>Cloud Image Support</h1>
+  <p class="subtitle">Official images from major distributions, ready to deploy</p>
+  <div class="two-col">
+    <div>
+      <h3>Built-in Image Catalog</h3>
+      <table>
+        <tr><th>Distribution</th><th>Versions</th><th>Format</th></tr>
+        <tr><td>Ubuntu</td><td>22.04 LTS, 24.04 LTS</td><td>qcow2</td></tr>
+        <tr><td>Fedora</td><td>39, 40, 41</td><td>qcow2</td></tr>
+        <tr><td>Debian</td><td>12 (Bookworm), 13</td><td>qcow2</td></tr>
+        <tr><td>AlmaLinux</td><td>8, 9</td><td>qcow2</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Download and Deploy</h3>
+      <pre><code># Download an image
+zyvorctl image download ubuntu-24.04
+
+# Create VM from cloud image
+zyvorctl create webserver \
+  --image=ubuntu-24.04.qcow2 \
+  --cpus=4 --memory=4096
+
+# VM boots with cloud-init
+zyvorctl start webserver</code></pre>
+    </div>
+    <div>
+      <h3>ISO Management</h3>
+      <ul>
+        <li>Download ISO images from URLs</li>
+        <li>List available ISOs</li>
+        <li>Attach ISOs to VMs for installation</li>
+        <li>Delete ISOs when no longer needed</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Content Library</h3>
+      <ul>
+        <li>Centralized image and template storage</li>
+        <li>Version tracking for images</li>
+        <li>Share templates across the cluster</li>
+        <li>SSRF-protected URL downloads</li>
+      </ul>
+      <h3 style="margin-top: 20px;">VM Import</h3>
+      <ul>
+        <li>Import from VMware (VMDK)</li>
+        <li>Import from VirtualBox (VDI)</li>
+        <li>Import from Hyper-V (VHD)</li>
+        <li>Automatic conversion to qcow2</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: Cloud-Init Integration -->
+<div class="slide">
+  <h1>Cloud-Init Integration</h1>
+  <p class="subtitle">Automated VM provisioning with NoCloud datasource</p>
+  <div class="two-col">
+    <div>
+      <h3>What cloud-init Provides</h3>
+      <ul>
+        <li>Automatic hostname configuration</li>
+        <li>SSH key injection for passwordless access</li>
+        <li>User and group creation</li>
+        <li>Package installation on first boot</li>
+        <li>Custom script execution</li>
+        <li>Network configuration</li>
+        <li>Disk partition and filesystem setup</li>
+      </ul>
+      <h3 style="margin-top: 20px;">How It Works</h3>
+      <ol>
+        <li>User provides cloud-init config via API or CLI</li>
+        <li>Zyvor Fabric generates a NoCloud datasource ISO</li>
+        <li>ISO is attached to the VM automatically</li>
+        <li>VM boots and cloud-init runs on first start</li>
+        <li>Configuration is applied, VM is ready to use</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Example Configuration</h3>
+      <pre><code>#cloud-config
+hostname: webserver-01
+users:
+  - name: admin
+    ssh_authorized_keys:
+      - ssh-rsa AAAA...
+    sudo: ALL=(ALL) NOPASSWD:ALL
+packages:
+  - nginx
+  - docker.io
+  - htop
+runcmd:
+  - systemctl enable --now nginx
+  - systemctl enable --now docker</code></pre>
+      <h3 style="margin-top: 20px;">API Integration</h3>
+      <pre><code>POST /api/v1/vms
+{
+  "name": "webserver-01",
+  "image": "ubuntu-24.04.qcow2",
+  "cpus": 4,
+  "memory": 4096,
+  "cloud_init": {
+    "hostname": "webserver-01",
+    "ssh_keys": ["ssh-rsa ..."],
+    "packages": ["nginx"]
+  }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: Snapshot and Backup System -->
+<div class="slide">
+  <h1>Snapshot and Backup System</h1>
+  <p class="subtitle">Protect your workloads with automated retention policies</p>
+  <div class="two-col">
+    <div>
+      <h3>Snapshot Capabilities</h3>
+      <ul>
+        <li>Create point-in-time snapshots</li>
+        <li>Restore to any previous snapshot</li>
+        <li>Configurable retention policies</li>
+        <li>Linked clones from snapshots (CoW)</li>
+        <li>Snapshot before risky operations</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Backup Features</h3>
+      <ul>
+        <li>Per-VM backup from any interface (CLI, web)</li>
+        <li>Bulk backup operations</li>
+        <li>Incremental backup support</li>
+        <li>Automated daily backups via systemd timer</li>
+        <li>Configurable backup schedule (default 2:00 AM)</li>
+        <li>Retention policies with automatic cleanup</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Backup Configuration</h3>
+      <pre><code># In zyvor-fabricd.toml
+[backup]
+dir = "/var/lib/zyvor-fabricd/backups"
+retain = 7
+type = "full"
+
+# Or via environment variables
+ZYVOR_FABRICD_BACKUP_DIR=/backups
+ZYVOR_FABRICD_BACKUP_RETAIN=7
+ZYVOR_FABRICD_BACKUP_TYPE=full</code></pre>
+      <h3 style="margin-top: 20px;">Management Commands</h3>
+      <pre><code># Immediate backup
+zyvorctl backup now
+
+# Enable daily timer
+zyvorctl backup enable
+
+# Check backup status
+zyvorctl backup status
+
+# View backup logs
+zyvorctl backup logs</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: Live Migration -->
+<div class="slide">
+  <h1>Live Migration</h1>
+  <p class="subtitle">Move running VMs between hosts with minimal downtime</p>
+  <div class="two-col">
+    <div>
+      <h3>How It Works</h3>
+      <ol>
+        <li><span class="highlight">Pre-copy phase</span> -- iterative rsync of VM disk to target host</li>
+        <li><span class="highlight">Memory transfer</span> -- copy VM memory pages</li>
+        <li><span class="highlight">Convergence</span> -- track dirty pages, re-copy changed regions</li>
+        <li><span class="highlight">Cutover</span> -- brief pause, final sync, resume on target</li>
+        <li><span class="highlight">Cleanup</span> -- remove source VM data</li>
+      </ol>
+      <h3 style="margin-top: 20px;">Storage Live Migration</h3>
+      <ul>
+        <li>Move VM disks between storage pools</li>
+        <li>Migrate from local to shared storage</li>
+        <li>No VM downtime during disk migration</li>
+        <li>Supports all 6 storage backends</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Migration Triggers</h3>
+      <ul>
+        <li><span class="highlight">Manual</span> -- operator-initiated via CLI, API, or Web UI</li>
+        <li><span class="highlight">DRS</span> -- automatic load balancing across cluster</li>
+        <li><span class="highlight">Maintenance</span> -- evacuate host for planned downtime</li>
+        <li><span class="highlight">Failover</span> -- automatic migration on host failure</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Placement Controls</h3>
+      <ul>
+        <li>Affinity rules -- keep VMs together</li>
+        <li>Anti-affinity rules -- separate VMs across hosts</li>
+        <li>Host constraints -- restrict VMs to specific nodes</li>
+        <li>Resource requirements -- CPU, memory, GPU matching</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: CPU/Memory Hotplug -->
+<div class="slide">
+  <h1>CPU and Memory Hotplug</h1>
+  <p class="subtitle">Scale VM resources without downtime</p>
+  <div class="two-col">
+    <div>
+      <h3>CPU Management</h3>
+      <ul>
+        <li>Add or remove vCPUs while VM is running</li>
+        <li>CPU pinning to specific physical cores</li>
+        <li>NUMA topology configuration</li>
+        <li>CPU model and feature flag selection</li>
+        <li>Up to 128 vCPUs per VM</li>
+      </ul>
+      <h3 style="margin-top: 20px;">CPU Pinning Example</h3>
+      <pre><code># Pin vCPUs to physical cores
+zyvorctl config myvm \
+  --cpu-pin 0:0,1:1,2:2,3:3
+
+# Set NUMA node assignment
+zyvorctl config myvm \
+  --numa-node 0 \
+  --numa-cpus 0-3 \
+  --numa-memory 4096</code></pre>
+    </div>
+    <div>
+      <h3>Memory Management</h3>
+      <ul>
+        <li>Increase memory allocation at runtime</li>
+        <li>Memory ballooning for dynamic sizing</li>
+        <li>256MB to 512GB per VM</li>
+        <li>NUMA-aware memory allocation</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Online Disk Resize</h3>
+      <ul>
+        <li>Grow disk images while VM is running</li>
+        <li>Uses <code>qemu-img resize</code> + QMP <code>block_resize</code></li>
+        <li>Guest OS can extend filesystem online</li>
+        <li>Supported on qcow2 and raw formats</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Resource Overcommit</h3>
+      <ul>
+        <li>Configurable CPU overcommit ratio</li>
+        <li>Configurable memory overcommit ratio</li>
+        <li>Storage overcommit with thin provisioning</li>
+        <li>Alerts when thresholds are exceeded</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: Networking -->
+<div class="slide">
+  <h1>Advanced Networking</h1>
+  <p class="subtitle">8 dedicated networking crates for enterprise requirements</p>
+  <div class="three-col">
+    <div class="card">
+      <h3>Network Policies</h3>
+      <p>Cilium-style label-based rules for ingress and egress traffic control. Define which VMs can communicate using label selectors.</p>
+      <pre><code>allow:
+  from:
+    label: tier=web
+  to:
+    label: tier=api
+  port: 8080</code></pre>
+    </div>
+    <div class="card">
+      <h3>VM Firewall</h3>
+      <p>Per-VM firewall profiles using nftables. Stateful packet inspection with connection tracking. Security zones for network segmentation.</p>
+      <pre><code>zyvorctl firewall myvm \
+  --allow tcp:80,443 \
+  --deny all</code></pre>
+    </div>
+    <div class="card">
+      <h3>VPN Mesh</h3>
+      <p>WireGuard-based encrypted tunnels. Supports point-to-point, hub-spoke, and full-mesh topologies for secure cross-network VM communication.</p>
+      <pre><code>zyvorctl vpn create \
+  --topology full-mesh \
+  --peers vm1,vm2,vm3</code></pre>
+    </div>
+    <div class="card">
+      <h3>Service Mesh</h3>
+      <p>Virtual IP load balancing across VM groups. Algorithms: round-robin, least-connections, random, IP-hash. Health checks included.</p>
+    </div>
+    <div class="card">
+      <h3>Traffic Shaping (QoS)</h3>
+      <p>Per-VM bandwidth guarantees and limits. Burst capacity configuration. Priority-based allocation for critical workloads.</p>
+    </div>
+    <div class="card">
+      <h3>DNS, NAT, Monitoring</h3>
+      <p>DNS zone management with domain blocking. Full NAT (masquerade, SNAT, DNAT, hairpin). Per-VM bandwidth tracking with alerts.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9: Storage Pools -->
+<div class="slide">
+  <h1>Storage Pools</h1>
+  <p class="subtitle">6 storage backends with a unified management API</p>
+  <table>
+    <tr>
+      <th>Backend</th>
+      <th>Best For</th>
+      <th>Provisioning</th>
+      <th>Snapshots</th>
+      <th>Replication</th>
+      <th>Live Migration</th>
+    </tr>
+    <tr>
+      <td><span class="highlight">Local</span></td>
+      <td>Single server, development</td>
+      <td>Thick / Thin (qcow2)</td>
+      <td>Yes</td>
+      <td>Manual</td>
+      <td>With shared storage</td>
+    </tr>
+    <tr>
+      <td><span class="highlight">NFS</span></td>
+      <td>Shared storage, small clusters</td>
+      <td>Thick</td>
+      <td>Yes</td>
+      <td>NFS server</td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><span class="highlight">LVM</span></td>
+      <td>Performance workloads</td>
+      <td>Thick</td>
+      <td>LVM snapshots</td>
+      <td>Manual</td>
+      <td>With shared VG</td>
+    </tr>
+    <tr>
+      <td><span class="highlight">LVM-thin</span></td>
+      <td>Overcommit, many VMs</td>
+      <td>Thin</td>
+      <td>Yes (CoW)</td>
+      <td>Manual</td>
+      <td>With shared VG</td>
+    </tr>
+    <tr>
+      <td><span class="highlight">ZFS</span></td>
+      <td>Data integrity, compliance</td>
+      <td>Thin (CoW)</td>
+      <td>Yes (instant)</td>
+      <td>send/receive</td>
+      <td>With shared pool</td>
+    </tr>
+    <tr>
+      <td><span class="highlight">Ceph/RBD</span></td>
+      <td>Large clusters, HA</td>
+      <td>Thin</td>
+      <td>Yes</td>
+      <td>Built-in</td>
+      <td>Yes (native)</td>
+    </tr>
+  </table>
+  <div class="two-col" style="margin-top: 20px;">
+    <div>
+      <h3>Unified Operations</h3>
+      <ul>
+        <li>Create, list, resize, delete volumes</li>
+        <li>Attach / detach volumes to VMs</li>
+        <li>Snapshot with configurable retention</li>
+        <li>Live migration between storage pools</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Ceph Integration</h3>
+      <ul>
+        <li>Cluster health monitoring</li>
+        <li>RBD image management</li>
+        <li>Pool name validation and sanitization</li>
+        <li>Distributed replication across OSDs</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Monitoring and Alerting -->
+<div class="slide">
+  <h1>Monitoring and Alerting</h1>
+  <p class="subtitle">Full observability with Prometheus integration</p>
+  <div class="two-col">
+    <div>
+      <h3>Metrics Collection</h3>
+      <ul>
+        <li>Prometheus-compatible <code>/metrics</code> endpoint</li>
+        <li>Per-VM CPU, memory, disk, and network metrics</li>
+        <li>Host-level resource utilization</li>
+        <li>API request latency and throughput</li>
+        <li>Storage pool capacity and usage</li>
+        <li>Configurable retention policies</li>
+        <li>Historical data for analytics</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Dashboard</h3>
+      <ul>
+        <li>Web UI analytics page with charts</li>
+        <li>web console with sparkline graphs</li>
+        <li>Grafana dashboard compatible</li>
+        <li>Real-time WebSocket updates</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Alert Channels</h3>
+      <table>
+        <tr><th>Channel</th><th>Features</th></tr>
+        <tr><td>Email</td><td>SMTP with TLS, templates</td></tr>
+        <tr><td>Slack</td><td>Webhook integration</td></tr>
+        <tr><td>Microsoft Teams</td><td>Webhook integration</td></tr>
+        <tr><td>Webhook</td><td>Custom URL with retry + backoff</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">VM Scheduling</h3>
+      <ul>
+        <li>Schedule VM start/stop operations</li>
+        <li>One-time, daily, or weekly schedules</li>
+        <li>Reduce costs by stopping dev VMs at night</li>
+        <li>Automated cleanup of expired VMs</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 11: Certificate Management -->
+<div class="slide">
+  <h1>Certificate Management</h1>
+  <p class="subtitle">Built-in TLS certificate lifecycle management</p>
+  <div class="two-col">
+    <div>
+      <h3>Capabilities</h3>
+      <ul>
+        <li>Self-signed certificate generation</li>
+        <li>Subject Alternative Names (SAN) support</li>
+        <li>Certificate expiration monitoring</li>
+        <li>Automatic renewal workflows</li>
+        <li>TLS configuration for HTTPS</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Quick Setup</h3>
+      <pre><code># Generate self-signed TLS certificate
+zyvorctl tls
+
+# Certificate files created:
+#   /etc/zyvor-fabricd/tls/cert.pem
+#   /etc/zyvor-fabricd/tls/key.pem
+
+# Enable HTTPS in config
+[tls]
+cert = "/etc/zyvor-fabricd/tls/cert.pem"
+key = "/etc/zyvor-fabricd/tls/key.pem"</code></pre>
+    </div>
+    <div>
+      <h3>Encryption at Rest</h3>
+      <ul>
+        <li>VM disk encryption support</li>
+        <li>Credential storage encryption</li>
+        <li>Secret auto-generation with secure permissions</li>
+        <li>Key management integration</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Security Headers</h3>
+      <ul>
+        <li>Strict-Transport-Security (HSTS)</li>
+        <li>Content-Security-Policy</li>
+        <li>X-Content-Type-Options</li>
+        <li>X-Frame-Options</li>
+        <li>Referrer-Policy</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 12: Multi-Tenancy -->
+<div class="slide">
+  <h1>Multi-Tenancy</h1>
+  <p class="subtitle">Project-based isolation with fine-grained access control</p>
+  <div class="two-col">
+    <div>
+      <h3>Project Isolation</h3>
+      <ul>
+        <li>Each project is an isolated namespace</li>
+        <li>VMs, networks, and storage are project-scoped</li>
+        <li>Users can belong to multiple projects</li>
+        <li>Per-project member roles (Admin, User, Viewer)</li>
+        <li>Cross-project resources are invisible by default</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Resource Quotas</h3>
+      <table>
+        <tr><th>Resource</th><th>Quota Types</th></tr>
+        <tr><td>vCPUs</td><td>Total, per-VM max</td></tr>
+        <tr><td>Memory</td><td>Total GB, per-VM max</td></tr>
+        <tr><td>Storage</td><td>Total GB, per-volume max</td></tr>
+        <tr><td>VMs</td><td>Max count per project</td></tr>
+        <tr><td>Network</td><td>Bandwidth limits</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>RBAC Model</h3>
+      <div class="card">
+        <h3>Admin</h3>
+        <p>Full platform access. Manage users, projects, quotas, cluster settings. Access all VMs across all projects.</p>
+      </div>
+      <div class="card">
+        <h3>User</h3>
+        <p>Create and manage VMs within assigned projects. Configure networking and storage. Cannot modify platform settings.</p>
+      </div>
+      <div class="card">
+        <h3>Viewer</h3>
+        <p>Read-only access to assigned projects. View VM status, metrics, and logs. Cannot modify any resources.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 13: Auto-Scaling and HA -->
+<div class="slide">
+  <h1>High Availability and Auto-Scaling</h1>
+  <p class="subtitle">Keep workloads running with automatic recovery</p>
+  <div class="two-col">
+    <div>
+      <h3>Clustering</h3>
+      <ul>
+        <li>etcd-based cluster coordination</li>
+        <li>Leader election for control plane</li>
+        <li>Distributed state replication</li>
+        <li>Node health monitoring</li>
+        <li>Automatic node join/leave handling</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Fault Tolerance</h3>
+      <ul>
+        <li>Automatic failover on host failure</li>
+        <li>VM restart on healthy nodes</li>
+        <li>Fencing for split-brain prevention</li>
+        <li>Configurable failure detection timeout</li>
+        <li>Site recovery with failover/reprotect</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Predictive DRS</h3>
+      <ul>
+        <li>Distributed Resource Scheduling</li>
+        <li>Automatic VM placement optimization</li>
+        <li>Load-aware scheduling decisions</li>
+        <li>Affinity and anti-affinity rules</li>
+        <li>Resource overcommit policies</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Resource Management</h3>
+      <ul>
+        <li>Resource pools with hierarchical quotas</li>
+        <li>Datacenter abstractions for logical grouping</li>
+        <li>CPU and memory reservation guarantees</li>
+        <li>Shares-based fair scheduling</li>
+        <li>Overcommit ratios for CPU, memory, storage</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 14: Management Interfaces -->
+<div class="slide">
+  <h1>Five Management Interfaces</h1>
+  <p class="subtitle">Every team uses their preferred workflow</p>
+  <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+    <div class="card" style="text-align: center;">
+      <h3>CLI</h3>
+      <p><code>/app</code> console · <code>zyvorctl</code> CLI</p>
+      <p style="font-size: 0.95em;">Scriptable command-line with JSON, YAML, and table output. Bash tab completion. Perfect for automation.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h3>Web console</h3>
+      <p><code>/app</code> console · <code>zyvorctl</code> CLI</p>
+      <p style="font-size: 0.95em;"> SSH-friendly for remote servers.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h3>Web UI</h3>
+      <p>React Dashboard</p>
+      <p style="font-size: 0.95em;">37+ pages, command palette, light Apple console, WebSocket live updates, bulk operations. Full-featured browser access.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h3>K8s Operator</h3>
+      <p>CRD-based</p>
+      <p style="font-size: 0.95em;">Manage VMs as Kubernetes resources. Automatic reconciliation. GitOps-compatible workflow.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h3>Terraform</h3>
+      <p>Provider</p>
+      <p style="font-size: 0.95em;">Declarative provisioning with plan/apply workflow. State management. CI/CD pipeline integration.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 15: 2FA/MFA Authentication -->
+<div class="slide">
+  <h1>2FA / MFA Authentication</h1>
+  <p class="subtitle">TOTP-based two-factor authentication for every user account</p>
+  <div class="two-col">
+    <div>
+      <h3>How It Works</h3>
+      <ol>
+        <li>User calls <code>POST /api/auth/2fa/setup</code> to generate a TOTP secret</li>
+        <li>Server returns the secret and an <code>otpauth://</code> URL for QR scanning</li>
+        <li>User scans the QR code with Google Authenticator, Authy, or any TOTP app</li>
+        <li>User confirms setup by verifying a code via <code>POST /api/auth/2fa/verify</code></li>
+        <li>All subsequent logins require a 6-digit TOTP code in the <code>totp_code</code> field</li>
+      </ol>
+      <h3 style="margin-top: 20px;">Security Benefits</h3>
+      <ul>
+        <li>Protects against stolen passwords</li>
+        <li>Per-user enable/disable -- no global toggle</li>
+        <li>TOTP secrets stored encrypted in the user database</li>
+        <li>Constant-time code verification prevents timing attacks</li>
+      </ul>
+    </div>
+    <div>
+      <h3>API Flow</h3>
+      <pre><code># Step 1: Set up 2FA
+POST /api/auth/2fa/setup
+Authorization: Bearer &lt;token&gt;
+
+# Response:
+{
+  "secret": "BASE32SECRET...",
+  "otpauth_url": "otpauth://totp/Zyvor Fabric:admin?..."
+}
+
+# Step 2: Verify setup
+POST /api/auth/2fa/verify
+{"code": "123456"}
+
+# Step 3: Login with 2FA
+POST /api/auth/login
+{
+  "username": "admin",
+  "password": "...",
+  "totp_code": "654321"
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 16: OVA/OVF Export and Import -->
+<div class="slide">
+  <h1>OVA / OVF Export and Import</h1>
+  <p class="subtitle">Industry-standard VM packaging for portability</p>
+  <div class="two-col">
+    <div>
+      <h3>OVA Export</h3>
+      <ul>
+        <li>Export any VM to OVA format via <code>POST /api/vms/:name/export</code></li>
+        <li>Packages disk image, hardware manifest, and metadata into a single archive</li>
+        <li>Compatible with VMware, VirtualBox, and other OVA-capable platforms</li>
+        <li>VM must be stopped before export</li>
+        <li>Download the OVA file directly from the API response</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Import Support</h3>
+      <ul>
+        <li>Import from VMDK, VDI, and VHD formats</li>
+        <li>Automatic conversion to qcow2</li>
+        <li>Preserves VM configuration metadata</li>
+        <li>Enables migration into Zyvor Fabric</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Export Example</h3>
+      <pre><code># Export a stopped VM
+curl -X POST "$HOST/api/vms/web-01/export" \
+  -H "Authorization: Bearer $TOKEN" \
+  -o web-01.ova
+
+# Import a VMDK disk
+curl -X POST "$HOST/api/vms" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "migrated-vm",
+    "import_path": "/uploads/server.vmdk",
+    "cpus": 4,
+    "memory": 4096
+  }'</code></pre>
+      <h3 style="margin-top: 20px;">Use Cases</h3>
+      <ul>
+        <li>Migration from other platforms</li>
+        <li>VM archival and disaster recovery</li>
+        <li>Cross-platform VM portability</li>
+        <li>Template distribution to air-gapped sites</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 17: Secrets Management -->
+<div class="slide">
+  <h1>Secrets Management</h1>
+  <p class="subtitle">Centralized secret storage with encryption at rest</p>
+  <div class="two-col">
+    <div>
+      <h3>Capabilities</h3>
+      <ul>
+        <li>Create, retrieve, and delete secrets via REST API</li>
+        <li>Values encrypted at rest -- never returned in list responses</li>
+        <li>Attach metadata (key/value pairs) to each secret</li>
+        <li>Admin-only access enforced by RBAC</li>
+        <li>Audit logged on every create, read, and delete</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Injection into VMs</h3>
+      <ul>
+        <li>Secrets can be injected at boot via systemd credentials</li>
+        <li>Delivered through SMBIOS or VSOCK -- never on command line</li>
+        <li>Guest reads credentials with <code>systemd-creds cat</code></li>
+        <li>Credential IDs validated (alphanumeric + dots/hyphens only)</li>
+      </ul>
+    </div>
+    <div>
+      <h3>API Examples</h3>
+      <pre><code># Create a secret
+curl -X POST "$HOST/api/secrets" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "db-password",
+    "value": "s3cretP@ss!",
+    "metadata": {"env": "production"}
+  }'
+
+# List secrets (values redacted)
+curl "$HOST/api/secrets" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Delete a secret
+curl -X DELETE "$HOST/api/secrets/$SECRET_ID" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 18: Compliance Scanning -->
+<div class="slide">
+  <h1>Compliance Scanning</h1>
+  <p class="subtitle">Automated security posture assessment for every VM</p>
+  <div class="two-col">
+    <div>
+      <h3>Built-in Check Types</h3>
+      <table>
+        <tr><th>Check</th><th>Category</th><th>What It Verifies</th></tr>
+        <tr><td>DiskEncrypted</td><td>Security</td><td>VM disk encryption enabled</td></tr>
+        <tr><td>TpmEnabled</td><td>Security</td><td>TPM 2.0 present</td></tr>
+        <tr><td>SecureBootEnabled</td><td>Security</td><td>UEFI Secure Boot active</td></tr>
+        <tr><td>FirewallAssigned</td><td>Network</td><td>Firewall profile attached</td></tr>
+        <tr><td>NetworkPolicyAssigned</td><td>Network</td><td>Network policy in effect</td></tr>
+        <tr><td>MinCpus</td><td>Compute</td><td>Meets minimum CPU requirement</td></tr>
+        <tr><td>MinMemoryMb</td><td>Compute</td><td>Meets minimum memory requirement</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Severity Levels</h3>
+      <p><span class="badge">Critical</span> <span class="badge">High</span> <span class="badge">Medium</span> <span class="badge">Low</span> <span class="badge">Info</span></p>
+    </div>
+    <div>
+      <h3>Scan a VM</h3>
+      <pre><code># List compliance profiles
+curl "$HOST/api/compliance/profiles" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Scan a VM
+curl -X POST \
+  "$HOST/api/compliance/scan/web-01" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"profile_id": "cis-baseline-v1"}'
+
+# View all scan results
+curl "$HOST/api/compliance/results" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+      <h3 style="margin-top: 20px;">Default Profile</h3>
+      <p>The <code>cis-baseline-v1</code> profile is always available and includes all 7 checks. Custom profiles can be created and stored.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 19: Billing and Chargeback -->
+<div class="slide">
+  <h1>Billing and Chargeback</h1>
+  <p class="subtitle">Track resource consumption and generate per-tenant invoices</p>
+  <div class="two-col">
+    <div>
+      <h3>Pricing Model</h3>
+      <ul>
+        <li>Configurable pricing rules for CPU, memory, storage, and network</li>
+        <li>Per-tenant usage tracking with label-based filtering</li>
+        <li>Hourly, daily, or monthly billing periods</li>
+        <li>Automated invoice generation</li>
+      </ul>
+      <h3 style="margin-top: 20px;">API Endpoints</h3>
+      <table>
+        <tr><th>Endpoint</th><th>Description</th></tr>
+        <tr><td><code>GET /api/billing/pricing</code></td><td>Get current pricing rules</td></tr>
+        <tr><td><code>PUT /api/billing/pricing</code></td><td>Update pricing rules</td></tr>
+        <tr><td><code>GET /api/billing/usage</code></td><td>Get usage records</td></tr>
+        <tr><td><code>POST /api/billing/invoice/:tenant</code></td><td>Generate invoice</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Example Workflow</h3>
+      <pre><code># Set pricing rules
+curl -X PUT "$HOST/api/billing/pricing" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cpu_per_hour": 0.02,
+    "memory_gb_per_hour": 0.01,
+    "storage_gb_per_month": 0.10
+  }'
+
+# Generate invoice for a tenant
+curl -X POST \
+  "$HOST/api/billing/invoice/tenant-alpha" \
+  -H "Authorization: Bearer $TOKEN"
+
+# View usage records
+curl "$HOST/api/billing/usage" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 20: iSCSI Storage -->
+<div class="slide">
+  <h1>iSCSI Storage</h1>
+  <p class="subtitle">Connect to SAN storage with built-in iSCSI initiator support</p>
+  <div class="two-col">
+    <div>
+      <h3>Capabilities</h3>
+      <ul>
+        <li>Discover iSCSI targets on a portal</li>
+        <li>Login and logout of iSCSI sessions</li>
+        <li>List active iSCSI sessions</li>
+        <li>Use iSCSI LUNs as VM disk backends</li>
+        <li>Supports CHAP authentication</li>
+      </ul>
+      <h3 style="margin-top: 20px;">API Endpoints</h3>
+      <table>
+        <tr><th>Endpoint</th><th>Description</th></tr>
+        <tr><td><code>POST /api/storage/iscsi/discover</code></td><td>Discover targets</td></tr>
+        <tr><td><code>POST /api/storage/iscsi/sign-in</code></td><td>Login to a target</td></tr>
+        <tr><td><code>POST /api/storage/iscsi/logout</code></td><td>Logout from a target</td></tr>
+        <tr><td><code>GET /api/storage/iscsi/sessions</code></td><td>List active sessions</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Workflow Example</h3>
+      <pre><code># Discover targets on a SAN
+curl -X POST "$HOST/api/storage/iscsi/discover" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"portal": "10.0.0.50:3260"}'
+
+# Login to a target
+curl -X POST "$HOST/api/storage/iscsi/sign-in" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "portal": "10.0.0.50:3260",
+    "target_iqn": "iqn.2026-04.com.storage:lun0"
+  }'
+
+# List active sessions
+curl "$HOST/api/storage/iscsi/sessions" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 21: USB Passthrough -->
+<div class="slide">
+  <h1>USB Passthrough</h1>
+  <p class="subtitle">Attach host USB devices directly to VMs</p>
+  <div class="two-col">
+    <div>
+      <h3>Use Cases</h3>
+      <ul>
+        <li>Hardware security keys (YubiKey, FIDO2)</li>
+        <li>USB storage devices</li>
+        <li>Serial adapters and specialized hardware</li>
+        <li>Printers and scanners</li>
+        <li>USB dongles for licensed software</li>
+      </ul>
+      <h3 style="margin-top: 20px;">How It Works</h3>
+      <ol>
+        <li>List available USB devices on the host via <code>GET /api/system/usb</code></li>
+        <li>Identify the target device by vendor ID and product ID</li>
+        <li>Pass the device to the VM at start time via QEMU USB passthrough</li>
+        <li>Guest OS detects the device as a native USB peripheral</li>
+      </ol>
+    </div>
+    <div>
+      <h3>List Available Devices</h3>
+      <pre><code># List host USB devices
+curl "$HOST/api/system/usb" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Response:
+[
+  {
+    "bus": 1,
+    "device": 4,
+    "vendor_id": "1050",
+    "product_id": "0407",
+    "description": "Yubico YubiKey"
+  }
+]</code></pre>
+      <h3 style="margin-top: 20px;">Pass to VM at Start</h3>
+      <pre><code>curl -X POST "$HOST/api/vms/my-vm/start" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "kvm": true,
+    "extra_args": [
+      "usb_host=1050:0407"
+    ]
+  }'</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 22: SPICE Remote Display -->
+<div class="slide">
+  <h1>SPICE Remote Display</h1>
+  <p class="subtitle">High-performance remote access to VM graphical consoles</p>
+  <div class="two-col">
+    <div>
+      <h3>What SPICE Provides</h3>
+      <ul>
+        <li>Full graphical desktop access to VMs</li>
+        <li>Adaptive image compression for low-bandwidth links</li>
+        <li>Audio and video streaming</li>
+        <li>USB redirection from client to VM</li>
+        <li>Clipboard sharing between client and guest</li>
+        <li>Multi-monitor support</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Client Compatibility</h3>
+      <ul>
+        <li><code>virt-viewer</code> (Linux, Windows)</li>
+        <li><code>remote-viewer</code> (cross-platform)</li>
+        <li>Web-based SPICE HTML5 client</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Enabling SPICE</h3>
+      <pre><code># Start a VM with GUI console (SPICE)
+curl -X POST "$HOST/api/vms/desktop-vm/start" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "kvm": true,
+    "console": "gui"
+  }'</code></pre>
+      <h3 style="margin-top: 20px;">Connection</h3>
+      <pre><code># Connect with remote-viewer
+remote-viewer spice://host:5900
+
+# Or generate a .vv connection file
+# and open it with virt-viewer</code></pre>
+      <h3 style="margin-top: 20px;">When to Use</h3>
+      <ul>
+        <li>Windows VMs without SSH</li>
+        <li>Desktop Linux VMs (development, testing)</li>
+        <li>BIOS/UEFI troubleshooting</li>
+        <li>GUI-based application testing</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 23: Log Aggregation -->
+<div class="slide">
+  <h1>Log Aggregation</h1>
+  <p class="subtitle">Centralized journal querying for VMs and the host</p>
+  <div class="two-col">
+    <div>
+      <h3>Capabilities</h3>
+      <ul>
+        <li>Query per-VM journal logs via <code>GET /api/vms/:name/logs</code></li>
+        <li>Query system-level logs via <code>GET /api/logs</code></li>
+        <li>Filter by priority (0=emergency through 7=debug)</li>
+        <li>Limit the number of returned entries</li>
+        <li>JSON-structured log entries with timestamps</li>
+        <li>Forward VM journals to the host with <code>forward_journal</code></li>
+      </ul>
+      <h3 style="margin-top: 20px;">Priority Levels</h3>
+      <table>
+        <tr><th>Level</th><th>Name</th><th>Use</th></tr>
+        <tr><td>0</td><td>Emergency</td><td>System unusable</td></tr>
+        <tr><td>3</td><td>Error</td><td>Error conditions</td></tr>
+        <tr><td>4</td><td>Warning</td><td>Warning conditions</td></tr>
+        <tr><td>6</td><td>Info</td><td>Informational</td></tr>
+        <tr><td>7</td><td>Debug</td><td>Debug messages</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>API Examples</h3>
+      <pre><code># Get VM logs (last 100 entries)
+curl "$HOST/api/vms/web-01/logs?lines=100" \
+  -H "Authorization: Bearer $TOKEN"
+
+# Filter by priority (errors only)
+curl "$HOST/api/vms/web-01/logs?priority=3" \
+  -H "Authorization: Bearer $TOKEN"
+
+# System-level logs
+curl "$HOST/api/logs?lines=50&priority=4" \
+  -H "Authorization: Bearer $TOKEN"</code></pre>
+      <h3 style="margin-top: 20px;">Journal Forwarding</h3>
+      <pre><code># Forward VM journal to host at start
+curl -X POST "$HOST/api/vms/web-01/start" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "kvm": true,
+    "forward_journal": "/var/log/journal/vm-web-01"
+  }'</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 24: Rust SDK -->
+<div class="slide">
+  <h1>Rust SDK</h1>
+  <p class="subtitle">Type-safe client library for programmatic API access</p>
+  <div class="two-col">
+    <div>
+      <h3>Features</h3>
+      <ul>
+        <li>Published as the <code>zyvor-fabric-sdk</code> crate</li>
+        <li>Async/await with Tokio runtime</li>
+        <li>Automatic authentication and token management</li>
+        <li>Type-safe request and response structs</li>
+        <li>Covers the full 520+ endpoint API surface</li>
+        <li>Built-in retry and error handling</li>
+      </ul>
+      <h3 style="margin-top: 20px;">When to Use</h3>
+      <ul>
+        <li>Custom automation tools</li>
+        <li>CI/CD pipeline integration</li>
+        <li>Building higher-level orchestration layers</li>
+        <li>Testing and validation scripts</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Quick Start</h3>
+      <pre><code># Cargo.toml
+[dependencies]
+zyvor-fabric-sdk = "0.1"
+tokio = { version = "1", features = ["full"] }</code></pre>
+      <pre><code>use zyvor_fabric_sdk::{Client, ClientConfig};
+
+#[tokio::main]
+async fn main() -> anyhow::Result&lt;()&gt; {
+    let client = Client::new(ClientConfig {
+        base_url: "https://host:3000".into(),
+        token: Some("your-jwt-token".into()),
+        ..Default::default()
+    })?;
+
+    // List VMs
+    let vms = client.list_vms().await?;
+    for vm in vms {
+        println!("{}: {}", vm.name, vm.status);
+    }
+
+    Ok(())
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 25: Summary -->
+<div class="slide title-slide">
+  <h1>Complete Platform, Zero Compromise</h1>
+  <p class="subtitle">Every enterprise feature. One binary. Five minutes to production.</p>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 40px;">
+    <div class="metric">
+      <div class="number">520+</div>
+      <div class="label">API Endpoints</div>
+    </div>
+    <div class="metric">
+      <div class="number">7</div>
+      <div class="label">Storage Backends</div>
+    </div>
+    <div class="metric">
+      <div class="number">8</div>
+      <div class="label">Network Crates</div>
+    </div>
+    <div class="metric">
+      <div class="number">5</div>
+      <div class="label">Interfaces</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

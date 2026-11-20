@@ -1,0 +1,12 @@
+[package]
+name = "prometheus-exporter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+axum.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+prometheus = "0.14"
+lazy_static = "1.5"

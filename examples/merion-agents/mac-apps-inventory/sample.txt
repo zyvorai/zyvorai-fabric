@@ -1,0 +1,36 @@
+Applications:
+
+    Time Machine:
+
+      Version: 1.3
+      Obtained from: Apple
+      Last Modified: 18/09/26, 12:24 PM
+      Kind: Universal
+      Signed by: macOS Software Signing, Apple Code Signing Certification Authority, Apple Root CA
+      Location: /System/Applications/Time Machine.app
+
+    Tips:
+
+      Version: 26.7
+      Obtained from: Apple
+      Last Modified: 18/09/26, 12:24 PM
+      Kind: Universal
+      Signed by: macOS Software Signing, Apple Code Signing Certification Authority, Apple Root CA
+      Location: /System/Applications/Tips.app
+
+    Example Editor:
+
+      Version: 2.1
+      Obtained from: Identified Developer
+      Last Modified: 02/09/26, 10:00 AM
+      Kind: Apple Silicon
+      Signed by: Developer ID Application: Example Software Inc. (ABCDE12345), Developer ID Certification Authority, Apple Root CA
+      Location: /Applications/Example Editor.app
+
+    Example Utility:
+
+      Version: 0.9
+      Obtained from: Unknown
+      Last Modified: 20/08/26, 09:00 AM
+      Kind: Intel
+      Location: /Users/example/Applications/Example Utility.app

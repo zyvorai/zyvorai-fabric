@@ -1,0 +1,40 @@
+{
+  "kind": "usecase",
+  "name": "bookmarks-digest",
+  "title": "Bookmarks digest",
+  "description": "Drop in a bookmarks HTML export and get the most common sites, the folders and the titles.",
+  "accepts": [
+    "html",
+    "htm"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Sites (most bookmarked first)",
+      "pattern": "(?i)HREF=\"https?://(?:www\\.)?([^/\"]+)",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Folders",
+      "pattern": "(?i)<H3[^>]*>([^<]+)</H3>",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Titles",
+      "pattern": "(?i)<A [^>]*>([^<]{3,100})</A>",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "bookmarks.md",
+  "sample_file": "sample.html"
+}

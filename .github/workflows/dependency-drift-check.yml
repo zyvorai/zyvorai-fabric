@@ -1,0 +1,81 @@
+name: Dependency Drift Check
+
+# Reports outdated dependencies across every Rust/npm/Go workspace in the
+# repo -- the same kind of manual sweep done by hand in the "upgrade
+# everything" session that motivated this workflow, now automated so drift
+# gets caught on a schedule instead of requiring another full manual pass.
+# Not run on every push/PR: it's a periodic health check, not a merge gate,
+# so a red run here just means "something has a newer version available",
+# not "something is broken" -- worth a look, not a blocker.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1" # weekly, Monday 08:00 UTC
+  workflow_dispatch:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-edit
+        run: cargo install cargo-edit --locked
+      - name: Check backend/
+        run: cargo upgrade --incompatible allow --dry-run --manifest-path backend/Cargo.toml 2>&1 | tee /tmp/backend.log
+      - name: Check operator/
+        run: cargo upgrade --incompatible allow --dry-run --manifest-path operator/Cargo.toml 2>&1 | tee /tmp/operator.log
+      - name: Check agent-runtime/
+        run: cargo upgrade --incompatible allow --dry-run --manifest-path agent-runtime/Cargo.toml 2>&1 | tee /tmp/agent-runtime.log
+      - name: Fail if any workspace has an available upgrade
+        run: |
+          FOUND=0
+          for f in /tmp/backend.log /tmp/operator.log /tmp/agent-runtime.log; do
+            if grep -qE '^name +old req' "$f"; then
+              echo "::warning::$f has outdated dependencies:"
+              cat "$f"
+              FOUND=1
+            fi
+          done
+          exit $FOUND
+
+  npm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        workspace: [web, website, sdk/agent-runtime]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: Check ${{ matrix.workspace }}
+        run: |
+          cd ${{ matrix.workspace }}
+          OUT=$(npx --yes npm-check-updates 2>&1)
+          echo "$OUT"
+          if ! echo "$OUT" | grep -q "All dependencies match the latest package versions"; then
+            echo "::warning::${{ matrix.workspace }} has outdated dependencies"
+            exit 1
+          fi
+
+  go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: terraform-provider/go.mod
+      - name: Check terraform-provider/ (direct dependencies only)
+        run: |
+          cd terraform-provider
+          go mod download
+          OUT=$(go list -m -u -f '{{if and (not .Indirect) .Update}}{{.Path}} {{.Version}} [{{.Update.Version}}]{{end}}' all 2>&1)
+          echo "$OUT"
+          if [ -n "$(echo "$OUT" | tr -d '[:space:]')" ]; then
+            echo "::warning::terraform-provider has outdated direct Go modules"
+            exit 1
+          fi

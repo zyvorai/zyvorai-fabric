@@ -1,0 +1,44 @@
+{
+  "kind": "usecase",
+  "name": "windows-event-log",
+  "title": "Windows event log",
+  "description": "Drop in `Get-WinEvent` exported as CSV and get counts by level, provider and event id, plus the errors and warnings.",
+  "accepts": [
+    "csv"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "By level, provider and event id",
+      "columns": [
+        "levelDisplayName",
+        "providername",
+        "id"
+      ],
+      "top": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Errors",
+      "keywords": [
+        "\",\"error\",\""
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Warnings",
+      "keywords": [
+        "\",\"warning\",\""
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "windows-events.md",
+  "sample_file": "sample.csv"
+}

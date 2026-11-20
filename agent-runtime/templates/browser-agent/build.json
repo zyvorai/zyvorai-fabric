@@ -1,0 +1,48 @@
+{
+  "source": "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2",
+  "output": "/var/lib/fluxvm/images/browser-agent.qcow2",
+  "format": "qcow2",
+  "size_gib": 12,
+  "hostname": "browser-agent",
+  "packages": [
+    "chromium",
+    "chromium-driver",
+    "bubblewrap",
+    "util-linux",
+    "fonts-liberation",
+    "fonts-noto-color-emoji",
+    "ca-certificates",
+    "xz-utils"
+  ],
+  "commands": [
+    "tar -xf /root/node20.tar.xz -C /usr/local --strip-components=1",
+    "chmod +x /usr/local/bin/fluxvm-guest-agent",
+    "useradd --create-home --home-dir /home/agent --shell /bin/bash agent || true",
+    "mkdir -p /opt/zyvor/browser",
+    "tar -xf /root/playwright-core.tgz -C /opt/zyvor/browser || true",
+    "if [ -f /root/playwright-pack.tgz ]; then mkdir -p /opt/zyvor/browser && tar -xzf /root/playwright-pack.tgz -C /opt/zyvor/browser; fi",
+    "cp /root/browser-assets/driver.mjs /opt/zyvor/browser/driver.mjs",
+    "cp /root/browser-assets/example.mjs /opt/zyvor/browser/example.mjs",
+    "cp /root/browser-assets/package.json /opt/zyvor/browser/package.json",
+    "cp /root/browser-assets/chromium-cdp.service /etc/systemd/system/chromium-cdp.service",
+    "cp /root/browser-assets/browser-driver.service /etc/systemd/system/browser-driver.service",
+    "chown -R agent:agent /home/agent /opt/zyvor/browser",
+    "systemctl enable chromium-cdp.service browser-driver.service || true",
+    "/usr/local/bin/node --version",
+    "chromium --version",
+    "rm -f /root/node20.tar.xz /root/playwright-pack.tgz",
+    "rm -rf /root/browser-assets"
+  ],
+  "copy_in": [
+    {"src": "/tmp/node20.tar.xz", "dest": "/root/node20.tar.xz"},
+    {"src": "/path/to/fluxvm/target/release/fluxvm-guest-agent", "dest": "/usr/local/bin/fluxvm-guest-agent"},
+    {"src": "/path/to/fluxvm/systemd/fluxvm-guest-agent.service", "dest": "/etc/systemd/system/fluxvm-guest-agent.service"},
+    {"src": "/tmp/browser-agent-assets", "dest": "/root/browser-assets"},
+    {"src": "/tmp/playwright-pack.tgz", "dest": "/root/playwright-pack.tgz"}
+  ],
+  "enable_services": ["fluxvm-guest-agent", "chromium-cdp", "browser-driver"],
+  "pins": {
+    "node": "v20.18.1",
+    "playwright-core": "1.49.1"
+  }
+}

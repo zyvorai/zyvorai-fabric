@@ -1,0 +1,14 @@
+{
+  "name": "keep-vendor-gateway",
+  "version": "0.1.0",
+  "description": "Reference gateway that puts a vendor's accounts, regions and push in front of many Keep shards",
+  "type": "module",
+  "license": "LicenseRef-Zyvor-Production-1.0",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "node --test",
+    "lint": "node --check src/main.js && node --check src/gateway.js && node --check src/jwt.js && node --check src/oidc.js && node --check src/shards.js && node --check src/relay.js && node --check src/webhook.js"
+  }
+}

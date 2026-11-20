@@ -1,0 +1,8 @@
+test	Lint	2026-09-25T17:59:43.2263230Z ##[group]Run cd backend && cargo clippy -- -D warnings
+test	Lint	2026-09-25T18:01:13.9001000Z warning: this function has too many arguments (9/7)
+test	Lint	2026-09-25T18:01:13.9002000Z warning: this function has too many arguments (9/7)
+test	Lint	2026-09-25T18:01:13.9271000Z error: the `Err`-variant returned from this function is very large
+test	Lint	2026-09-25T18:01:13.9272000Z error: the `Err`-variant returned from this function is very large
+test	Lint	2026-09-25T18:01:14.0000000Z error: could not compile `example-crate` (lib) due to 2 previous errors
+test	Lint	2026-09-25T18:01:15.9274613Z ##[error]Process completed with exit code 101.
+web	Build	2026-09-25T18:02:00.1000000Z ##[error]Process completed with exit code 1.

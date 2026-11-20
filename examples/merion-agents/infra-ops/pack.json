@@ -1,0 +1,30 @@
+{
+  "kind": "agent",
+  "name": "infra-ops",
+  "manifest": {
+    "template": "agent-node",
+    "resources": {
+      "vcpus": 1,
+      "memory_mib": 1024
+    },
+    "egress_mode": "ask",
+    "egress_allow_hosts": [
+      "127.0.0.1"
+    ],
+    "egress_approval_timeout_seconds": 120,
+    "allow_private_networks": true,
+    "credentials": [
+      "fabric-api"
+    ],
+    "confinement": "strict",
+    "taint": {
+      "trusted_hosts": [
+        "127.0.0.1"
+      ]
+    }
+  },
+  "goal": {
+    "title": "Read alerts and VM inventory",
+    "text": "Investigate alerts and VM inventory; remediation and restarts wait for approval."
+  }
+}

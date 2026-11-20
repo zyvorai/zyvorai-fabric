@@ -1,0 +1,9 @@
+apiVersion: v2
+name: zyvor-fabricd-operator
+description: Kubernetes operator for Zyvor Fabric (zyvor-fabricd)
+type: application
+version: 0.2.0
+appVersion: "0.1.0"
+maintainers:
+  - name: Zyvor Fabric contributors
+home: https://github.com/zyvorai/fabric

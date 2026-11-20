@@ -1,0 +1,9 @@
+PID	Status	Label
+-	0	com.apple.SafariHistoryServiceAgent
+-	-9	com.apple.progressd
+-	0	com.apple.enhancedloggingd
+1270	0	com.apple.Finder
+-	0	com.example.updater
+2211	0	com.example.sync-helper
+-	78	com.example.oldjob
+-	-9	homebrew.mxcl.postgresql

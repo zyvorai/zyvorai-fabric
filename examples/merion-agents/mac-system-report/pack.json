@@ -1,0 +1,98 @@
+{
+  "kind": "usecase",
+  "name": "mac-system-report",
+  "title": "Mac system report",
+  "description": "Drop in `system_profiler` output and get the model, chip, memory, macOS version and a few health flags.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Model",
+      "pattern": "Model Name: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Model identifier",
+      "pattern": "Model Identifier: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Chip",
+      "pattern": "Chip: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Cores",
+      "pattern": "Total Number of Cores: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Memory",
+      "pattern": "\\bMemory: ([0-9]+ [GT]B)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "macOS",
+      "pattern": "System Version: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Kernel",
+      "pattern": "Kernel Version: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Firmware",
+      "pattern": "System Firmware Version: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "System Integrity Protection",
+      "pattern": "System Integrity Protection: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Secure virtual memory",
+      "pattern": "Secure Virtual Memory: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Activation Lock",
+      "pattern": "Activation Lock Status: (.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Uptime",
+      "pattern": "Time since boot: (.+)",
+      "max_matches": 2,
+      "group": 1
+    }
+  ],
+  "artifact_title": "mac-system-report.md",
+  "sample_file": "sample.txt"
+}

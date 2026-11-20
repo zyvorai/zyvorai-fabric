@@ -1,0 +1,99 @@
+name: Multi-Distro Build
+
+# Every other workflow in this repo builds and tests exclusively on
+# ubuntu-latest/ubuntu-24.04. That's never actually verified that the
+# backend's real system dependencies -- libpam (a *runtime* link, not just
+# build-time: zyvor-fabricd fails to start without it), libclang, OpenSSL --
+# resolve correctly, under their real package names, on any other distro's
+# package manager. This job builds inside each distro's own container image
+# (not just swapping the GitHub-hosted runner OS) and does a real dynamic-
+# linking smoke check on the resulting binaries, the actual failure mode
+# "works on my machine" bugs take that a successful `cargo build` alone
+# doesn't catch.
+#
+# Deliberately out of scope here: running the full `cargo test` suite on
+# every distro. Several tests need KVM/root/network-namespace access that's
+# already carefully scoped to the ubuntu-latest jobs elsewhere in this repo;
+# duplicating that per distro is real, separate follow-up work.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/multi-distro.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/multi-distro.yml"
+
+jobs:
+  build:
+    name: build (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-24.04
+            image: ubuntu:24.04
+            install: |
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                curl ca-certificates build-essential pkg-config \
+                libssl-dev libpam0g-dev libclang-dev clang git
+          - name: debian-bookworm
+            image: debian:bookworm
+            install: |
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                curl ca-certificates build-essential pkg-config \
+                libssl-dev libpam0g-dev libclang-dev clang git
+          - name: fedora-latest
+            image: fedora:latest
+            install: |
+              dnf install -y curl ca-certificates gcc gcc-c++ make \
+                pkgconf-pkg-config openssl-devel pam-devel \
+                clang-devel clang git
+    steps:
+      - name: Install ${{ matrix.name }} system dependencies
+        run: ${{ matrix.install }}
+
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Build zyvor-fabricd + fabricctl
+        run: cd backend && ~/.cargo/bin/cargo build --release --bin zyvor-fabricd --bin fabricctl
+
+      - name: Binary smoke check (real dynamic linking, not just a successful compile)
+        run: |
+          set -e
+          echo "== fabricctl --version =="
+          backend/target/release/fabricctl --version
+
+          echo "== zyvor-fabricd: confirm it starts and logs before failing on missing config =="
+          # zyvor-fabricd has no --version (it's a plain daemon, no clap).
+          # Run it briefly and check the output: any "error while loading
+          # shared libraries" line means libpam/libssl/libclang didn't
+          # resolve on this distro -- a real, distro-specific bug. Any
+          # *other* failure (e.g. permission-denied on a hardcoded system
+          # path with no config supplied) means the binary itself linked
+          # and executed real Rust code fine, which is what this check is
+          # actually verifying.
+          OUTPUT=$(timeout 5 backend/target/release/zyvor-fabricd 2>&1 || true)
+          echo "$OUTPUT"
+          if echo "$OUTPUT" | grep -qi "error while loading shared libraries"; then
+            echo "::error::zyvor-fabricd failed to dynamically link on ${{ matrix.name }}"
+            exit 1
+          fi
+          echo "$OUTPUT" | grep -q "Starting zyvor-fabricd" || {
+            echo "::error::zyvor-fabricd never reached its own startup log on ${{ matrix.name }}"
+            exit 1
+          }

@@ -1,0 +1,16 @@
+{
+  "kind": "agent",
+  "name": "gmail-triage",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 512 },
+    "egress_mode": "deny",
+    "egress_allow_hosts": ["gmail.googleapis.com"],
+    "credentials": ["gmail-read"],
+    "confinement": "strict"
+  },
+  "goal": {
+    "title": "List unread mail",
+    "text": "Read the person's unread inbox headers with a read-only Gmail credential and list sender, subject and date."
+  }
+}

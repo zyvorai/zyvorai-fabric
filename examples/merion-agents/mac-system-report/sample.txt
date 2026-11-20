@@ -1,0 +1,30 @@
+Hardware:
+
+    Hardware Overview:
+
+      Model Name: MacBook Air
+      Model Identifier: Mac16,12
+      Model Number: MW123XX/A
+      Chip: Apple M4
+      Total Number of Cores: 10 (4 Performance and 6 Efficiency)
+      Memory: 16 GB
+      System Firmware Version: 20457.40.150.0.1
+      OS Loader Version: 18000.161.10.702.1
+      Serial Number (system): XXXXXXXXXX
+      Hardware UUID: 00000000-0000-0000-0000-000000000000
+      Provisioning UDID: 00000000-0000000000000000
+      Activation Lock Status: Enabled
+
+Software:
+
+    System Software Overview:
+
+      System Version: macOS 26.7.1 (25G313)
+      Kernel Version: Darwin 25.6.0
+      Boot Volume: Macintosh HD
+      Boot Mode: Normal
+      Computer Name: Example Mac
+      User Name: Example User (example)
+      Secure Virtual Memory: Enabled
+      System Integrity Protection: Enabled
+      Time since boot: 3 days, 17 hours, 40 minutes

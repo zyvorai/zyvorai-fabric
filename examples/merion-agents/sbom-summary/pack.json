@@ -1,0 +1,18 @@
+{
+  "kind": "builtin",
+  "name": "sbom-summary",
+  "manifest": {
+    "template": "node22-agent",
+    "egress_mode": "deny",
+    "egress_allow_hosts": [],
+    "confinement": "strict",
+    "resources": {
+      "vcpus": 1,
+      "memory_mib": 2048
+    }
+  },
+  "goal": {
+    "title": "Summarise this SBOM",
+    "text": "Read /home/agent/work/input.json only. Write artifact summary.md. No browser. No hosts."
+  }
+}

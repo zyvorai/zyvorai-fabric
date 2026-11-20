@@ -1,0 +1,33 @@
+{
+  "kind": "usecase",
+  "name": "nach-return-report",
+  "title": "NACH return report",
+  "description": "Drop in a NACH debit return report CSV and get returns counted by reason, status and sponsor, and the first rows.",
+  "accepts": [
+    "csv"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Returns by reason and status",
+      "columns": [
+        "return_reason",
+        "status",
+        "sponsor_bank"
+      ],
+      "top": 8
+    },
+    {
+      "kind": "table",
+      "title": "First rows",
+      "max_rows": 10
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "nach-returns.md",
+  "sample_file": "sample.csv"
+}

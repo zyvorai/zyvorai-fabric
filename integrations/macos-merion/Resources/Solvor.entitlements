@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Applied only when the release is signed with the hardened runtime (tools/release.sh with sign). Solvor is not sandboxed. -->
+  <!-- Read the front tab of a browser through Apple Events (asks the user once). -->
+  <key>com.apple.security.automation.apple-events</key>
+  <true/>
+  <!-- Talk to Solvor: the microphone. Speech recognition needs only its usage description. -->
+  <key>com.apple.security.device.audio-input</key>
+  <true/>
+</dict>
+</plist>

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: zyvor-fabric
+description: Zyvor Fabric control plane (zyvor-fabricd + FluxVM) on Kubernetes
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - fabric
+  - kvm
+  - fluxvm
+  - virtual-machine
+maintainers:
+  - name: Zyvor
+home: https://github.com/zyvorai/fabric
+sources:
+  - https://github.com/zyvorai/fabric

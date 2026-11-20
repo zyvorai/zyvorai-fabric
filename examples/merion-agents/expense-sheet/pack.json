@@ -1,0 +1,31 @@
+{
+  "kind": "usecase",
+  "name": "expense-sheet",
+  "title": "Expense sheet",
+  "description": "Drop in an Excel expense sheet (first sheet, header row) and see the top categories and vendors and the first rows.",
+  "accepts": [
+    "xlsx"
+  ],
+  "extract": "xlsx",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Where the money went",
+      "columns": [
+        "category",
+        "vendor"
+      ],
+      "top": 6
+    },
+    {
+      "kind": "table",
+      "title": "First rows",
+      "max_rows": 12
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "expenses.md"
+}

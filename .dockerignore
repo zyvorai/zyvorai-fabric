@@ -1,0 +1,10 @@
+backend/target
+backend/*.tpmstate
+backend/fedora-small.tpmstate
+web/node_modules
+web/dist
+.git
+.github
+operator
+tests
+*.md

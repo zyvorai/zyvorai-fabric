@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# ============================================================================
+# deploy — one command to ship zyvor-fabricd to a remote host
+# ============================================================================
+#   ./scripts/deploy remote sus@212.8.252.194
+#   ./scripts/deploy remote sus 212.8.252.194 --quick
+#   ./scripts/deploy remote --quick              # reuse .deploy-last
+#   ./scripts/deploy merion sus@host           # Fabric + Keep runtime (needs FluxVM on the host)
+#   ./scripts/deploy check sus@host
+#   ./scripts/deploy status
+# ============================================================================
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck source=lib/deploy-common.sh
+source "$SCRIPT_DIR/lib/deploy-common.sh"
+
+usage() {
+    cat <<EOF
+Usage:
+  $(basename "$0") remote USER@HOST [flags...]
+  $(basename "$0") remote USER HOST [PASSWORD] [flags...]
+  $(basename "$0") keep USER@HOST [--dev] [--dry-run] [--skip-fabric]
+  $(basename "$0") k8s USER@HOST [flags...]
+  $(basename "$0") k8s HOST [USER] [--quick|--uninstall]
+  $(basename "$0") check [USER@HOST | USER HOST]
+  $(basename "$0") status
+
+Bare-metal (systemd) flags — passed to deploy-remote.sh:
+  --quick           skip system deps (rsync + build + install)
+  --sync-only       rsync only (no install)
+  --remote-build    compile on server (cargo build -p zyvor-fabricd -p fabricctl)
+  --remote-check    compile check on server (cargo check)
+  --bind ADDR       API listen address (default 0.0.0.0 for remote IPv4)
+  --open-firewall   open firewalld port 9095
+  --e2e             run zyvor-fabricd-ctl verify after deploy
+  --verify-apis     run scripts/audit-ux-apis.sh against deployed host
+  --dry-run         show plan only
+  --uninstall       remove zyvor-fabricd from remote
+  --cleanup         remove remote deploy tree after install
+
+Kubernetes flags — passed to deploy-k8s-all-remote.sh:
+  --quick           skip image build; apply manifests + rollout only
+  --uninstall       delete zyvor-fabric namespace and remote checkout
+
+Examples:
+  $(basename "$0") remote sus@212.8.252.194 --quick --e2e
+  $(basename "$0") k8s sus@212.8.252.194
+  $(basename "$0") k8s sus@212.8.252.194 --quick
+  $(basename "$0") remote --quick
+  $(basename "$0") check sus@host
+
+State: $(fabric_deploy_state_file "$REPO_DIR")
+See also: docs/KUBERNETES.md
+EOF
+}
+
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+    -h|--help|help|'')
+        usage
+        exit 0
+        ;;
+    status)
+        if fabric_load_deploy_last "$REPO_DIR"; then
+            deploy_ui_banner "📊 Deploy status" "${VERSION:-?} @ ${COMMIT:-?}" "🖥️"
+            deploy_ui_kv "🎯" "Host" "${HOST:-?}"
+            deploy_ui_kv "👤" "User" "${USER:-root}"
+            deploy_ui_kv "🕐" "Updated" "${UPDATED:-?}"
+            deploy_ui_kv "⚡" "Last mode" "${MODE:-?}"
+            if [[ -n "${HOST:-}" ]]; then
+                code=$(curl -sf -o /dev/null -w '%{http_code}' --max-time 5 "http://${HOST}:9095/health" 2>/dev/null || echo "000")
+                if [[ "$code" == "200" ]]; then
+                    deploy_ui_info "💚 Health → http://${HOST}:9095/health ($code)"
+                else
+                    deploy_ui_warn "💔 Health → http://${HOST}:9095/health ($code)"
+                fi
+            fi
+        else
+            deploy_ui_warn "No .deploy-last — run: $(basename "$0") remote USER@HOST"
+        fi
+        exit 0
+        ;;
+    check)
+        exec "$SCRIPT_DIR/deploy-remote.sh" check "$@"
+        ;;
+    remote)
+        exec "$SCRIPT_DIR/deploy-remote.sh" "$@"
+        ;;
+    keep|merion)
+        exec "$SCRIPT_DIR/deploy-merion.sh" "$@"
+        ;;
+    k8s|kubernetes)
+        exec "$SCRIPT_DIR/deploy-k8s-remote.sh" "$@"
+        ;;
+    *)
+        if [[ "$cmd" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ "$cmd" == *.* ]] || [[ "$cmd" == *@* ]]; then
+            exec "$SCRIPT_DIR/deploy-remote.sh" "$cmd" "$@"
+        fi
+        deploy_ui_error "Unknown subcommand: $cmd (try: remote, keep, k8s, check, status)"
+        ;;
+esac

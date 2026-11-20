@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zyvor Fabric - Live Demo Script</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0e0e0; }
+  .slide { min-height: 100vh; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #222; }
+  .slide h1 { font-size: 2.8em; margin-bottom: 20px; color: #60a5fa; }
+  .slide h2 { font-size: 2em; margin-bottom: 16px; color: #93c5fd; }
+  .slide h3 { font-size: 1.4em; margin-bottom: 12px; color: #bfdbfe; }
+  .slide p, .slide li { font-size: 1.2em; line-height: 1.8; margin-bottom: 8px; }
+  .slide ul, .slide ol { padding-left: 30px; }
+  .slide code { background: #1e293b; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; color: #7dd3fc; }
+  .slide pre { background: #1e293b; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 16px 0; }
+  .slide pre code { background: none; padding: 0; }
+  .slide table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .slide th, .slide td { padding: 12px 16px; text-align: left; border: 1px solid #334155; }
+  .slide th { background: #1e293b; color: #93c5fd; }
+  .slide .highlight { color: #34d399; font-weight: bold; }
+  .slide .subtitle { font-size: 1.4em; color: #94a3b8; margin-bottom: 30px; }
+  .slide .badge { display: inline-block; background: #1e3a5f; color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-size: 0.9em; margin: 4px; }
+  .title-slide { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center; }
+  .title-slide h1 { font-size: 3.5em; color: #60a5fa; }
+  .title-slide .subtitle { font-size: 1.6em; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .metric { text-align: center; padding: 20px; }
+  .metric .number { font-size: 3em; color: #34d399; font-weight: bold; }
+  .metric .label { font-size: 1em; color: #94a3b8; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin: 8px 0; }
+  .card h3 { color: #60a5fa; }
+  .demo-step { background: #1e293b; border-left: 4px solid #34d399; padding: 16px 24px; margin: 12px 0; border-radius: 0 8px 8px 0; }
+  .demo-step h3 { color: #34d399; margin-bottom: 8px; }
+  .talking-point { background: #172554; border-left: 4px solid #60a5fa; padding: 12px 20px; margin: 8px 0; border-radius: 0 8px 8px 0; font-style: italic; }
+  @media print { .slide { page-break-after: always; min-height: auto; padding: 40px; } }
+
+  .brand-line { font-size: 1em; color: #f97316; margin-top: 24px; font-weight: 600; }
+  .brand-line a { color: #f97316; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide title-slide">
+  <h1>Live Demo Script</h1>
+  <p class="subtitle">Zyvor Fabric Platform Walkthrough</p>
+  <p style="font-size: 1.2em; color: #64748b; margin-top: 20px;">
+    Estimated duration: 30 minutes | Presenter guide with talking points
+  </p>
+  <div style="margin-top: 40px;">
+    <span class="badge">CLI Demo</span>
+    <span class="badge">Web UI Demo</span>
+    <span class="badge">API Demo</span>
+  </div>
+</div>
+
+<!-- Slide 2: Demo Setup -->
+<div class="slide">
+  <h1>Demo Setup</h1>
+  <p class="subtitle">Prepare the environment before the audience arrives</p>
+  <div class="two-col">
+    <div>
+      <h3>Pre-Demo Checklist</h3>
+      <ol>
+        <li>Ensure Zyvor Fabric is running: <code>./zyvorctl status</code></li>
+        <li>Verify health: <code>./zyvorctl health</code></li>
+        <li>Download a cloud image in advance</li>
+        <li>Clear any leftover demo VMs</li>
+        <li>Have the web UI open in a browser tab</li>
+        <li>Have a terminal window ready for CLI commands</li>
+        <li>Test network connectivity</li>
+      </ol>
+      <h3 style="margin-top: 20px;">Pre-Download Image</h3>
+      <pre><code># Download before the demo to avoid wait times
+zyvorctl image download ubuntu-24.04
+
+# Verify image is available
+zyvorctl image list</code></pre>
+    </div>
+    <div>
+      <h3>Environment Requirements</h3>
+      <table>
+        <tr><th>Item</th><th>Details</th></tr>
+        <tr><td>Server</td><td>Linux with KVM, 16+ GB RAM</td></tr>
+        <tr><td>Zyvor Fabric</td><td>Running and healthy</td></tr>
+        <tr><td>Cloud Image</td><td>Ubuntu 24.04 pre-downloaded</td></tr>
+        <tr><td>Browser</td><td>Chrome or Firefox</td></tr>
+        <tr><td>Display</td><td>External monitor or projector</td></tr>
+        <tr><td>Network</td><td>Reliable connectivity</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Presentation Tips</h3>
+      <ul>
+        <li>Increase terminal font size for visibility</li>
+        <li>Use a dark terminal theme (matches slide deck)</li>
+        <li>Type commands slowly so the audience can follow</li>
+        <li>Pause after each step to explain what happened</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Demo 1 - Create VM from Cloud Image -->
+<div class="slide">
+  <h1>Demo 1: Create a VM from Cloud Image</h1>
+  <p class="subtitle">Duration: 5 minutes</p>
+  <div class="talking-point">
+    "Let me show you how fast it is to go from nothing to a running VM. We will create a VM from an official Ubuntu cloud image with a single command."
+  </div>
+  <div class="demo-step">
+    <h3>Step 1: List available images</h3>
+    <pre><code>zyvorctl image list</code></pre>
+    <p>Show the built-in cloud image catalog.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 2: Create the VM</h3>
+    <pre><code>zyvorctl create demo-web \
+  --image=ubuntu-24.04.qcow2 \
+  --cpus=2 \
+  --memory=2048</code></pre>
+    <p>Point out: one command, no XML, no complex configuration files.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 3: Start the VM</h3>
+    <pre><code>zyvorctl start demo-web</code></pre>
+  </div>
+  <div class="demo-step">
+    <h3>Step 4: Verify it is running</h3>
+    <pre><code>zyvorctl list</code></pre>
+    <p>Show the VM status: name, state, CPU, memory.</p>
+  </div>
+  <div class="talking-point">
+    "That is it -- four commands to go from zero to a running Ubuntu VM. No YAML manifests, no XML domain definitions, no multi-page wizards."
+  </div>
+</div>
+
+<!-- Slide 4: Demo 2 - Start with Advanced Options -->
+<div class="slide">
+  <h1>Demo 2: Advanced VM Configuration</h1>
+  <p class="subtitle">Duration: 5 minutes</p>
+  <div class="talking-point">
+    "Now let me show you some of the advanced options. Zyvor Fabric supports cloud-init, GPU passthrough, TPM, and more -- all from the CLI or API."
+  </div>
+  <div class="demo-step">
+    <h3>Step 1: Create a VM with cloud-init</h3>
+    <pre><code>zyvorctl create demo-app \
+  --image=ubuntu-24.04.qcow2 \
+  --cpus=4 \
+  --memory=4096 \
+  --cloud-init-hostname=app-server \
+  --cloud-init-packages=nginx,htop</code></pre>
+    <p>Explain: cloud-init runs on first boot and configures the VM automatically.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 2: Show VM details</h3>
+    <pre><code>zyvorctl info demo-app</code></pre>
+    <p>Show the full configuration: CPU, memory, disk, cloud-init settings.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 3: Show JSON output</h3>
+    <pre><code>zyvorctl list -o json</code></pre>
+    <p>Demonstrate the scriptable JSON output for automation.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 4: Show the API directly</h3>
+    <pre><code># Authenticate and get JWT token
+TOKEN=$(curl -s -X POST http://localhost:9095/api/v1/auth/sign-in \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"..."}' | jq -r .token)
+
+# List VMs via REST API
+curl -s http://localhost:9095/api/v1/vms \
+  -H "Authorization: Bearer $TOKEN" | jq .</code></pre>
+    <p>Show that everything available in the CLI is also available via REST API.</p>
+  </div>
+</div>
+
+<!-- Slide 5: Demo 3 - WebSocket Console Access -->
+<div class="slide">
+  <h1>Demo 3: WebSocket Console Access</h1>
+  <p class="subtitle">Duration: 3 minutes</p>
+  <div class="talking-point">
+    "One of the features teams love is browser-based console access. No SSH keys to distribute, no VPN to configure -- just open the web UI and connect."
+  </div>
+  <div class="demo-step">
+    <h3>Step 1: Open the Web Dashboard</h3>
+    <p>Navigate to <code>http://localhost:9095</code> in the browser. Log in with admin credentials.</p>
+    <p>Point out: light Apple console, clean layout, command palette (Ctrl+K).</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 2: Navigate to the VM</h3>
+    <p>Click on <code>demo-web</code> in the VM list. Show the VM details page with status, metrics, and action buttons.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 3: Open the Console</h3>
+    <p>Click the "Console" button. An xterm.js terminal opens in the browser with a direct connection to the VM via authenticated WebSocket.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 4: Run commands in the VM</h3>
+    <pre><code># Inside the VM console
+hostname
+uname -a
+systemctl status</code></pre>
+    <p>Show that you have full terminal access to the VM directly from the browser.</p>
+  </div>
+  <div class="talking-point">
+    "The console connection is authenticated with the same JWT token as the API. No separate credentials needed. Access is controlled by RBAC -- viewers cannot open consoles."
+  </div>
+</div>
+
+<!-- Slide 6: Demo 4 - Snapshot and Restore -->
+<div class="slide">
+  <h1>Demo 4: Snapshot and Restore</h1>
+  <p class="subtitle">Duration: 5 minutes</p>
+  <div class="talking-point">
+    "Let me demonstrate the snapshot and backup system. This is critical for production -- you need to be able to recover from mistakes quickly."
+  </div>
+  <div class="demo-step">
+    <h3>Step 1: Create a snapshot</h3>
+    <pre><code>zyvorctl snapshot create demo-web --name=before-update</code></pre>
+    <p>Explain: snapshots capture the full VM state at a point in time.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 2: Make a change in the VM</h3>
+    <pre><code># Simulate a change (via console or SSH)
+# e.g., install a package, modify a config file</code></pre>
+  </div>
+  <div class="demo-step">
+    <h3>Step 3: Restore the snapshot</h3>
+    <pre><code>zyvorctl snapshot restore demo-web --name=before-update</code></pre>
+    <p>Show that the VM is back to its previous state.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 4: Show backup automation</h3>
+    <pre><code># Show backup configuration
+./zyvorctl backup status
+
+# Trigger an immediate backup
+./zyvorctl backup now</code></pre>
+    <p>Explain: automated daily backups run via systemd timer with configurable retention.</p>
+  </div>
+  <div class="talking-point">
+    "Backups run automatically at 2 AM daily with configurable retention. You can also trigger per-VM backups from the CLI or web console -- individually or in bulk."
+  </div>
+</div>
+
+<!-- Slide 7: Demo 5 - Network Configuration -->
+<div class="slide">
+  <h1>Demo 5: Network Configuration</h1>
+  <p class="subtitle">Duration: 5 minutes</p>
+  <div class="talking-point">
+    "Zyvor Fabric includes 8 dedicated networking crates. Let me show you network policies and firewall rules -- this is something no other lightweight VM platform offers."
+  </div>
+  <div class="demo-step">
+    <h3>Step 1: Show current network configuration</h3>
+    <pre><code>zyvorctl network list</code></pre>
+  </div>
+  <div class="demo-step">
+    <h3>Step 2: Apply a firewall rule</h3>
+    <pre><code># Allow HTTP/HTTPS, deny everything else
+zyvorctl firewall demo-web --allow tcp:80,443 --deny all</code></pre>
+    <p>Explain: per-VM firewall profiles using nftables under the hood.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 3: Show network policies</h3>
+    <pre><code>zyvorctl policy list</code></pre>
+    <p>Explain: Cilium-style label-based policies control which VMs can communicate.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 4: Show monitoring</h3>
+    <pre><code># Per-VM bandwidth tracking
+zyvorctl net-monitor demo-web</code></pre>
+    <p>Show real-time bandwidth usage and threshold alerts.</p>
+  </div>
+  <div class="talking-point">
+    "Network policies, firewall rules, VPN mesh, service mesh, traffic shaping, DNS management, and NAT -- all managed through the same unified API and CLI."
+  </div>
+</div>
+
+<!-- Slide 8: Demo 6 - Monitoring Dashboard -->
+<div class="slide">
+  <h1>Demo 6: Monitoring Dashboard</h1>
+  <p class="subtitle">Duration: 3 minutes</p>
+  <div class="talking-point">
+    "Let me switch to the web dashboard and show you the monitoring and analytics capabilities."
+  </div>
+  <div class="demo-step">
+    <h3>Step 1: Web UI Dashboard</h3>
+    <p>Navigate to the main dashboard page. Point out:</p>
+    <ul>
+      <li>VM count and status summary</li>
+      <li>Host resource utilization (CPU, memory, storage)</li>
+      <li>Recent activity and events</li>
+      <li>Real-time updates via WebSocket</li>
+    </ul>
+  </div>
+  <div class="demo-step">
+    <h3>Step 2: VM List with Bulk Actions</h3>
+    <p>Show the VM list page. Demonstrate:</p>
+    <ul>
+      <li>Select multiple VMs with checkboxes</li>
+      <li>Bulk start, stop, backup, delete</li>
+      <li>Per-VM quick actions (start, stop, console, details)</li>
+    </ul>
+  </div>
+  <div class="demo-step">
+    <h3>Step 3: Web console</h3>
+    <pre><code># Show the  Show sparkline graphs. Demonstrate vim keybindings. Press <code>s</code> to start a VM, <code>b</code> to backup.</p>
+  </div>
+  <div class="demo-step">
+    <h3>Step 4: Prometheus Metrics</h3>
+    <pre><code>curl -s http://localhost:9095/metrics | head -30</code></pre>
+    <p>Show the Prometheus-compatible metrics endpoint.</p>
+  </div>
+</div>
+
+<!-- Slide 9: Demo 7 - Clean Up -->
+<div class="slide">
+  <h1>Demo 7: Clean Up</h1>
+  <p class="subtitle">Duration: 2 minutes</p>
+  <div class="talking-point">
+    "Finally, let me clean up the demo environment. This also demonstrates how easy it is to manage VM lifecycle."
+  </div>
+  <div class="demo-step">
+    <h3>Step 1: Stop the demo VMs</h3>
+    <pre><code>zyvorctl stop demo-web
+zyvorctl stop demo-app</code></pre>
+  </div>
+  <div class="demo-step">
+    <h3>Step 2: Delete the demo VMs</h3>
+    <pre><code>zyvorctl delete demo-web
+zyvorctl delete demo-app</code></pre>
+  </div>
+  <div class="demo-step">
+    <h3>Step 3: Verify clean state</h3>
+    <pre><code>zyvorctl list</code></pre>
+    <p>Confirm all demo VMs are removed.</p>
+  </div>
+  <div class="talking-point">
+    "What you have just seen is a complete VM lifecycle -- from creating VMs from cloud images, to console access, snapshots, networking, monitoring, and cleanup. All from one platform, one binary, one API."
+  </div>
+  <div class="card" style="margin-top: 20px;">
+    <h3>Key Takeaways to Reinforce</h3>
+    <ul>
+      <li>Single binary, 5-minute deployment</li>
+      <li>520+ REST API endpoints -- everything is programmable</li>
+      <li>4 management interfaces -- CLI, web, K8s, Terraform</li>
+      <li>Enterprise networking -- policies, firewall, VPN mesh</li>
+      <li>Built in Rust -- memory safe, fast, secure</li>
+      <li>31-round security audit -- production ready</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Slide 10: Q&A -->
+<div class="slide title-slide">
+  <h1>Questions?</h1>
+  <p class="subtitle">Thank you for attending the Zyvor Fabric demo</p>
+  <div style="margin-top: 30px;">
+    <p style="font-size: 1.3em; color: #94a3b8;">
+      Ready to deploy? It takes 5 minutes.
+    </p>
+  </div>
+  <pre style="margin-top: 30px; display: inline-block;"><code>./zyvorctl deploy</code></pre>
+  <div style="margin-top: 40px;">
+    <span class="badge">Zyvor Family</span>
+    <span class="badge" style="background:#431407;color:#f97316;">zyvor.dev</span>
+    <span class="badge">Production Ready</span>
+    <span class="badge">Security Audited</span>
+    <span class="badge">Enterprise Features</span>
+  </div>
+</div>
+
+</body>
+</html>

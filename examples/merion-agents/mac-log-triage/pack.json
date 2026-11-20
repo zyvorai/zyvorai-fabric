@@ -1,0 +1,61 @@
+{
+  "kind": "usecase",
+  "name": "mac-log-triage",
+  "title": "Mac log triage",
+  "description": "Drop in compact `log show` output and get the busiest processes, errors and faults, sandbox denials and kernel trouble.",
+  "accepts": [
+    "txt",
+    "log"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Processes that logged errors or faults",
+      "pattern": "(?m)^\\d{4}-\\d{2}-\\d{2} \\S+ (?:E|F)\\s+([^\\[\\s]+)\\[",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Most repeated errors and faults",
+      "pattern": "(?m)^\\d{4}-\\d{2}-\\d{2} \\S+ (?:E|F)\\s+(.{20,160})",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Sandbox denials",
+      "keywords": [
+        "sandbox:",
+        "deny(1)"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Kernel, memory and thermal",
+      "keywords": [
+        "kernel panic",
+        "jetsam",
+        "thermal",
+        "out of memory",
+        "watchdog"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Busiest processes",
+      "pattern": "(?m)^\\d{4}-\\d{2}-\\d{2} \\S+ \\w+\\s+([^\\[\\s]+)\\[",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "mac-log-triage.md",
+  "sample_file": "sample.txt"
+}

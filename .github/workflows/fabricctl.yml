@@ -1,0 +1,78 @@
+name: fabricctl
+
+# Fast gate for the Fabric CLI: fmt, clippy, unit tests, and a smoke of the
+# Cilium-style grouped help / color / completion surface. The full workspace
+# suite still runs in ci.yml; this job fails earlier and names the CLI failure.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/fabricctl/**"
+      - "backend/vm-model/**"
+      - "backend/Cargo.toml"
+      - "backend/Cargo.lock"
+      - ".github/workflows/fabricctl.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/fabricctl/**"
+      - "backend/vm-model/**"
+      - "backend/Cargo.toml"
+      - "backend/Cargo.lock"
+      - ".github/workflows/fabricctl.yml"
+
+jobs:
+  fabricctl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Check formatting
+        run: cd backend && cargo fmt -p fabricctl -- --check
+
+      - name: Lint
+        run: cd backend && cargo clippy -p fabricctl --all-targets -- -D warnings
+
+      - name: Test
+        run: cd backend && cargo test -p fabricctl
+
+      - name: Build
+        run: cd backend && cargo build -p fabricctl
+
+      - name: CLI smoke (grouped help, color, completion)
+        run: |
+          set -euo pipefail
+          BIN=backend/target/debug/fabricctl
+          "$BIN" --version
+          help="$("$BIN" --color never --help)"
+          [[ "$help" == *"Basic Commands:"* ]]
+          [[ "$help" == *"Dataplane (FluxVM edge):"* ]]
+          [[ "$help" == *"Networking & Security:"* ]]
+          [[ "$help" == *"Meta:"* ]]
+          # --color never must not emit ANSI
+          if [[ "$help" == *$'\x1b'* ]]; then
+            echo "::error::--color never help contains ANSI"
+            exit 1
+          fi
+          # Explicit --color always must paint even if the runner exports NO_COLOR.
+          color="$(env -u NO_COLOR "$BIN" --color always --help)"
+          if [[ "$color" != *$'\x1b'* ]]; then
+            echo "::error::--color always help has no ANSI"
+            exit 1
+          fi
+          cfg="$("$BIN" config --color never)"
+          [[ "$cfg" == *"server:"* ]]
+          bash_comp="$("$BIN" completion bash)"
+          [[ "$bash_comp" == *"_fabricctl"* ]]
+          zsh_comp="$("$BIN" completion zsh)"
+          [[ "$zsh_comp" == *"compdef"* ]]
+          fish_comp="$("$BIN" completion fish)"
+          [[ "$fish_comp" == *"complete"* ]]

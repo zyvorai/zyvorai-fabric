@@ -1,0 +1,20 @@
+[package]
+name = "machina-fabric"
+version = "0.1.0"
+edition = "2021"
+description = "Machina v0.1 CLI — Zyvor Fabric cluster probe (macOS/Linux)"
+license = "LicenseRef-Zyvor-Production-1.0"
+
+[[bin]]
+name = "machina-fabric"
+path = "src/main.rs"
+
+[dependencies]
+zyvor-fabric-sdk = { path = "../../../backend/zyvor-fabric-sdk" }
+anyhow = "1"
+clap = { version = "4", features = ["derive", "env"] }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+futures-util = "0.3"

@@ -1,0 +1,15 @@
+version: 1
+default_egress: deny
+allow: []
+deny:
+  - host: "*"
+taint:
+  trusted_hosts: []
+  on_untrusted_page: block_egress_until_ask
+browser:
+  enabled: false
+  allow_hosts: []
+  block_file_url: true
+  max_tabs: 0
+  snapshot_only: true
+  downloads: deny

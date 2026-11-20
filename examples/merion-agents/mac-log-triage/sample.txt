@@ -1,0 +1,16 @@
+Timestamp               Ty Process[PID:TID]
+2026-09-25 23:44:37.189 E  exampled[1201:a1] [com.example.svc:] exampled(1201) could not open its cache file
+2026-09-25 23:44:37.358 E  kernel[0:76d] memorystatus_update_jetsam_snapshot_entry_locked: failed to update pid 3402, priority 0, count 0
+2026-09-25 23:44:37.358 E  syncd[5630:9a] [com.example.sync:xpc] Peer(3402) received ERROR_CONNECTION_INVALID
+2026-09-25 23:44:38.178 E  analyticsd[2616:94] [com.example.analytics:cars] Session not found! Abandoning message.
+2026-09-25 23:44:39.001 F  helperd[880:12] [com.example.helper:core] assertion failed: state != nil
+2026-09-25 23:44:39.402 Df windowd[610:1f] [com.example.display:default] Display 0x00000001: Mode 6, active
+2026-09-25 23:44:39.418 Df windowd[610:1f] [com.example.display:default] Display 0x00000001: Mode 6, active
+2026-09-25 23:44:39.430 Df windowd[610:1f] [com.example.display:default] Display 0x00000001: Mode 6, active
+2026-09-25 23:44:40.011 Df netd[622:28] [com.example.net:] Info: link quality score = 3
+2026-09-25 23:44:40.512 E  syncd[5630:9a] [com.example.sync:xpc] Peer(3402) received ERROR_CONNECTION_INVALID
+2026-09-25 23:44:41.020 Df kernel[0:12] () Sandbox: exampleapp(3402) deny(1) file-read-data /private/var/example
+2026-09-25 23:44:41.700 E  analyticsd[2616:94] [com.example.analytics:cars] Session not found! Abandoning message.
+2026-09-25 23:44:42.310 I  logind[301:7] [com.example.login:] session state changed
+2026-09-25 23:44:43.400 Df kernel[0:33] () thermal pressure level 1
+2026-09-25 23:44:44.100 Df windowd[610:1f] [com.example.display:default] Display 0x00000001: Mode 6, active

@@ -1,0 +1,213 @@
+/* Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+ * SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0 */
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #f97316;
+}
+
+.tagline {
+  color: #94a3b8;
+  margin-top: 0.35rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.tab {
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid #475569;
+  background: transparent;
+  color: #cbd5e1;
+  font-weight: 500;
+  margin-top: 0;
+}
+
+.tab.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+button.secondary {
+  background: #334155;
+}
+
+button.danger {
+  background: #b91c1c;
+}
+
+.connect {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.panel {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+input {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #f8fafc;
+  box-sizing: border-box;
+}
+
+button {
+  margin-top: 0.5rem;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.35rem;
+  border-bottom: 1px solid #334155;
+}
+
+.error {
+  color: #f87171;
+}
+
+.health {
+  color: #34d399;
+}
+
+.muted {
+  color: #64748b;
+}
+
+footer {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+footer a {
+  color: #f97316;
+}
+
+.event-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.event-list li {
+  display: grid;
+  grid-template-columns: 11rem 8rem 1fr;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid #334155;
+  font-size: 0.85rem;
+}
+
+.ev-type {
+  font-family: ui-monospace, monospace;
+  color: #93c5fd;
+}
+
+.ev-detail {
+  grid-column: 1 / -1;
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.copilot .chat-log {
+  max-height: 360px;
+  overflow-y: auto;
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-bubble {
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: #0f172a;
+  border: 1px solid #334155;
+}
+
+.chat-bubble.user {
+  border-color: #2563eb55;
+}
+
+.chat-bubble.assistant {
+  border-color: #f9731655;
+}
+
+.chat-bubble pre {
+  margin: 0.35rem 0 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.chat-input input {
+  flex: 1;
+  min-width: 200px;
+}

@@ -1,0 +1,18 @@
+{"t": 0.478, "s": "\u001b[1mKeep + a real FluxVM microVM: an agent proposes, a person decides.\u001b[0m\n"}
+{"t": 0.478, "s": "\u001b[2mreal run on a lab host; the recording trims the waits\u001b[0m\n"}
+{"t": 24.145, "s": "\u001b[33mguest /work now:\u001b[0m seed.txt  \n"}
+{"t": 24.145, "s": "\n"}
+{"t": 24.145, "s": "\u001b[33magent proposes:\u001b[0m echo hello > /work/notes.txt\n"}
+{"t": 24.145, "s": "\u001b[36m$ POST /v1/sessions/$SID/speculate\u001b[0m\n"}
+{"t": 99.599, "s": "  approval  \u001b[1mpending\u001b[0m  would add \u001b[32m[\"/work/notes.txt\"]\u001b[0m  \u001b[2m(took 75 s)\u001b[0m\n"}
+{"t": 99.599, "s": "\n"}
+{"t": 99.599, "s": "\u001b[33mperson approves\u001b[0m\n"}
+{"t": 99.599, "s": "\u001b[36m$ POST /v1/approvals/f233f232\u2026  {decision: approved}\u001b[0m\n"}
+{"t": 217.656, "s": "  approval  \u001b[32m\u001b[1mapproved\u001b[0m  \u001b[2m(applied in 118 s)\u001b[0m\n"}
+{"t": 223.248, "s": "\u001b[33mguest /work now:\u001b[0m notes.txt seed.txt  \n"}
+{"t": 247.873, "s": "\u001b[33mnotes.txt says:\u001b[0m  hello\n"}
+{"t": 247.873, "s": "\n"}
+{"t": 247.873, "s": "\u001b[33magent proposes:\u001b[0m rm /work/seed.txt\n"}
+{"t": 327.151, "s": "  approval  \u001b[1mpending\u001b[0m  would delete \u001b[32m[\"/work/seed.txt\"]\u001b[0m\n"}
+{"t": 327.152, "s": "\u001b[33mperson denies\u001b[0m\n"}
+{"t": 375.84, "s": "\u001b[1mRejected. seed.txt is still there:\u001b[0m notes.txt seed.txt  \n"}

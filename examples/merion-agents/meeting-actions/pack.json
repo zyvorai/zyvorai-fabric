@@ -1,0 +1,18 @@
+{
+  "kind": "builtin",
+  "name": "meeting-actions",
+  "manifest": {
+    "template": "node22-agent",
+    "egress_mode": "deny",
+    "egress_allow_hosts": [],
+    "confinement": "strict",
+    "resources": {
+      "vcpus": 1,
+      "memory_mib": 2048
+    }
+  },
+  "goal": {
+    "title": "Find the action items",
+    "text": "Read /home/agent/work/input.txt only. Write artifact actions.md. No browser. No hosts."
+  }
+}

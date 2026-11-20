@@ -1,0 +1,46 @@
+{
+  "kind": "usecase",
+  "name": "homebrew-audit",
+  "title": "Homebrew audit",
+  "description": "Drop in `brew list --versions` (or `brew outdated --verbose`) and get counts, outdated packages and packages that keep old versions.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "stats",
+      "title": "Size (one line per package)"
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Packages that keep more than one version",
+      "pattern": "(?m)^(\\S+) \\S+ \\S+",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Outdated (from `brew outdated --verbose`)",
+      "pattern": "(?m)^(\\S+) \\([^)]+\\) < (\\S+)",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Toolchains and runtimes",
+      "keywords": [
+        "python",
+        "node",
+        "rust",
+        "llvm",
+        "gcc",
+        "openjdk",
+        "ruby"
+      ],
+      "max_lines": 10
+    }
+  ],
+  "artifact_title": "homebrew-audit.md",
+  "sample_file": "sample.txt"
+}

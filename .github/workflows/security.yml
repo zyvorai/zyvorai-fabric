@@ -1,0 +1,115 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  cargo-deny:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          manifest-path: backend/Cargo.toml
+          command: check
+          arguments: --all-features
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # The open-source CLI, pinned and checksum-verified: the gitleaks-action needs a paid license on organisation repos.
+      - name: Install gitleaks
+        run: |
+          v=8.30.1
+          curl --proto '=https' --tlsv1.2 -sSfL -o gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${v}/gitleaks_${v}_linux_x64.tar.gz"
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tgz" | sha256sum -c -
+          tar -xzf gitleaks.tgz gitleaks
+      - name: Scan the full history
+        run: ./gitleaks git --redact --verbose --exit-code 1 .
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    # Informational until dependency baseline is cleaned; tighten later.
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: npm audit (omit dev; report high+)
+        run: npm audit --omit=dev --audit-level=high
+
+  trivy-fs:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+
+  trivy-dockerfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run Trivy on Dockerfiles
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          trivyignores: .trivyignore
+
+  codeql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript, rust
+          config-file: ./.github/codeql/codeql-config.yml
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v4
+      - name: Install local CodeQL model pack
+        run: |
+          set -euo pipefail
+          root="$(find /opt/hostedtoolcache/CodeQL -type d -name qlpacks | head -1)"
+          test -n "$root"
+          dest="$root/zyvor/fabric-models/0.0.1"
+          mkdir -p "$dest"
+          cp -a .github/codeql/fabric-models/. "$dest/"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        env:
+          # Library model packs are not loaded via the config `packs:` key.
+          # --model-packs consumes rows once the pack is on the CodeQL search
+          # path (the qlpacks directory filled in above). Do not also pass
+          # --additional-packs here: the action already sets that for pull
+          # request diff ranges, and a second flag would replace it.
+          CODEQL_ACTION_EXTRA_OPTIONS: '{"database":{"run-queries":["--model-packs=zyvor/fabric-models"]}}'

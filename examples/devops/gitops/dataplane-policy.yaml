@@ -1,0 +1,29 @@
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# GitOps shape for VM-edge policy. Fabric applies via
+# POST /api/vms/{name}/dataplane/policy — not a Cilium CEP.
+apiVersion: zyvor-fabricd.io/v1alpha1
+kind: FluxVmNetworkPolicy
+metadata:
+  name: web-gitops
+spec:
+  vm: web-gitops
+  mode: guard
+  allowCidrs:
+    - 10.0.0.0/8
+  allowPorts:
+    - tcp/443
+    - udp/53
+  denyCidrs: []
+  sampleRate: 1
+  auditMode: false
+---
+apiVersion: zyvor-fabricd.io/v1alpha1
+kind: PacketFlowWatch
+metadata:
+  name: web-drops
+spec:
+  vm: web-gitops
+  verdict: DROPPED
+  protocol: tcp
+  limit: 64

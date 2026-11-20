@@ -1,0 +1,20 @@
+{
+  "kind": "agent",
+  "name": "goal-planner",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 1024 },
+    "egress_mode": "deny",
+    "credentials": ["llm"],
+    "confinement": "strict",
+    "model_socket": {
+      "base_url": "https://api.example.com/v1",
+      "model": "small-1",
+      "credential": "llm"
+    }
+  },
+  "goal": {
+    "title": "Propose a plan for a goal",
+    "text": "Ask the model socket for a short list of steps for the goal in the session input and propose them; the person accepts or rejects."
+  }
+}

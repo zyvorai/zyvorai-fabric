@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zyvor Fabric - Executive Overview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0e0e0; }
+  .slide { min-height: 100vh; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #222; }
+  .slide h1 { font-size: 2.8em; margin-bottom: 20px; color: #60a5fa; }
+  .slide h2 { font-size: 2em; margin-bottom: 16px; color: #93c5fd; }
+  .slide h3 { font-size: 1.4em; margin-bottom: 12px; color: #bfdbfe; }
+  .slide p, .slide li { font-size: 1.2em; line-height: 1.8; margin-bottom: 8px; }
+  .slide ul, .slide ol { padding-left: 30px; }
+  .slide code { background: #1e293b; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; color: #7dd3fc; }
+  .slide pre { background: #1e293b; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 16px 0; }
+  .slide pre code { background: none; padding: 0; }
+  .slide table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .slide th, .slide td { padding: 12px 16px; text-align: left; border: 1px solid #334155; }
+  .slide th { background: #1e293b; color: #93c5fd; }
+  .slide .highlight { color: #34d399; font-weight: bold; }
+  .slide .subtitle { font-size: 1.4em; color: #94a3b8; margin-bottom: 30px; }
+  .slide .badge { display: inline-block; background: #1e3a5f; color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-size: 0.9em; margin: 4px; }
+  .title-slide { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center; }
+  .title-slide h1 { font-size: 3.5em; color: #60a5fa; }
+  .title-slide .subtitle { font-size: 1.6em; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .metric { text-align: center; padding: 20px; }
+  .metric .number { font-size: 3em; color: #34d399; font-weight: bold; }
+  .metric .label { font-size: 1em; color: #94a3b8; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin: 8px 0; }
+  .card h3 { color: #60a5fa; }
+  .icon { font-size: 2em; margin-bottom: 12px; }
+  @media print { .slide { page-break-after: always; min-height: auto; padding: 40px; } }
+
+  .brand-line { font-size: 1em; color: #f97316; margin-top: 24px; font-weight: 600; }
+  .brand-line a { color: #f97316; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide title-slide">
+  <h1>Zyvor Fabric</h1>
+  <p class="subtitle">Systemd-Native Private Cloud Control Plane</p>
+  <p style="font-size: 1.2em; color: #64748b; margin-top: 20px;">VM operations fabric — clustering, networking, security, storage, HA, and GPU on Linux.</p>
+  <div style="margin-top: 40px;">
+    <span class="badge">Built in Rust</span>
+    <span class="badge">systemd-Native</span>
+    <span class="badge">Single Binary</span>
+    <span class="badge">Zyvor Family</span>
+    <span class="badge" style="background:#431407;color:#f97316;">zyvor.dev</span>
+    <p class="brand-line"><a href="https://zyvor.dev" target="_blank" rel="noopener">zyvor.dev</a> · Part of the Zyvor product family · © 2026</p>
+</div>
+</div>
+
+<!-- Slide 2: The Problem -->
+<div class="slide">
+  <h1>The Problem</h1>
+  <p class="subtitle">VM management today is broken</p>
+  <div class="two-col">
+    <div>
+      <h3>Too Complex</h3>
+      <ul>
+        <li>Traditional virtualization stacks require dedicated infrastructure teams</li>
+        <li>Multi-service platforms need hundreds of packages and days to deploy</li>
+      </ul>
+      <h3 style="margin-top: 24px;">Too Basic</h3>
+      <ul>
+        <li>Manual QEMU/KVM with shell scripts does not scale</li>
+        <li>No security, no multi-user access, no audit trail</li>
+        <li>Every team reinvents the wheel</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Too Expensive</h3>
+      <ul>
+        <li>Per-socket licensing costs continue to escalate</li>
+        <li>Cloud-only strategies create vendor lock-in</li>
+        <li>Unpredictable monthly costs make budgeting difficult</li>
+      </ul>
+      <h3 style="margin-top: 24px;">The Result</h3>
+      <ul>
+        <li>Teams waste weeks on infrastructure instead of product</li>
+        <li>Security gaps from manual processes</li>
+        <li>Inability to scale without proportional staff growth</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: The Solution -->
+<div class="slide">
+  <h1>The Solution</h1>
+  <p class="subtitle">Private cloud control plane in a single binary</p>
+  <p style="font-size: 1.3em; margin-bottom: 30px;">
+    Zyvor Fabric is a production-grade private cloud control plane built in Rust. It runs VM
+    lifecycle on <span class="highlight">FluxVM</span>, a disposable-VM engine with no systemd
+    dependency, wrapped in a complete enterprise management layer.
+  </p>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+    <div class="metric">
+      <div class="number">1</div>
+      <div class="label">Binary to Deploy</div>
+    </div>
+    <div class="metric">
+      <div class="number">5</div>
+      <div class="label">Minutes to Production</div>
+    </div>
+    <div class="metric">
+      <div class="number">520+</div>
+      <div class="label">API Endpoints</div>
+    </div>
+    <div class="metric">
+      <div class="number">5</div>
+      <div class="label">Management Interfaces</div>
+    </div>
+  </div>
+  <pre style="text-align: center; margin-top: 30px;"><code>sudo systemctl enable --now zyvor-fabricd
+# That's it. Zyvor Fabric is running.</code></pre>
+</div>
+
+<!-- Slide 4: Key Benefits -->
+<div class="slide">
+  <h1>Key Benefits</h1>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <h3>Dramatically Lower TCO</h3>
+        <p>A commercial license is required under the Zyvor Production License v1.0. Single binary eliminates infrastructure sprawl. One engineer can manage what previously required a team.</p>
+      </div>
+      <div class="card">
+        <h3>Deploy in Minutes, Not Days</h3>
+        <p>One command deploys the full platform. No package conflicts, no database servers, no message queues. Works on any Linux with systemd.</p>
+      </div>
+      <div class="card">
+        <h3>Memory-Safe by Design</h3>
+        <p>Built in Rust with zero unsafe code. Eliminates entire categories of security vulnerabilities -- buffer overflows, use-after-free, data races.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>systemd-Native Architecture</h3>
+        <p>VMs are first-class systemd units. Journal logging, watchdog support, and socket activation come free. No custom hypervisor to maintain.</p>
+      </div>
+      <div class="card">
+        <h3>Enterprise Features, Zero Bloat</h3>
+        <p>HA clustering, live migration, GPU passthrough, LDAP/OIDC SSO, multi-tenancy, and network policies -- without the complexity.</p>
+      </div>
+      <div class="card">
+        <h3>Five Management Interfaces</h3>
+        <p>CLI, web dashboard, Kubernetes operator, and Terraform provider. Every team uses their preferred workflow.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: Architecture Overview -->
+<div class="slide">
+  <h1>Architecture Overview</h1>
+  <p class="subtitle">Clean layers, proven foundations</p>
+  <pre style="font-size: 1.1em; line-height: 1.6;"><code>
+    Management Layer
+    +----------+  +-----------+  +---------+  +--------+  +-----------+
+    |  zyvorctl   |  | zyvorctl |  |  Web UI |  |  K8s   |  | Terraform |
+    |  (CLI)   |  |            |  | (React) |  |Operator|  | Provider  |
+    +----+-----+  +-----+-----+  +----+----+  +---+----+  +-----+-----+
+         |              |             |            |              |
+         +--------------+------+------+------------+--------------+
+                               |
+    Platform Layer             v
+              +-------------------------------+
+              |       zyvor-fabricd daemon         |
+              |   520+ REST + 3 WebSocket     |
+              |   JWT + RBAC + Audit Log      |
+              +------+-------+-------+--------+
+                     |       |       |
+    System Layer     v       v       v
+              FluxVM (VM driver, no systemd dependency)
+              Linux KVM / QEMU
+  </code></pre>
+</div>
+
+<!-- Slide 6: Feature Highlights -->
+<div class="slide">
+  <h1>Feature Highlights</h1>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+    <div class="card">
+      <h3>VM Lifecycle</h3>
+      <ul>
+        <li>Create, clone, snapshot, migrate</li>
+        <li>Cloud image catalog</li>
+        <li>cloud-init integration</li>
+        <li>VM import (VMDK, VDI, VHD)</li>
+        <li>Hibernate and resume</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Storage</h3>
+      <ul>
+        <li>6 backends (Local, NFS, LVM, ZFS, Ceph)</li>
+        <li>Live storage migration</li>
+        <li>Snapshot with retention policies</li>
+        <li>ZFS replication</li>
+        <li>Online disk resize</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Networking</h3>
+      <ul>
+        <li>Cilium-style network policies</li>
+        <li>Per-VM firewall (nftables)</li>
+        <li>WireGuard VPN mesh</li>
+        <li>Service mesh load balancing</li>
+        <li>QoS and traffic shaping</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Security</h3>
+      <ul>
+        <li>PAM + JWT authentication</li>
+        <li>LDAP / OIDC SSO</li>
+        <li>3-tier RBAC</li>
+        <li>31-round security audit</li>
+        <li>Encryption at rest</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>High Availability</h3>
+      <ul>
+        <li>etcd-based clustering</li>
+        <li>Predictive DRS</li>
+        <li>Automatic failover</li>
+        <li>Live migration</li>
+        <li>Site recovery</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Operations</h3>
+      <ul>
+        <li>Prometheus metrics</li>
+        <li>Multi-channel alerts</li>
+        <li>Automated backups</li>
+        <li>VM scheduling</li>
+        <li>Resource quotas</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: Use Cases -->
+<div class="slide">
+  <h1>Use Cases</h1>
+  <p class="subtitle">Where Zyvor Fabric fits</p>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <h3>Development and Test</h3>
+        <p>Cloud-init integration means VMs come up pre-configured. Templates enable consistent environments across the team.</p>
+      </div>
+      <div class="card">
+        <h3>Edge and Branch Office</h3>
+        <p>Single-binary deployment is ideal for remote sites with limited IT staff. Runs on minimal hardware with a 20MB memory footprint. Manage remotely via API.</p>
+      </div>
+      <div class="card">
+        <h3>Private Cloud</h3>
+        <p>Multi-node clustering with HA, live migration, and shared storage delivers a private cloud experience without multi-service complexity.</p>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>VM Import and Migration</h3>
+        <p>Import existing VMs from VMDK format. Familiar web UI eases the transition. REST API enables automated migration at scale. A commercial license is required under the Zyvor Production License v1.0.</p>
+      </div>
+      <div class="card">
+        <h3>CI/CD Infrastructure</h3>
+        <p>API-first design integrates with Jenkins, GitLab CI, and GitHub Actions. Terraform provider enables infrastructure-as-code workflows.</p>
+      </div>
+      <div class="card">
+        <h3>Managed Service Providers</h3>
+        <p>Multi-tenancy with project isolation, resource quotas, and RBAC. White-label the web UI. Automated backups and monitoring reduce operational overhead.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9: Roadmap -->
+<div class="slide">
+  <h1>Roadmap Highlights</h1>
+  <p class="subtitle">Continuous investment in platform capabilities</p>
+  <div class="two-col">
+    <div>
+      <h2>Current Capabilities</h2>
+      <ul>
+        <li>520+ REST API endpoints, production-ready</li>
+        <li>4 management interfaces (CLI, web, K8s, Terraform)</li>
+        <li>31-round security audit completed</li>
+        <li>HA clustering with etcd</li>
+        <li>6 storage backends</li>
+        <li>Cilium-style network policies</li>
+        <li>GPU passthrough support</li>
+        <li>LDAP and OIDC SSO integration</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Future Direction</h2>
+      <ul>
+        <li>Confidential computing (AMD SEV, Intel TDX)</li>
+        <li>Enhanced observability and distributed tracing</li>
+        <li>Container and VM convergence</li>
+        <li>Expanded cloud image catalog</li>
+        <li>Advanced scheduling and placement policies</li>
+        <li>Ecosystem integrations (Ansible, Pulumi)</li>
+        <li>Performance benchmarking suite</li>
+        <li>Compliance reporting (SOC 2, ISO 27001)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Call to Action -->
+<div class="slide title-slide">
+  <h1>Ready to Simplify VM Management?</h1>
+  <p class="subtitle">Deploy in 5 minutes. Scale to thousands of VMs.</p>
+  <div style="margin-top: 30px;">
+    <p style="font-size: 1.3em; color: #94a3b8;">
+      One binary. Zero dependencies. Enterprise features.
+    </p>
+  </div>
+  <pre style="margin-top: 30px; display: inline-block;"><code>./zyvorctl deploy
+# Your VM platform is live.</code></pre>
+  <div style="margin-top: 40px;">
+    <span class="badge">Zyvor Family</span>
+    <span class="badge" style="background:#431407;color:#f97316;">zyvor.dev</span>
+    <span class="badge">Production Ready</span>
+    <span class="badge">Security Audited</span>
+  </div>
+</div>
+
+</body>
+</html>

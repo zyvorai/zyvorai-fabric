@@ -1,0 +1,16 @@
+From claims@insurer.example Mon Sep  1 09:00:00 2026
+From: Example Insurer Claims <claims@insurer.example>
+To: customer@example.com
+Subject: Claim No. CLM-2026-0042 received
+Date: Mon, 01 Sep 2026 09:00:00 +0000
+
+We have received your claim number CLM-2026-0042 for Rs 48,000. Status: under review.
+Please submit the discharge summary within 7 days.
+
+From claims@insurer.example Fri Sep  5 11:00:00 2026
+From: Example Insurer Claims <claims@insurer.example>
+To: customer@example.com
+Subject: Claim No. CLM-2026-0042 approved
+Date: Fri, 05 Sep 2026 11:00:00 +0000
+
+Your claim CLM-2026-0042 is approved for Rs 41,500. Reimbursement will be credited by 12-09-2026.

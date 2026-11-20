@@ -1,0 +1,18 @@
+{
+  "name": "browser-research",
+  "description": "Read-only brokered browser research on allowlisted hosts",
+  "template": "browser-agent",
+  "confinement": "strict",
+  "egress_mode": "sentinel",
+  "egress_allow_hosts": ["example.com", "github.com"],
+  "browser_port": 9222,
+  "browser": {
+    "enabled": true,
+    "allow_hosts": ["example.com", "github.com"],
+    "block_file_url": true,
+    "max_tabs": 4,
+    "snapshot_only": true,
+    "downloads": "deny"
+  },
+  "resources": { "vcpus": 2, "memory_mib": 7900 }
+}

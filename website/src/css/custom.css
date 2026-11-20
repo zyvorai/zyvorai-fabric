@@ -1,0 +1,401 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ *
+ * Design system: large type + generous whitespace + minimal chrome,
+ * in the spirit of Apple's product pages — adapted for a docs site
+ * (readable article pages, not just a marketing hero). Shared across
+ * the whole Zyvor docs-site family; keep repo-specific overrides out
+ * of this file.
+ */
+
+/* Apple-blue palette — matches the MkDocs-based Zyvor docs sites'
+   apple-glass.css (--primary: #0071e3 light / #0a84ff dark).
+   Shared across the whole Zyvor docs-site family. */
+:root {
+  /* #0066cc, not #0071e3: 5.6:1 on white and on the light-blue active-menu tint, so links pass WCAG AA */
+  --ifm-color-primary: #0066cc;
+  --ifm-color-primary-dark: #005bb8;
+  --ifm-color-primary-darker: #0055ad;
+  --ifm-color-primary-darkest: #00448f;
+  --ifm-color-primary-light: #0a72dd;
+  --ifm-color-primary-lighter: #1a7fe6;
+  --ifm-color-primary-lightest: #4a9aea;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+    'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
+  --ifm-heading-font-weight: 600;
+  --ifm-line-height-base: 1.65;
+
+  /* Generous, Apple-esque section rhythm — used by hero/section wrappers
+     in src/pages, not by Infima directly. */
+  --zv-section-space: clamp(4rem, 9vw, 9rem);
+  --zv-hero-space: clamp(5rem, 12vw, 11rem);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  /* links on the dark surfaces (#262628 and up) need 4.5:1; #4da3ff gives 5.7:1. Solid buttons keep a darker blue below. */
+  --ifm-color-primary: #4da3ff;
+  --ifm-color-primary-dark: #3395ff;
+  --ifm-color-primary-darker: #2a8eff;
+  --ifm-color-primary-darkest: #0a84ff;
+  --ifm-color-primary-light: #66b0ff;
+  --ifm-color-primary-lighter: #7dbcff;
+  --ifm-color-primary-lightest: #a6d1ff;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* The hero band itself stays pure black with white text regardless of
+   site theme — apple.com's product-page hero treatment, not a
+   light/dark-mode-dependent color. */
+.hero--primary {
+  --ifm-hero-text-color: #f5f5f7;
+  background: #000;
+}
+
+.hero--primary .button--secondary {
+  color: #000;
+  background: #f5f5f7;
+  border-color: #f5f5f7;
+}
+
+.hero--primary .button--secondary:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.hero--primary .button--outline.button--secondary {
+  color: #f5f5f7;
+  background: transparent;
+  border-color: rgba(245, 245, 247, 0.4);
+}
+
+.hero--primary .button--outline.button--secondary:hover {
+  border-color: #f5f5f7;
+}
+
+/* ---------------------------------------------------------------------
+ * Pill-shaped CTA buttons with a soft hover glow — apple.com's button
+ * treatment, applied to every `.button` site-wide.
+ * ------------------------------------------------------------------- */
+.button {
+  border-radius: 980px;
+  font-weight: 500;
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.button:hover {
+  transform: scale(1.03);
+}
+
+.button--primary:hover {
+  box-shadow: 0 8px 24px rgba(0, 113, 227, 0.35);
+}
+
+.hero--primary .button--secondary:hover {
+  box-shadow: 0 8px 24px rgba(245, 245, 247, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:hover {
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+ * Minimal nav: apple.com's persistent black top bar — thin, translucent,
+ * always dark regardless of the page's light/dark theme.
+ * ------------------------------------------------------------------- */
+.navbar {
+  height: 4.5rem;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: saturate(180%) blur(12px);
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.navbar__brand,
+.navbar__link,
+.navbar__title {
+  color: #f5f5f7;
+}
+
+.navbar__link:hover {
+  color: #ffffff;
+}
+
+.navbar__brand {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.navbar__items--right .navbar__link {
+  font-weight: 500;
+}
+
+/* Docusaurus's light/dark toggle icon defaults to a dark glyph — force it
+   light so it's visible on the always-black navbar. */
+.navbar [class*='toggle'] svg {
+  color: #f5f5f7;
+}
+
+/* Local search bar (docusaurus-search-local): a translucent pill on the
+   always-black navbar, matching the rest of the nav chrome. */
+.navbar__search-input {
+  border-radius: 980px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f5f5f7;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.navbar__search-input::placeholder {
+  color: rgba(245, 245, 247, 0.6);
+}
+
+.navbar__search-input:focus {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ---------------------------------------------------------------------
+ * Hero / section typography used by the Fabric homepage across repos.
+ * ------------------------------------------------------------------- */
+.hero__title {
+  font-size: clamp(2.75rem, 6.5vw, 5.5rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+
+.hero__subtitle {
+  font-size: clamp(1.05rem, 1.6vw, 1.375rem);
+  font-weight: 400;
+  line-height: 1.5;
+  /* Always on the forced-black hero background (see .hero--primary above),
+     so this stays a fixed light gray rather than a theme-dependent token. */
+  color: #a1a1a6;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Scroll-reveal: see src/components/Reveal. Respects prefers-reduced-motion. */
+.zv-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.zv-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zv-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+ * Docs article pages: more air, bigger headings, quieter sidebar.
+ * ------------------------------------------------------------------- */
+article .markdown h1 {
+  font-size: 2.5rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
+article .markdown h2 {
+  font-size: 1.75rem;
+  letter-spacing: -0.015em;
+  margin-top: 3rem;
+}
+
+article .markdown h3 {
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+  margin-top: 2.25rem;
+}
+
+article .markdown p,
+article .markdown li {
+  font-size: 1.0625rem;
+}
+
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--ifm-color-emphasis-200) !important;
+}
+
+.menu__link {
+  font-size: 0.9rem;
+  border-radius: 8px;
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  font-weight: 600;
+}
+
+.theme-doc-markdown {
+  max-width: 46rem;
+}
+
+/* ---------------------------------------------------------------------
+ * Docs content polish: code blocks, admonitions, TOC, breadcrumbs, and
+ * anchor-link affordances — otherwise unstyled Infima defaults.
+ * ------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+article .markdown h1,
+article .markdown h2,
+article .markdown h3,
+article .markdown h4 {
+  scroll-margin-top: 5.5rem;
+}
+
+div[class*='codeBlockContainer'] {
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: none;
+}
+
+.admonition {
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-left-width: 4px;
+  box-shadow: none;
+}
+
+.admonition-icon svg {
+  color: var(--ifm-color-primary);
+}
+
+.table-of-contents {
+  font-size: 0.85rem;
+  border-left: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+.theme-doc-breadcrumbs {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.hash-link {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+h1:hover .hash-link,
+h2:hover .hash-link,
+h3:hover .hash-link,
+h4:hover .hash-link {
+  opacity: 0.6;
+}
+
+/* —— Shared UX pass: focus, selection, even headings, one easing curve (docs/merion/design/ux-pass.md) —— */
+:root {
+  --zv-ease: cubic-bezier(0.28, 0.11, 0.32, 1);
+}
+
+:where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--ifm-color-primary) 28%, transparent);
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+.button,
+.navbar__link,
+.menu__link,
+.table-of-contents__link {
+  transition:
+    background-color 0.24s var(--zv-ease),
+    color 0.24s var(--zv-ease),
+    border-color 0.24s var(--zv-ease),
+    box-shadow 0.24s var(--zv-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .navbar__link,
+  .menu__link,
+  .table-of-contents__link {
+    transition: none;
+  }
+}
+
+/* Links inside running text are underlined: colour alone is not enough to tell them from the text around them
+   (WCAG link-in-text-block). Plain Markdown anchors carry no class (or an empty one); the marketing notes and card bodies are named. */
+main a:not([class]),
+main a[class=''],
+[class*='note'] a,
+[class*='cardBody'] a,
+[class*='tabNote'] a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+/* a filled primary button keeps white text, so its fill stays a dark blue in both themes */
+.button--primary {
+  --ifm-button-background-color: #0066cc;
+  --ifm-button-border-color: #0066cc;
+  --ifm-button-color: #fff;
+}
+[data-theme='dark'] .button--primary {
+  --ifm-button-background-color: #0071e3;
+  --ifm-button-border-color: #0071e3;
+}
+
+/* the current breadcrumb is plain text, not a coloured link on a tinted pill */
+.breadcrumbs__item--active .breadcrumbs__link {
+  background: transparent;
+  color: var(--ifm-font-color-base);
+}
+
+/* Prism's github theme has several colours under 4.5:1 on the code background (#f6f8fa). Light theme only; Prism sets the
+   colour inline, hence !important. teal 2.6:1, pink 4.3:1, comment grey 2.8:1, sky blue 3.1:1, amber 2.0:1. */
+[data-theme='light'] :is(.token.property, .token.number, .token.boolean, .token.constant, .token.symbol, .token.class-name, .token.builtin) {
+  color: #0a6b68 !important;
+}
+[data-theme='light'] :is(.token.string, .token.attr-value, .token.char, .token.inserted) {
+  color: #b8004e !important;
+}
+[data-theme='light'] :is(.token.comment, .token.prolog, .token.doctype, .token.cdata) {
+  color: #6a6a5f !important;
+}
+[data-theme='light'] :is(.token.selector, .token.atrule) {
+  color: #006f99 !important;
+}
+[data-theme='light'] :is(.token.regex, .token.important, .token.variable) {
+  color: #8a5200 !important;
+}

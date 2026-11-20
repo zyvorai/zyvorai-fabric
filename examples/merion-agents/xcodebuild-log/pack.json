@@ -1,0 +1,73 @@
+{
+  "kind": "usecase",
+  "name": "xcodebuild-log",
+  "title": "Xcode build log",
+  "description": "Drop in `xcodebuild` output and get the build result, the errors and warnings by file and message, failed targets and failed tests.",
+  "accepts": [
+    "txt",
+    "log"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Build result",
+      "keywords": [
+        "** build failed **",
+        "** build succeeded **",
+        "** test failed **",
+        "** test succeeded **"
+      ],
+      "max_lines": 4
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Errors (file:line)",
+      "pattern": "/([^/\\s:]+:[0-9]+:[0-9]+): error:",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Error messages (most repeated first)",
+      "pattern": ": error: (.{5,140})",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Warning messages (most repeated first)",
+      "pattern": ": warning: (.{5,140})",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Failed targets",
+      "pattern": "\\(in target '([^']+)'",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Failed tests",
+      "pattern": "Test Case '(.+?)' failed",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Test totals",
+      "keywords": [
+        "executed "
+      ],
+      "max_lines": 4
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "xcodebuild.md",
+  "sample_file": "sample.txt"
+}

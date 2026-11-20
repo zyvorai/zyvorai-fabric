@@ -1,0 +1,49 @@
+{
+  "source": "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img",
+  "output": "/var/lib/fluxvm/images/node22-agent.qcow2",
+  "format": "qcow2",
+  "size_gib": 8,
+  "hostname": "node22-agent",
+  "packages": [
+    "poppler-utils",
+    "tesseract-ocr",
+    "tesseract-ocr-eng",
+    "ca-certificates",
+    "xz-utils"
+  ],
+  "commands": [
+    "tar -xf /root/node.tar.xz -C /usr/local --strip-components=1",
+    "chmod +x /usr/local/bin/fluxvm-guest-agent",
+    "useradd --create-home --home-dir /home/agent --shell /bin/bash agent || true",
+    "mkdir -p /home/agent/work",
+    "chown -R agent:agent /home/agent",
+    "/usr/local/bin/node --version",
+    "command -v pdftotext",
+    "command -v tesseract",
+    "mkdir -p /etc/systemd/network && printf '[Match]\\nName=en*\\n\\n[Network]\\nDHCP=ipv4\\n' > /etc/systemd/network/20-keep.network",
+    "systemctl disable systemd-networkd-wait-online.service || true",
+    "test -f /etc/systemd/network/20-keep.network",
+    "rm -f /root/node.tar.xz"
+  ],
+  "copy_in": [
+    {
+      "src": "/tmp/node.tar.xz",
+      "dest": "/root/node.tar.xz"
+    },
+    {
+      "src": "/usr/local/bin/fluxvm-guest-agent",
+      "dest": "/usr/local/bin/fluxvm-guest-agent"
+    },
+    {
+      "src": "fluxvm-guest-agent.service",
+      "dest": "/etc/systemd/system/fluxvm-guest-agent.service"
+    }
+  ],
+  "enable_services": [
+    "fluxvm-guest-agent",
+    "systemd-networkd"
+  ],
+  "pins": {
+    "node": "v22.11.0"
+  }
+}

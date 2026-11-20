@@ -1,0 +1,17 @@
+{
+  "kind": "agent",
+  "name": "outlook-calendar",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 512 },
+    "egress_mode": "deny",
+    "egress_allow_hosts": ["graph.microsoft.com"],
+    "egress_approval_timeout_seconds": 240,
+    "credentials": ["outlook-calendar-read", "outlook-calendar-write"],
+    "confinement": "strict"
+  },
+  "goal": {
+    "title": "Read or add Outlook calendar events",
+    "text": "List the next day of the person's Outlook calendar, or add an event after a phone-signed approval that shows the real title, time and guests."
+  }
+}

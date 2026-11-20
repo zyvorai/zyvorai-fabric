@@ -1,0 +1,14 @@
+{
+  "name": "inference-v6",
+  "vip": "2001:db8:100::80",
+  "port": 443,
+  "protocol": "tcp",
+  "algorithm": "maglev",
+  "mode": "dsr",
+  "exposure": "both",
+  "maglev_table_size": 4093,
+  "backends": [
+    {"address":"2001:db8:10::21","port":443,"weight":1,"enabled":true},
+    {"address":"2001:db8:10::22","port":443,"weight":1,"enabled":true}
+  ]
+}

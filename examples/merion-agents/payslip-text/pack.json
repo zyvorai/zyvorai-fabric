@@ -1,0 +1,75 @@
+{
+  "kind": "usecase",
+  "name": "payslip-text",
+  "title": "Payslip",
+  "description": "Drop in the text of a payslip (copied from the PDF or the HR portal) and get earnings, deductions, net pay and the month.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "sample_file": "payslip.txt",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Month",
+      "pattern": "(?:January|February|March|April|May|June|July|August|September|October|November|December) 20[0-9]{2}",
+      "max_matches": 2
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Earnings",
+      "keywords": [
+        "basic",
+        "house rent",
+        "hra",
+        "allowance",
+        "gross",
+        "bonus",
+        "overtime"
+      ],
+      "max_lines": 10
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Deductions",
+      "keywords": [
+        "provident",
+        "pf",
+        "professional tax",
+        "income tax",
+        "tds",
+        "esi",
+        "total deductions"
+      ],
+      "max_lines": 10
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Net pay",
+      "keywords": [
+        "net pay",
+        "take home",
+        "net salary",
+        "net amount"
+      ],
+      "max_lines": 4
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "[0-9][0-9,]*\\.[0-9]{2}",
+      "max_matches": 14
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Paid on",
+      "pattern": "\\b[0-9]{1,2}[/.-][0-9]{1,2}[/.-][0-9]{2,4}\\b|\\b[0-9]{4}-[0-9]{2}-[0-9]{2}\\b",
+      "max_matches": 4
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "payslip.md"
+}

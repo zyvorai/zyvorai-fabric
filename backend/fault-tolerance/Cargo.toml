@@ -1,0 +1,20 @@
+[package]
+name = "fault-tolerance"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+zyvor-fabric-driver-core = { path = "../crates/driver-core" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+async-trait.workspace = true
+vm-model = { path = "../vm-model" }

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+#
+# Re-record the README / Pages demos into docs/assets/demos/ (needs python3 + Pillow + ffmpeg).
+#   ./scripts/record-demos.sh                 # record every demo
+#   ./scripts/record-demos.sh merion-speculate  # one demo
+#   RENDER_ONLY=1 ./scripts/record-demos.sh   # re-render from the committed .cast.jsonl files
+#
+# merion-live-speculate needs LAB_HOST=user@host and a prepared lab host; re-render it with RENDER_ONLY=1.
+# Each demo is a real run of a command (cast.py record) or, where the lab cannot run it, a scripted
+# replay that says "illustrative" in its first frame. See docs/assets/demos/README.md.
+# Pre-rename names still work: KEEP_<X> is used when MERION_<X> is unset.
+[ -n "${MERION_E2E_DEMO+x}" ] || [ -z "${KEEP_E2E_DEMO:-}" ] || export MERION_E2E_DEMO="$KEEP_E2E_DEMO"
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+OUT=docs/assets/demos
+CAST="python3 scripts/demo/cast.py"
+
+# name | command that produces the output | command shown at the prompt | window title
+DEMOS=(
+  "merion-speculate|scripts/demo/run-speculate.sh|MERION_E2E_DEMO=speculate-demo.sh ./scripts/merion-e2e.sh|merion: speculate, review, approve"
+  "merion-live-speculate|scripts/demo/run-live-speculate.sh|ssh lab-host live-speculate.sh|merion + a real FluxVM microVM"
+  "credential-broker|bash scripts/demo/illustrative-broker.sh|bash scripts/demo/illustrative-broker.sh|illustrative: credential broker"
+)
+
+for row in "${DEMOS[@]}"; do
+  IFS='|' read -r name run shown title <<<"$row"
+  if [[ $# -gt 0 ]]; then
+    match=false; for n in "$@"; do [[ "$n" == "$name" ]] && match=true; done
+    $match || continue
+  fi
+  echo "==> $name"
+  if [[ -z "${RENDER_ONLY:-}" ]]; then
+    cargo build --manifest-path agent-runtime/Cargo.toml --bins --examples >/dev/null 2>&1
+    $CAST record "$OUT/$name.cast.jsonl" -- bash -c "$run"
+  fi
+  $CAST render "$OUT/$name.cast.jsonl" "$OUT/$name" --cmd "$shown" --title "$title"
+done

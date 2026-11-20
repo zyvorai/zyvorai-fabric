@@ -1,0 +1,31 @@
+{
+  "kind": "usecase",
+  "name": "attendance-sheet",
+  "title": "Attendance sheet",
+  "description": "Drop in an Excel attendance sheet and see rows per employee and per status.",
+  "accepts": [
+    "xlsx"
+  ],
+  "extract": "xlsx",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Employees and statuses",
+      "columns": [
+        "employee",
+        "status"
+      ],
+      "top": 10
+    },
+    {
+      "kind": "table",
+      "title": "First rows",
+      "max_rows": 15
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "attendance.md"
+}

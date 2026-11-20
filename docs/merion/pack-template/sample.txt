@@ -1,0 +1,5 @@
+Invoice 1001
+Date 2026-09-01
+Total 120.00
+Amount due 120.00 by 2026-09-30
+(synthetic sample: nothing here is real)

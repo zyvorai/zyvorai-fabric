@@ -1,0 +1,18 @@
+# Demo recordings
+
+Regenerate with `./scripts/record-demos.sh` (needs `python3`, Pillow and `ffmpeg`). Each demo is a
+`.cast.jsonl` (what a command printed, and when) rendered to `.gif`, `.mp4` and `.webm` by
+`scripts/demo/cast.py`. Re-render without re-running anything: `RENDER_ONLY=1 ./scripts/record-demos.sh`.
+
+| Demo | What it is | Honesty label |
+|---|---|---|
+| `merion-speculate` | The stub-backed, reproducible-anywhere version: a real run of the Merion runtime (`scripts/merion-e2e.sh`). The agent proposes a change, a person approves or denies it, and the demo prints what FluxVM was asked to do. | Merion is real. **FluxVM is the CI stub**, so no VM boots; the changeset body is a response captured from a real FluxVM. The frame says so. |
+| `merion-live-speculate` | The same flow as `merion-speculate`, run for real: the Merion runtime plus a **real FluxVM microVM on KVM** on a lab host. The printed times are measured by the script on that shared, loaded host; the recording trims the waits (the original runs took minutes). | **Real.** Needs a prepared host (`scripts/demo/run-live-speculate.sh`, `LAB_HOST=user@host`). |
+| `credential-broker` | A scripted replay of the credential-broker idea (`scripts/demo/illustrative-broker.sh`). It runs nothing and prints fixed text. | **Illustrative.** The first frame says so, the title bar says so, and it has no numbers. |
+
+Rules for adding one:
+
+- A real run records a command's actual output and timing. Do not edit the cast.
+- A scripted replay is allowed only when the lab cannot run the thing, and its first frame must say
+  **illustrative**. It must not print numbers that look measured (latencies, sizes, savings).
+- Keep each GIF under 2 MB; the `.mp4` and `.webm` are for the site.

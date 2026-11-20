@@ -1,0 +1,1 @@
+Read /home/agent/work/input.pdf only. Write artifact answers.md. No browser. No hosts.

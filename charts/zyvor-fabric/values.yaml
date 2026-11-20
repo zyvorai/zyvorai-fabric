@@ -1,0 +1,75 @@
+## Global
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+## Namespace labels (chart does not create the namespace by default —
+## install with --create-namespace). PSS must be privileged.
+podSecurity:
+  enforce: privileged
+
+## Secrets — Kubernetes Secret only (not systemd .admin_password files).
+## adminPassword empty → chart generates a random password (randAlphaNum).
+## Do not set Admin@321 (install fails). Lab convenience: FABRIC_LAB_DEFAULTS=1
+## on deploy scripts, or --set a unique password / existingSecret.
+security:
+  existingSecret: ""
+  adminUsername: "admin"
+  adminPassword: ""
+  # Prefer setting explicitly or using existingSecret in production.
+  jwtSecret: "zyvor-fabric-lab-jwt-change-me"
+
+fabricd:
+  enabled: true
+  image:
+    repository: zyvor-fabricd
+    pullPolicy: IfNotPresent
+    tag: "local"
+  listen: "0.0.0.0:9095"
+  logLevel: info
+  hostPath: /var/lib/zyvor-fabricd
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 2Gi
+  service:
+    type: NodePort
+    port: 9095
+    nodePort: 30095
+  config: |
+    [daemon]
+    listen = "0.0.0.0:9095"
+    cors_origins = ["*"]
+
+    [storage]
+    path = "/var/lib/zyvor-fabricd"
+    image_path = "/var/lib/zyvor-fabricd/images"
+
+    [network]
+    bridge = "br0"
+
+    [tls]
+    enabled = false
+
+    [driver]
+    fluxvm_url = "http://127.0.0.1:7788"
+
+fluxvm:
+  enabled: true
+  image:
+    repository: zyvor-fabric-fluxvm
+    pullPolicy: IfNotPresent
+    tag: "local"
+  hostPath: /var/lib/fluxvm
+  runPath: /run/fluxvm
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 2Gi

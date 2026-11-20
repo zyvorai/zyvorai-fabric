@@ -1,0 +1,8 @@
+[package]
+name = "input-guard"
+version = "0.5.1"
+edition = "2021"
+license = "LicenseRef-Zyvor-Production-1.0"
+description = "Reject path traversal and unsafe command arguments before they reach sinks"
+
+[dependencies]

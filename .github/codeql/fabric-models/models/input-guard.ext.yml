@@ -1,0 +1,25 @@
+extensions:
+  - addsTo:
+      pack: codeql/rust-all
+      extensible: barrierGuardModel
+    data:
+      # Canonical paths match CodeQL's Rust extractor: inherent methods are
+      # `<crate::Type>::method`, and Argument[0] is the first non-self argument.
+      - ["<input_guard::CommandArgAllowlist>::contains", "Argument[0]", "true", "command-injection", "manual"]
+      - ["<input_guard::CommandArgAllowlist>::contains", "Argument[0]", "true", "path-injection", "manual"]
+      - ["input_guard::is_safe_argv", "Argument[0]", "true", "command-injection", "manual"]
+      - ["input_guard::is_safe_argv", "Argument[0]", "true", "path-injection", "manual"]
+      - ["input_guard::is_safe_component", "Argument[0]", "true", "path-injection", "manual"]
+      - ["input_guard::is_safe_component", "Argument[0]", "true", "command-injection", "manual"]
+      - ["input_guard::is_safe_outbound_url", "Argument[0]", "true", "request-url", "manual"]
+      - ["input_guard::is_safe_probe_host", "Argument[0]", "true", "request-url", "manual"]
+      - ["input_guard::is_safe_probe_url", "Argument[0]", "true", "request-url", "manual"]
+  - addsTo:
+      pack: codeql/rust-all
+      extensible: barrierModel
+    data:
+      # The return value is the checked string, or "" when rejected. Callers
+      # that use the return value (and refuse "") are not passing the original
+      # tainted reference into the sink.
+      - ["input_guard::sanitize_outbound_url", "ReturnValue", "request-url", "manual"]
+      - ["input_guard::sanitize_probe_url", "ReturnValue", "request-url", "manual"]

@@ -1,0 +1,74 @@
+{
+  "kind": "usecase",
+  "name": "bill-photo",
+  "title": "Bill photo",
+  "description": "Drop in a photo or screenshot of a utility, phone or card bill and get the amount due, the due date and the account or reference lines.",
+  "accepts": [
+    "png",
+    "jpg",
+    "jpeg",
+    "tiff"
+  ],
+  "extract": "ocr",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Amount due",
+      "keywords": [
+        "amount due",
+        "total due",
+        "pay by",
+        "please pay",
+        "balance",
+        "net payable"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Due dates",
+      "pattern": "\\b[0-9]{4}-[0-9]{2}-[0-9]{2}\\b|\\b[0-9]{1,2}[/.-][0-9]{1,2}[/.-][0-9]{2,4}\\b",
+      "max_matches": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Dates written with a month name",
+      "pattern": "\\b(?:[0-9]{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* [0-9]{1,2})\\b",
+      "max_matches": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Account and reference",
+      "keywords": [
+        "account",
+        "customer",
+        "consumer",
+        "reference",
+        "bill no",
+        "invoice",
+        "meter"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Usage and charges",
+      "keywords": [
+        "usage",
+        "units",
+        "consumption",
+        "charge",
+        "late fee",
+        "plan"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "(?:Rs\\.?|INR|USD|EUR|GBP|\\$|€|£)\\s?[0-9][0-9,]*(?:\\.[0-9]{2})?",
+      "max_matches": 10
+    }
+  ],
+  "artifact_title": "bill.md"
+}

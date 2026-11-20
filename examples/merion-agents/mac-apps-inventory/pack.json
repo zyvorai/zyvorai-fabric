@@ -1,0 +1,53 @@
+{
+  "kind": "usecase",
+  "name": "mac-apps-inventory",
+  "title": "Mac apps inventory",
+  "description": "Drop in `system_profiler SPApplicationsDataType` output and get the apps, where they came from, who signed them and where they live.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Apps",
+      "pattern": "(?m)^    ([^\\s].*):$",
+      "max_matches": 40,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Obtained from",
+      "pattern": "Obtained from: (.+)",
+      "max_matches": 6,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Signed by (first signer)",
+      "pattern": "Signed by: ([^,]+)",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Kind",
+      "pattern": "Kind: (.+)",
+      "max_matches": 5,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Where they live",
+      "pattern": "Location: (/[^/]+)",
+      "max_matches": 6,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "mac-apps.md",
+  "sample_file": "sample.txt"
+}

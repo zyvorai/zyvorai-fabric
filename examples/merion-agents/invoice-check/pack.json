@@ -1,0 +1,43 @@
+{
+  "kind": "usecase",
+  "name": "invoice-check",
+  "title": "Invoice check",
+  "description": "Pull totals and due dates out of a plain-text invoice, and flag repeated lines.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Totals",
+      "keywords": [
+        "total",
+        "amount due",
+        "balance"
+      ],
+      "max_lines": 5
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Due dates",
+      "keywords": [
+        "due",
+        "payable by",
+        "net 30"
+      ],
+      "max_lines": 5
+    },
+    {
+      "kind": "top_repeated_lines",
+      "title": "Repeated lines",
+      "top": 5
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "invoice-summary.md",
+  "sample_file": "sample.txt"
+}

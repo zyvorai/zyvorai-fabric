@@ -1,0 +1,51 @@
+{
+  "kind": "usecase",
+  "name": "calendar-week",
+  "title": "Calendar week",
+  "description": "Drop in a calendar export (.ics) and get event titles, start times, locations and attendees.",
+  "accepts": [
+    "ics"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Events",
+      "pattern": "(?m)^SUMMARY[^:]*:([^\\r\\n]+)",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Start times (UTC as exported)",
+      "pattern": "(?m)^DTSTART[^:]*:([0-9]{8}(?:T[0-9]{6}Z?)?)",
+      "max_matches": 20,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Places",
+      "pattern": "(?m)^LOCATION[^:]*:([^\\r\\n]+)",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Attendees",
+      "pattern": "mailto:([^\\r\\n]+)",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Cancelled or unsure",
+      "keywords": [
+        "cancelled",
+        "tentative"
+      ],
+      "max_lines": 6
+    }
+  ],
+  "artifact_title": "calendar-week.md",
+  "sample_file": "sample.ics"
+}

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zyvor Fabric - Security and Compliance</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0e0e0; }
+  .slide { min-height: 100vh; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #222; }
+  .slide h1 { font-size: 2.8em; margin-bottom: 20px; color: #60a5fa; }
+  .slide h2 { font-size: 2em; margin-bottom: 16px; color: #93c5fd; }
+  .slide h3 { font-size: 1.4em; margin-bottom: 12px; color: #bfdbfe; }
+  .slide p, .slide li { font-size: 1.2em; line-height: 1.8; margin-bottom: 8px; }
+  .slide ul, .slide ol { padding-left: 30px; }
+  .slide code { background: #1e293b; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; color: #7dd3fc; }
+  .slide pre { background: #1e293b; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 16px 0; }
+  .slide pre code { background: none; padding: 0; }
+  .slide table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .slide th, .slide td { padding: 12px 16px; text-align: left; border: 1px solid #334155; }
+  .slide th { background: #1e293b; color: #93c5fd; }
+  .slide .highlight { color: #34d399; font-weight: bold; }
+  .slide .subtitle { font-size: 1.4em; color: #94a3b8; margin-bottom: 30px; }
+  .slide .badge { display: inline-block; background: #1e3a5f; color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-size: 0.9em; margin: 4px; }
+  .title-slide { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center; }
+  .title-slide h1 { font-size: 3.5em; color: #60a5fa; }
+  .title-slide .subtitle { font-size: 1.6em; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .metric { text-align: center; padding: 20px; }
+  .metric .number { font-size: 3em; color: #34d399; font-weight: bold; }
+  .metric .label { font-size: 1em; color: #94a3b8; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin: 8px 0; }
+  .card h3 { color: #60a5fa; }
+  .warn { color: #f87171; }
+  .safe { color: #34d399; }
+  @media print { .slide { page-break-after: always; min-height: auto; padding: 40px; } }
+
+  .brand-line { font-size: 1em; color: #f97316; margin-top: 24px; font-weight: 600; }
+  .brand-line a { color: #f97316; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide title-slide">
+  <h1>Security and Compliance</h1>
+  <p class="subtitle">Defense in Depth for VM Infrastructure</p>
+  <p style="font-size: 1.2em; color: #64748b; margin-top: 20px;">
+    33-round security audit. 225 issues identified and fixed. Production-ready.
+  </p>
+  <div style="margin-top: 40px;">
+    <span class="badge">Zero Unsafe Rust</span>
+    <span class="badge">Memory Safe</span>
+    <span class="badge">Security Audited</span>
+    <span class="badge">Input Validated</span>
+  </div>
+</div>
+
+<!-- Slide 2: Security Architecture -->
+<div class="slide">
+  <h1>Security Architecture Overview</h1>
+  <p class="subtitle">Multiple layers of defense, no single point of failure</p>
+  <pre style="font-size: 1.05em; line-height: 1.5;"><code>
+  Request Flow with Security Controls
+  =====================================================
+
+  Client Request
+       |
+       v
+  [TLS Termination] -------- Encryption in transit
+       |
+       v
+  [Rate Limiter] ----------- Brute force prevention (5 req / 5 min on auth)
+       |
+       v
+  [Security Headers] ------- HSTS, CSP, X-Frame-Options
+       |
+       v
+  [JWT Validation] --------- Token verification + revocation check
+       |
+       v
+  [RBAC Check] ------------- Admin / User / Viewer role enforcement
+       |
+       v
+  [Input Validation] ------- Type checks, bounds, format, sanitization
+       |
+       v
+  [Business Logic] --------- Safe subprocess calls (no shell pipelines)
+       |
+       v
+  [Audit Logger] ----------- JSON-structured event recording
+       |
+       v
+  [Response Filter] -------- Credential redaction in output
+  </code></pre>
+</div>
+
+<!-- Slide 3: Authentication -->
+<div class="slide">
+  <h1>Authentication</h1>
+  <p class="subtitle">PAM + JWT with enterprise SSO integration</p>
+  <div class="two-col">
+    <div>
+      <h3>Authentication Methods</h3>
+      <div class="card">
+        <h3>PAM (Primary)</h3>
+        <p>Authenticate against system users via Pluggable Authentication Modules. Supports local accounts, LDAP backends, and any PAM-compatible identity provider.</p>
+      </div>
+      <div class="card">
+        <h3>JWT Tokens</h3>
+        <p>After PAM authentication, users receive a JWT token for subsequent API calls. Configurable expiration. Token revocation and blacklisting supported.</p>
+      </div>
+      <div class="card">
+        <h3>API Keys</h3>
+        <p>Long-lived tokens for service-to-service authentication. Scoped permissions. Separate rate limiting. Audit logged.</p>
+      </div>
+    </div>
+    <div>
+      <h3>Enterprise SSO</h3>
+      <div class="card">
+        <h3>LDAP Integration</h3>
+        <p>Connect to Active Directory or OpenLDAP. Map LDAP groups to Zyvor Fabric roles. Automatic user provisioning on first login.</p>
+      </div>
+      <div class="card">
+        <h3>OIDC / OAuth2</h3>
+        <p>OpenID Connect for modern SSO. Compatible with Okta, Auth0, Keycloak, Azure AD, and Google Workspace.</p>
+      </div>
+      <h3 style="margin-top: 20px;">Password Security</h3>
+      <ul>
+        <li>bcrypt hashing with cost factor 12</li>
+        <li>Auto-generated admin password on first install</li>
+        <li>Secret file stored with 0600 permissions</li>
+        <li>Password never logged or returned in API responses</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: 2FA / TOTP Authentication -->
+<div class="slide">
+  <h1>2FA / TOTP Authentication</h1>
+  <p class="subtitle">Time-based one-time passwords for every user account</p>
+  <div class="two-col">
+    <div>
+      <h3>How It Works</h3>
+      <ol>
+        <li>User calls <code>POST /api/auth/2fa/setup</code> to generate a TOTP secret</li>
+        <li>Server returns the secret and an <code>otpauth://</code> URL</li>
+        <li>User scans the QR code with an authenticator app</li>
+        <li>User confirms by verifying a code via <code>POST /api/auth/2fa/verify</code></li>
+        <li>Subsequent logins require the <code>totp_code</code> field</li>
+      </ol>
+      <h3 style="margin-top: 20px;">Security Properties</h3>
+      <ul>
+        <li>TOTP secrets encrypted at rest in the user database</li>
+        <li>Constant-time code verification (no timing side channel)</li>
+        <li>Per-user enable/disable -- not a global setting</li>
+        <li>Missing code returns <code>401</code> with <code>requires_2fa: true</code></li>
+        <li>Invalid code returns <code>401</code> and is rate-limited</li>
+      </ul>
+    </div>
+    <div>
+      <h3>API Endpoints</h3>
+      <table>
+        <tr><th>Endpoint</th><th>Description</th></tr>
+        <tr><td><code>POST /api/auth/2fa/setup</code></td><td>Generate TOTP secret</td></tr>
+        <tr><td><code>POST /api/auth/2fa/verify</code></td><td>Confirm setup with code</td></tr>
+        <tr><td><code>POST /api/auth/login</code></td><td>Login with optional totp_code</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Compatible Apps</h3>
+      <ul>
+        <li>Google Authenticator</li>
+        <li>Authy</li>
+        <li>Microsoft Authenticator</li>
+        <li>FreeOTP</li>
+        <li>Any RFC 6238 TOTP-compatible app</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: JWT Token Revocation -->
+<div class="slide">
+  <h1>JWT Token Revocation</h1>
+  <p class="subtitle">Invalidate compromised tokens instantly</p>
+  <div class="two-col">
+    <div>
+      <h3>Token Lifecycle</h3>
+      <ul>
+        <li>JWT tokens issued on successful login (PAM + optional 2FA)</li>
+        <li>Configurable expiration time</li>
+        <li>Token blacklist checked on every authenticated request</li>
+        <li>Revoked tokens rejected immediately at the middleware layer</li>
+        <li>Blacklist entries cleaned up after token expiry</li>
+      </ul>
+      <h3 style="margin-top: 20px;">When to Revoke</h3>
+      <ul>
+        <li>User account compromised</li>
+        <li>Employee offboarding</li>
+        <li>Suspicious activity detected in audit logs</li>
+        <li>Password or role change</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Security Architecture</h3>
+      <pre style="font-size: 1.05em;"><code>  Request with JWT
+       |
+       v
+  [Decode Token] ---- Verify signature + expiry
+       |
+       v
+  [Check Blacklist] -- Is this token revoked?
+       |
+       v
+  [Extract Claims] --- Username, role, expiry
+       |
+       v
+  [RBAC Enforcement] - Does the role permit this action?
+       |
+       v
+  [Handler] ---------- Process the request</code></pre>
+      <p style="margin-top: 16px;">Every API request passes through this pipeline. Revoked tokens are rejected at the blacklist check -- before any business logic executes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: RBAC -->
+<div class="slide">
+  <h1>Role-Based Access Control</h1>
+  <p class="subtitle">Three-tier RBAC enforced on every API endpoint</p>
+  <table>
+    <tr>
+      <th>Capability</th>
+      <th>Admin</th>
+      <th>User</th>
+      <th>Viewer</th>
+    </tr>
+    <tr>
+      <td>View VM list and status</td>
+      <td class="safe">Yes</td>
+      <td class="safe">Yes (own project)</td>
+      <td class="safe">Yes (own project)</td>
+    </tr>
+    <tr>
+      <td>Create / delete VMs</td>
+      <td class="safe">Yes</td>
+      <td class="safe">Yes (own project)</td>
+      <td class="warn">No</td>
+    </tr>
+    <tr>
+      <td>Start / stop / restart VMs</td>
+      <td class="safe">Yes</td>
+      <td class="safe">Yes (own project)</td>
+      <td class="warn">No</td>
+    </tr>
+    <tr>
+      <td>VM console access</td>
+      <td class="safe">Yes</td>
+      <td class="safe">Yes (own VMs)</td>
+      <td class="warn">No</td>
+    </tr>
+    <tr>
+      <td>Configure networking</td>
+      <td class="safe">Yes</td>
+      <td class="safe">Yes (own project)</td>
+      <td class="warn">No</td>
+    </tr>
+    <tr>
+      <td>Manage storage pools</td>
+      <td class="safe">Yes</td>
+      <td class="warn">No</td>
+      <td class="warn">No</td>
+    </tr>
+    <tr>
+      <td>Manage users and roles</td>
+      <td class="safe">Yes</td>
+      <td class="warn">No</td>
+      <td class="warn">No</td>
+    </tr>
+    <tr>
+      <td>View audit logs</td>
+      <td class="safe">Yes</td>
+      <td class="warn">No</td>
+      <td class="warn">No</td>
+    </tr>
+    <tr>
+      <td>Cluster management</td>
+      <td class="safe">Yes</td>
+      <td class="warn">No</td>
+      <td class="warn">No</td>
+    </tr>
+    <tr>
+      <td>Platform configuration</td>
+      <td class="safe">Yes</td>
+      <td class="warn">No</td>
+      <td class="warn">No</td>
+    </tr>
+  </table>
+  <p style="margin-top: 16px;">Every API handler checks the caller's role before executing. Unauthorized requests return <code>403 Forbidden</code> with an audit log entry.</p>
+</div>
+
+<!-- Slide 5: Input Validation -->
+<div class="slide">
+  <h1>Input Validation</h1>
+  <p class="subtitle">Every user-facing parameter is validated before processing</p>
+  <div class="two-col">
+    <div>
+      <h3>Validation Categories</h3>
+      <table>
+        <tr><th>Input Type</th><th>Validation</th></tr>
+        <tr><td>VM names</td><td>Alphanumeric + hyphens, length limits</td></tr>
+        <tr><td>CPU count</td><td>1-128, integer bounds</td></tr>
+        <tr><td>Memory</td><td>256MB-512GB, positive integer</td></tr>
+        <tr><td>Disk size</td><td>Positive integer, max bounds</td></tr>
+        <tr><td>File paths</td><td>Canonicalization, traversal check</td></tr>
+        <tr><td>URLs</td><td>Scheme validation, SSRF check</td></tr>
+        <tr><td>Network config</td><td>IP format, CIDR validation</td></tr>
+        <tr><td>Pool names</td><td>LVM/ZFS/Ceph format rules</td></tr>
+        <tr><td>Entity IDs</td><td>UUID format, sanitization</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Validation Architecture</h3>
+      <ul>
+        <li>Centralized validation module (<code>validation.rs</code>)</li>
+        <li>Type-safe Rust structs with <code>serde</code> deserialization</li>
+        <li>Invalid input rejected before reaching business logic</li>
+        <li>Consistent error responses with field-level details</li>
+        <li>No silent coercion or fallback to defaults</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Example: VM Name Validation</h3>
+      <pre><code>// Rejects: "../escape", "rm -rf", ""
+// Accepts: "web-01", "db-primary", "test123"
+fn validate_vm_name(name: &str) -> Result&lt;()&gt; {
+    if name.is_empty() || name.len() > 64 {
+        return Err(ValidationError::Length);
+    }
+    if !name.chars().all(|c|
+        c.is_alphanumeric() || c == '-' || c == '_'
+    ) {
+        return Err(ValidationError::InvalidChars);
+    }
+    Ok(())
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: Command Injection Prevention -->
+<div class="slide">
+  <h1>Command Injection Prevention</h1>
+  <p class="subtitle">Zero shell pipelines -- all subprocess calls use safe argument passing</p>
+  <div class="two-col">
+    <div>
+      <h3>The Threat</h3>
+      <p>Command injection is one of the most critical web application vulnerabilities. If user input reaches a shell, attackers can execute arbitrary commands on the host.</p>
+
+      <h3 style="margin-top: 20px;">Unsafe Pattern (Never Used)</h3>
+      <pre><code class="warn">// DANGEROUS: shell injection possible
+let output = Command::new("sh")
+    .arg("-c")
+    .arg(format!("qemu-img info {}", user_input))
+    .output();</code></pre>
+      <p class="warn" style="margin-top: 8px;">If <code>user_input</code> is <code>"img.qcow2; rm -rf /"</code>, the shell executes both commands.</p>
+    </div>
+    <div>
+      <h3>Safe Pattern (Always Used)</h3>
+      <pre><code class="safe">// SAFE: arguments passed directly, no shell
+let output = Command::new("qemu-img")
+    .arg("info")
+    .arg("--output=json")
+    .arg(&validated_path)
+    .output();</code></pre>
+      <p class="safe" style="margin-top: 8px;">Arguments are passed as an array. No shell interpretation. Special characters are treated as literal strings.</p>
+
+      <h3 style="margin-top: 20px;">Enforced Practices</h3>
+      <ul>
+        <li>All subprocess calls use <code>Command::new()</code> with <code>.arg()</code></li>
+        <li>No <code>sh -c</code> or <code>bash -c</code> invocations</li>
+        <li>No string interpolation into commands</li>
+        <li>Validated and sanitized inputs only</li>
+        <li>Audited across all 40+ crates</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: Path Traversal and SSRF -->
+<div class="slide">
+  <h1>Path Traversal and SSRF Prevention</h1>
+  <p class="subtitle">Protecting against file system and network attacks</p>
+  <div class="two-col">
+    <div>
+      <h3>Path Traversal Protection</h3>
+      <p>Attackers attempt to access files outside intended directories using sequences like <code>../../etc/passwd</code>.</p>
+      <h3 style="margin-top: 16px;">Defense Mechanism</h3>
+      <ul>
+        <li>All file paths are canonicalized before use</li>
+        <li>Resulting path must be within allowed directories</li>
+        <li>Symbolic links are resolved and checked</li>
+        <li>Null bytes in paths are rejected</li>
+      </ul>
+      <pre><code>// Canonicalize and verify containment
+let canonical = path.canonicalize()?;
+if !canonical.starts_with(&allowed_base) {
+    return Err(SecurityError::PathTraversal);
+}</code></pre>
+    </div>
+    <div>
+      <h3>SSRF Prevention</h3>
+      <p>Server-Side Request Forgery (SSRF) tricks the server into making requests to internal services or metadata endpoints.</p>
+      <h3 style="margin-top: 16px;">Defense Mechanism</h3>
+      <ul>
+        <li>User-provided URLs are validated before use</li>
+        <li>Private IP ranges are blocked (10.x, 172.16.x, 192.168.x)</li>
+        <li>Loopback addresses blocked (127.0.0.1, ::1)</li>
+        <li>Cloud metadata endpoints blocked (169.254.169.254)</li>
+        <li>Only HTTP/HTTPS schemes permitted</li>
+        <li>DNS resolution checked against blocked ranges</li>
+      </ul>
+      <p style="margin-top: 12px;">Applied to: cloud image downloads, webhook URLs, ISO downloads, and any user-specified URL.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: Rate Limiting -->
+<div class="slide">
+  <h1>Rate Limiting</h1>
+  <p class="subtitle">Brute force protection and abuse prevention</p>
+  <div class="two-col">
+    <div>
+      <h3>Authentication Rate Limiting</h3>
+      <div class="card">
+        <h3>Login Endpoint</h3>
+        <ul>
+          <li>5 attempts per 5 minutes per source IP</li>
+          <li>Failed attempts logged with source details</li>
+          <li>Lockout response with retry-after header</li>
+          <li>Prevents credential stuffing and brute force</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>API Key Endpoints</h3>
+        <ul>
+          <li>Separate rate limits for key validation</li>
+          <li>Invalid key attempts tracked</li>
+          <li>Automatic lockout on excessive failures</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h3>Why Rate Limiting Matters</h3>
+      <p>Without rate limiting, an attacker can attempt thousands of passwords per second. With Zyvor Fabric's limits:</p>
+      <table>
+        <tr><th>Scenario</th><th>Without Limiting</th><th>With Limiting</th></tr>
+        <tr><td>Attempts/hour</td><td>360,000+</td><td>60</td></tr>
+        <tr><td>4-digit PIN brute force</td><td>~1 second</td><td>~28 hours</td></tr>
+        <tr><td>6-char password</td><td>~5 minutes</td><td>~19 years</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Additional Protections</h3>
+      <ul>
+        <li>bcrypt cost factor 12 adds ~250ms per attempt</li>
+        <li>Constant-time comparison prevents timing attacks</li>
+        <li>No user enumeration (same response for valid/invalid)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9: Audit Logging -->
+<div class="slide">
+  <h1>Audit Logging</h1>
+  <p class="subtitle">Complete operational visibility with structured event recording</p>
+  <div class="two-col">
+    <div>
+      <h3>What Gets Logged</h3>
+      <ul>
+        <li>All authentication attempts (success and failure)</li>
+        <li>VM lifecycle operations (create, start, stop, delete)</li>
+        <li>Configuration changes</li>
+        <li>User and role modifications</li>
+        <li>Storage operations</li>
+        <li>Network policy changes</li>
+        <li>API key creation and revocation</li>
+        <li>Backup and restore operations</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Log Entry Fields</h3>
+      <ul>
+        <li>Timestamp (ISO 8601)</li>
+        <li>User identity (username, role)</li>
+        <li>Action performed</li>
+        <li>Target resource (VM name, ID)</li>
+        <li>Source IP address</li>
+        <li>Result (success / failure)</li>
+        <li>Additional context</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Example Audit Entry</h3>
+      <pre><code>{
+  "timestamp": "2026-04-12T10:30:45Z",
+  "user": "admin",
+  "role": "Admin",
+  "action": "vm.start",
+  "target": "web-server-01",
+  "source_ip": "192.168.1.50",
+  "result": "success",
+  "details": {
+    "cpus": 4,
+    "memory_mb": 4096
+  }
+}</code></pre>
+      <h3 style="margin-top: 20px;">Export and Retention</h3>
+      <ul>
+        <li>JSON export for SIEM integration</li>
+        <li>CSV export for spreadsheet analysis</li>
+        <li>Configurable retention policies</li>
+        <li>Automated cleanup via systemd timer</li>
+        <li>Weekly cleanup of old events, audit logs, webhook deliveries</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Security Headers and Encryption -->
+<div class="slide">
+  <h1>Security Headers and Encryption</h1>
+  <p class="subtitle">Defense at every layer of the HTTP stack</p>
+  <div class="two-col">
+    <div>
+      <h3>HTTP Security Headers</h3>
+      <table>
+        <tr><th>Header</th><th>Purpose</th></tr>
+        <tr><td><code>Strict-Transport-Security</code></td><td>Force HTTPS connections</td></tr>
+        <tr><td><code>Content-Security-Policy</code></td><td>Prevent XSS and injection</td></tr>
+        <tr><td><code>X-Content-Type-Options</code></td><td>Prevent MIME sniffing</td></tr>
+        <tr><td><code>X-Frame-Options</code></td><td>Prevent clickjacking</td></tr>
+        <tr><td><code>Referrer-Policy</code></td><td>Control referrer leakage</td></tr>
+        <tr><td><code>X-XSS-Protection</code></td><td>Browser XSS filter</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Credential Redaction</h3>
+      <ul>
+        <li>Passwords never included in API responses</li>
+        <li>JWT secrets never exposed</li>
+        <li>Database credentials redacted in logs</li>
+        <li>Webhook secrets masked in configurations</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Encryption at Rest</h3>
+      <ul>
+        <li>VM disk encryption support</li>
+        <li>Credential database encryption</li>
+        <li>Secret files with restricted permissions (0600)</li>
+        <li>Dedicated <code>encryption</code> crate for crypto operations</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Encryption in Transit</h3>
+      <ul>
+        <li>TLS/HTTPS with built-in certificate management</li>
+        <li>Self-signed certificate generation via <code>zyvorctl tls</code></li>
+        <li>SAN (Subject Alternative Name) support</li>
+        <li>WebSocket connections encrypted over TLS</li>
+        <li>WireGuard tunnels for inter-node communication</li>
+      </ul>
+      <h3 style="margin-top: 20px;">SQL Injection Prevention</h3>
+      <ul>
+        <li>All database queries use parameterized statements</li>
+        <li>No string concatenation in SQL</li>
+        <li>Entity IDs sanitized before storage</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 13: Compliance Scanning Framework -->
+<div class="slide">
+  <h1>Compliance Scanning Framework</h1>
+  <p class="subtitle">Automated security posture assessment with 7 built-in checks</p>
+  <div class="two-col">
+    <div>
+      <h3>Check Types</h3>
+      <table>
+        <tr><th>Check</th><th>Category</th><th>Severity</th></tr>
+        <tr><td>DiskEncrypted</td><td>Security</td><td>Critical</td></tr>
+        <tr><td>TpmEnabled</td><td>Security</td><td>High</td></tr>
+        <tr><td>SecureBootEnabled</td><td>Security</td><td>High</td></tr>
+        <tr><td>FirewallAssigned</td><td>Network</td><td>High</td></tr>
+        <tr><td>NetworkPolicyAssigned</td><td>Network</td><td>Medium</td></tr>
+        <tr><td>MinCpus</td><td>Compute</td><td>Low</td></tr>
+        <tr><td>MinMemoryMb</td><td>Compute</td><td>Low</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Profiles</h3>
+      <ul>
+        <li>Default <code>cis-baseline-v1</code> profile always available</li>
+        <li>Custom profiles with selected rules and thresholds</li>
+        <li>Results stored and queryable via API</li>
+      </ul>
+    </div>
+    <div>
+      <h3>API Endpoints</h3>
+      <table>
+        <tr><th>Endpoint</th><th>Description</th></tr>
+        <tr><td><code>GET /api/compliance/profiles</code></td><td>List profiles</td></tr>
+        <tr><td><code>POST /api/compliance/scan/:vm</code></td><td>Scan a VM</td></tr>
+        <tr><td><code>GET /api/compliance/results</code></td><td>List all results</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Scan Result</h3>
+      <pre><code>{
+  "id": "scan-abc123",
+  "profile_id": "cis-baseline-v1",
+  "vm_name": "web-01",
+  "scan_time": "2026-04-12T10:00:00Z",
+  "checks": [
+    {"rule": "DiskEncrypted", "pass": false},
+    {"rule": "TpmEnabled", "pass": true},
+    {"rule": "SecureBootEnabled", "pass": true}
+  ]
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 14: Secrets Management -->
+<div class="slide">
+  <h1>Secrets Management</h1>
+  <p class="subtitle">Encrypted secret storage with RBAC-enforced access</p>
+  <div class="two-col">
+    <div>
+      <h3>Security Properties</h3>
+      <ul>
+        <li>Values encrypted at rest -- never returned in list/get responses</li>
+        <li>Admin-only access enforced by RBAC middleware</li>
+        <li>Every create, read, and delete operation is audit logged</li>
+        <li>Secret names validated (alphanumeric + hyphens/underscores)</li>
+        <li>Metadata key/value pairs for tagging and organization</li>
+      </ul>
+      <h3 style="margin-top: 20px;">VM Integration</h3>
+      <ul>
+        <li>Secrets injected as systemd credentials at VM boot</li>
+        <li>Delivered via SMBIOS or VSOCK -- not command line</li>
+        <li>Guest reads with <code>systemd-creds cat &lt;id&gt;</code></li>
+        <li>Credential IDs validated before injection</li>
+      </ul>
+    </div>
+    <div>
+      <h3>API Endpoints</h3>
+      <table>
+        <tr><th>Endpoint</th><th>Description</th></tr>
+        <tr><td><code>GET /api/secrets</code></td><td>List secrets (values redacted)</td></tr>
+        <tr><td><code>GET /api/secrets/:id</code></td><td>Get secret metadata</td></tr>
+        <tr><td><code>POST /api/secrets</code></td><td>Create a secret</td></tr>
+        <tr><td><code>DELETE /api/secrets/:id</code></td><td>Delete a secret</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Example</h3>
+      <pre><code># Create a secret
+curl -X POST "$HOST/api/secrets" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "db-password",
+    "value": "s3cretP@ss!",
+    "metadata": {"env": "prod"}
+  }'</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 15: Security Audit Results -->
+<div class="slide">
+  <h1>Security Audit Results</h1>
+  <p class="subtitle">33 rounds of systematic security review</p>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;">
+    <div class="metric">
+      <div class="number">33</div>
+      <div class="label">Audit Rounds</div>
+    </div>
+    <div class="metric">
+      <div class="number">225</div>
+      <div class="label">Issues Found</div>
+    </div>
+    <div class="metric">
+      <div class="number">225</div>
+      <div class="label">Issues Fixed</div>
+    </div>
+    <div class="metric">
+      <div class="number">0</div>
+      <div class="label">Outstanding</div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div>
+      <h3>Issues by Category</h3>
+      <table>
+        <tr><th>Category</th><th>Found</th><th>Status</th></tr>
+        <tr><td>Input validation</td><td>45+</td><td class="safe">All fixed</td></tr>
+        <tr><td>Command injection</td><td>30+</td><td class="safe">All fixed</td></tr>
+        <tr><td>Path traversal</td><td>20+</td><td class="safe">All fixed</td></tr>
+        <tr><td>SSRF</td><td>15+</td><td class="safe">All fixed</td></tr>
+        <tr><td>Auth/authz</td><td>20+</td><td class="safe">All fixed</td></tr>
+        <tr><td>Error handling</td><td>25+</td><td class="safe">All fixed</td></tr>
+        <tr><td>Credential exposure</td><td>10+</td><td class="safe">All fixed</td></tr>
+        <tr><td>Race conditions</td><td>15+</td><td class="safe">All fixed</td></tr>
+        <tr><td>Other</td><td>14+</td><td class="safe">All fixed</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Audit Methodology</h3>
+      <ul>
+        <li>Systematic review of all 40+ crates (33 rounds)</li>
+        <li>Every API handler audited for auth + validation</li>
+        <li>All subprocess calls verified for injection safety</li>
+        <li>File operations checked for path traversal</li>
+        <li>Network calls verified for SSRF</li>
+        <li>Concurrency reviewed for race conditions</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Rust Advantage</h3>
+      <ul>
+        <li><span class="highlight">Zero unsafe blocks</span> in entire codebase</li>
+        <li>Memory safety guaranteed by compiler</li>
+        <li>Data races caught at compile time</li>
+        <li>No null pointer dereferences</li>
+        <li>No buffer overflows or use-after-free</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 12: Summary -->
+<div class="slide title-slide">
+  <h1>Security You Can Trust</h1>
+  <p class="subtitle">Built secure. Audited thoroughly. Continuously improved.</p>
+  <div style="margin-top: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+    <div class="card" style="text-align: center;">
+      <h3>Memory Safe</h3>
+      <p>Rust eliminates buffer overflows, use-after-free, and data races at compile time.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h3>Input Validated</h3>
+      <p>Every parameter checked. No command injection. No path traversal. No SSRF.</p>
+    </div>
+    <div class="card" style="text-align: center;">
+      <h3>Fully Audited</h3>
+      <p>33 rounds, 225 issues found and fixed. Zero outstanding security issues.</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

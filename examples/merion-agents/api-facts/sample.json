@@ -1,0 +1,26 @@
+{
+  "order": {
+    "id": "A-1042",
+    "status": "paid",
+    "customer": {
+      "name": "Ana Silva",
+      "email": "ana@example.com"
+    },
+    "items": [
+      {
+        "sku": "KB-01",
+        "qty": 2,
+        "price": 49.5
+      },
+      {
+        "sku": "MS-07",
+        "qty": 1,
+        "price": 19.0
+      }
+    ],
+    "totals": {
+      "grand": 118.0,
+      "currency": "EUR"
+    }
+  }
+}

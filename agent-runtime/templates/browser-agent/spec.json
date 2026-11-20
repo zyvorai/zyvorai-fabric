@@ -1,0 +1,11 @@
+{
+  "name": "browser-agent",
+  "backend": "qemu",
+  "image": "/var/lib/fluxvm/images/browser-agent.qcow2",
+  "vcpus": 2,
+  "memory_mib": 7900,
+  "max_vcpus": 2,
+  "max_memory_mib": 7900,
+  "network": {"mode": "tap", "netns": true, "mac": "52:54:00:9f:a9:2e"},
+  "agent": {"enabled": true}
+}

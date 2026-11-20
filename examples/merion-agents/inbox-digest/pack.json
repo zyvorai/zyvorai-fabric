@@ -1,0 +1,45 @@
+{
+  "kind": "usecase",
+  "name": "inbox-digest",
+  "title": "Inbox digest",
+  "description": "Drop in an exported mailbox (plain text) and get a digest: what needs a reply, money, meetings, bulk mail and who writes most.",
+  "accepts": ["eml", "mbox", "txt"],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Needs a reply",
+      "keywords": ["please reply", "can you", "let me know", "by friday", "urgent", "asap", "action required"],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Money",
+      "keywords": ["invoice", "payment", "amount due", "receipt", "refund", "overdue"],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Meetings",
+      "keywords": ["meeting", "calendar invite", "agenda", "reschedule", "call at"],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Bulk and newsletters",
+      "keywords": ["unsubscribe", "newsletter", "view in browser", "no-reply", "% off"],
+      "max_lines": 8
+    },
+    {
+      "kind": "top_repeated_lines",
+      "title": "Who and what repeats most",
+      "top": 8
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "inbox-digest.md",
+  "sample_file": "sample.txt"
+}

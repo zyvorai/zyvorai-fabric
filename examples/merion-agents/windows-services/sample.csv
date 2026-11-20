@@ -1,0 +1,6 @@
+"Name","DisplayName","Status","ServiceType","StartType"
+"Spooler","Print Spooler","Running","Win32OwnProcess, InteractiveProcess","Automatic"
+"wuauserv","Windows Update","Stopped","Win32ShareProcess","Manual"
+"BITS","Background Intelligent Transfer Service","Running","Win32ShareProcess","Manual"
+"ExampleSvc","Example Sync Service","Stopped","Win32OwnProcess","Automatic"
+"WinDefend","Microsoft Defender Antivirus Service","Running","Win32OwnProcess","Automatic"

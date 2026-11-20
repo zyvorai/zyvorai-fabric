@@ -1,0 +1,19 @@
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
+[Unit]
+Description=Zyvor Fabric Agent Runtime
+Documentation=https://github.com/zyvorai/fabric
+After=network-online.target fluxvm.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/zyvor-fabric-agent-runtime
+EnvironmentFile=-/etc/zyvor-fabricd/zyvor-fabric-agent.env
+ReadWritePaths=/var/lib/zyvor-fabric-agent /var/lib/fluxvm/agent-snapshots
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

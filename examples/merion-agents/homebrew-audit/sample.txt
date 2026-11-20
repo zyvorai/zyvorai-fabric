@@ -1,0 +1,12 @@
+ca-certificates 2025-05-20
+git 2.51.0
+gh 2.79.0
+go 1.25.1
+jq 1.8.1
+node 24.8.0
+openjdk 24.0.2 23.0.2
+openssl@3 3.5.3
+python@3.13 3.13.7 3.13.6
+python@3.12 3.12.11
+rust 1.90.0
+wget 1.25.0

@@ -1,0 +1,56 @@
+# ModelArtifact CRD — Fabric AI Workloads (preview).
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: modelartifacts.zyvor-fabricd.io
+  labels:
+    {{- include "zyvor-fabricd-operator.labels" . | nindent 4 }}
+spec:
+  group: zyvor-fabricd.io
+  names:
+    kind: ModelArtifact
+    listKind: ModelArtifactList
+    plural: modelartifacts
+    shortNames: [ma]
+    singular: modelartifact
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Source
+          type: string
+          jsonPath: .spec.source
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [source, format]
+              properties:
+                source:
+                  type: string
+                format:
+                  type: string
+                revision:
+                  type: string
+                checksum:
+                  type: string
+                tenant:
+                  type: string
+            status:
+              type: object
+              properties:
+                local_path:
+                  type: string
+                ready:
+                  type: boolean
+                message:
+                  type: string

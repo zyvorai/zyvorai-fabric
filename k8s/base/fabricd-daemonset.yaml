@@ -1,0 +1,120 @@
+# zyvor-fabricd — mirrors docker-compose.yml zyvor-fabricd service.
+# hostNetwork so nftables/rtnetlink hit the real host and FluxVM at 127.0.0.1:7788.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: zyvor-fabricd
+  namespace: zyvor-fabric
+  labels:
+    app: zyvor-fabricd
+    app.kubernetes.io/name: zyvor-fabric
+    app.kubernetes.io/component: fabricd
+spec:
+  selector:
+    matchLabels:
+      app: zyvor-fabricd
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: zyvor-fabricd
+        app.kubernetes.io/name: zyvor-fabric
+        app.kubernetes.io/component: fabricd
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: zyvor-fabricd
+        image: zyvor-fabricd:local
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 9095
+          protocol: TCP
+        env:
+        - name: ZYVOR_FABRICD_LISTEN
+          value: "0.0.0.0:9095"
+        - name: ZYVOR_FABRICD_CONFIG
+          value: "/etc/zyvor-fabricd/zyvor-fabricd.toml"
+        - name: ZYVOR_FABRICD_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: zyvor-fabric-secrets
+              key: admin-password
+        - name: ZYVOR_FABRICD_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: zyvor-fabric-secrets
+              key: jwt-secret
+        # Username is always "admin" on first seed; kept in the Secret for operators.
+        - name: ZYVOR_FABRICD_ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: zyvor-fabric-secrets
+              key: admin-username
+              optional: true
+        - name: ZYVOR_FABRICD_LOG_LEVEL
+          value: info
+        - name: ZYVOR_FABRICD_DEPLOY_MODE
+          value: kubernetes
+        - name: ZYVOR_FABRICD_K8S_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+              - SYS_ADMIN
+              - NET_RAW
+              - MKNOD
+              - SYS_PTRACE
+              - NET_BIND_SERVICE
+              - SETUID
+              - SETGID
+              - SYS_CHROOT
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/zyvor-fabricd
+        - name: config
+          mountPath: /etc/zyvor-fabricd/zyvor-fabricd.toml
+          subPath: zyvor-fabricd.toml
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9095
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 9095
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 6
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 2Gi
+      volumes:
+      - name: data
+        hostPath:
+          path: /var/lib/zyvor-fabricd
+          type: DirectoryOrCreate
+      - name: config
+        configMap:
+          name: zyvor-fabricd-config
+      tolerations:
+      - operator: Exists

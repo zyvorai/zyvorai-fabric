@@ -1,0 +1,97 @@
+[package]
+name = "zyvor-fabricd"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "zyvor-fabricd"
+path = "src/main.rs"
+
+[dependencies]
+tokio.workspace = true
+axum = { workspace = true, features = ["ws", "multipart"] }
+axum-server = { version = "0.9", features = ["tls-rustls"] }
+rcgen = "0.14"
+sha2.workspace = true
+subtle = "2"
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml = "0.9"
+anyhow.workspace = true
+thiserror.workspace = true
+tar.workspace = true
+flate2.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+toml.workspace = true
+tower = "0.5"
+tower-http = { version = "0.7", features = ["fs", "cors", "trace", "timeout"] }
+futures.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+reqwest = { version = "0.13", features = ["json", "stream", "form"] }
+lettre = { version = "0.11", features = ["tokio1-native-tls", "smtp-transport", "builder"] }
+rand.workspace = true
+base64 = "0.23"
+jsonwebtoken = { version = "11", features = ["aws_lc_rs"] }
+rustls = { version = "0.23", default-features = false, features = ["aws-lc-rs", "std", "tls12"] }
+async-stream = "0.3"
+libc = "0.2"
+tokio-stream = "0.1"
+tokio-util = { version = "0.7", features = ["io"] }
+openraft = { version = "=0.9.26", features = ["serde", "storage-v2"] }
+tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+rustls-pemfile = "2"
+
+networking = { path = "../networking" }
+api-error = { path = "../crates/api-error" }
+input-guard = { path = "../crates/input-guard" }
+vm-model = { path = "../vm-model" }
+security = { path = "../security" }
+state-store = { path = "../state-store" }
+vnc-proxy = { path = "../vnc-proxy" }
+cloud-init = { path = "../cloud-init" }
+tpm-support = { path = "../tpm-support" }
+prometheus-exporter = { path = "../prometheus-exporter" }
+zyvor-fabric-driver-core = { path = "../crates/driver-core" }
+zyvor-fabric-fluxvm-driver = { path = "../crates/fluxvm-driver" }
+zyvor-fabric-fluxvm-client = { path = "../crates/fluxvm-client" }
+service-lb = { path = "../service-lb" }
+zyvor-fabric-storage = { path = "../crates/storage" }
+zyvor-fabric-system = { path = "../crates/system" }
+zyvor-fabric-vm = { path = "../crates/vm" }
+datacenter = { path = "../datacenter" }
+resource-pools = { path = "../resource-pools" }
+predictive-drs = { path = "../predictive-drs" }
+k8s-pod-client = { path = "../crates/k8s-pod-client" }
+distributed-storage = { path = "../distributed-storage" }
+encryption = { path = "../encryption" }
+network-policy = { path = "../network-policy" }
+service-mesh = { path = "../service-mesh" }
+traffic-shaping = { path = "../traffic-shaping" }
+dns-policy = { path = "../dns-policy" }
+vm-firewall = { path = "../vm-firewall" }
+vpn-mesh = { path = "../vpn-mesh" }
+packet-mirror = { path = "../packet-mirror" }
+nat-gateway = { path = "../nat-gateway" }
+net-monitor = { path = "../net-monitor" }
+
+ova-tools = { path = "../ova-tools" }
+secrets-manager = { path = "../secrets-manager" }
+zyvor-fabric-dnsmasq-manager = { path = "../crates/dnsmasq-manager" }
+migration = { path = "../migration" }
+fault-tolerance = { path = "../fault-tolerance" }
+zyvor-fabric-lock-manager = { path = "../crates/lock-manager" }
+replication = { path = "../replication" }
+site-recovery = { path = "../site-recovery" }
+content-library = { path = "../content-library" }
+lifecycle-manager = { path = "../lifecycle-manager" }
+certificate-manager = { path = "../certificate-manager" }
+billing = { path = "../billing" }
+compliance = { path = "../compliance" }
+enterprise-identity = { path = "../enterprise-identity" }
+openstack-compat = { path = "../openstack-compat" }
+
+[dev-dependencies]
+tempfile = "3"

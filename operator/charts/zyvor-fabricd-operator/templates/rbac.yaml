@@ -1,0 +1,46 @@
+{{- if .Values.rbac.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "zyvor-fabricd-operator.serviceAccountName" . }}
+  labels:
+    {{- include "zyvor-fabricd-operator.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "zyvor-fabricd-operator.fullname" . }}
+  labels:
+    {{- include "zyvor-fabricd-operator.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["zyvor-fabricd.io"]
+    resources: ["virtualmachines", "virtualmachines/status", "virtualmachines/finalizers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["zyvor-fabricd.io"]
+    resources: ["containergroups", "containergroups/status", "containergroups/finalizers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["zyvor-fabricd.io"]
+    resources: ["modelartifacts", "modelartifacts/status", "modelartifacts/finalizers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["zyvor-fabricd.io"]
+    resources: ["inferencedeployments", "inferencedeployments/status", "inferencedeployments/finalizers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "zyvor-fabricd-operator.fullname" . }}
+  labels:
+    {{- include "zyvor-fabricd-operator.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "zyvor-fabricd-operator.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "zyvor-fabricd-operator.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

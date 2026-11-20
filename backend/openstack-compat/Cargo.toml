@@ -1,0 +1,21 @@
+[package]
+name = "openstack-compat"
+version = "0.2.1"
+edition = "2021"
+license = "LicenseRef-Zyvor-Production-1.0"
+authors = ["Zyvor AI Labs"]
+description = "OpenStack-compatible identity, compute, image, network, and volume APIs for Zyvor Fabric."
+
+[dependencies]
+axum = { version = "0.8", default-features = false, features = ["json", "tokio", "http1", "query"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt", "macros", "sync"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+axum = { version = "0.8", default-features = false, features = ["json", "tokio", "http1", "query"] }
+http-body-util = "0.1"
+tower = { version = "0.5", features = ["util"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

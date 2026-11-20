@@ -1,0 +1,18 @@
+{
+  "kind": "builtin",
+  "name": "contract-clauses",
+  "manifest": {
+    "template": "node22-agent",
+    "egress_mode": "deny",
+    "egress_allow_hosts": [],
+    "confinement": "strict",
+    "resources": {
+      "vcpus": 1,
+      "memory_mib": 2048
+    }
+  },
+  "goal": {
+    "title": "Pull the key clauses",
+    "text": "Read /home/agent/work/input.pdf only. Write artifact clauses.md. No browser. No hosts."
+  }
+}

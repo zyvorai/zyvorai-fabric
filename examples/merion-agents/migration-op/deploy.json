@@ -1,0 +1,15 @@
+{
+  "name": "migration-op",
+  "bundle_base64": "REPLACE_WITH_fabric-agent_build",
+  "manifest": {
+    "template": "agent-node",
+    "resources": { "vcpus": 1, "memory_mib": 1024 },
+    "egress_mode": "ask",
+    "egress_allow_hosts": ["127.0.0.1"],
+    "egress_approval_timeout_seconds": 120,
+    "allow_private_networks": true,
+    "credentials": ["fabric-api"],
+    "confinement": "strict",
+    "taint": { "trusted_hosts": ["127.0.0.1"] }
+  }
+}

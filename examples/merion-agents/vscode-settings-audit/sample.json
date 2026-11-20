@@ -1,0 +1,12 @@
+{
+  // Editor
+  "editor.fontSize": 14,
+  "editor.formatOnSave": true,
+  "files.autoSave": "onFocusChange",
+  "telemetry.telemetryLevel": "off",
+  "security.workspace.trust.enabled": true,
+  "update.mode": "manual",
+  "extensions.autoUpdate": false,
+  "github.copilot.advanced.apiToken": "REDACTED",
+  "terminal.integrated.defaultProfile.osx": "zsh"
+}

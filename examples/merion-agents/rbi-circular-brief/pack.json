@@ -1,0 +1,72 @@
+{
+  "kind": "usecase",
+  "name": "rbi-circular-brief",
+  "title": "RBI circular brief",
+  "description": "Drop in a regulator circular PDF and get its references, who it applies to, dates and deadlines, and the lines that say what must be done.",
+  "accepts": [
+    "pdf"
+  ],
+  "extract": "pdftotext",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Circular references",
+      "pattern": "RBI/[0-9]{4}-[0-9]{2}/[0-9]+",
+      "max_matches": 6
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Applies to",
+      "keywords": [
+        "applicable to",
+        "scheduled commercial banks",
+        "small finance banks",
+        "regulated entities",
+        "payments banks"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Effective dates and deadlines",
+      "keywords": [
+        "effective",
+        "with effect from",
+        "w.e.f",
+        "not later than",
+        "deadline",
+        "timeline"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "What must be done",
+      "keywords": [
+        "shall",
+        "required to",
+        "must",
+        "should ensure"
+      ],
+      "max_lines": 12
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Repealed or amended",
+      "keywords": [
+        "repeal",
+        "supersede",
+        "amend",
+        "withdrawn"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Dates",
+      "pattern": "\\b(?:January|February|March|April|May|June|July|August|September|October|November|December) [0-9]{1,2}, [0-9]{4}\\b",
+      "max_matches": 8
+    }
+  ],
+  "artifact_title": "circular-brief.md"
+}

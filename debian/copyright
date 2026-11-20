@@ -1,0 +1,15 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: zyvor-fabricd
+Upstream-Contact: zyvor-fabricd contributors <zyvor-fabricd@example.com>
+Source: https://github.com/zyvor-fabricd/zyvor-fabricd
+
+Files: *
+Copyright: 2026 zyvor-fabricd contributors
+License: LicenseRef-Zyvor-Production-1.0
+
+License: LicenseRef-Zyvor-Production-1.0
+ Zyvor Production License v1.0. Non-production use (evaluation, development,
+ testing, research, education) is free. Production Use requires a commercial
+ license from Zyvor AI Labs Private Limited (sales@zyvor.dev,
+ https://zyvor.dev/buy). The full text is in /usr/share/doc/zyvor-fabricd/LICENSE
+ and in the LICENSE file of the source repository.

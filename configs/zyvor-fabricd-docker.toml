@@ -1,0 +1,24 @@
+# EVAL PROFILE -- local Docker/Podman development only. TLS is off so
+# `curl`/the browser can talk to the console with zero setup. Auth stays ON
+# (unauthenticated requests are read-only by design -- disabling auth does
+# NOT make write operations work without a token, it just makes everyone an
+# anonymous read-only viewer) but with a fixed, documented eval password --
+# see docker-compose.yml's ZYVOR_FABRICD_ADMIN_PASSWORD. Do not expose this
+# profile beyond localhost. For anything else, use docker-compose.prod.example.yml.
+
+[daemon]
+listen = "0.0.0.0:9095"
+cors_origins = ["http://localhost:9095"]
+
+[storage]
+path = "/var/lib/zyvor-fabricd"
+image_path = "/var/lib/zyvor-fabricd/images"
+
+[network]
+bridge = "br0"
+
+[tls]
+enabled = false
+
+[driver]
+fluxvm_url = "http://127.0.0.1:7788"

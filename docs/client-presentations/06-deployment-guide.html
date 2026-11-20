@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zyvor Fabric - Deployment Guide</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0e0e0; }
+  .slide { min-height: 100vh; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #222; }
+  .slide h1 { font-size: 2.8em; margin-bottom: 20px; color: #60a5fa; }
+  .slide h2 { font-size: 2em; margin-bottom: 16px; color: #93c5fd; }
+  .slide h3 { font-size: 1.4em; margin-bottom: 12px; color: #bfdbfe; }
+  .slide p, .slide li { font-size: 1.2em; line-height: 1.8; margin-bottom: 8px; }
+  .slide ul, .slide ol { padding-left: 30px; }
+  .slide code { background: #1e293b; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; color: #7dd3fc; }
+  .slide pre { background: #1e293b; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 16px 0; }
+  .slide pre code { background: none; padding: 0; }
+  .slide table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .slide th, .slide td { padding: 12px 16px; text-align: left; border: 1px solid #334155; }
+  .slide th { background: #1e293b; color: #93c5fd; }
+  .slide .highlight { color: #34d399; font-weight: bold; }
+  .slide .subtitle { font-size: 1.4em; color: #94a3b8; margin-bottom: 30px; }
+  .slide .badge { display: inline-block; background: #1e3a5f; color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-size: 0.9em; margin: 4px; }
+  .title-slide { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center; }
+  .title-slide h1 { font-size: 3.5em; color: #60a5fa; }
+  .title-slide .subtitle { font-size: 1.6em; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .metric { text-align: center; padding: 20px; }
+  .metric .number { font-size: 3em; color: #34d399; font-weight: bold; }
+  .metric .label { font-size: 1em; color: #94a3b8; }
+  .card { background: #1e293b; border-radius: 12px; padding: 24px; margin: 8px 0; }
+  .card h3 { color: #60a5fa; }
+  .step { background: #1e293b; border-left: 4px solid #60a5fa; padding: 16px 24px; margin: 12px 0; border-radius: 0 8px 8px 0; }
+  .step h3 { color: #60a5fa; margin-bottom: 8px; }
+  @media print { .slide { page-break-after: always; min-height: auto; padding: 40px; } }
+
+  .brand-line { font-size: 1em; color: #f97316; margin-top: 24px; font-weight: 600; }
+  .brand-line a { color: #f97316; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide title-slide">
+  <h1>Deployment Guide</h1>
+  <p class="subtitle">From Zero to Production in Minutes</p>
+  <p style="font-size: 1.2em; color: #64748b; margin-top: 20px;">
+    Planning, deploying, and operating Zyvor Fabric in your environment
+  </p>
+</div>
+
+<!-- Slide 2: Prerequisites -->
+<div class="slide">
+  <h1>Prerequisites</h1>
+  <p class="subtitle">What you need before deploying</p>
+  <div class="two-col">
+    <div>
+      <h3>System Requirements</h3>
+      <table>
+        <tr><th>Component</th><th>Minimum</th><th>Recommended</th></tr>
+        <tr><td>OS</td><td colspan="2">Any Linux with systemd 256+</td></tr>
+        <tr><td>CPU</td><td>2 cores</td><td>4+ cores</td></tr>
+        <tr><td>RAM</td><td>4 GB</td><td>16+ GB</td></tr>
+        <tr><td>Storage</td><td>20 GB</td><td>100+ GB (SSD)</td></tr>
+        <tr><td>Network</td><td>1 Gbps</td><td>10 Gbps</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Software Requirements</h3>
+      <ul>
+        <li>Linux kernel with KVM support</li>
+        <li>systemd 256 or later</li>
+        <li>QEMU / qemu-system-x86_64</li>
+        <li>Rust toolchain (for building from source)</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Supported Distributions</h3>
+      <ul>
+        <li>Fedora 39+</li>
+        <li>Ubuntu 24.04+</li>
+        <li>Debian 13+</li>
+        <li>RHEL 9+ / AlmaLinux 9+</li>
+        <li>openSUSE Tumbleweed</li>
+        <li>Any distro with systemd 256+</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Verify KVM Support</h3>
+      <pre><code># Check CPU virtualization
+grep -E 'vmx|svm' /proc/cpuinfo
+
+# Check KVM module
+lsmod | grep kvm
+
+# Check systemd version
+systemctl --version</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 3: Deployment Architecture Options -->
+<div class="slide">
+  <h1>Deployment Architecture Options</h1>
+  <div class="three-col">
+    <div class="card">
+      <h3>Single Server</h3>
+      <p style="margin-bottom: 12px;">One Linux server running Zyvor Fabric with local storage.</p>
+      <p><strong>Best for:</strong></p>
+      <ul>
+        <li>Development and testing</li>
+        <li>Small teams (1-10 users)</li>
+        <li>Edge / branch office</li>
+        <li>Home lab</li>
+      </ul>
+      <p style="margin-top: 12px;"><strong>Requirements:</strong></p>
+      <ul>
+        <li>1 Linux server</li>
+        <li>Local or NFS storage</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Multi-Node Cluster</h3>
+      <p style="margin-bottom: 12px;">Multiple Zyvor Fabric nodes with shared storage and HA.</p>
+      <p><strong>Best for:</strong></p>
+      <ul>
+        <li>Production workloads</li>
+        <li>Teams needing HA</li>
+        <li>Live migration</li>
+        <li>Mid-size deployments</li>
+      </ul>
+      <p style="margin-top: 12px;"><strong>Requirements:</strong></p>
+      <ul>
+        <li>3+ Linux servers</li>
+        <li>Shared storage (NFS/Ceph)</li>
+        <li>etcd cluster</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Kubernetes-Managed</h3>
+      <p style="margin-bottom: 12px;">Zyvor Fabric nodes managed via Kubernetes operator.</p>
+      <p><strong>Best for:</strong></p>
+      <ul>
+        <li>Mixed container + VM workloads</li>
+        <li>GitOps workflows</li>
+        <li>Large-scale deployments</li>
+        <li>Platform teams</li>
+      </ul>
+      <p style="margin-top: 12px;"><strong>Requirements:</strong></p>
+      <ul>
+        <li>Kubernetes cluster</li>
+        <li>Zyvor Fabric operator deployed</li>
+        <li>Bare-metal or nested-virt nodes</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 4: Configuration Overview -->
+<div class="slide">
+  <h1>Configuration Overview</h1>
+  <p class="subtitle">One config file, sensible defaults, environment variable overrides</p>
+  <div class="two-col">
+    <div>
+      <h3>Config File: <code>/etc/zyvor-fabricd/zyvor-fabricd.toml</code></h3>
+      <pre><code># Core settings
+[server]
+listen = "0.0.0.0:9095"
+workers = 4
+
+# Authentication
+[auth]
+jwt_expiry = "24h"
+session_timeout = "8h"
+
+# Storage
+[storage]
+default_pool = "local"
+image_dir = "/var/lib/zyvor-fabricd/images"
+
+# Backup
+[backup]
+dir = "/var/lib/zyvor-fabricd/backups"
+retain = 7
+type = "full"
+
+# TLS (optional)
+[tls]
+cert = "/etc/zyvor-fabricd/tls/cert.pem"
+key = "/etc/zyvor-fabricd/tls/key.pem"</code></pre>
+    </div>
+    <div>
+      <h3>Environment Variable Overrides</h3>
+      <table>
+        <tr><th>Variable</th><th>Purpose</th></tr>
+        <tr><td><code>ZYVOR_FABRICD_LISTEN</code></td><td>Server bind address</td></tr>
+        <tr><td><code>ZYVOR_FABRICD_BACKUP_DIR</code></td><td>Backup directory</td></tr>
+        <tr><td><code>ZYVOR_FABRICD_BACKUP_RETAIN</code></td><td>Backup retention (days)</td></tr>
+        <tr><td><code>ZYVOR_FABRICD_BACKUP_TYPE</code></td><td>Backup type (full/incremental)</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Auto-Generated Files</h3>
+      <ul>
+        <li><code>/etc/zyvor-fabricd/jwt-secret</code> -- JWT signing key (0600)</li>
+        <li><code>/etc/zyvor-fabricd/admin-password</code> -- Initial admin password (0600)</li>
+        <li><code>/var/lib/zyvor-fabricd/</code> -- Data directory</li>
+      </ul>
+      <h3 style="margin-top: 20px;">File Permissions</h3>
+      <ul>
+        <li>Secret files: <code>0600</code> (owner read/write only)</li>
+        <li>Config files: <code>0644</code></li>
+        <li>Data directory: <code>0755</code></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 5: Day 1 Setup -->
+<div class="slide">
+  <h1>Day 1: Deploy and Verify</h1>
+  <p class="subtitle">From bare server to running VM platform</p>
+  <div class="step">
+    <h3>Step 1: Deploy</h3>
+    <pre><code># One-command deployment (handles deps, build, install, start)
+./zyvorctl deploy</code></pre>
+  </div>
+  <div class="step">
+    <h3>Step 2: Verify</h3>
+    <pre><code># Post-install smoke test (API, auth, VM CRUD, backups)
+./zyvorctl verify
+
+# Deep health check (disk, DB, timers, resources, KVM)
+./zyvorctl health</code></pre>
+  </div>
+  <div class="step">
+    <h3>Step 3: Get Admin Credentials</h3>
+    <pre><code># Read auto-generated admin password
+./zyvorctl password</code></pre>
+  </div>
+  <div class="step">
+    <h3>Step 4: Enable TLS (Recommended)</h3>
+    <pre><code># Generate self-signed certificate
+./zyvorctl tls
+
+# Restart with TLS enabled
+./zyvorctl restart</code></pre>
+  </div>
+  <div class="step">
+    <h3>Step 5: Create Your First VM</h3>
+    <pre><code>zyvorctl create test-vm --image=/path/to/ubuntu-24.04.qcow2 --cpus=2 --memory=2048
+zyvorctl start test-vm
+zyvorctl list</code></pre>
+  </div>
+</div>
+
+<!-- Slide 6: Day 2 Operations -->
+<div class="slide">
+  <h1>Day 2: Ongoing Operations</h1>
+  <p class="subtitle">Operational tasks for production environments</p>
+  <div class="two-col">
+    <div>
+      <h3>Routine Operations</h3>
+      <div class="step">
+        <h3>Service Management</h3>
+        <pre><code>./zyvorctl status    # Check service
+./zyvorctl logs      # Follow logs
+./zyvorctl restart   # Restart daemon</code></pre>
+      </div>
+      <div class="step">
+        <h3>Backup Management</h3>
+        <pre><code>./zyvorctl backup enable   # Daily 2 AM
+./zyvorctl backup status   # Check timer
+./zyvorctl backup now      # Manual backup</code></pre>
+      </div>
+      <div class="step">
+        <h3>Upgrades</h3>
+        <pre><code># Pull latest + rebuild + reinstall + verify
+./zyvorctl upgrade</code></pre>
+      </div>
+    </div>
+    <div>
+      <h3>Monitoring</h3>
+      <div class="step">
+        <h3>Health Checks</h3>
+        <pre><code>./zyvorctl health    # Full system check
+./zyvorctl doctor    # Readiness check</code></pre>
+      </div>
+      <div class="step">
+        <h3>Prometheus Integration</h3>
+        <pre><code># Add to prometheus.yml
+scrape_configs:
+  - job_name: Zyvor Fabric
+    static_configs:
+      - targets: ['host:9095']
+    metrics_path: /metrics</code></pre>
+      </div>
+      <h3 style="margin-top: 20px;">Alert Configuration</h3>
+      <ul>
+        <li>Configure email, Slack, Teams, or webhook alerts</li>
+        <li>Set thresholds for CPU, memory, disk, network</li>
+        <li>Webhook notifications include retry with backoff</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 7: Scaling Considerations -->
+<div class="slide">
+  <h1>Scaling Considerations</h1>
+  <p class="subtitle">Growing from single server to multi-node cluster</p>
+  <div class="two-col">
+    <div>
+      <h3>Vertical Scaling (Single Server)</h3>
+      <table>
+        <tr><th>Scale</th><th>VMs</th><th>Server Spec</th></tr>
+        <tr><td>Small</td><td>1-10</td><td>4 cores, 16 GB, 500 GB SSD</td></tr>
+        <tr><td>Medium</td><td>10-50</td><td>16 cores, 64 GB, 2 TB NVMe</td></tr>
+        <tr><td>Large</td><td>50-100</td><td>32 cores, 128 GB, 4 TB NVMe</td></tr>
+      </table>
+      <h3 style="margin-top: 20px;">Zyvor Fabric Overhead</h3>
+      <ul>
+        <li>Daemon: ~20 MB RSS</li>
+        <li>Per-VM tracking: minimal (~1 KB state)</li>
+        <li>API latency: sub-millisecond</li>
+        <li>CPU overhead: negligible</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Horizontal Scaling (Cluster)</h3>
+      <ul>
+        <li><strong>Add nodes:</strong> Install Zyvor Fabric, join etcd cluster</li>
+        <li><strong>Shared storage:</strong> NFS for simple, Ceph for HA</li>
+        <li><strong>Load distribution:</strong> DRS auto-balances VMs</li>
+        <li><strong>Live migration:</strong> Move VMs without downtime</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Storage Scaling</h3>
+      <ul>
+        <li><strong>Local:</strong> Add disks, extend volume groups</li>
+        <li><strong>NFS:</strong> Scale NFS server or add mounts</li>
+        <li><strong>ZFS:</strong> Add vdevs to pools</li>
+        <li><strong>Ceph:</strong> Add OSDs for capacity and throughput</li>
+      </ul>
+      <h3 style="margin-top: 20px;">Network Scaling</h3>
+      <ul>
+        <li>VLANs for network segmentation</li>
+        <li>Bond NICs for bandwidth</li>
+        <li>WireGuard mesh for cross-site</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 8: Summary -->
+<div class="slide title-slide">
+  <h1>Deploying Zyvor Fabric Is Simple</h1>
+  <p class="subtitle">One command. Five minutes. Production ready.</p>
+  <div style="margin-top: 30px;">
+    <pre style="display: inline-block; text-align: left;"><code># Deploy
+./zyvorctl deploy
+
+# Verify
+./zyvorctl verify
+
+# Enable backups
+./zyvorctl backup enable
+
+# Enable TLS
+./zyvorctl tls
+
+# Create VMs
+zyvorctl create myvm --image=ubuntu-24.04.qcow2 --cpus=4 --memory=4096
+zyvorctl start myvm</code></pre>
+  </div>
+  <div style="margin-top: 40px;">
+    <span class="badge">5-Minute Deploy</span>
+    <span class="badge">Auto-Verify</span>
+    <span class="badge">Built-in Backups</span>
+    <span class="badge">One-Command Upgrade</span>
+  </div>
+</div>
+
+</body>
+</html>

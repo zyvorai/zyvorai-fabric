@@ -1,0 +1,14 @@
+{
+  "kind": "agent",
+  "name": "echo-agent",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 512 },
+    "egress_mode": "deny",
+    "confinement": "strict"
+  },
+  "goal": {
+    "title": "Echo the message",
+    "text": "Repeat the message in the session input. No model, no network."
+  }
+}

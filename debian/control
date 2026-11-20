@@ -1,0 +1,34 @@
+Source: zyvor-fabricd
+Section: admin
+Priority: optional
+Maintainer: ZyvorAI Labs Private Limited <ssahani@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               cargo,
+               rustc,
+               nodejs,
+               npm
+Standards-Version: 4.6.2
+Homepage: https://github.com/zyvorai/fabric
+
+Package: zyvor-fabricd
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Recommends: systemd-container,
+            nftables,
+            wireguard-tools
+Description: Virtual Machine Management Daemon
+ zyvor-fabricd is a daemon for managing virtual machines via FluxVM
+ (see driver.backend in zyvor-fabricd.toml). Provides REST API, WebSocket
+ console, VNC proxy, and comprehensive VM lifecycle management. Runs under
+ systemd or any other supervisor — nothing in this package requires it.
+ .
+ Includes fabricctl CLI tool.
+
+Package: zyvor-fabricd-web
+Architecture: all
+Depends: ${misc:Depends},
+         zyvor-fabricd (= ${binary:Version})
+Description: Web UI for zyvor-fabricd
+ Web-based management interface for zyvor-fabricd. Provides a React dashboard
+ with 37+ pages for managing VMs, storage, network security, and more.

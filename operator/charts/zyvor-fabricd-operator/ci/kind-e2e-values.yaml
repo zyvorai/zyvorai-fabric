@@ -1,0 +1,9 @@
+# Overlay for kind E2E (hyphenated key needs a file, not --set).
+zyvor-fabricd:
+  url: "http://zyvor-fabricd.fabric-system.svc:9095"
+  tokenSecret: ""
+  tokenSecretKey: "token"
+image:
+  repository: zyvor-fabricd-operator
+  tag: e2e
+  pullPolicy: Never

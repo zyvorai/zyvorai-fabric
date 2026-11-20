@@ -1,0 +1,428 @@
+/* Homepage / matrix — Fabric-first compare experience.
+ * Apple-style: black hero, generous air, one blue accent. Tokens follow
+ * src/css/custom.css; body adapts to light/dark, hero and bands stay black. */
+
+.page {
+  --c-bg: #fff;
+  --c-ink: #1d1d1f;
+  --c-muted: #6e6e73;
+  --c-surface: #f5f5f7;
+  --c-line: #d2d2d7;
+  --c-accent: #0066cc;
+  --c-fill: #0066cc; /* solid fills that carry white text */
+  --c-glow: rgba(0, 102, 204, 0.09);
+  --c-black: #000;
+  --c-on-black: #f5f5f7;
+  --c-on-black-muted: #a1a1a6;
+  --c-ok: #1a7f37;
+  --c-warn: #8f5600;
+  background: var(--c-bg);
+  color: var(--c-ink);
+}
+
+[data-theme='dark'] .page {
+  --c-bg: #000;
+  --c-ink: #f5f5f7;
+  --c-muted: #98989d;
+  --c-surface: #111113;
+  --c-line: #38383a;
+  --c-accent: #4da3ff;
+  --c-fill: #0071e3;
+  --c-glow: rgba(10, 132, 255, 0.14);
+  --c-ok: #30d158;
+  --c-warn: #ff9f0a;
+}
+
+.page code {
+  font-size: 0.9em;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- hero */
+
+.hero {
+  --p: 0;
+  position: relative;
+  min-height: min(92vh, 60rem);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: var(--c-black);
+  color: var(--c-on-black);
+  padding: var(--zv-hero-space, 6rem) 1.5rem 5rem;
+  overflow: hidden;
+}
+
+.heroGlow {
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 90%;
+  background:
+    radial-gradient(50% 55% at 50% 40%, rgba(10, 132, 255, 0.38), transparent 70%),
+    radial-gradient(30% 40% at 78% 30%, rgba(94, 92, 230, 0.25), transparent 70%);
+  filter: blur(30px);
+  opacity: calc(1 - var(--p) * 0.9);
+  transform: translateY(calc(var(--p) * 60px));
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  max-width: 62rem;
+  opacity: calc(1 - var(--p) * 1.1);
+  transform: translateY(calc(var(--p) * -36px)) scale(calc(1 - var(--p) * 0.04));
+  will-change: transform, opacity;
+}
+
+.heroEyebrow {
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-on-black-muted);
+  margin: 0 0 1.5rem;
+}
+
+.heroTitle {
+  font-size: clamp(2.75rem, 7.5vw, 6rem);
+  line-height: 1.02;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  margin: 0 0 1.75rem;
+  color: var(--c-on-black);
+}
+
+.heroAccent {
+  background: linear-gradient(100deg, #64d2ff 0%, #0a84ff 45%, #bf5af2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.heroSub {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  line-height: 1.45;
+  color: var(--c-on-black-muted);
+  max-width: 40rem;
+  margin: 0 auto 2.25rem;
+}
+
+.heroBtns :global(.button--outline.button--secondary) {
+  /* the hero band is always black, whatever the site theme */
+  color: #f5f5f7;
+  border-color: rgba(245, 245, 247, 0.45);
+}
+
+.heroBtns,
+.btnrow {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btnrow {
+  justify-content: flex-start;
+  margin-top: 1.75rem;
+}
+
+.center {
+  justify-content: center;
+}
+
+.heroStats {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: clamp(1.5rem, 6vw, 4.5rem);
+  margin: 3.5rem 0 0;
+  padding: 0;
+}
+
+.heroStats li {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.heroStats b {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.heroStats span {
+  font-size: 0.8125rem;
+  color: var(--c-on-black-muted);
+}
+
+.rise {
+  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.rise2 { animation-delay: 0.08s; }
+.rise3 { animation-delay: 0.18s; }
+.rise4 { animation-delay: 0.28s; }
+.rise5 { animation-delay: 0.4s; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: none; }
+}
+
+.scrollCue {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 50%;
+  width: 1.5rem;
+  height: 2.5rem;
+  margin-left: -0.75rem;
+  border: 2px solid rgba(245, 245, 247, 0.4);
+  border-radius: 999px;
+  opacity: calc(1 - var(--p) * 3);
+}
+
+.scrollCue span {
+  position: absolute;
+  left: 50%;
+  top: 0.4rem;
+  width: 3px;
+  height: 0.5rem;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--c-on-black);
+  animation: cue 1.8s ease-in-out infinite;
+}
+
+@keyframes cue {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(0.9rem); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* ------------------------------------------------------------- sections */
+
+.section {
+  padding: var(--zv-section-space, 6rem) 1.5rem;
+  background: var(--c-bg);
+}
+
+.sectionTint {
+  background: var(--c-surface);
+}
+
+.wrap {
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+.wrapWide {
+  max-width: 76rem;
+}
+
+.headGap {
+  margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  font-weight: 600;
+  margin: 0 0 0.9rem;
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  font-weight: 650;
+  margin: 0 0 1.1rem;
+}
+
+.lede {
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.5;
+  color: var(--c-muted);
+  max-width: 40rem;
+  margin: 0 0 2.5rem;
+}
+
+/* --------------------------------------------------------- got-right tiles */
+
+.tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.9rem;
+}
+
+.tile {
+  height: 100%;
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  padding: 1.25rem;
+  border-radius: 18px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--c-muted);
+}
+
+.tile b {
+  color: var(--c-ink);
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+/* --------------------------------------------------------- black bands */
+
+.black {
+  background: var(--c-black);
+  color: var(--c-on-black);
+}
+
+.onDark {
+  color: var(--c-on-black);
+}
+
+.onDarkMuted {
+  color: var(--c-on-black-muted);
+}
+
+.black .eyebrow {
+  color: #64d2ff;
+}
+/* --------------------------------------------------------------- cards */
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.1rem;
+}
+
+.fill {
+  height: 100%;
+}
+
+.card {
+  height: 100%;
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  padding: 2rem 1.75rem;
+  border-radius: 24px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 50px var(--c-glow);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: -0.03em;
+}
+
+.cardRole {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  font-weight: 600;
+}
+
+.card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--c-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.cardLink {
+  margin-top: 0.75rem;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------ honesty/cta */
+
+.honesty {
+  padding: var(--zv-section-space, 6rem) 1.5rem;
+  border-top: 1px solid #1c1c1e;
+}
+
+.honestyList {
+  margin: 1.5rem 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 1rem;
+  max-width: 44rem;
+  color: var(--c-on-black-muted);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.honestyList a {
+  color: #64d2ff;
+}
+
+.cta {
+  padding: var(--zv-section-space, 6rem) 1.5rem calc(var(--zv-section-space, 6rem) * 1.1);
+  text-align: center;
+}
+
+.ctaTitle {
+  font-size: clamp(2.25rem, 6vw, 4.25rem);
+  letter-spacing: -0.04em;
+  font-weight: 650;
+  margin: 0 0 1rem;
+  color: var(--c-on-black);
+}
+
+.cta :global(.button--outline) {
+  color: var(--c-on-black);
+  border-color: rgba(245, 245, 247, 0.5);
+}
+
+
+.anchor {
+  scroll-margin-top: var(--ifm-navbar-height, 4.5rem);
+}
+
+@media (max-width: 996px) {
+  .tiles { grid-template-columns: repeat(2, 1fr); }
+  .cards { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 800px) {
+  .heroStats { gap: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .tiles { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .scrollCue span {
+    animation: none;
+  }
+
+  .card {
+    transition: none;
+  }
+}

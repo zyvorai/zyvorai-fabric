@@ -1,0 +1,61 @@
+{
+  "kind": "usecase",
+  "name": "receipt-pdf",
+  "title": "Receipt and warranty",
+  "description": "Drop in a receipt or warranty PDF and get totals, dates and warranty or return terms.",
+  "accepts": [
+    "pdf"
+  ],
+  "extract": "pdftotext",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Totals",
+      "keywords": [
+        "total",
+        "amount paid",
+        "subtotal",
+        "tax",
+        "vat"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Dates",
+      "pattern": "\\b[0-9]{4}-[0-9]{2}-[0-9]{2}\\b|\\b[0-9]{1,2}[/.-][0-9]{1,2}[/.-][0-9]{2,4}\\b",
+      "max_matches": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Warranty and returns",
+      "keywords": [
+        "warranty",
+        "guarantee",
+        "return by",
+        "returns accepted",
+        "refund"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Items and order",
+      "keywords": [
+        "order",
+        "item",
+        "qty",
+        "invoice",
+        "receipt"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "(?:Rs\\.?|INR|USD|EUR|GBP|\\$|€|£)\\s?[0-9][0-9,]*(?:\\.[0-9]{2})?",
+      "max_matches": 10
+    }
+  ],
+  "artifact_title": "receipt.md"
+}

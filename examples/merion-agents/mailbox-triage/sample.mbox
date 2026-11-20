@@ -1,0 +1,23 @@
+From ana@example.com Mon Sep 21 09:00:00 2026
+From: Ana Silva <ana@example.com>
+Date: Mon, 21 Sep 2026 09:00:00 +0000
+Subject: Invoice 2041 is overdue
+Content-Type: text/plain
+
+Hi, invoice 2041 (amount due 1,200 EUR) is overdue. Please reply with a payment date by Friday.
+
+From ben@example.com Mon Sep 21 10:30:00 2026
+From: Ben Okafor <ben@example.com>
+Date: Mon, 21 Sep 2026 10:30:00 +0000
+Subject: Planning meeting moved
+Content-Type: text/plain
+
+The planning meeting is rescheduled to Thursday. Agenda attached. Can you confirm you can join?
+
+From news@example.com Mon Sep 21 11:00:00 2026
+From: Example News <news@example.com>
+Date: Mon, 21 Sep 2026 11:00:00 +0000
+Subject: Your weekly digest
+Content-Type: text/html
+
+<html><body><h1>This week</h1><p>Three stories you may like.</p><a href="https://example.com/u">Unsubscribe</a></body></html>

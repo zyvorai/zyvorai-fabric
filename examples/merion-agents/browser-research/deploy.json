@@ -1,0 +1,24 @@
+{
+  "name": "browser-research",
+  "manifest": {
+    "template": "browser-agent",
+    "confinement": "strict",
+    "egress_mode": "sentinel",
+    "egress_allow_hosts": ["example.com", "github.com"],
+    "browser_port": 9222,
+    "browser": {
+      "enabled": true,
+      "allow_hosts": ["example.com", "github.com"],
+      "block_file_url": true,
+      "max_tabs": 4,
+      "snapshot_only": true,
+      "downloads": "deny"
+    },
+    "resources": { "vcpus": 2, "memory_mib": 7900 },
+    "home_volume": {
+      "name": "browser-research-home",
+      "guest_path": "/home/agent",
+      "per_user": true
+    }
+  }
+}

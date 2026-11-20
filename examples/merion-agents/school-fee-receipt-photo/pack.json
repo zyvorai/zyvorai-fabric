@@ -1,0 +1,79 @@
+{
+  "kind": "usecase",
+  "name": "school-fee-receipt-photo",
+  "title": "School fee receipt photo",
+  "description": "Drop in a photo of a school fee receipt and get the receipt number, the term, the amounts paid and any balance due.",
+  "accepts": [
+    "png",
+    "jpg",
+    "jpeg",
+    "tiff"
+  ],
+  "extract": "ocr",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Receipt",
+      "keywords": [
+        "receipt no",
+        "receipt number",
+        "receipt",
+        "date"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Student and term",
+      "keywords": [
+        "student",
+        "name",
+        "class",
+        "grade",
+        "term",
+        "year"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Fees",
+      "keywords": [
+        "tuition",
+        "fee",
+        "transport",
+        "paid",
+        "total"
+      ],
+      "max_lines": 10
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Balance",
+      "keywords": [
+        "balance",
+        "due",
+        "pending",
+        "outstanding"
+      ],
+      "max_lines": 5
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "(?:Rs\\.?|INR|USD|EUR|GBP|\\$|€|£|₹)\\s?[0-9][0-9,]*(?:\\.[0-9]{2})?|[0-9][0-9,]*\\.[0-9]{2}",
+      "max_matches": 12
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Dates",
+      "pattern": "\\b[0-9]{1,2}[/.-][0-9]{1,2}[/.-][0-9]{2,4}\\b|\\b[0-9]{4}-[0-9]{2}-[0-9]{2}\\b",
+      "max_matches": 4
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "fees.md"
+}

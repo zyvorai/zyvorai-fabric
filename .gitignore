@@ -1,0 +1,69 @@
+# Rust
+target/
+**/*.rs.bk
+*.pdb
+
+# Node
+node_modules/
+dist/
+web/coverage/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.o
+*.so
+*.dylib
+*.dll
+/artifacts/
+
+# Config
+*.local
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.temp
+__pycache__/
+*.pyc
+benchmarks/baselines/*.json
+
+# Local AI caches
+.grok/
+**/.DS_Store
+
+# Local presentation exports
+presentations/
+.deploy-last
+
+# Terraform provider local build
+terraform-provider/terraform-provider-zyvor-fabricd
+
+# Machina desktop
+integrations/machina/desktop/node_modules/
+integrations/machina/desktop/dist/
+integrations/machina/desktop/src-tauri/target/
+integrations/machina/desktop/src-tauri/gen/
+tools/fabric-doctor/bin/
+.backend_routes_list_tmp.txt
+
+# demo consent output: never commit a refresh token
+google-refresh-token.env
+microsoft-refresh-token.env
+client_secret_*.json

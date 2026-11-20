@@ -1,0 +1,31 @@
+name: Hermes Agent Smoke Test
+
+# Verifies that NousResearch/hermes-agent (https://github.com/nousresearch/hermes-agent)
+# still installs and runs cleanly, as a candidate agent workload for Fabric-hosted
+# VMs/sandboxes. This installs and executes a THIRD-PARTY project's own installer
+# script (curl | bash) -- intentionally not run on every push/PR since it depends on
+# an external service unrelated to this repo's own code changes, and a transient
+# upstream outage shouldn't block merges here. Runs on a schedule plus on-demand.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install Hermes Agent
+        run: curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+
+      - name: Version check
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          hermes --version
+
+      - name: Self-diagnostic (hermes doctor)
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          hermes doctor

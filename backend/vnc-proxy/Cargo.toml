@@ -1,0 +1,15 @@
+[package]
+name = "vnc-proxy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tokio.workspace = true
+axum = { workspace = true, features = ["ws"] }
+anyhow.workspace = true
+tracing.workspace = true
+serde.workspace = true
+futures = "0.3"
+security = { path = "../security" }
+zyvor-fabric-driver-core = { path = "../crates/driver-core" }

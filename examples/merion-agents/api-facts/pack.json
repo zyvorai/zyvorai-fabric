@@ -1,0 +1,47 @@
+{
+  "kind": "usecase",
+  "name": "api-facts",
+  "title": "API facts",
+  "description": "Drop in a JSON document (an order, a webhook payload, an API response) and pull out the fields you care about.",
+  "accepts": [
+    "json"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "json_path",
+      "title": "Order",
+      "paths": [
+        "order.id",
+        "order.status",
+        "order.customer.name",
+        "order.customer.email"
+      ]
+    },
+    {
+      "kind": "json_path",
+      "title": "Line items",
+      "paths": [
+        "order.items[*].sku",
+        "order.items[*].qty",
+        "order.items[0].price"
+      ]
+    },
+    {
+      "kind": "json_path",
+      "title": "Totals",
+      "paths": [
+        "order.totals.grand",
+        "order.totals.currency"
+      ]
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Email addresses",
+      "pattern": "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+[.][a-z]{2,}",
+      "max_matches": 5
+    }
+  ],
+  "artifact_title": "facts.md",
+  "sample_file": "sample.json"
+}

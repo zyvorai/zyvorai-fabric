@@ -1,0 +1,105 @@
+[Unit]
+Description=zyvor-fabricd - Virtual Machine Management Daemon
+Documentation=https://github.com/zyvorai/fabric
+After=network-online.target systemd-networkd.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/zyvor-fabricd
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5s
+# Watchdog requires sd_notify(WATCHDOG=1) from the daemon; enable once implemented.
+# WatchdogSec=60s
+
+# Environment
+Environment=ZYVOR_FABRICD_LOG_LEVEL=info
+EnvironmentFile=-/etc/zyvor-fabricd/zyvor-fabricd.env
+
+# Credentials
+User=root
+Group=root
+
+# Filesystem access
+ReadWritePaths=/var/lib/zyvor-fabricd
+ReadWritePaths=/etc/zyvor-fabricd
+ReadWritePaths=/etc/systemd/network
+ReadWritePaths=/tmp
+# /var/lib/fluxvm: VM disks FluxVM actually manages (see
+# VMDriver::get_disk_path) -- snapshot/checkpoint/resize/clone/fork/
+# storage-migrate all run qemu-img directly against a VM's real,
+# live disk there, not a file zyvor-fabricd's own store manages.
+# ProtectSystem=strict without this made the whole tree read-only to
+# every one of those operations regardless of the file's own
+# permissions (found live: qemu-img reported EROFS, not a permissions
+# error, on a disk that was actually mode 644 root:root and unheld by
+# any process).
+ReadWritePaths=/var/lib/fluxvm
+# qemu-nbd (used by GuestKit's `doctor`/`agent-inject` guestfs mounting,
+# invoked from ux_extensions.rs's golden-image scoring) writes its lock
+# socket to /var/lock (-> /run/lock) on every mount -- without this,
+# ProtectSystem=strict makes that EROFS and the mount fails outright, even
+# though it doesn't touch any VM disk (found live: "Failed to unlink
+# socket /var/lock/qemu-nbd-nbd0: Read-only file system").
+ReadWritePaths=/run/lock
+StateDirectory=zyvor-fabricd
+ConfigurationDirectory=zyvor-fabricd
+LogsDirectory=zyvor-fabricd
+RuntimeDirectory=zyvor-fabricd
+
+# Security hardening
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectKernelTunables=no
+ProtectKernelModules=no
+ProtectControlGroups=no
+# NOT RestrictSUIDSGID: zyvor-fabricd spawns supervised helper children
+# (dnsmasq for per-bridge DHCP, swtpm, ...) that call setuid/setgid during
+# their own normal startup even when the target id matches the current one
+# (e.g. dnsmasq's --user=root/--group=root still issues the syscalls, not
+# skipped just because it's a same-id no-op). RestrictSUIDSGID applies a
+# seccomp filter blocking that unconditionally regardless of capabilities,
+# so it broke DHCP server startup outright — removing it, together with
+# adding CAP_SETUID/CAP_SETGID below (both gate the same syscalls, at the
+# capability layer rather than seccomp; both had to give way), is what
+# actually fixes it. Limited additional protection lost either way given
+# this unit already runs as full root with CAP_SYS_ADMIN/CAP_DAC_OVERRIDE,
+# both far more powerful than what restricting setuid/setgid adds as
+# defense-in-depth.
+RemoveIPC=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictRealtime=yes
+RestrictNamespaces=no
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+SystemCallArchitectures=native
+
+# Capabilities required for VM management
+# CAP_SYS_CHROOT: GuestKit's `agent-inject` (golden-image guest-agent
+# injection, ux_extensions.rs) chroots into the mounted guest filesystem to
+# install the agent -- found live: "chroot: cannot change root directory
+# ... Operation not permitted" without it. Doctor scoring doesn't need this
+# (read-only inspection, no chroot), only the write path does.
+AmbientCapabilities=CAP_NET_ADMIN CAP_SYS_ADMIN CAP_NET_RAW CAP_MKNOD CAP_SYS_PTRACE CAP_NET_BIND_SERVICE CAP_SETUID CAP_SETGID CAP_SYS_CHROOT
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_SYS_ADMIN CAP_NET_RAW CAP_MKNOD CAP_SYS_PTRACE CAP_KILL CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE CAP_NET_BIND_SERVICE CAP_SETUID CAP_SETGID CAP_SYS_CHROOT
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+LimitMEMLOCK=infinity
+TasksMax=infinity
+
+# OOM handling
+OOMScoreAdjust=-900
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zyvor-fabricd
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,15 @@
+# Logrotate configuration for zyvor-fabricd
+# Installed to /etc/logrotate.d/zyvor-fabricd
+#
+# journald handles the main service logs, but this covers
+# any file-based logs from backup/cleanup scripts.
+
+/var/log/zyvor-fabricd/*.log {
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 root root
+}

@@ -1,0 +1,69 @@
+{
+  "kind": "usecase",
+  "name": "mailbox-triage",
+  "title": "Mailbox triage",
+  "description": "Drop in an .mbox or .eml export and get who wrote, what the subjects are, and which messages need a reply, involve money or set a meeting.",
+  "accepts": [
+    "mbox",
+    "eml"
+  ],
+  "extract": "eml",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Needs a reply",
+      "keywords": [
+        "please reply",
+        "can you",
+        "let me know",
+        "by friday",
+        "urgent",
+        "action required"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Money",
+      "keywords": [
+        "invoice",
+        "payment",
+        "overdue",
+        "refund",
+        "amount due"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Meetings",
+      "keywords": [
+        "meeting",
+        "agenda",
+        "reschedule",
+        "call at"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Subjects",
+      "pattern": "Subject: (.+)",
+      "group": 1,
+      "max_matches": 10
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Senders",
+      "pattern": "From: .*?<([^>]+)>",
+      "group": 1,
+      "max_matches": 8
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "mailbox-triage.md",
+  "sample_file": "sample.mbox"
+}

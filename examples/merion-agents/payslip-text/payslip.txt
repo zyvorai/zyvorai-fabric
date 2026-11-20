@@ -1,0 +1,17 @@
+PAYSLIP  August 2026  (synthetic sample, nothing here is real)
+Employee: Example Employee    Employee ID: E1001
+
+Earnings
+Basic Salary              50,000.00
+House Rent Allowance      20,000.00
+Special Allowance         15,000.00
+Gross Earnings            85,000.00
+
+Deductions
+Provident Fund             6,000.00
+Professional Tax             200.00
+Income Tax (TDS)           7,500.00
+Total Deductions          13,700.00
+
+Net Pay                   71,300.00
+Paid on 31-08-2026 to account ending 0000

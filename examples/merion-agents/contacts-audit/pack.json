@@ -1,0 +1,42 @@
+{
+  "kind": "usecase",
+  "name": "contacts-audit",
+  "title": "Contacts audit",
+  "description": "Drop in a contacts export (.vcf) and get names (duplicates first), numbers and emails.",
+  "accepts": [
+    "vcf"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Cards",
+      "pattern": "(?m)^(BEGIN:VCARD)",
+      "max_matches": 1,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Names (repeated first)",
+      "pattern": "(?m)^FN[^:]*:([^\\r\\n]+)",
+      "max_matches": 20,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Numbers",
+      "pattern": "(?m)^TEL[^:]*:([^\\r\\n]+)",
+      "max_matches": 20,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Emails",
+      "pattern": "(?m)^EMAIL[^:]*:([^\\r\\n]+)",
+      "max_matches": 20,
+      "group": 1
+    }
+  ],
+  "artifact_title": "contacts-audit.md",
+  "sample_file": "sample.vcf"
+}

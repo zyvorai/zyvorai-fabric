@@ -1,0 +1,13 @@
+# Example Machina cluster profiles (macOS companion — planned)
+# Copy to ~/.machina/clusters.yaml on the Mac client.
+#
+# See docs/integrations/machina.md
+
+clusters:
+  - name: homelab
+    endpoint: http://192.168.1.10:9095
+    # token: set via Keychain after login — do not store here
+
+  - name: prod
+    endpoint: https://fabric.example.com:9095
+    # insecure_tls: false

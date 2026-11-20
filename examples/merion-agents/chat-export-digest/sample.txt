@@ -1,0 +1,12 @@
+12/03/2025, 09:12 - Messages and calls are end-to-end encrypted.
+12/03/2025, 09:14 - Ana: Are we still on for dinner tomorrow at 7?
+12/03/2025, 09:15 - Ben: Yes! I booked the table at Luma, https://example.com/luma/booking/8841
+12/03/2025, 09:16 - Ana: Great. I'll pay the deposit, it's 40 dollars.
+12/03/2025, 09:20 - Ben: Can you send me the address of your new flat?
+12/03/2025, 09:21 - Ana: 14 Example Street. Meet at 6:30 outside?
+12/03/2025, 09:22 - Ben: Perfect, see you at 6:30
+12/03/2025, 18:02 - Ana: Running late, sorry!
+12/03/2025, 18:03 - Ben: No stress, I'll wait. Also you owe me $12 from lunch
+[12/03/2025, 19:05:11] Cy: Anyone free on Saturday?
+[12/03/2025, 19:06:40] Dee: Yes, at 5 works for me
+[12/03/2025, 19:07:02] Cy: Great, see you then

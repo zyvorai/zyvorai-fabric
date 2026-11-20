@@ -1,0 +1,39 @@
+{
+  "kind": "usecase",
+  "name": "mac-launch-items",
+  "title": "Mac launch items",
+  "description": "Drop in `launchctl list` output and get the third-party items and the ones that exited with an error or a signal.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Third-party labels (not com.apple)",
+      "pattern": "(?m)^\\S+\\t-?[0-9]+\\t((?:[^c\\s]|c[^o\\s]|co[^m\\s]|com[^.\\s]|com\\.[^a\\s]|com\\.a[^p\\s]|com\\.ap[^p\\s]|com\\.app[^l\\s]|com\\.appl[^e\\s]|com\\.apple[^.\\s])\\S*)$",
+      "group": 1,
+      "max_matches": 30
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Exit status counts",
+      "pattern": "(?m)^\\S+\\t(-?[0-9]+)\\t\\S+$",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Labels with a non-zero status",
+      "pattern": "(?m)^\\S+\\t-?[1-9][0-9]*\\t(\\S+)$",
+      "max_matches": 20,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size (one line per item)"
+    }
+  ],
+  "artifact_title": "mac-launch-items.md",
+  "sample_file": "sample.txt"
+}

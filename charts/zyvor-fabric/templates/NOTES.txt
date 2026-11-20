@@ -1,0 +1,19 @@
+1. Privileged hostNetwork DaemonSets (zyvor-fabricd + FluxVM). Requires /dev/kvm and PSS privileged.
+2. Lab UI/API: NodePort {{ .Values.fabricd.service.nodePort | default 30095 }} (also host :9095 via hostNetwork).
+3. Credentials are a Kubernetes Secret (not systemd files).
+   username: {{ .Values.security.adminUsername | default "admin" }}
+   {{- if .Values.security.existingSecret }}
+   secret: {{ .Values.security.existingSecret }}
+   {{- else }}
+   secret: {{ include "zyvor-fabric.fullname" . }}-secrets
+   {{- if .Values.security.adminPassword }}
+   password: (from values security.adminPassword)
+   {{- else }}
+   password: (random — generated at install; retrieve below)
+   {{- end }}
+   {{- end }}
+   Retrieve admin password:
+     kubectl -n {{ .Release.Namespace }} get secret {{ if .Values.security.existingSecret }}{{ .Values.security.existingSecret }}{{ else }}{{ include "zyvor-fabric.fullname" . }}-secrets{{ end }} -o jsonpath='{.data.admin-password}' | base64 -d; echo
+   Rotate: ./scripts/k8s-set-admin-secret.sh --apply --restart
+4. Operator (separate chart): point ZYVOR_FABRICD_URL at http://NODE_IP:30095 or http://127.0.0.1:9095 on the same node.
+5. See docs/KUBERNETES.md for remote lab deploy and Docker/systemd alternatives.

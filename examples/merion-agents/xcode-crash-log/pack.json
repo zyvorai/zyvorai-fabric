@@ -1,0 +1,82 @@
+{
+  "kind": "usecase",
+  "name": "xcode-crash-log",
+  "title": "Xcode crash report",
+  "description": "Drop in a legacy `.crash` report and get the app, version, OS, exception, crashed thread and the top frames.",
+  "accepts": [
+    "crash",
+    "txt",
+    "log"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Process",
+      "pattern": "Process:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Identifier",
+      "pattern": "Identifier:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Version",
+      "pattern": "(?m)^Version:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "OS",
+      "pattern": "OS Version:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Exception",
+      "pattern": "Exception Type:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Exception codes",
+      "pattern": "Exception Codes:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Crashed thread",
+      "pattern": "Crashed Thread:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Application notes",
+      "keywords": [
+        "application specific information",
+        "termination reason",
+        "abort"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Frames (most repeated first)",
+      "pattern": "(?m)^[0-9]+\\s+\\S+\\s+0x[0-9a-f]+ (.+)$",
+      "max_matches": 12,
+      "group": 1
+    }
+  ],
+  "artifact_title": "crash-report.md",
+  "sample_file": "sample.crash"
+}

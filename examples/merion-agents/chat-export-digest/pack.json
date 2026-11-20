@@ -1,0 +1,67 @@
+{
+  "kind": "usecase",
+  "name": "chat-export-digest",
+  "title": "Chat export digest",
+  "description": "Drop in an exported chat (.txt) and get who talks most, plans and times, money mentions and links.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Who talks most (Android layout)",
+      "pattern": "(?m)^\\d{1,2}/\\d{1,2}/\\d{2,4}, \\d{1,2}:\\d{2}(?: ?[AP]M)? - ([^:\\n]+):",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Who talks most (iPhone layout)",
+      "pattern": "(?m)^\\[\\d{1,2}/\\d{1,2}/\\d{2,4}, \\d{1,2}:\\d{2}(?::\\d{2})?(?: ?[AP]M)?\\] ([^:\\n]+):",
+      "group": 1,
+      "max_matches": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Plans and times",
+      "keywords": [
+        "tomorrow",
+        "tonight",
+        "meet",
+        "see you",
+        "booked",
+        "dinner",
+        "running late",
+        "on for"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Open questions",
+      "keywords": [
+        "?"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Money",
+      "pattern": "(?:\\$|£|€|₹)\\s?[0-9][0-9,.]*|[0-9][0-9,.]*\\s?(?:dollars|euros|pounds|rupees)",
+      "max_matches": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Links",
+      "pattern": "https?://[^\\s)>\\]]+",
+      "max_matches": 8
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "chat-digest.md",
+  "sample_file": "sample.txt"
+}

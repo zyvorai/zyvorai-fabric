@@ -1,0 +1,14 @@
+PURCHASE ORDER
+PO No: PO-7781/2026
+Buyer GSTIN: 27ABCDE1234F1Z5
+Vendor GSTIN: 29PQRSX6789K1Z2
+Place of supply: Maharashtra
+
+SKU     Description           HSN     Qty   Rate       Amount
+A-100   Widget, standard      8479    10    Rs 4,200   Rs 42,000
+B-220   Bracket, steel        7326    25    Rs 380     Rs 9,500
+C-330   Cable set             8544    5     Rs 1,150   Rs 5,750
+
+Freight: Rs 1,800 (TBD, to be confirmed by vendor)
+Total: Rs 59,050
+Delivery: 10 working days after acknowledgement

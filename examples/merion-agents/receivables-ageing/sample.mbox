@@ -1,0 +1,31 @@
+From accounts@acme.example Mon Sep 01 09:00:00 2026
+From: Acme Accounts <accounts@acme.example>
+Date: Mon, 01 Sep 2026 09:00:00 +0000
+Subject: Re: INV-2026-0142 payment status
+Content-Type: text/plain
+
+Hello, we have not yet received payment for INV-2026-0142, amount Rs 1,25,000.00, due date 15 Aug 2026. Please confirm.
+
+From billing@sender.example Tue Sep 09 10:00:00 2026
+From: Our Billing <billing@sender.example>
+Date: Tue, 09 Sep 2026 10:00:00 +0000
+Subject: Reminder: INV-2026-0142 is overdue
+Content-Type: text/plain
+
+Reminder: INV-2026-0142 (Rs 1,25,000.00) is overdue since 15 Aug 2026. Please pay by 12 Sep 2026.
+
+From ap@globex.example Wed Sep 10 11:00:00 2026
+From: Globex AP <ap@globex.example>
+Date: Wed, 10 Sep 2026 11:00:00 +0000
+Subject: Payment received for INV-2026-0139
+Content-Type: text/plain
+
+We have released payment for INV-2026-0139, INR 48,500.00, UTR 0000123456. Payment received on 10 Sep 2026.
+
+From ap@initech.example Thu Sep 11 12:00:00 2026
+From: Initech AP <ap@initech.example>
+Date: Thu, 11 Sep 2026 12:00:00 +0000
+Subject: Query on INV-2026-0150
+Content-Type: text/plain
+
+The quantity on INV-2026-0150 (USD 2,300.00) does not match our goods receipt. Payment on hold until resolved.

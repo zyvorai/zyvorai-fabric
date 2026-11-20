@@ -1,0 +1,18 @@
+{
+  "kind": "builtin",
+  "name": "csv-clean",
+  "manifest": {
+    "template": "node22-agent",
+    "egress_mode": "deny",
+    "egress_allow_hosts": [],
+    "confinement": "strict",
+    "resources": {
+      "vcpus": 1,
+      "memory_mib": 2048
+    }
+  },
+  "goal": {
+    "title": "Clean this CSV",
+    "text": "Read /home/agent/work/input.csv only. Write artifact clean.csv and report.md. No browser. No hosts."
+  }
+}

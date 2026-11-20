@@ -1,0 +1,32 @@
+{
+  "kind": "usecase",
+  "name": "employee-ledger",
+  "title": "Employee ledger",
+  "description": "Drop in a monthly employee ledger CSV and see how many rows per employee and month, and the first rows.",
+  "accepts": [
+    "csv"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Rows per employee and month",
+      "columns": [
+        "employee",
+        "month"
+      ],
+      "top": 10
+    },
+    {
+      "kind": "table",
+      "title": "First rows",
+      "max_rows": 15
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "employee-ledger.md",
+  "sample_file": "sample.csv"
+}

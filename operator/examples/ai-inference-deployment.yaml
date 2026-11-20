@@ -1,0 +1,20 @@
+# Fabric AI Workloads — InferenceDeployment (preview)
+# Apply after ModelArtifact exists and an InferenceProfile is registered
+# (fabricctl ai profile add … or a companion ConfigMap/Job). Profiles are
+# not a CRD yet; create them via CLI/Terraform first.
+apiVersion: zyvor-fabricd.io/v1alpha1
+kind: ModelArtifact
+metadata:
+  name: qwen3-8b
+spec:
+  source: hf://Qwen/Qwen3-8B
+  format: safetensors
+---
+apiVersion: zyvor-fabricd.io/v1alpha1
+kind: InferenceDeployment
+metadata:
+  name: qwen3-8b
+spec:
+  model: qwen3-8b
+  profile: edge-24g
+  replicas: 2

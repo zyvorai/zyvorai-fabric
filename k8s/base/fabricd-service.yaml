@@ -1,0 +1,20 @@
+# Lab NodePort (hostNetwork also binds :9095 on the node directly).
+apiVersion: v1
+kind: Service
+metadata:
+  name: zyvor-fabricd
+  namespace: zyvor-fabric
+  labels:
+    app: zyvor-fabricd
+    app.kubernetes.io/name: zyvor-fabric
+    app.kubernetes.io/component: fabricd
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 9095
+    targetPort: 9095
+    nodePort: 30095
+    protocol: TCP
+  selector:
+    app: zyvor-fabricd

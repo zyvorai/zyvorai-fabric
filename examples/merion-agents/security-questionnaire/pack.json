@@ -1,0 +1,18 @@
+{
+  "kind": "builtin",
+  "name": "security-questionnaire",
+  "manifest": {
+    "template": "node22-agent",
+    "egress_mode": "deny",
+    "egress_allow_hosts": [],
+    "confinement": "strict",
+    "resources": {
+      "vcpus": 1,
+      "memory_mib": 2048
+    }
+  },
+  "goal": {
+    "title": "Pair questions with answers",
+    "text": "Read /home/agent/work/input.pdf only. Write artifact answers.md. No browser. No hosts."
+  }
+}

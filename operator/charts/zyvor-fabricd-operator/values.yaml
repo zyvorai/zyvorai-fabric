@@ -1,0 +1,33 @@
+replicaCount: 1
+
+image:
+  repository: zyvor-fabricd-operator
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+serviceAccount:
+  create: true
+  name: zyvor-fabricd-operator
+
+rbac:
+  create: true
+
+zyvor-fabricd:
+  url: "http://zyvor-fabricd:9095"
+  # Set tokenSecret to mount JWT for authenticated Fabric clusters
+  tokenSecret: ""
+  tokenSecretKey: "token"
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+admissionWebhook:
+  enabled: false
+  fabricdUrl: "https://zyvor-fabricd:9095"
+  token: ""
+  caBundle: ""

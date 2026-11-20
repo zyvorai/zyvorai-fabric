@@ -1,0 +1,20 @@
+{
+  "kind": "agent",
+  "name": "model-agent",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 1024 },
+    "egress_mode": "deny",
+    "credentials": ["llm"],
+    "confinement": "strict",
+    "model_socket": {
+      "base_url": "https://api.example.com/v1",
+      "model": "small-1",
+      "credential": "llm"
+    }
+  },
+  "goal": {
+    "title": "Answer with the configured model",
+    "text": "Ask the model socket the question in the session input and return its answer."
+  }
+}

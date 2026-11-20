@@ -1,0 +1,138 @@
+name: AI Workloads
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "backend/zyvor-fabricd/src/api/ai/**"
+      - "backend/zyvor-fabricd/src/api/external_auth.rs"
+      - "backend/zyvor-fabricd/src/server.rs"
+      - "backend/fabricctl/src/**"
+      - "backend/fabricctl/src/main.rs"
+      - "scripts/smoke-ai-workloads-phases.sh"
+      - "docs/ai-workloads.md"
+      - "scripts/test-ai-workloads-unit.sh"
+      - "operator/charts/zyvor-fabricd-operator/**"
+      - "agent-runtime/src/credentials.rs"
+      - "agent-runtime/src/egress.rs"
+      - ".github/workflows/ai-workloads.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/zyvor-fabricd/src/api/ai/**"
+      - "backend/zyvor-fabricd/src/api/external_auth.rs"
+      - "backend/zyvor-fabricd/src/server.rs"
+      - "backend/fabricctl/src/**"
+      - "backend/fabricctl/src/main.rs"
+      - "scripts/smoke-ai-workloads-phases.sh"
+      - "docs/ai-workloads.md"
+      - "scripts/test-ai-workloads-unit.sh"
+      - "operator/charts/zyvor-fabricd-operator/**"
+      - "agent-runtime/src/credentials.rs"
+      - "agent-runtime/src/egress.rs"
+      - ".github/workflows/ai-workloads.yml"
+
+jobs:
+  fabricd-ai:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libpam0g-dev libclang-dev clang pkg-config libssl-dev
+      - name: AI unit tests
+        run: ./scripts/test-ai-workloads-unit.sh
+
+  fabricd-ai-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libpam0g-dev libclang-dev clang pkg-config libssl-dev jq
+      - name: Dry-run REST smoke
+        run: |
+          set -euo pipefail
+          ROOT="$(mktemp -d)"
+          LOG="${GITHUB_WORKSPACE}/fabricd.log"
+          copy_log() { cp "$ROOT/fabricd.log" "$LOG" 2>/dev/null || true; }
+          trap 'copy_log; if [[ -f "$ROOT/pid" ]]; then kill "$(cat "$ROOT/pid")" >/dev/null 2>&1 || true; fi' EXIT
+          cargo build --manifest-path backend/Cargo.toml -p zyvor-fabricd --bin zyvor-fabricd
+          mkdir -p "$ROOT/images" "$ROOT/ai-model-stub"
+          cat > "$ROOT/fabricd.toml" <<EOF
+          [daemon]
+          listen = "127.0.0.1:19095"
+
+          [storage]
+          path = "$ROOT"
+          image_path = "$ROOT/images"
+
+          [network]
+          bridge = "br0"
+
+          [auth]
+          enabled = true
+          db_path = "$ROOT/auth.db"
+          jwt_secret = "ci-smoke-secret-not-for-production-use"
+          default_admin_password = "smoke-pass"
+
+          [tls]
+          enabled = false
+          EOF
+          export ZYVOR_FABRICD_CONFIG="$ROOT/fabricd.toml"
+          export ZYVOR_FABRICD_ADMIN_PASSWORD=smoke-pass
+          export FLUXVM_AI_DRY_RUN=1
+          export FLUXVM_AI_MODEL_DIR="$ROOT/ai-model-stub"
+          export FLUXVM_AI_SITE=lab
+          # Janus stays unset here so CI keeps the synthetic dry-run body.
+          BIN="$GITHUB_WORKSPACE/backend/target/debug/zyvor-fabricd"
+          "$BIN" > "$ROOT/fabricd.log" 2>&1 &
+          echo $! > "$ROOT/pid"
+          for _ in $(seq 1 90); do
+            if curl -sf "http://127.0.0.1:19095/health" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl -sf "http://127.0.0.1:19095/health" >/dev/null
+          FABRIC_URL=http://127.0.0.1:19095 FABRIC_PASS=smoke-pass \
+            FABRICD_BIN="$BIN" FABRICD_PIDFILE="$ROOT/pid" FABRICD_LOG="$ROOT/fabricd.log" \
+            ./scripts/smoke-ai-workloads-phases.sh
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: fabricd-log
+          path: fabricd.log
+          if-no-files-found: ignore
+
+  operator-admit-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Helm
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - name: Template webhook off by default
+        run: |
+          set -euo pipefail
+          out="$(helm template zyvor-fabricd-operator operator/charts/zyvor-fabricd-operator)"
+          echo "$out" | grep -qv ValidatingWebhookConfiguration
+      - name: Template webhook when enabled
+        run: |
+          set -euo pipefail
+          out="$(helm template zyvor-fabricd-operator operator/charts/zyvor-fabricd-operator \
+            --set admissionWebhook.enabled=true \
+            --set admissionWebhook.token=ci-admit-token \
+            --set admissionWebhook.fabricdUrl=https://zyvor-fabricd:9095)"
+          echo "$out" | grep -q ValidatingWebhookConfiguration
+          echo "$out" | grep -q '/api/ai/admit/ci-admit-token'
+          echo "$out" | grep -q 'failurePolicy: Fail'
+
+  agent-fabric-cred:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Agent Runtime credential tests
+        run: cargo test --manifest-path agent-runtime/Cargo.toml credentials -- --nocapture

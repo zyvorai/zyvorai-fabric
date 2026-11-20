@@ -1,0 +1,35 @@
+{
+  "name": "@zyvor/fabric-agent",
+  "version": "0.5.1",
+  "description": "TypeScript/JavaScript SDK and deploy CLI for Zyvor Fabric Agent Runtime",
+  "type": "module",
+  "license": "LicenseRef-Zyvor-Production-1.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./phone": {
+      "default": "./src/phone.js"
+    },
+    "./evidence": {
+      "types": "./src/evidence.d.ts",
+      "default": "./src/evidence.js"
+    }
+  },
+  "bin": {
+    "fabric-agent": "./src/cli.js",
+    "keep-phone": "./src/phone-cli.js",
+    "keep-evidence": "./src/evidence-cli.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node --check src/index.js && node --check src/cli.js && node --check src/phone.js && node --check src/phone-cli.js && node --check src/evidence.js && node --check src/evidence-cli.js"
+  },
+  "dependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

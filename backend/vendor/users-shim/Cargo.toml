@@ -1,0 +1,10 @@
+[package]
+name = "users"
+version = "0.10.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Local compatibility shim: re-exports uzers under the `users` crate name so `pam`'s hardcoded `users = \"^0.10\"` requirement (a version uzers itself never published) resolves to the maintained fork instead of the unmaintained, vulnerable original."
+publish = false
+
+[dependencies]
+uzers = "0.12"

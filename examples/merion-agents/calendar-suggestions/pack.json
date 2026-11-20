@@ -1,0 +1,17 @@
+{
+  "kind": "agent",
+  "name": "calendar-suggestions",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 512 },
+    "egress_mode": "deny",
+    "egress_allow_hosts": ["www.googleapis.com"],
+    "credentials": ["calendar-read"],
+    "confinement": "strict",
+    "suggestions": true
+  },
+  "goal": {
+    "title": "Suggest calendar prep",
+    "text": "Read the next day of the calendar and suggest preparing for an event with no notes, or adding a place for one with guests but nowhere to meet. Heuristic only: no model, no learned behaviour."
+  }
+}

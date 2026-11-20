@@ -1,0 +1,12 @@
+Display Name                                       Version    Date                  
+------------                                       -------    ----                  
+macOS Sequoia 15.6.1                               15.6.1     04/09/2025, 13:25:56  
+macOS Tahoe 26 Beta 9                              26.0       04/09/2025, 14:32:47  
+Command Line Tools for Xcode 26.0 beta 6           26.0       06/09/2025, 20:28:52  
+macOS Tahoe 26                                     26.0       10/09/2025, 02:49:58  
+macOS Tahoe 26                                     26.0       17/09/2025, 13:15:41  
+Command Line Tools for Xcode 26.0                  26.0       17/09/2025, 13:32:29  
+macOS Tahoe 26.1 Beta                              26.1       23/09/2025, 14:52:34  
+macOS Tahoe 26.1 Beta 2                            26.1       07/10/2025, 12:58:57  
+macOS Tahoe 26.1 Beta 3                            26.1       14/10/2025, 13:25:21  
+macOS Tahoe 26.1 Beta 4                            26.1       22/10/2025, 16:53:09  

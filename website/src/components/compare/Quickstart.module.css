@@ -1,0 +1,147 @@
+.wrap {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 52rem;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tab {
+  appearance: none;
+  border: 1px solid var(--c-line);
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 980px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.tab:hover {
+  border-color: var(--c-accent);
+}
+
+.tab:focus-visible,
+.termBar button:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+
+.on {
+  background: var(--c-fill);
+  border-color: var(--c-fill);
+  color: #fff;
+}
+
+.panel {
+  display: grid;
+  gap: 1rem;
+  animation: swap 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes swap {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+.blurb {
+  margin: 0;
+  color: var(--c-muted);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.term {
+  border-radius: 18px;
+  background: #000;
+  border: 1px solid #2c2c2e;
+  overflow: hidden;
+}
+
+.termBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid #2c2c2e;
+  font-size: 0.75rem;
+  color: #98989d;
+}
+
+.termBar button {
+  appearance: none;
+  border: 1px solid #3a3a3c;
+  background: transparent;
+  color: #f5f5f7;
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.85rem;
+  border-radius: 980px;
+  cursor: pointer;
+  min-width: 4.5rem;
+}
+
+.termBar button:hover {
+  border-color: #0a84ff;
+}
+
+.term pre {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  background: transparent;
+  color: #f5f5f7;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+
+.term code {
+  background: transparent;
+  color: inherit;
+  font-weight: 500;
+}
+
+.expect {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--c-muted);
+}
+
+.expect b {
+  color: var(--c-ink);
+  margin-right: 0.5rem;
+}
+
+.expect code {
+  color: var(--c-ok);
+}
+
+.needs {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--c-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.link {
+  font-weight: 600;
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel { animation: none; }
+}

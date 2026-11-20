@@ -1,0 +1,71 @@
+{
+  "kind": "usecase",
+  "name": "nda-review",
+  "title": "NDA review",
+  "description": "Drop in a Word contract and see its term, confidentiality, liability and governing-law clauses, and every duration and amount it mentions.",
+  "accepts": [
+    "docx"
+  ],
+  "extract": "docx",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Term and termination",
+      "keywords": [
+        "term of",
+        "terminate",
+        "termination",
+        "renew",
+        "effective date"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Confidentiality",
+      "keywords": [
+        "confidential information",
+        "shall not disclose",
+        "non-disclosure"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Liability and remedies",
+      "keywords": [
+        "liable",
+        "liability",
+        "indemnif",
+        "injunctive",
+        "damages"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Governing law",
+      "keywords": [
+        "governing law",
+        "governed by",
+        "jurisdiction",
+        "courts of"
+      ],
+      "max_lines": 4
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Durations",
+      "pattern": "([0-9]+|one|two|three|five|ten) (?:\\([0-9]+\\) )?(?:days?|months?|years?)",
+      "max_matches": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "((?:EUR|USD|GBP|\\$|€|£) ?[0-9][0-9,.]*)",
+      "group": 1,
+      "max_matches": 8
+    }
+  ],
+  "artifact_title": "nda-review.md"
+}

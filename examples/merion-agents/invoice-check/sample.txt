@@ -1,0 +1,7 @@
+INVOICE 1042
+Bill to: Example Ltd
+Widgets x 10   $100.00
+Widgets x 10   $100.00
+Shipping   $20.00
+Total: $220.00
+Amount due: $220.00 payable by 2026-10-30 (net 30)

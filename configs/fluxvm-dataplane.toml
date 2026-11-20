@@ -1,0 +1,27 @@
+# FluxVM companion config — Network Fabric (current attach reports schema 11).
+# Mounted as /etc/fluxvm.toml when Fabric runs FluxVM via compose/k8s.
+#
+# mode = "ebpf" is required for the bridge-less direct datapath. That path
+# also needs fluxvm_direct.bpf.o next to fluxvm_tc.bpf.o
+# (/usr/lib/fluxvm/bpf/fluxvm_direct.bpf.o). Service Fabric is not attached
+# to direct taps.
+#
+# required=true fail-closes when a host-visible VM edge exists but attach
+# fails. user NAT / mode=none soft-skip (no edge). Fabric SDN stays independent.
+# Aligns with FluxVM configs/network-fabric-prod.toml (groups/CNP/health/ipcache).
+
+[sandbox.dataplane]
+mode = "ebpf"
+bpf_object = "/usr/lib/fluxvm/bpf/fluxvm_tc.bpf.o"
+pin_root = "/sys/fs/bpf/fluxvm"
+required = true
+default_allow = false
+allow_cidrs = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+allow_ports = ["tcp/443", "tcp/80", "udp/53"]
+max_egress_mbps = 250
+max_egress_pps = 100000
+sample_rate = 100
+
+# On nodes that already run a CNI agent:
+# mode = "cilium"
+# and leave XDP disabled.

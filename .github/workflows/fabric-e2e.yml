@@ -1,0 +1,147 @@
+# Live API E2E: build zyvor-fabricd, stub FluxVM HTTP, run tests/e2e-api-test.sh
+# (includes scripts/ci-feat-catchup-stub.sh catch-up assertions).
+# Full QEMU/KVM FluxVM is skipped on ubuntu-latest (no /dev/kvm guarantee).
+name: Fabric E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ZYVOR_FABRICD_LISTEN: "127.0.0.1:9095"
+      ZYVOR_FABRICD_ADMIN_PASSWORD: "e2e-ci-only-not-a-secret"
+      ZYVOR_FABRICD_JWT_SECRET: "e2e-ci-jwt-secret-not-for-production"
+      FABRIC_DATA_DIR: ${{ github.workspace }}/.e2e-data
+      BASE_URL: "http://127.0.0.1:9095"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libpam0g-dev libclang-dev clang pkg-config libssl-dev
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend -> target
+
+      - name: Build zyvor-fabricd
+        run: cd backend && cargo build --release --bin zyvor-fabricd
+
+      - name: Grant zyvor-fabricd network admin capabilities
+        run: |
+          # POST /api/networkd/bridges creates a real Linux bridge via
+          # netlink (see backend/networking) -- without CAP_NET_ADMIN
+          # (CAP_NET_RAW for the DHCP/neighbor-discovery paths some
+          # networkd subsystems use) that fails with "Operation not
+          # permitted (os error 1)", not a clean/expected error, so the
+          # e2e check can't treat it as a soft-miss. Grant the binary the
+          # capability directly rather than running the whole daemon as
+          # root via sudo.
+          sudo setcap cap_net_admin,cap_net_raw+ep backend/target/release/zyvor-fabricd
+
+      - name: Start FluxVM HTTP stub
+        run: |
+          python3 tests/fixtures/fluxvm-stub.py &
+          echo $! > /tmp/fluxvm-stub.pid
+          for i in $(seq 1 20); do
+            if curl -sf http://127.0.0.1:7788/readyz >/dev/null; then
+              echo "fluxvm-stub ready"
+              exit 0
+            fi
+            sleep 0.25
+          done
+          echo "fluxvm-stub failed to start"
+          exit 1
+
+      - name: Prepare data dirs and config
+        run: |
+          mkdir -p "$FABRIC_DATA_DIR"/{images,storage} /tmp/e2e-etc
+          cat > /tmp/e2e-etc/zyvor-fabricd.toml <<EOF
+          [daemon]
+          listen = "127.0.0.1:9095"
+          cors_origins = ["http://127.0.0.1:9095"]
+
+          [storage]
+          path = "${FABRIC_DATA_DIR}"
+          image_path = "${FABRIC_DATA_DIR}/images"
+
+          [network]
+          bridge = "br0"
+
+          [tls]
+          enabled = false
+
+          [auth]
+          enabled = true
+          db_path = "${FABRIC_DATA_DIR}/auth.db"
+          default_admin_password = "e2e-ci-only-not-a-secret"
+
+          [driver]
+          fluxvm_url = "http://127.0.0.1:7788"
+          # agent_runtime intentionally unset — e2e asserts /api/agents → 503
+          EOF
+
+      - name: Start zyvor-fabricd
+        run: |
+          # Persist paths used by default_admin_password / jwt helpers when unset
+          sudo mkdir -p /var/lib/zyvor-fabricd
+          sudo chmod 777 /var/lib/zyvor-fabricd
+          # routes.rs::clone_vm asks FluxVM for the source VM's real disk
+          # path first (get_disk_path) and only falls back to guessing a
+          # path by naming convention (validation::find_vm_image, one of
+          # its own hardcoded IMAGE_ALLOWED_PREFIXES) if that fails -- which
+          # it always does against this stub when the VM was never really
+          # created on the FluxVM side. Pre-seed the fallback's
+          # naming-convention path so the e2e clone test has something real
+          # to find.
+          mkdir -p /var/lib/zyvor-fabricd/images
+          touch /var/lib/zyvor-fabricd/images/e2e-vm.qcow2
+          touch /var/lib/zyvor-fabricd/images/test.qcow2
+          touch /var/lib/zyvor-fabricd/images/e2e-catchup.qcow2
+          export ZYVOR_FABRICD_CONFIG=/tmp/e2e-etc/zyvor-fabricd.toml
+          ./backend/target/release/zyvor-fabricd \
+            > /tmp/fabricd-e2e.log 2>&1 &
+          echo $! > /tmp/fabricd.pid
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:9095/health >/dev/null; then
+              echo "fabricd healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "=== fabricd log ==="
+          cat /tmp/fabricd-e2e.log || true
+          exit 1
+
+      - name: Run E2E API suite (includes catch-up)
+        env:
+          BASE_URL: http://127.0.0.1:9095
+          ADMIN_USER: admin
+          ADMIN_PASSWORD: e2e-ci-only-not-a-secret
+        run: |
+          chmod +x tests/e2e-api-test.sh scripts/ci-feat-catchup-stub.sh
+          ./tests/e2e-api-test.sh
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fabric-e2e-logs
+          path: |
+            /tmp/fabricd-e2e.log
+            ${{ github.workspace }}/.e2e-data
+
+      - name: Tear down
+        if: always()
+        run: |
+          if [ -f /tmp/fabricd.pid ]; then kill "$(cat /tmp/fabricd.pid)" 2>/dev/null || true; fi
+          if [ -f /tmp/fluxvm-stub.pid ]; then kill "$(cat /tmp/fluxvm-stub.pid)" 2>/dev/null || true; fi

@@ -1,0 +1,13 @@
+{
+  "_comment": "The /v1/vms/{id}/... requests that BOTH FluxVM clients make (agent-runtime/src/fluxvm.rs and backend/crates/fluxvm-client). Each client has a test that replays these calls against a recording server and compares method, path and body. Change a shared call in one client and this file and the other client's test tell you. id is always 11111111-1111-1111-1111-111111111111 and tag is always t1. body: null = no body, \"object\" = any JSON object, otherwise exact JSON.",
+  "calls": [
+    {"call": "pause",              "method": "POST",   "path": "/v1/vms/{id}/pause",          "body": null},
+    {"call": "resume",             "method": "POST",   "path": "/v1/vms/{id}/resume",         "body": null},
+    {"call": "snapshot",           "method": "POST",   "path": "/v1/vms/{id}/snapshot",       "body": {"tag": "t1"}},
+    {"call": "restore",            "method": "POST",   "path": "/v1/vms/{id}/restore",        "body": {"tag": "t1"}},
+    {"call": "freeze",             "method": "POST",   "path": "/v1/vms/{id}/freeze",         "body": null},
+    {"call": "thaw",               "method": "POST",   "path": "/v1/vms/{id}/thaw",           "body": null},
+    {"call": "delete",             "method": "DELETE", "path": "/v1/vms/{id}",                "body": null},
+    {"call": "set_network_policy", "method": "POST",   "path": "/v1/vms/{id}/network/policy", "body": "object"}
+  ]
+}

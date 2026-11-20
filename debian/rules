@@ -1,0 +1,22 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	$(MAKE) build
+
+override_dh_auto_install:
+	$(MAKE) DESTDIR=debian/tmp install
+
+override_dh_auto_test:
+
+# The shipped .service files (usr/lib/systemd/system/...) are optional —
+# nothing enables, starts, or otherwise wires them up at install time.
+# Skipping dh_installsystemd entirely means no postinst/prerm maintainer
+# scriptlets get added for them; the daemon runs fine under any supervisor
+# (or none). An operator who wants systemd can `systemctl enable --now` it
+# themselves.
+override_dh_installsystemd:

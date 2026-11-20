@@ -1,0 +1,21 @@
+name: DevOps gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  examples-and-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Contract tests
+        working-directory: examples/devops
+        run: python3 -m unittest test_contract.py test_examples.py -v
+      - name: Offline devops-gate
+        run: bash scripts/test-devops-gate.sh

@@ -1,0 +1,51 @@
+{
+  "kind": "usecase",
+  "name": "vscode-settings-audit",
+  "title": "VS Code settings audit",
+  "description": "Drop in `settings.json` and see which settings are set and which relate to telemetry, trust, autosave and formatting.",
+  "accepts": [
+    "json",
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Settings that are set",
+      "pattern": "\"([A-Za-z][A-Za-z0-9._-]+)\"\\s*:",
+      "max_matches": 50,
+      "group": 1
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Telemetry and trust",
+      "keywords": [
+        "telemetry",
+        "workspace.trust",
+        "security.",
+        "update.mode"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Saving and formatting",
+      "keywords": [
+        "autosave",
+        "formatonsave",
+        "formatonpaste",
+        "trimtrailing"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Setting names that look like secrets (values not shown)",
+      "pattern": "\"([A-Za-z0-9._-]*(?i:token|password|apikey|secret)[A-Za-z0-9._-]*)\"\\s*:",
+      "max_matches": 10,
+      "group": 1
+    }
+  ],
+  "artifact_title": "vscode-settings.md",
+  "sample_file": "sample.json"
+}

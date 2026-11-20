@@ -1,0 +1,9 @@
+ms-python.python@2026.4.0
+ms-python.vscode-pylance@2026.4.1
+rust-lang.rust-analyzer@0.3.2400
+esbenp.prettier-vscode@11.0.0
+dbaeumer.vscode-eslint@3.0.10
+github.vscode-pull-request-github@0.110.0
+github.copilot@1.300.0
+ms-vscode.cpptools@1.22.0
+redhat.vscode-yaml@1.15.0

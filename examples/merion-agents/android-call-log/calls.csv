@@ -1,0 +1,8 @@
+number,name,type,date,duration_seconds
+555-0101,Ana Example,incoming,2026-09-01 09:00:12,120
+555-0102,Ben Example,outgoing,2026-09-01 10:30:00,45
+555-0101,Ana Example,missed,2026-09-01 18:05:33,0
+555-0103,,incoming,2026-09-02 08:15:00,30
+555-0102,Ben Example,outgoing,2026-09-02 12:00:00,600
+555-0101,Ana Example,incoming,2026-09-03 21:40:10,300
+555-0104,Cara Example,rejected,2026-09-03 22:00:00,0

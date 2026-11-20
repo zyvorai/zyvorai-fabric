@@ -1,0 +1,18 @@
+---
+# Point ANSIBLE_LIBRARY at sdk/ansible/plugins/modules
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    fabric_url: "{{ lookup('env', 'FABRIC_URL') | default('http://127.0.0.1:9095', true) }}"
+    fabric_token: "{{ lookup('env', 'FABRIC_TOKEN') }}"
+  tasks:
+    - name: Ensure CI VM exists and is started
+      zyvor_fabric_vm:
+        name: web-ansible
+        image: /var/lib/zyvor-fabricd/images/ubuntu-22.04.qcow2
+        cpus: 2
+        memory: 2048
+        state: started
+        api_url: "{{ fabric_url }}"
+        api_token: "{{ fabric_token }}"

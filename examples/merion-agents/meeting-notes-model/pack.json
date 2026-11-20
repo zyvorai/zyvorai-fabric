@@ -1,0 +1,51 @@
+{
+  "kind": "usecase",
+  "name": "meeting-notes-model",
+  "title": "Meeting notes (with a model)",
+  "description": "Drop in a transcript (.txt or .vtt): decisions and actions by rule, plus a short summary from a model you approve.",
+  "accepts": [
+    "txt",
+    "vtt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Decisions",
+      "keywords": [
+        "we decided",
+        "agreed",
+        "decision",
+        "approved"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Actions",
+      "keywords": [
+        "will send",
+        "action item",
+        "to do",
+        "by monday",
+        "by friday",
+        "i'll"
+      ],
+      "max_lines": 10
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "model": {
+    "credential": "llm",
+    "base_url": "http://127.0.0.1:8080/v1",
+    "model": "local-small",
+    "instruction": "Summarise this meeting in five bullet points. List who owns each action. Do not invent names or dates.",
+    "max_input_chars": 20000,
+    "max_output_tokens": 500
+  },
+  "artifact_title": "meeting-notes.md",
+  "sample_file": "sample.txt"
+}

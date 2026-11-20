@@ -1,0 +1,1 @@
+Read /home/agent/work/input.log only. Write artifact triage.md. No browser. No hosts.

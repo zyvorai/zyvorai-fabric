@@ -1,0 +1,39 @@
+{
+  "kind": "usecase",
+  "name": "kindle-highlights",
+  "title": "Kindle highlights",
+  "description": "Drop in your Kindle My Clippings.txt and see which books you highlighted most and how many highlights, notes and bookmarks there are.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "sample_file": "clippings.txt",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "Books by number of clippings",
+      "pattern": "(?m)^\\u{FEFF}?(.+?)\\r?\\n- Your (?:Highlight|Note|Bookmark)",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Kinds of clipping",
+      "pattern": "Your (Highlight|Note|Bookmark)",
+      "max_matches": 6,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Dates added",
+      "pattern": "Added on [A-Za-z]+, ([0-9]{1,2} [A-Za-z]+ [0-9]{4})",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "highlights.md"
+}

@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# backup-vms — Automated VM backup script for zyvor-fabricd
+#
+# Run daily at 2:00 AM by zyvor-fabricd's own in-process scheduler (see
+# backend/zyvor-fabricd/src/schedulers.rs), or manually.
+# Backs up all running VMs by creating qcow2 snapshots and copying
+# disk images to the backup directory.
+#
+# Configuration:
+#   ZYVOR_FABRICD_URL     API endpoint (default: http://127.0.0.1:9095)
+#   BACKUP_DIR       Backup destination (default: /var/lib/zyvor-fabricd/backups)
+#   BACKUP_RETAIN    Days to keep backups (default: 7)
+#   BACKUP_TYPE      full or incremental (default: full)
+
+set -euo pipefail
+
+ZYVOR_FABRICD_URL="${ZYVOR_FABRICD_URL:-http://127.0.0.1:9095}"
+BACKUP_DIR="${ZYVOR_FABRICD_BACKUP_DIR:-${BACKUP_DIR:-/var/lib/zyvor-fabricd/backups}}"
+BACKUP_RETAIN="${ZYVOR_FABRICD_BACKUP_RETAIN:-${BACKUP_RETAIN:-7}}"
+BACKUP_TYPE="${ZYVOR_FABRICD_BACKUP_TYPE:-${BACKUP_TYPE:-full}}"
+PASSWORD_FILE="/var/lib/zyvor-fabricd/.admin_password"
+TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+LOG_TAG="zyvor-fabricd-backup"
+
+log()  { echo "$(date -Iseconds) [$LOG_TAG] $*"; }
+err()  { echo "$(date -Iseconds) [$LOG_TAG] ERROR: $*" >&2; }
+
+# ── Pre-flight checks ──────────────────────────────────────────────────
+if ! curl -sf "$ZYVOR_FABRICD_URL/health" &>/dev/null; then
+    err "zyvor-fabricd is not running at $ZYVOR_FABRICD_URL"
+    exit 1
+fi
+
+if [[ ! -f "$PASSWORD_FILE" ]]; then
+    err "Admin password file not found: $PASSWORD_FILE"
+    exit 1
+fi
+
+mkdir -p "$BACKUP_DIR"
+
+# ── Authenticate ───────────────────────────────────────────────────────
+PASSWORD="$(cat "$PASSWORD_FILE")"
+TOKEN=$(curl -sf "$ZYVOR_FABRICD_URL/api/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "$(jq -n --arg p "$PASSWORD" '{"username":"admin","password":$p}')" \
+    | jq -r '.token // empty')
+
+if [[ -z "$TOKEN" ]]; then
+    err "Failed to authenticate with zyvor-fabricd API"
+    exit 1
+fi
+
+api() {
+    local method="$1" path="$2"
+    shift 2
+    curl -sf "$ZYVOR_FABRICD_URL$path" \
+        -X "$method" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        "$@"
+}
+
+# ── Get list of VMs ───────────────────────────────────────────────────
+VM_LIST=$(api GET /api/vms 2>/dev/null) || VM_LIST='{"vms":[]}'
+
+# Extract VM names (handle both array and object response formats)
+VM_NAMES=$(echo "$VM_LIST" | jq -r '
+    if type == "array" then .[].name
+    elif type == "object" then (.vms // [])[] | .name
+    else empty
+    end' 2>/dev/null) || VM_NAMES=""
+
+if [[ -z "$VM_NAMES" ]]; then
+    log "No VMs found — nothing to back up"
+    exit 0
+fi
+
+VM_COUNT=$(echo "$VM_NAMES" | wc -l)
+log "Starting backup of $VM_COUNT VM(s) to $BACKUP_DIR"
+
+# ── Back up each VM ───────────────────────────────────────────────────
+BACKED_UP=0
+FAILED=0
+
+while IFS= read -r VM_NAME; do
+    [[ -z "$VM_NAME" ]] && continue
+
+    log "Backing up VM '$VM_NAME'..."
+
+    # Create backup via API
+    RESULT=$(api POST /api/backups -d "$(jq -n \
+        --arg vm "$VM_NAME" \
+        --arg type "$BACKUP_TYPE" \
+        '{vm_name: $vm, backup_type: $type}')" 2>/dev/null) || RESULT=""
+
+    if [[ -z "$RESULT" ]]; then
+        err "Failed to create backup job for VM '$VM_NAME'"
+        ((FAILED++)) || true
+        continue
+    fi
+
+    JOB_ID=$(echo "$RESULT" | jq -r '.id // empty')
+
+    if [[ -z "$JOB_ID" ]]; then
+        err "No job ID returned for VM '$VM_NAME'"
+        ((FAILED++)) || true
+        continue
+    fi
+
+    # Wait for backup job to complete (poll every 5s, timeout 10 min)
+    TIMEOUT=600
+    ELAPSED=0
+    while [[ $ELAPSED -lt $TIMEOUT ]]; do
+        sleep 5
+        ((ELAPSED += 5)) || true
+
+        JOB_STATUS=$(api GET "/api/backups/jobs/$JOB_ID" 2>/dev/null | jq -r '.status // "unknown"')
+
+        case "$JOB_STATUS" in
+            completed)
+                log "  ✓ VM '$VM_NAME' backed up successfully"
+                ((BACKED_UP++)) || true
+                break
+                ;;
+            failed)
+                JOB_ERROR=$(api GET "/api/backups/jobs/$JOB_ID" 2>/dev/null | jq -r '.error // "unknown error"')
+                err "  ✗ Backup failed for VM '$VM_NAME': $JOB_ERROR"
+                ((FAILED++)) || true
+                break
+                ;;
+            *)
+                # Still running
+                ;;
+        esac
+    done
+
+    if [[ $ELAPSED -ge $TIMEOUT ]]; then
+        err "  ✗ Backup timed out for VM '$VM_NAME' (${TIMEOUT}s)"
+        ((FAILED++)) || true
+    fi
+
+done <<< "$VM_NAMES"
+
+# ── Cleanup old backups ───────────────────────────────────────────────
+log "Cleaning up backups older than $BACKUP_RETAIN days..."
+DELETED=0
+
+if [[ -d "$BACKUP_DIR" ]]; then
+    while IFS= read -r -d '' OLD_FILE; do
+        rm -f "$OLD_FILE"
+        ((DELETED++)) || true
+    done < <(find "$BACKUP_DIR" -name "*.qcow2" -mtime +"$BACKUP_RETAIN" -print0 2>/dev/null)
+
+    # Also clean up empty directories
+    find "$BACKUP_DIR" -type d -empty -delete 2>/dev/null || true
+fi
+
+if [[ $DELETED -gt 0 ]]; then
+    log "Deleted $DELETED old backup file(s)"
+fi
+
+# ── Summary ───────────────────────────────────────────────────────────
+log "Backup complete: $BACKED_UP succeeded, $FAILED failed, $DELETED old files cleaned"
+
+if [[ $FAILED -gt 0 ]]; then
+    exit 1
+fi
+
+exit 0

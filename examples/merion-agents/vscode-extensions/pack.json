@@ -1,0 +1,32 @@
+{
+  "kind": "usecase",
+  "name": "vscode-extensions",
+  "title": "VS Code extensions",
+  "description": "Drop in `code --list-extensions --show-versions` and get the count, the extensions by publisher and their versions.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "stats",
+      "title": "Size (one line per extension)"
+    },
+    {
+      "kind": "regex_extract",
+      "title": "By publisher",
+      "pattern": "(?m)^([^.\\s]+)\\.",
+      "max_matches": 15,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Extensions",
+      "pattern": "(?m)^(\\S+)@[0-9][^\\s]*$",
+      "max_matches": 50,
+      "group": 1
+    }
+  ],
+  "artifact_title": "vscode-extensions.md",
+  "sample_file": "sample.txt"
+}

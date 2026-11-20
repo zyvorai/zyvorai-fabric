@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zyvor-fabricd-operator.fullname" . }}
+  labels:
+    {{- include "zyvor-fabricd-operator.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "zyvor-fabricd-operator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "zyvor-fabricd-operator.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "zyvor-fabricd-operator.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: operator
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        env:
+        - name: ZYVOR_FABRICD_URL
+          value: {{ (index .Values "zyvor-fabricd").url | quote }}
+        {{- $fab := index .Values "zyvor-fabricd" }}
+        {{- if $fab.tokenSecret }}
+        - name: ZYVOR_FABRICD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ $fab.tokenSecret | quote }}
+              key: {{ $fab.tokenSecretKey | quote }}
+        {{- end }}
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}

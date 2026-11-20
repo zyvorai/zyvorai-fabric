@@ -1,0 +1,137 @@
+# OpenAPI-shaped CRD for ContainerGroup (matches operator/src/crd.rs's
+# `ContainerGroupSpec`/`ContainerSpec`/etc. -- see crd.yaml's header comment
+# for the same convention applied to VirtualMachine).
+#
+# Field names below are deliberately snake_case, not the Kubernetes-idiomatic
+# camelCase: none of the Rust types in `operator/src/crd.rs` carry a
+# `#[serde(rename_all = "camelCase")]`, so their real wire format (what
+# `reconcile_container_group` actually deserializes) is snake_case as-is.
+#
+# `liveness_probe`, `readiness_probe`, and `network_policy` are left as
+# `x-kubernetes-preserve-unknown-fields: true` objects rather than fully
+# modeled: `ProbeCheckSpec` is an internally-tagged enum (`Http`/`Tcp`/`Exec`
+# sharing a `type` discriminant with different allowed values), which
+# `kube-derive`'s own schema generation cannot represent as a Kubernetes
+# structural schema either (confirmed locally: calling `ContainerGroup::crd()`
+# panics on this exact type with "the schemas for a property used in multiple
+# subschemas must be identical"). Real validation of these fields already
+# happens fabric-side (`container_declarative::validate_probe`/`validate_spec`)
+# once the operator forwards the spec to `POST /api/container-groups/apply` --
+# this schema only needs to accept the shape, not strictly enforce it.
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: containergroups.zyvor-fabricd.io
+  labels:
+    {{- include "zyvor-fabricd-operator.labels" . | nindent 4 }}
+spec:
+  group: zyvor-fabricd.io
+  names:
+    kind: ContainerGroup
+    listKind: ContainerGroupList
+    plural: containergroups
+    shortNames:
+      - cg
+    singular: containergroup
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Host
+          type: string
+          jsonPath: .status.host_name
+        - name: State
+          type: string
+          jsonPath: .status.state
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [containers]
+              properties:
+                containers:
+                  type: array
+                  items:
+                    type: object
+                    required: [name, image, cpus, memory]
+                    properties:
+                      name:
+                        type: string
+                      image:
+                        type: string
+                      command:
+                        type: array
+                        items:
+                          type: string
+                      args:
+                        type: array
+                        items:
+                          type: string
+                      env:
+                        type: array
+                        items:
+                          type: object
+                          required: [name, value]
+                          properties:
+                            name:
+                              type: string
+                            value:
+                              type: string
+                      cpus:
+                        type: integer
+                      memory:
+                        type: string
+                      volume_mounts:
+                        type: array
+                        items:
+                          type: object
+                          required: [host, guest]
+                          properties:
+                            host:
+                              type: string
+                            guest:
+                              type: string
+                            readonly:
+                              type: boolean
+                      liveness_probe:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                      readiness_probe:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                replicas:
+                  type: integer
+                placement:
+                  type: object
+                  properties:
+                    node_hint:
+                      type: string
+                    auto_reschedule:
+                      type: boolean
+                restart_policy:
+                  type: string
+                tenant:
+                  type: string
+                image_pull_secrets:
+                  type: array
+                  items:
+                    type: string
+                network_policy:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+            status:
+              type: object
+              properties:
+                state:
+                  type: string
+                host_name:
+                  type: string

@@ -1,0 +1,31 @@
+From billing@streamco.example Mon Mar 03 08:00:00 2025
+From: Streamco <billing@streamco.example>
+Date: Mon, 03 Mar 2025 08:00:00 +0000
+Subject: Your Streamco plan renews on 20 March
+Content-Type: text/plain
+
+Your plan renews on 20 March. You will be charged $9.99 to the card ending 9876.
+
+From hello@cloudbox.example Tue Mar 04 09:00:00 2025
+From: Cloudbox <hello@cloudbox.example>
+Date: Tue, 04 Mar 2025 09:00:00 +0000
+Subject: Your free trial ends in 3 days
+Content-Type: text/plain
+
+Your free trial ends in 3 days. After that you will be charged $2.99 per month.
+
+From front-desk@gym.example Wed Mar 05 10:00:00 2025
+From: City Gym <front-desk@gym.example>
+Date: Wed, 05 Mar 2025 10:00:00 +0000
+Subject: Membership renewal
+Content-Type: text/plain
+
+Membership renewal: EUR 39.00 will be charged on 1 April.
+
+From news@example.com Thu Mar 06 11:00:00 2025
+From: Example News <news@example.com>
+Date: Thu, 06 Mar 2025 11:00:00 +0000
+Subject: Your weekly digest
+Content-Type: text/plain
+
+Three stories you may like.

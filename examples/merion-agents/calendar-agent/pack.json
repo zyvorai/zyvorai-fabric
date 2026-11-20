@@ -1,0 +1,17 @@
+{
+  "kind": "agent",
+  "name": "calendar-agent",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 512 },
+    "egress_mode": "deny",
+    "egress_allow_hosts": ["www.googleapis.com"],
+    "egress_approval_timeout_seconds": 240,
+    "credentials": ["calendar-read", "calendar-write"],
+    "confinement": "strict"
+  },
+  "goal": {
+    "title": "Read or add calendar events",
+    "text": "List the next day of the person's calendar, or add an event after a phone-signed approval that shows the real title, time and guests."
+  }
+}

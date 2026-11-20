@@ -1,0 +1,8 @@
+{
+  "name": "playwright-core",
+  "version": "1.49.1",
+  "private": true,
+  "dependencies": {
+    "playwright-core": "1.49.1"
+  }
+}

@@ -1,0 +1,1 @@
+Read /home/agent/work/input.txt only. Write artifact actions.md. No browser. No hosts.

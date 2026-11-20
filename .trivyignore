@@ -1,0 +1,15 @@
+# Host hypervisor exceptions for `trivy config`.
+#
+# zyvor-fabricd and FluxVM run as root on the host network so they can drive
+# KVM, nftables, TAP/netns, and bpffs. These IDs are required there; they are
+# not a general waiver for other manifests (add a new ID here only with a
+# reason). Operator images already run as non-root and stay in scope.
+
+DS-0002
+KSV-0005
+KSV-0009
+KSV-0010
+KSV-0014
+KSV-0017
+KSV-0118
+KSV-0119

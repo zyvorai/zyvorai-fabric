@@ -1,0 +1,15 @@
+{
+  "kind": "agent",
+  "name": "memory-agent",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 512 },
+    "egress_mode": "deny",
+    "confinement": "strict",
+    "memory": true
+  },
+  "goal": {
+    "title": "Use the person's memory",
+    "text": "Say what the person's memory holds, or suggest a new entry when asked to remember something. No model, no network."
+  }
+}

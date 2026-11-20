@@ -1,0 +1,26 @@
+# Include from .gitlab-ci.yml:
+#   include:
+#     - local: examples/devops/gitlab-ci/fabric.yml
+
+stages: [verify, deploy]
+
+fabric:contract:
+  stage: verify
+  image: python:3.12-slim
+  script:
+    - python3 -m unittest examples.devops.test_contract
+    - bash scripts/test-devops-gate.sh
+    - python3 -m unittest benchmarks.test_harness
+    - bash scripts/test-upgrade-rollback.sh
+    - bash scripts/chaos-qualify.sh
+
+fabric:deploy-lab:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - ./scripts/upgrade-rollback.sh snapshot --tag "gitlab-$CI_COMMIT_SHORT_SHA"
+    - echo "install N+1 here (helm upgrade / make install)"
+    - FABRIC_URL="$FABRIC_URL" bash scripts/devops-gate.sh
+  after_script:
+    - if [ "$CI_JOB_STATUS" != "success" ]; then ./scripts/upgrade-rollback.sh rollback --tag "gitlab-$CI_COMMIT_SHORT_SHA"; fi

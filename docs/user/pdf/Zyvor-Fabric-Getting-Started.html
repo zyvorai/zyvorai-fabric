@@ -1,0 +1,671 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Getting Started — Zyvor Fabric</title>
+<style>
+@page{size:A4;margin:15mm 16mm}*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1f2937;line-height:1.58;font-size:10.5pt}
+.cover{height:262mm;margin:-15mm -16mm 0;background:linear-gradient(135deg,#042f2e,#115e59,#0d1b2a);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always;position:relative}
+.cover .kicker{letter-spacing:5px;text-transform:uppercase;opacity:.72;margin-bottom:1.4em}
+.cover h1{font-size:3.2em;font-weight:800;letter-spacing:-2px}
+.cover h1 span{color:#2dd4bf}
+.cover .sub{font-size:1.3em;font-weight:300;opacity:.93;margin:1em 0;max-width:24em}
+.cover .badge{display:inline-block;background:rgba(96,165,250,.2);border:1px solid #2dd4bf;padding:8px 22px;border-radius:20px;margin-top:2em}
+.cover .foot{position:absolute;bottom:34px;font-size:.82em;opacity:.6}
+h2{page-break-before:always;margin:0 0 .35em;font-size:1.55em;font-weight:750;color:#12203a;border-bottom:2px solid #e5edfb;padding-bottom:.28em}
+h2:first-of-type{page-break-before:avoid}
+h3{margin:1.1em 0 .4em;font-size:1.12em;font-weight:700}
+p,li{margin:.4em 0}ul,ol{margin:.5em 0 .9em 1.4em}
+a{color:#2563eb;text-decoration:none}
+code{background:#eef2f7;padding:1px 6px;border-radius:4px;font-size:.86em;font-family:ui-monospace,Menlo,monospace}
+pre{background:#0f172a;color:#e2e8f0;padding:12px 15px;border-radius:9px;overflow-x:auto;margin:.8em 0}
+table{width:100%;border-collapse:collapse;margin:.8em 0 1.1em;font-size:9.5pt}
+th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f1f5f9}
+hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
+</style></head><body>
+<section class="cover"><div class="kicker">ZyvorAI Labs · User Documentation</div>
+<h1>Zyvor <span>Fabric</span></h1>
+<div class="sub">Getting Started</div>
+<div class="badge">2026-09-11</div>
+<div class="foot">zyvor.dev · Zyvor Production License v1.0</div></section>
+<main><p>Your first hour on a fresh Fabric install: open the UI, sign in, read the dashboard, create a VM, and open its console.</p>
+<h2>What you need</h2>
+<ul>
+<li>A host running <code>zyvor-fabricd</code> (see <a href="admin-basics.md">Admin basics</a> for ports, auth, deploy, TLS, and the FluxVM dependency)</li>
+<li>Browser access to <code>https://&lt;host&gt;:9095</code> (or <code>http://127.0.0.1:9095</code> on the host itself)</li>
+<li>Admin credentials — retrieve with <code>./zyvor-fabricd-ctl password</code> or <code>sudo cat /var/lib/zyvor-fabricd/.admin_password</code></li>
+</ul>
+<p>Never hardcode lab IPs in docs or scripts; use <code>&lt;host&gt;</code> or <code>127.0.0.1</code>.</p>
+<h2>1. Open the product</h2>
+<p>Browse to <code>https://&lt;host&gt;:9095/</code> (or <code>http://127.0.0.1:9095/</code> locally).</p>
+<p>You land on the public marketing home. Product pages: <code>/product</code>, <code>/platform</code>, <code>/security</code>. The authenticated console lives under <code>/app/*</code>.</p>
+<h2>2. Sign in</h2>
+<ol>
+<li>Open <code>/sign-in</code> (or click <strong>Sign in</strong> in the top nav). Legacy <code>/login</code> redirects here.</li>
+<li>Enter username <code>admin</code> → <strong>Continue</strong> → paste the generated admin password.</li>
+<li>On success you land on the console dashboard at <code>/app</code>.</li>
+</ol>
+<p>Failed sign-in shows an inline error — confirm <code>zyvor-fabricd</code> is up (<code>./zyvor-fabricd-ctl status</code>) and that you have the current password.</p>
+<p>Details: <a href="pages/auth/login.md">Sign in</a>.</p>
+<h2>3. Orient on the dashboard</h2>
+<p>At <code>/app</code>:</p>
+<ol>
+<li>Check subsystem status chips (VM driver / FluxVM, storage, network security, <strong>VM dataplane</strong>, auth, events) — each should read Live when healthy. <strong>VM dataplane</strong> reports Network Fabric <code>schema=4</code> when eBPF is attached.</li>
+<li>Read the VM count cards (total / running / stopped) and live CPU/memory charts.</li>
+<li>On a fresh install with no VMs, use the Getting Started links to create a VM or open the API playground.</li>
+</ol>
+<p>Full nav map: <a href="using-the-dashboard.md">Using the Dashboard</a>. Page guide: <a href="pages/core/home.md">Dashboard</a>.</p>
+<h2>4. Create your first VM</h2>
+<ol>
+<li>Go to <strong>Core → Create VM</strong> (<code>/app/create</code>), or use the dashboard shortcut.</li>
+<li><strong>Basics</strong> — name the VM and pick a catalog image (or a host disk path).</li>
+<li><strong>Resources</strong> — set vCPUs, memory, disk. Under Advanced Options choose <strong>NAT</strong> (default; use <strong>Expose ports</strong> / <strong>Expose SSH (22)</strong> if you need inbound) or <strong>Bridged</strong> (own address on the LAN — required later for VM Dataplane eBPF).</li>
+<li><strong>Review</strong> → create. You are taken to the new VM’s detail page (<code>/app/vms/:name</code>).</li>
+</ol>
+<p>Guide: <a href="pages/core/create.md">Create VM</a>.</p>
+<h2>5. Open the console</h2>
+<ol>
+<li>From the VM detail page, open the <strong>Console</strong> tab (or <code>/app/vms/:name/console</code>).</li>
+<li>Use <strong>Terminal</strong> for an interactive serial/PTY shell, or <strong>VNC</strong> for a graphical framebuffer.</li>
+<li>Confirm the VM state badge is <strong>running</strong>. If the console stays black, wait a few seconds after start for QEMU/FluxVM to come up, then refresh.</li>
+</ol>
+<p>Guides: <a href="pages/core/vms-name-console.md">VM Console</a> · <a href="pages/core/vms.md">Virtual Machines</a>.</p>
+<h2>Next workflows</h2>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Start here</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Fleet list / bulk start-stop</td>
+<td><a href="pages/core/vms.md">Virtual Machines</a> (<code>/app/vms</code>)</td>
+</tr>
+<tr>
+<td>Per-VM eBPF edge policy</td>
+<td><a href="pages/infrastructure/dataplane.md">VM Dataplane</a></td>
+</tr>
+<tr>
+<td>Maglev VIP / Service Fabric v6</td>
+<td><a href="pages/infrastructure/edge-dataplane.md">Edge Dataplane</a></td>
+</tr>
+<tr>
+<td>Snapshots / backups</td>
+<td><a href="pages/operations/snapshots.md">Snapshots</a> · <a href="pages/operations/backups.md">Backups</a></td>
+</tr>
+<tr>
+<td>Common paths end-to-end</td>
+<td><a href="workflows.md">Common workflows</a></td>
+</tr>
+</tbody></table>
+<h2>Related</h2>
+<ul>
+<li><a href="admin-basics.md">Admin basics</a></li>
+<li><a href="using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="workflows.md">Common workflows</a></li>
+<li><a href="pages/README.md">Page-by-page guides</a></li>
+<li><a href="PAGE_INDEX.md">Complete page index</a></li>
+<li>Operator web UI notes: <a href="../getting-started/04-Web-UI.md">Web UI guide</a></li>
+</ul>
+<hr>
+<p>Zyvor Fabric’s authenticated console lives under <code>/app</code> after you sign in at <code>/sign-in</code>. Public marketing stays on <code>/</code>, <code>/product</code>, <code>/platform</code>, <code>/security</code>. Use the left nav groups, top-bar quick links (Settings, API Playground), or <code>Ctrl/Cmd+K</code> command palette.</p>
+<p>Open the UI at <code>https://&lt;host&gt;:9095</code> (never hardcode lab IPs).</p>
+<h2>Browse vs act</h2>
+<p>Inventory and status views are safe to explore. Mutating actions (create, migrate, delete, remediate) follow role gates and confirmation dialogs — review impact first.</p>
+<h2>Nav map by category</h2>
+<h3>Core</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dashboard</td>
+<td><code>/app</code></td>
+<td>Landing view: VM counts, live charts, subsystem health</td>
+</tr>
+<tr>
+<td>Favorites</td>
+<td><code>/app/favorites</code></td>
+<td>Starred shortlist of VMs you touch often</td>
+</tr>
+<tr>
+<td>Virtual Machines</td>
+<td><code>/app/vms</code></td>
+<td>Fleet list + per-VM detail / actions</td>
+</tr>
+<tr>
+<td>Warm Pools</td>
+<td><code>/app/vm-pools</code></td>
+<td>Pre-booted paused VMs you can claim instantly</td>
+</tr>
+<tr>
+<td>Profiles</td>
+<td><code>/app/profiles</code></td>
+<td>Instance-type sizing presets for create</td>
+</tr>
+<tr>
+<td>Datacenters</td>
+<td><code>/app/datacenters</code></td>
+<td>Physical inventory: DCs → clusters → hosts</td>
+</tr>
+<tr>
+<td>VM Browser</td>
+<td><code>/app/vm-browser</code></td>
+<td>Lightweight read-only VM grid</td>
+</tr>
+<tr>
+<td>Create VM</td>
+<td><code>/app/create</code></td>
+<td>Three-step provision wizard</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td><code>/app/settings</code></td>
+<td>Console / product preferences (also top-bar)</td>
+</tr>
+</tbody></table>
+<p><code>/app/machines</code> is <strong>removed</strong> — use <code>/app/vms</code>. <code>/app/vm-wizard</code> redirects to <code>/app/create</code>.</p>
+<h3>Infrastructure</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Network</td>
+<td><code>/app/network</code></td>
+<td>Day-2 NAT/bridge mode and port forwards</td>
+</tr>
+<tr>
+<td>Net Security</td>
+<td><code>/app/network-security</code></td>
+<td>Host SDN: policies, firewall, VPN, QoS, NAT…</td>
+</tr>
+<tr>
+<td>Edge Dataplane</td>
+<td><code>/app/edge-dataplane</code></td>
+<td>Groups/CNP + Maglev Services (Service Fabric v6)</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td><code>/app/storage</code></td>
+<td>Pool capacity + volume ledger</td>
+</tr>
+<tr>
+<td>Storage Pools</td>
+<td><code>/app/storage-pools</code></td>
+<td>Create/start/stop NFS/LVM/ZFS/Ceph pools</td>
+</tr>
+<tr>
+<td>Distributed Storage</td>
+<td><code>/app/distributed-storage</code></td>
+<td>Multi-host replicated / policy storage</td>
+</tr>
+<tr>
+<td>Resource Pools</td>
+<td><code>/app/resource-pools</code></td>
+<td>Hierarchical CPU/memory admission</td>
+</tr>
+<tr>
+<td>System</td>
+<td><code>/app/system</code></td>
+<td>Host hardware topology + VM tips</td>
+</tr>
+<tr>
+<td>System Health</td>
+<td><code>/app/system-health</code></td>
+<td>Live host utilization score</td>
+</tr>
+<tr>
+<td>Containers</td>
+<td><code>/app/containers</code></td>
+<td>Read-only Docker/Podman workload view</td>
+</tr>
+</tbody></table>
+<p>Per-VM TC/eBPF edge (Network Fabric schema v4) is on the VM detail <strong>Dataplane</strong> tab — not a separate top-level nav item. See <a href="pages/infrastructure/dataplane.md">VM Dataplane</a>.</p>
+<h3>Operations</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DRS</td>
+<td><code>/app/drs</code></td>
+<td>Placement balance / affinity across hosts</td>
+</tr>
+<tr>
+<td>Fault Tolerance</td>
+<td><code>/app/fault-tolerance</code></td>
+<td>Live secondary replica for a VM</td>
+</tr>
+<tr>
+<td>Replication</td>
+<td><code>/app/replication</code></td>
+<td>Cross-site replication + RPO</td>
+</tr>
+<tr>
+<td>Site Recovery</td>
+<td><code>/app/site-recovery</code></td>
+<td>DR plans and failover executions</td>
+</tr>
+<tr>
+<td>Migrations</td>
+<td><code>/app/migrations</code></td>
+<td>Move a VM to another host</td>
+</tr>
+<tr>
+<td>Migration Wizard</td>
+<td><code>/app/migration-wizard</code></td>
+<td>Disk-image → Fabric VM conversion</td>
+</tr>
+<tr>
+<td>Templates</td>
+<td><code>/app/templates</code></td>
+<td>Stamp new VMs from saved configs</td>
+</tr>
+<tr>
+<td>Content Library</td>
+<td><code>/app/content-library</code></td>
+<td>Templates / ISOs / guest specs</td>
+</tr>
+<tr>
+<td>Schedules</td>
+<td><code>/app/schedules</code></td>
+<td>Recurring start/stop/restart/snapshot</td>
+</tr>
+<tr>
+<td>Autoscale</td>
+<td><code>/app/autoscale</code></td>
+<td>Per-VM CPU/memory grow/shrink policies</td>
+</tr>
+<tr>
+<td>Availability Zones</td>
+<td><code>/app/zones</code></td>
+<td>Placement zones + spot instances</td>
+</tr>
+<tr>
+<td>Snapshots</td>
+<td><code>/app/snapshots</code></td>
+<td>Point-in-time disk (or disk+memory)</td>
+</tr>
+<tr>
+<td>Backups</td>
+<td><code>/app/backups</code></td>
+<td>Full/incremental backup and restore</td>
+</tr>
+<tr>
+<td>Quotas</td>
+<td><code>/app/quotas</code></td>
+<td>Cap CPU/memory/disk/VM count</td>
+</tr>
+<tr>
+<td>Lifecycle</td>
+<td><code>/app/lifecycle</code></td>
+<td>Patch baselines and host remediation</td>
+</tr>
+<tr>
+<td>Bulk Operations</td>
+<td><code>/app/bulk-operations</code></td>
+<td>Start/stop/restart/snapshot many VMs</td>
+</tr>
+</tbody></table>
+<h3>Monitoring</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Logs</td>
+<td><code>/app/logs</code></td>
+<td>Searchable Fabric audit/event log</td>
+</tr>
+<tr>
+<td>Analytics</td>
+<td><code>/app/analytics</code></td>
+<td>Fleet utilization trends / reports</td>
+</tr>
+<tr>
+<td>Audit</td>
+<td><code>/app/audit</code></td>
+<td>Who did what (security trail)</td>
+</tr>
+<tr>
+<td>Notifications</td>
+<td><code>/app/notifications</code></td>
+<td>Delivery channels, rules, history</td>
+</tr>
+<tr>
+<td>Alerts</td>
+<td><code>/app/alerts</code></td>
+<td>Currently firing alerts</td>
+</tr>
+<tr>
+<td>Timeline</td>
+<td><code>/app/timeline</code></td>
+<td>Merged audit + alert feed</td>
+</tr>
+<tr>
+<td>Processes</td>
+<td><code>/app/processes</code></td>
+<td>Live host process table</td>
+</tr>
+<tr>
+<td>Kernel</td>
+<td><code>/app/kernel</code></td>
+<td>Kernel version, modules, sysctls</td>
+</tr>
+<tr>
+<td>Debug Tools</td>
+<td><code>/app/debug</code></td>
+<td>top / iostat / vmstat / netstat panels</td>
+</tr>
+<tr>
+<td>Explain</td>
+<td><code>/app/explain</code></td>
+<td>Plain-language metric explanations</td>
+</tr>
+<tr>
+<td>Live Metrics</td>
+<td><code>/app/live-metrics</code></td>
+<td>1s CPU/mem/disk/net sparklines</td>
+</tr>
+<tr>
+<td>Event Stream</td>
+<td><code>/app/event-stream</code></td>
+<td>Live SSE VM lifecycle events</td>
+</tr>
+<tr>
+<td>Optimizer</td>
+<td><code>/app/resource-optimizer</code></td>
+<td>Right-size recommendations</td>
+</tr>
+<tr>
+<td>Capacity</td>
+<td><code>/app/capacity-planning</code></td>
+<td>Usage vs capacity trends</td>
+</tr>
+<tr>
+<td>Service Map</td>
+<td><code>/app/service-map</code></td>
+<td>Discovered services and deps</td>
+</tr>
+</tbody></table>
+<h3>Security</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Security Dashboard</td>
+<td><code>/app/security-dashboard</code></td>
+<td>Live risk / threats / failed logins</td>
+</tr>
+<tr>
+<td>Encryption</td>
+<td><code>/app/encryption</code></td>
+<td>KMS providers + encryption policies</td>
+</tr>
+<tr>
+<td>Certificates</td>
+<td><code>/app/certificates</code></td>
+<td>PKI, CSRs, attestation, baselines</td>
+</tr>
+<tr>
+<td>Compliance</td>
+<td><code>/app/compliance</code></td>
+<td>Config compliance scorecard</td>
+</tr>
+<tr>
+<td>Access Control</td>
+<td><code>/app/access-control</code></td>
+<td>Local users and roles</td>
+</tr>
+<tr>
+<td>Plugins</td>
+<td><code>/app/plugins</code></td>
+<td>Enable/disable server extensions</td>
+</tr>
+</tbody></table>
+<h3>Tools</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Webhooks</td>
+<td><code>/app/webhooks</code></td>
+<td>Outbound event webhooks</td>
+</tr>
+<tr>
+<td>Cost Estimator</td>
+<td><code>/app/cost-estimator</code></td>
+<td>What-if cloud storage cost</td>
+</tr>
+<tr>
+<td>VM Compare</td>
+<td><code>/app/vm-compare</code></td>
+<td>Side-by-side VM config diff</td>
+</tr>
+<tr>
+<td>VM Health Check</td>
+<td><code>/app/vm-healthcheck</code></td>
+<td>On-demand per-VM checks</td>
+</tr>
+<tr>
+<td>Notification Center</td>
+<td><code>/app/notification-center</code></td>
+<td>Session-only live alert tray</td>
+</tr>
+<tr>
+<td>API Playground</td>
+<td><code>/app/playground</code></td>
+<td>Ad-hoc authenticated API calls</td>
+</tr>
+</tbody></table>
+<h3>More — images, migrations &amp; managers</h3>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Route</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Readiness / History / Report</td>
+<td><code>/app/migration-*</code></td>
+<td>Preflight, history, shareable report</td>
+</tr>
+<tr>
+<td>Migration Templates / Batch</td>
+<td><code>/app/migration-templates</code>, <code>/app/batch-migration</code></td>
+<td>Reusable / multi-VM migration specs</td>
+</tr>
+<tr>
+<td>ISO / Disk Images</td>
+<td><code>/app/iso-images</code>, <code>/app/disk-images</code></td>
+<td>Inventory of ISOs and disks</td>
+</tr>
+<tr>
+<td>Upload / Download Disk</td>
+<td><code>/app/upload-disk</code>, <code>/app/download-disk</code></td>
+<td>Move images to/from the host</td>
+</tr>
+<tr>
+<td>Disk Converter / Pipeline / Jobs</td>
+<td><code>/app/disk-converter</code>, <code>/app/pipeline</code>, <code>/app/job-monitor</code></td>
+<td>Convert and watch jobs</td>
+</tr>
+<tr>
+<td>Image Builder</td>
+<td><code>/app/image-builder</code></td>
+<td>mkosi-based custom images</td>
+</tr>
+<tr>
+<td>Backup Scheduler</td>
+<td><code>/app/backup-scheduler</code></td>
+<td>Recurring backup jobs</td>
+</tr>
+<tr>
+<td>Batch Import</td>
+<td><code>/app/batch-import</code></td>
+<td>Bulk-create VMs from YAML/JSON</td>
+</tr>
+<tr>
+<td>Snapshot / Storage Mgr</td>
+<td><code>/app/snapshot-manager</code>, <code>/app/storage-manager</code></td>
+<td>Alternate snapshot/pool browsers</td>
+</tr>
+<tr>
+<td>Manifest Builder</td>
+<td><code>/app/manifest-builder</code></td>
+<td>Client-side YAML scratchpad</td>
+</tr>
+<tr>
+<td>Network Topology</td>
+<td><code>/app/network-topology</code></td>
+<td>VM ↔ bridge / NIC map</td>
+</tr>
+</tbody></table>
+<p>Every route is also listed in the <a href="PAGE_INDEX.md">complete page index</a>.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="getting-started.md">Getting Started</a></li>
+<li><a href="workflows.md">Common workflows</a></li>
+<li><a href="admin-basics.md">Admin basics</a></li>
+<li><a href="pages/README.md">Page-by-page guides</a></li>
+</ul>
+<hr>
+<p>Short operator paths for the jobs you run most often. Open the console at <code>https://&lt;host&gt;:9095/app</code> after signing in (see <a href="getting-started.md">Getting Started</a>). Never publish lab IPs — use <code>&lt;host&gt;</code> or <code>127.0.0.1</code>.</p>
+<h2>Workflow index</h2>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Route</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Create a VM</td>
+<td><code>/app/create</code></td>
+<td><a href="pages/core/create.md">Create VM</a></td>
+</tr>
+<tr>
+<td>Manage the fleet</td>
+<td><code>/app/vms</code></td>
+<td><a href="pages/core/vms.md">Virtual Machines</a></td>
+</tr>
+<tr>
+<td>Per-VM Network Fabric (schema v4)</td>
+<td><code>/app/vms/:name</code> → <strong>Dataplane</strong></td>
+<td><a href="pages/infrastructure/dataplane.md">VM Dataplane</a></td>
+</tr>
+<tr>
+<td>Edge Maglev / Service Fabric v6</td>
+<td><code>/app/edge-dataplane</code> → <strong>Services</strong></td>
+<td><a href="pages/infrastructure/edge-dataplane.md">Edge Dataplane</a></td>
+</tr>
+<tr>
+<td>Container Groups (Secure Containers)</td>
+<td><code>/app/container-groups</code></td>
+<td><a href="pages/operations/container-groups.md">Container Groups</a></td>
+</tr>
+<tr>
+<td>Agents / Sessions</td>
+<td><code>/app/agents</code>, <code>/app/sessions</code></td>
+<td><a href="pages/operations/agents.md">Agents</a> · <a href="pages/operations/sessions.md">Sessions</a></td>
+</tr>
+<tr>
+<td>Snapshots</td>
+<td><code>/app/snapshots</code> or VM → <strong>Snapshots</strong></td>
+<td><a href="pages/operations/snapshots.md">Snapshots</a></td>
+</tr>
+<tr>
+<td>Backups &amp; restore</td>
+<td><code>/app/backups</code></td>
+<td><a href="pages/operations/backups.md">Backups</a></td>
+</tr>
+</tbody></table>
+<h2>Create a VM</h2>
+<ol>
+<li>Open <strong>Core → Create VM</strong> (<code>/app/create</code>).</li>
+<li><strong>Basics</strong> — name + catalog image (or host path).</li>
+<li><strong>Resources</strong> — vCPUs, memory, disk. Networking:<ul>
+<li><strong>NAT</strong> (default) — private outbound; add <strong>Expose ports</strong> / <strong>Expose SSH (22)</strong> for inbound from clients that can reach the host.</li>
+<li><strong>Bridged</strong> — own LAN address (DHCP or static via cloud-init). Use bridged when you will attach VM Dataplane eBPF.</li>
+</ul>
+</li>
+<li><strong>Review</strong> → create → land on <code>/app/vms/:name</code>.</li>
+<li><strong>Empty / fail:</strong> Image missing or FluxVM unreachable — check Dashboard capability chips and <a href="admin-basics.md">Admin basics</a>.</li>
+<li><strong>Success:</strong> VM appears on <code>/app/vms</code> with the expected state badge.</li>
+</ol>
+<h2>Attach VM Dataplane (Network Fabric schema v4)</h2>
+<ol>
+<li>Create or pick a <strong>bridged</strong> VM with a host TAP (<code>network_tap</code>).</li>
+<li>Open <code>/app/vms/:name</code> → <strong>Dataplane</strong> (or Network → <strong>Open Dataplane</strong>).</li>
+<li>On <strong>Status</strong>, confirm <strong>Attached = yes</strong>, <strong>Mode = ebpf</strong>, <strong>Schema version = 4</strong>.</li>
+<li>On <strong>Policy</strong>, pick a preset or edit allow/deny CIDRs and <code>tcp/PORT</code> / <code>udp/PORT</code> ports → <strong>Save policy</strong>.</li>
+<li>Use <strong>Effective</strong>, <strong>Stats</strong>, and <strong>Flows</strong> to verify merges and allow/drop counters.</li>
+<li><strong>Empty / fail:</strong> Schema missing or not attached — enable FluxVM <code>[sandbox.dataplane] mode = &quot;ebpf&quot;</code> and confirm the TAP exists (operator guide linked from the dataplane page).</li>
+<li><strong>Success:</strong> Status shows schema 4 attached; counters move when traffic matches policy.</li>
+</ol>
+<h2>Create an Edge Maglev service (Service Fabric v6)</h2>
+<ol>
+<li>Open <strong>Infrastructure → Edge Dataplane</strong> (<code>/app/edge-dataplane</code>).</li>
+<li>Open the <strong>Services</strong> tab (Service Fabric <strong>v6</strong> / BPF schema <strong>4</strong>).</li>
+<li>Upsert a Maglev VIP service (backends, affinity, optional drain/health, pacing / host-routing fields the form exposes).</li>
+<li>Check <strong>Health</strong> for BPF/bpffs presence; use ads / conntrack / HA controls as needed.</li>
+<li><strong>Empty / fail:</strong> Health not ok — FluxVM service dataplane not enabled or bpffs missing; see <a href="pages/infrastructure/edge-dataplane.md">Edge Dataplane</a> and <a href="../ebpf-service-fabric.md">ebpf-service-fabric.md</a>.</li>
+<li><strong>Success:</strong> Service row appears; schema badge shows Service Fabric v6; backend health reconciles.</li>
+</ol>
+<h2>Take and revert a snapshot</h2>
+<ol>
+<li>Prefer <strong>Virtual Machines →</strong> open the VM → <strong>Snapshots</strong>, or <strong>Operations → Snapshots</strong> (<code>/app/snapshots</code>) and enter the VM name.</li>
+<li><strong>Create</strong> — name, optional description, type <strong>Disk</strong> (default, fast) or <strong>Full</strong> (disk + memory, slower).</li>
+<li>To roll back: <strong>stop the VM</strong>, then <strong>Revert</strong> on the snapshot row (confirmation required).</li>
+<li><strong>Empty / fail:</strong> Create <strong>409</strong> right after start — QMP not ready yet; wait and retry. Revert while running is rejected.</li>
+<li><strong>Success:</strong> Snapshot listed with type and timestamp; after revert, VM boots from that disk state.</li>
+</ol>
+<p>Full notes: <a href="pages/operations/snapshots.md">Snapshots</a>.</p>
+<h2>Backup and restore</h2>
+<ol>
+<li>Open <strong>Operations → Backups</strong> (<code>/app/backups</code>).</li>
+<li><strong>Create Backup</strong> — pick VM, <strong>Full</strong> or <strong>Incremental</strong> (compressed, 30-day retention by default).</li>
+<li>Watch <strong>Active Jobs</strong> until status is <code>completed</code>.</li>
+<li><strong>Restore</strong> — in place on the original VM, or <strong>Restore to new VM</strong> with a new name (config + disks; not live runtime state).</li>
+<li><strong>Empty / fail:</strong> Job stuck/failed — check Active Jobs error text, storage pool space, and FluxVM health.</li>
+<li><strong>Success:</strong> Backup row shows <code>completed</code> with size/expiry; restore produces a runnable VM on <code>/app/vms</code>.</li>
+</ol>
+<p>Guide: <a href="pages/operations/backups.md">Backups</a>. Recurring jobs: <a href="pages/more-images-migrations-managers/backup-scheduler.md">Backup Scheduler</a>.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="getting-started.md">Getting Started</a></li>
+<li><a href="using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="admin-basics.md">Admin basics</a></li>
+<li><a href="pages/README.md">Page-by-page guides</a></li>
+<li><a href="PAGE_INDEX.md">Complete page index</a></li>
+</ul>
+</main></body></html>

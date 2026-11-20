@@ -1,0 +1,415 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Feature Guide — Zyvor Fabric</title>
+<style>
+@page{size:A4;margin:15mm 16mm}*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1f2937;line-height:1.58;font-size:10.5pt}
+.cover{height:262mm;margin:-15mm -16mm 0;background:linear-gradient(135deg,#042f2e,#115e59,#0d1b2a);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always;position:relative}
+.cover .kicker{letter-spacing:5px;text-transform:uppercase;opacity:.72;margin-bottom:1.4em}
+.cover h1{font-size:3.2em;font-weight:800;letter-spacing:-2px}
+.cover h1 span{color:#2dd4bf}
+.cover .sub{font-size:1.3em;font-weight:300;opacity:.93;margin:1em 0;max-width:28em}
+.cover .badge{display:inline-block;background:rgba(96,165,250,.2);border:1px solid #2dd4bf;padding:8px 22px;border-radius:20px;margin-top:2em}
+.cover .foot{position:absolute;bottom:34px;font-size:.82em;opacity:.6}
+h1,h2{page-break-before:always;margin:0 0 .35em;font-size:1.55em;font-weight:750;color:#12203a;border-bottom:2px solid #e5edfb;padding-bottom:.28em}
+h1:first-of-type,h2:first-of-type{page-break-before:avoid}
+h3{margin:1.1em 0 .4em;font-size:1.12em;font-weight:700}
+p,li{margin:.4em 0}ul,ol{margin:.5em 0 .9em 1.4em}
+a{color:#2563eb;text-decoration:none}
+code{background:#eef2f7;padding:1px 6px;border-radius:4px;font-size:.86em;font-family:ui-monospace,Menlo,monospace}
+pre{background:#0f172a;color:#e2e8f0;padding:12px 15px;border-radius:9px;overflow-x:auto;margin:.8em 0}
+table{width:100%;border-collapse:collapse;margin:.8em 0 1.1em;font-size:9.5pt}
+th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f1f5f9}
+hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
+blockquote{border-left:3px solid #2dd4bf;padding:.2em .9em;color:#475569;margin:.8em 0}
+</style></head><body>
+<section class="cover"><div class="kicker">ZyvorAI Labs · User Documentation</div>
+<h1>Zyvor <span>Fabric</span></h1>
+<div class="sub">A private cloud control plane with no systemd dependency.</div>
+<div class="badge">2026-09-02</div>
+<div class="foot">zyvor.dev · Zyvor Production License v1.0</div></section>
+<main><p>Zyvor Fabric is a complete Rust control plane giving you VM-platform and KubeVirt-style capabilities without a heavyweight stack. Manage the same infrastructure four ways — CLI, web dashboard, Kubernetes operator, or Terraform — over a single daemon exposing 480+ REST endpoints and live WebSocket channels. VM lifecycle runs through <a href="https://github.com/zyvorai/fluxvm">FluxVM</a>, a disposable-VM engine with no systemd dependency of its own (<code>driver.fluxvm_url</code> in <code>zyvor-fabricd.toml</code>). There are no custom hypervisor patches or kernel modules to maintain, and the daemon itself runs fine under systemd or any other supervisor — it&#39;s no longer a hard requirement.</p>
+<p><strong>480+</strong> REST API endpoints · <strong>4</strong> management interfaces · <strong>40+</strong> Rust backend crates · <strong>6</strong> storage backends · <strong>37+</strong> web dashboard pages · <strong>1</strong> binary, one config, one service</p>
+<p>This is the user-facing onboarding guide — how to access the product, your first workflows, and how to use every feature. A print-ready PDF of the same content sits alongside this file.</p>
+<h2>Contents</h2>
+<ol start="0">
+<li><a href="#getting-started">Getting started — access &amp; first workflows</a></li>
+<li><a href="#1-vm-lifecycle-provisioning">VM Lifecycle &amp; Provisioning</a></li>
+<li><a href="#2-storage-orchestration">Storage Orchestration</a></li>
+<li><a href="#3-software-defined-networking">Software-Defined Networking</a></li>
+<li><a href="#4-security-identity">Security &amp; Identity</a></li>
+<li><a href="#5-high-availability-disaster-recovery">High Availability &amp; Disaster Recovery</a></li>
+<li><a href="#6-compute,-gpu-virtualization">Compute, GPU &amp; Virtualization</a></li>
+<li><a href="#7-monitoring,-automation-operations">Monitoring, Automation &amp; Operations</a></li>
+<li><a href="#8-interfaces-automation-surfaces">Interfaces &amp; Automation Surfaces</a></li>
+<li><a href="#9-fleet,-cost-governance">Fleet, Cost &amp; Governance</a></li>
+</ol>
+<h2>Getting started</h2>
+<p><strong>How to access it</strong></p>
+<ul>
+<li><strong>Web:</strong> React dashboard served by the <code>zyvor-fabricd</code> daemon at <a href="http://localhost:9095">http://localhost:9095</a> — light Apple-style console with marketing site.  It shares the daemon&#39;s origin (no separate web server); generate the TLS cert with <code>./zyvor-fabricd-ctl tls</code>.</li>
+<li><strong>CLI:</strong> <code>fabricctl</code> — scriptable client with table/JSON/YAML output (<code>--output json</code>). Examples: <code>fabricctl list</code>, <code>fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096</code>, <code>fabricctl start web-01</code>, <code>fabricctl apply -f config.yaml</code>. </li>
+<li><strong>API:</strong> REST + WebSocket exposed by the <code>zyvor-fabricd</code> daemon (480+ endpoints under <code>/api/...</code>). Obtain a token with <code>POST /api/auth/login</code>, then pass <code>Authorization: Bearer </code> on every call. The same API also backs the Terraform provider, the Kubernetes <code>VirtualMachine</code> CRD operator, and the Rust/Python/Ansible SDKs.</li>
+<li><strong>Login:</strong> Username <code>admin</code>; the initial password is auto-generated on first run — read it with <code>./zyvor-fabricd-ctl password</code> (or <code>sudo cat /var/lib/zyvor-fabricd/.admin_password</code>). JWT tokens last 24h by default (<code>auth.token_expiration_hours</code>); 3-tier RBAC (admin/user/viewer) is enforced on every endpoint, with optional TOTP 2FA.</li>
+<li><strong>Needs:</strong> A Linux host with systemd 256+ and KVM; install and bring the daemon up with <code>sudo systemctl enable --now zyvor-fabric</code>.</li>
+</ul>
+<p><strong>Your first workflows</strong></p>
+<ul>
+<li><strong>Launch your first VM in five minutes</strong><ol>
+<li>Start the daemon: <code>sudo systemctl enable --now zyvor-fabric</code>, then read the admin password with <code>./zyvor-fabricd-ctl password</code>.</li>
+<li>Pull a cloud image from the built-in catalog (<code>POST /api/images/cloud/download</code> with <code>{&quot;name&quot;:&quot;fedora-41&quot;}</code>), or list options first with <code>GET /api/images/cloud</code>.</li>
+<li>Create the VM: <code>fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096</code>.</li>
+<li>Start it: <code>fabricctl start web-01</code>, then confirm <code>state: running</code> with <code>fabricctl list</code>.</li>
+<li>Open a console from the web dashboard (<a href="http://localhost:9095">http://localhost:9095</a>).</li>
+</ol>
+</li>
+<li><strong>Manage VMs declaratively (GitOps)</strong><ol>
+<li>Describe one or more VMs (name, cpus, memory, disk, image, tags/labels) in a YAML file.</li>
+<li>Reconcile them into the fabric: <code>fabricctl apply -f config.yaml</code>.</li>
+<li>Commit <code>config.yaml</code> to git as the source of truth; re-run <code>fabricctl apply -f config.yaml</code> to converge after edits.</li>
+<li>For K8s shops, express the same VMs as <code>VirtualMachine</code> CRDs and let the Helm-installed operator reconcile them continuously.</li>
+</ol>
+</li>
+<li><strong>Wire up VM networking</strong><ol>
+<li>Create a bridge (virtual switch): <code>POST /api/networkd/bridges</code> with a name, address, and MTU — every change writes <code>.netdev</code>/<code>.network</code> files and reloads networkd.</li>
+<li>Segment traffic with a VLAN: <code>POST /api/networkd/vlans</code> (<code>{name, id, parent}</code>), or bond NICs via <code>POST /api/networkd/bonds</code>.</li>
+<li>Hand out addresses: <code>POST /api/networkd/dhcp</code> with the bridge name and a pool range.</li>
+<li>Expose a guest service with a port-forward: <code>POST /api/networkd/port-forwards</code>.</li>
+<li>Do the same from the Web Network Security page (9 Cilium-style tabs).</li>
+</ol>
+</li>
+<li><strong>Make a VM reachable from your laptop, the simple way</strong><ol>
+<li>In the Create VM wizard&#39;s Advanced Options, either expose a port under NAT (one click for SSH via the Expose SSH (22) preset, or any custom host→guest mapping — <code>POST /api/vms/:name</code> with <code>port_forwards</code>), or switch to Bridged mode for a VM with its own address on the LAN.</li>
+<li>Under Bridged, leave it on DHCP for an auto-assigned address, or check &quot;Assign the IP statically via cloud-init&quot; for a fixed address baked in at boot.</li>
+<li>Forwarded ports bind <code>0.0.0.0</code>, so they&#39;re reachable from any machine on the network — not just the host.</li>
+<li>Add or remove forwards later without recreating the VM: <code>POST</code>/<code>DELETE /api/vms/:name/port-forwards</code> · Web VM detail Network tab.</li>
+</ol>
+</li>
+<li><strong>Protect a VM with snapshots and backups</strong><ol>
+<li>Before a risky change, take a snapshot: <code>POST /api/vms/web-01/snapshots</code> (use <code>snapshot_type: Full</code> to include memory state).</li>
+<li>Roll back if needed: <code>POST /api/vms/web-01/snapshots//revert</code>.</li>
+<li>Create a durable backup: <code>POST /api/backups</code> (<code>{vm_name, backup_type: full|incremental, retention_days}</code>).</li>
+<li>Automate it with a policy: <code>POST /api/backups/policies</code> (daily/weekly, matched by VM tag) — scheduled via systemd timers.</li>
+<li>Restore any time with <code>POST /api/backups/restore</code>, or drive all of this from the Web Backups page.</li>
+</ol>
+</li>
+<li><strong>Turn a golden image into a fleet</strong><ol>
+<li>Build or download a base image, create and configure one VM, then customize first boot via <code>POST /api/vms/base/cloud-init</code> (users, packages, SSH keys).</li>
+<li>Capture it as a reusable template: <code>POST /api/templates</code> (<code>{name, source_vm}</code>).</li>
+<li>Stamp out instances: <code>POST /api/templates//deploy</code> per VM, or <code>POST /api/vms/base/clone</code> for full/linked copy-on-write clones.</li>
+<li>Deploy from templates and clone VMs directly in the Web Templates / VM Cloning pages.</li>
+</ol>
+</li>
+</ul>
+<h2>1. VM Lifecycle &amp; Provisioning</h2>
+<p><em>Create, run, and reshape virtual machines with declarative or interactive workflows, backed by FluxVM.</em></p>
+<ul>
+<li><strong>Full VM Lifecycle</strong> — Create, start, stop, restart, pause, resume, hibernate, and delete VMs backed by KVM, via FluxVM. — <em>One consistent lifecycle across CLI, web, Terraform, and Kubernetes.</em><ul>
+<li><strong>How:</strong> CLI <code>fabricctl start|stop|restart|delete &lt;name&gt;</code> (pause/resume are REST/Web only) · Web dashboard VM-list quick actions VMs view (<code>s</code>/<code>t</code>/<code>r</code>/<code>d</code>) · REST <code>POST /api/vms/:name/{start,stop,restart,pause,resume}</code> and <code>DELETE /api/vms/:name</code>.</li>
+</ul>
+</li>
+<li><strong>Declarative Apply</strong> — Define VMs in YAML and reconcile them with fabricctl apply -f config.yaml. — <em>GitOps-friendly infrastructure without a control-plane rewrite.</em><ul>
+<li><strong>How:</strong> CLI <code>fabricctl apply -f config.yaml</code> reconciles a YAML spec (version it in git); equivalent imperative path is REST <code>POST /api/vms</code>, or a <code>VirtualMachine</code> CRD via the K8s operator.</li>
+</ul>
+</li>
+<li><strong>Cloning &amp; Templates</strong> — Full and linked copy-on-write clones plus reusable templates for rapid deployment. — <em>Stand up fleets from a golden image in seconds, not minutes.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/vms/:name/clone</code> (<code>linked_clone: true|false</code>) · templates via <code>POST /api/templates</code> and <code>POST /api/templates/:id/deploy</code> · Web Templates / VM Cloning pages (REST/Web only — no <code>fabricctl</code> clone command).</li>
+</ul>
+</li>
+<li><strong>Hibernate &amp; Checkpoint</strong> — Suspend-to-disk hibernate, resume from snapshot, and VM checkpoint/restore and forking. — <em>Pause idle workloads and restore exact machine state on demand.</em><ul>
+<li><strong>How:</strong> Capture machine state with a full snapshot: REST <code>POST /api/vms/:name/snapshots</code> (<code>snapshot_type: Full</code>) then <code>POST .../snapshots/:id/revert</code> · Web VM detail Snapshots tab (REST/Web only — no <code>fabricctl</code> snapshot command).</li>
+</ul>
+</li>
+<li><strong>Live Hotplug</strong> — Hotplug CPU, memory, disk, and NIC into running VMs without a reboot. — <em>Scale a VM to demand while it keeps serving traffic.</em><ul>
+<li><strong>How:</strong> Web VM detail Hotplug tab (live CPU/memory/disk/NIC) · REST resource endpoints under <code>/api/system/vms/:name/...</code> · emits <code>cpu_hotplug</code>/<code>memory_hotplug</code>/<code>disk_attached</code> events on the SSE stream.</li>
+</ul>
+</li>
+<li><strong>Disk Import &amp; Conversion</strong> — Import VMs from VMDK, VDI, and VHD with auto-conversion to qcow2, and online disk resize via QMP. — <em>Bring existing VMDK, VDI and VHD machines over without downtime.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/images/import</code> (VMDK/VDI/VHD → qcow2) and online resize <code>POST /api/images/:id/resize</code> · Web VM Create from imported image (REST/Web only — no <code>fabricctl</code> image command).</li>
+</ul>
+</li>
+<li><strong>Golden Images</strong> — Turn any configured VM&#39;s current disk into a new, independent, catalog-registered base image — not a template&#39;s config recipe or a live copy-on-write fork, an actual standalone qcow2 file other VMs can boot from even after the source VM is gone. — <em>Get a workload exactly the way you want it once, then stamp out fleets from it.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/images/from-vm/:name</code> (async job, poll <code>GET /api/images/convert/:id</code>) · Web Create VM → &quot;Create golden image from a VM.&quot; Each image is certified with <a href="https://github.com/zyvorai/guestkit">GuestKit</a>&#39;s offline <code>doctor</code> boot-readiness analysis (not qemu-guest-agent — Zyvor Fabric uses GuestKit for all guest/image inspection) as soon as conversion finishes; the score attaches to the job once ready and requires no agent running inside the guest.</li>
+</ul>
+</li>
+<li><strong>OS Image Catalog</strong> — Download ready-made Ubuntu, Fedora, Debian, AlmaLinux, or Flatcar cloud images straight into the local catalog, reusing an already-downloaded copy instead of re-fetching it. — <em>Skip hunting for cloud-image URLs before your first VM.</em><ul>
+<li><strong>How:</strong> REST <code>GET /api/images/cloud</code> (catalog) and <code>POST /api/images/cloud/download</code> (async job) · Web Create VM → &quot;Download an OS image.&quot;</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>VMs are ordinary systemd units — journalctl, watchdogs, and socket activation work exactly as operators already expect.</p>
+</blockquote>
+<h2>2. Storage Orchestration</h2>
+<p><em>Six pluggable backends, live disk mobility, and a built-in cloud-image catalog.</em></p>
+<ul>
+<li><strong>Six Storage Backends</strong> — Pool and volume management across Local, NFS, LVM, LVM-thin, ZFS, and Ceph/RBD. — <em>Use the storage you already run — no dedicated SAN required.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/storage/pools/{local,nfs,lvm,lvm-thin,zfs,ceph}</code>, list with <code>GET /api/storage/pools</code> · Web Storage page Storage view (type auto-detected).</li>
+</ul>
+</li>
+<li><strong>Volume Management</strong> — Full volume CRUD with attach/detach, online resize, and clone operations. — <em>Reshape storage for a workload without recreating the VM.</em><ul>
+<li><strong>How:</strong> Volume CRUD + attach/detach/resize/clone via the <code>/api/storage/...</code> volume endpoints · Web Storage → Volumes (capacity + attachment info) · <code>fabricctl ceph</code> covers Ceph pools/images specifically; other backends and generic volume CRUD are REST/Web only.</li>
+</ul>
+</li>
+<li><strong>Snapshots &amp; Retention</strong> — Create and restore snapshots with configurable retention policies. — <em>Roll back a bad change in seconds and prune old state automatically.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/vms/:name/snapshots</code>, <code>GET .../snapshots/tree</code>, <code>POST .../snapshots/:id/revert</code> · Web VM Snapshots tab · retention applied per backup/snapshot policy.</li>
+</ul>
+</li>
+<li><strong>Storage Live Migration</strong> — Move VM disks between pools with no downtime, guided by SDRS recommendations. — <em>Rebalance or evacuate storage while VMs stay online.</em><ul>
+<li><strong>How:</strong> Trigger a disk move between pools (SDRS-recommended) via the datastore-cluster/storage-migration REST endpoints · Web Storage policies / Site Operations.</li>
+</ul>
+</li>
+<li><strong>ZFS Replication</strong> — Incremental ZFS send/receive replication between hosts and sites. — <em>Efficient, block-level DR copies that only ship the delta.</em><ul>
+<li><strong>How:</strong> Configure incremental send/receive between hosts via the replication REST endpoints · Web replication page · requires ZFS pools on both ends.</li>
+</ul>
+</li>
+<li><strong>Cloud Image &amp; ISO Catalog</strong> — Built-in downloader for Ubuntu, Fedora, Debian, and Alma images plus ISO download/list/delete. — <em>Boot a fresh distro without hunting for images.</em><ul>
+<li><strong>How:</strong> REST <code>GET /api/images/cloud</code>, <code>POST /api/images/cloud/download</code>, ISOs under <code>GET /api/images/iso</code> · Web Content Library / Images · files land in <code>/var/lib/zyvor-fabricd/images</code>.</li>
+</ul>
+</li>
+</ul>
+<h2>3. Software-Defined Networking</h2>
+<p><em>A full SDN stack — policies, firewalling, load balancing, VPN mesh, and observability.</em></p>
+<ul>
+<li><strong>Network Policies</strong> — Cilium-style label-based ingress/egress rules enforced through nftables. — <em>Segment east-west traffic with identity, not brittle IP lists.</em><ul>
+<li><strong>How:</strong> Label-selector rules via the network-policy REST endpoints · Web Network Security → Policies (direction/priority/enforcement badges) Net Security → Policies (<code>S</code> sync / <code>d</code> delete).</li>
+</ul>
+</li>
+<li><strong>Per-VM Firewall</strong> — Firewall profiles and zones applied per VM via nftables, with IPv6 dual-stack support. — <em>Ship each workload with its own hardened perimeter.</em><ul>
+<li><strong>How:</strong> REST <code>GET/POST /api/firewall-profiles</code> (compiled to nftables) · Web Network Security → Firewall rule builder (protocol/port/CIDR/action) + zones + VM assignments Firewall tab.</li>
+</ul>
+</li>
+<li><strong>Service Mesh</strong> — Virtual-IP load balancing with round-robin, least-connection, random, and IP-hash strategies plus health checks. — <em>Front a pool of VMs behind one resilient endpoint.</em><ul>
+<li><strong>How:</strong> Virtual-IP service + backend pool via the service/load-balancer REST endpoints (algorithm selectable) · Web Network Security → Services Services tab.</li>
+</ul>
+</li>
+<li><strong>WireGuard VPN Mesh</strong> — Point-to-point, hub-spoke, and full-mesh WireGuard overlay tunnels. — <em>Securely stitch VMs across sites without external appliances.</em><ul>
+<li><strong>How:</strong> WireGuard tunnels/networks via the VPN REST endpoints · Web Network Security → VPN peer editor + topology selector VPN tab.</li>
+</ul>
+</li>
+<li><strong>QoS Traffic Shaping</strong> — Guaranteed and maximum rates, burst, and priority queuing via Linux tc. — <em>Protect critical workloads from noisy-neighbor bandwidth spikes.</em><ul>
+<li><strong>How:</strong> tc-based guaranteed/max rate, burst, and priority via the QoS REST endpoints · Web Network Security → QoS QoS tab.</li>
+</ul>
+</li>
+<li><strong>DNS Policy &amp; NAT Gateway</strong> — Zone management, upstream servers, domain blocking, plus SNAT/DNAT/hairpin NAT gateways. — <em>Own DNS and egress routing for every tenant network.</em><ul>
+<li><strong>How:</strong> DNS zones/upstreams/blocking + SNAT/DNAT/hairpin via the DNS and <code>/api/networkd/...</code> REST endpoints (<code>POST /api/networkd/port-forwards</code>, <code>POST /api/networkd/dhcp</code>) · Web Network Security → DNS / NAT tabs.</li>
+</ul>
+</li>
+<li><strong>Packet Mirror &amp; Net Monitor</strong> — Mirror sessions for traffic capture and per-VM bandwidth tracking with threshold alerts. — <em>Debug and meter network behavior without leaving the fabric.</em><ul>
+<li><strong>How:</strong> Mirror sessions via the mirror REST endpoints; per-VM bandwidth via <code>GET /api/network-metrics/:vm</code> with threshold alerts · Web Network Security → Mirror / Monitor tabs Net Security.</li>
+</ul>
+</li>
+</ul>
+<h2>4. Security &amp; Identity</h2>
+<p><em>JWT auth, enterprise SSO, RBAC, multi-tenancy, and encryption on every endpoint.</em></p>
+<ul>
+<li><strong>JWT Auth + RBAC</strong> — JWT authentication with configurable expiry and 3-tier RBAC (Admin/User/Viewer) enforced on every endpoint. — <em>Least-privilege access is the default, not an add-on.</em><ul>
+<li><strong>How:</strong> <code>POST /api/auth/login</code> returns a bearer JWT (<code>auth.token_expiration_hours</code>, default 24); roles admin/user/viewer are enforced per endpoint · Web login form · CLI/SDK send the token in <code>Authorization</code>.</li>
+</ul>
+</li>
+<li><strong>Enterprise SSO</strong> — LDAP and OIDC/OAuth2 integration plus API keys for service-to-service auth. — <em>Plug into existing identity providers instead of a new user silo.</em><ul>
+<li><strong>How:</strong> Configure LDAP/OIDC in <code>zyvor-fabricd.toml</code> <code>[auth]</code>; issue API keys for service-to-service calls · Web Administration → users/roles.</li>
+</ul>
+</li>
+<li><strong>Multi-Tenancy</strong> — Project isolation with member roles and per-project quotas. — <em>Give teams their own bounded slice of the fabric.</em><ul>
+<li><strong>How:</strong> Projects with member roles and per-project quotas via the tenant/project REST endpoints · Web Quotas + Administration pages.</li>
+</ul>
+</li>
+<li><strong>Encryption &amp; Secrets</strong> — Encryption at rest, per-VM disk encryption with key rotation, and an encrypted secrets store with access policies. — <em>Protect data and credentials without external KMS scaffolding.</em><ul>
+<li><strong>How:</strong> Encrypted secrets store via <code>GET/POST/PUT/DELETE /api/secrets</code> (values always redacted in responses); per-VM disk encryption + key rotation · Web Administration → encryption keys.</li>
+</ul>
+</li>
+<li><strong>Audit Logging</strong> — Audit trail on all VM lifecycle operations with JSON/CSV export. — <em>Answer &#39;who did what, when&#39; for compliance and RCA.</em><ul>
+<li><strong>How:</strong> Audit trail via <code>GET /api/audit/logs</code> with JSON/CSV export · Web Audit page (filter by user/action/resource/time) Logs view.</li>
+</ul>
+</li>
+<li><strong>PKI &amp; Certificate Manager</strong> — CA creation, certificate issue/renew/revoke, automated rotation, and hardware attestation. — <em>Run internal TLS without a separate PKI product.</em><ul>
+<li><strong>How:</strong> CA create + cert issue/renew/revoke + rotation via the certificate REST endpoints; <code>./zyvor-fabricd-ctl tls</code> generates the web-server cert · Web Administration → certificates.</li>
+</ul>
+</li>
+<li><strong>Compliance Scanning</strong> — Built-in CIS, STIG, and PCI-DSS profiles with per-VM findings and remediation guidance. — <em>Prove and improve posture against recognized benchmarks.</em><ul>
+<li><strong>How:</strong> REST <code>GET /api/compliance/profiles</code>, <code>POST /api/compliance/scan/:vm</code> (<code>profile_id</code> cis-level1/cis-level2/stig/pci-dss/hipaa), <code>GET /api/compliance/results</code> · Web Compliance page · <code>[compliance]</code> config enables auto-scan.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>The codebase carries a documented multi-round security audit: zero unsafe Rust, no shell pipelines, parameterized queries, SSRF and path-traversal protection, and bcrypt-hashed credentials.</p>
+</blockquote>
+<h2>5. High Availability &amp; Disaster Recovery</h2>
+<p><em>Live migration, fault tolerance, and multi-site recovery.</em></p>
+<ul>
+<li><strong>Live Migration</strong> — Move running VMs between hosts with iterative rsync pre-copy and cutover, with progress tracking and cancel. — <em>Drain a host for maintenance without stopping workloads.</em><ul>
+<li><strong>How:</strong> Migrate a running VM between hosts (iterative rsync pre-copy + cutover) via the migration REST endpoints with progress/cancel · Web Site Operations.</li>
+</ul>
+</li>
+<li><strong>Fault Tolerance &amp; Fencing</strong> — Continuous VM replication with automatic failover detection, fencing, and FT metrics. — <em>Survive a node loss with minimal recovery time.</em><ul>
+<li><strong>How:</strong> Continuous replication + automatic failover detection + fencing via the fault-tolerance REST endpoints (FT metrics exposed) · Web Site Operations → Fault tolerance.</li>
+</ul>
+</li>
+<li><strong>Predictive DRS</strong> — Distributed resource scheduling with demand forecasting, proactive placement, and affinity/anti-affinity rules. — <em>Keep clusters balanced before hotspots become outages.</em><ul>
+<li><strong>How:</strong> DRS with demand forecasting + affinity/anti-affinity rules via the DRS REST endpoints · Web Site Operations → DRS configuration &amp; recommendations.</li>
+</ul>
+</li>
+<li><strong>Site Recovery</strong> — Recovery plans with planned migration, disaster failover, test failover, and reprotection workflows. — <em>Rehearse and execute cross-site DR with confidence.</em><ul>
+<li><strong>How:</strong> Build recovery plans (planned migration, disaster/test failover, reprotect) via the site-recovery REST endpoints · Web Site Operations → Site recovery.</li>
+</ul>
+</li>
+<li><strong>Multi-Site Replication</strong> — Cross-site VM replication with sync scheduling, RPO monitoring, and recovery instances. — <em>Meet recovery-point targets you can actually measure.</em><ul>
+<li><strong>How:</strong> Cross-site VM replication with sync scheduling + RPO monitoring + recovery instances via the replication REST endpoints · Web Site Operations.</li>
+</ul>
+</li>
+</ul>
+<h2>6. Compute, GPU &amp; Virtualization</h2>
+<p><em>Low-level control over CPU topology, memory, accelerators, and firmware.</em></p>
+<ul>
+<li><strong>GPU Passthrough</strong> — Pass a physical NVIDIA or AMD GPU through to a VM via VFIO once it&#39;s bound to <code>vfio-pci</code> (generic PCI passthrough — no vGPU/mediated-device support). — <em>Run AI, rendering, and CAD workloads at near-bare-metal speed.</em><ul>
+<li><strong>How:</strong> REST <code>GET /api/system/pci-devices</code>, <code>POST</code>/<code>DELETE /api/vms/:name/devices/pci</code> · Web VM detail Devices tab; requires matching IOMMU/hardware and manually binding the device to <code>vfio-pci</code> first (no <code>fabricctl</code> command for this).</li>
+</ul>
+</li>
+<li><strong>CPU Pinning &amp; NUMA</strong> — CPU topology control, pinning, NUMA-aware placement, and nested virtualization. — <em>Squeeze predictable performance from latency-sensitive VMs.</em><ul>
+<li><strong>How:</strong> REST <code>GET /api/system/numa-topology</code>, placement hint <code>GET /api/system/numa/placement</code>, and <code>POST /api/system/vms/:name/cpu-pinning</code> (Auto/NumaNode/Socket/Explicit) · Web VM advanced CPU settings.</li>
+</ul>
+</li>
+<li><strong>Memory Optimization</strong> — Memory ballooning, hugepages, and KSM page deduplication via a system resource manager. — <em>Fit more VMs per host without starving any of them.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/system/vms/:name/memory-ballooning</code>, <code>/memory-limit</code>, and <code>POST /api/system/hugepages/allocate</code>; KSM handled by the resource manager · Web VM settings.</li>
+</ul>
+</li>
+<li><strong>vTPM &amp; Secure Boot</strong> — TPM 1.2/2.0 via swtpm with per-VM isolated state, UEFI, and Secure Boot firmware management. — <em>Support BitLocker, LUKS, and measured boot inside guests.</em><ul>
+<li><strong>How:</strong> Pass <code>tpm: true</code> / <code>secure_boot</code> in VMStartOptions on <code>POST /api/vms/:name/start</code> (swtpm gives each VM isolated state) · Web VM Create advanced boot/display settings · requires swtpm on the host.</li>
+</ul>
+</li>
+<li><strong>cloud-init Provisioning</strong> — NoCloud datasource generation for users, packages, network config, and SSH key injection. — <em>Boot fully configured VMs on first start, hands-free.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/vms/:name/cloud-init</code> (users, packages, runcmd, write_files → NoCloud ISO) · Web VM detail Cloud-init tab · applied on next start/restart.</li>
+</ul>
+</li>
+<li><strong>OVA/OVF &amp; Content Library</strong> — OVA/OVF export and import plus a content library with cross-site image/template sync and customization specs. — <em>Standardize and share golden images across every site.</em><ul>
+<li><strong>How:</strong> Export via <code>POST /api/vms/:name/export</code> (OVA) and import to bring appliances in; cross-site sync + customization specs in the Content Library · Web Content Library page.</li>
+</ul>
+</li>
+</ul>
+<h2>7. Monitoring, Automation &amp; Operations</h2>
+<p><em>Metrics, scheduling, notifications, and self-checks that keep the fabric healthy.</em></p>
+<ul>
+<li><strong>Prometheus Metrics</strong> — A /metrics endpoint exposing VM-count and lifecycle metrics (total/running/stopped, start/stop/create/delete counters), with a prebuilt Grafana dashboard. — <em>Drop into your existing observability stack instantly.</em><ul>
+<li><strong>How:</strong> Scrape <code>GET /metrics</code> (no auth) into Prometheus; live per-VM CPU/memory/disk/network detail via <code>GET /api/vms/:name/metrics</code> (not yet exported as Prometheus series) · Web Monitoring page · import the bundled Grafana dashboard.</li>
+</ul>
+</li>
+<li><strong>Scheduling &amp; Auto Backups</strong> — Once/daily/weekly VM schedules plus automated daily backups and weekly state-store cleanup via systemd timers. — <em>Routine operations run themselves, on time, every time.</em><ul>
+<li><strong>How:</strong> Once/daily/weekly schedules via the schedule REST endpoints (backed by systemd timers) · Web Scheduling page (cron-style + one-time, with execution history).</li>
+</ul>
+</li>
+<li><strong>Backup &amp; Restore</strong> — Per-VM and bulk backups with retention policies and incremental backups from web UI. — <em>Recover a single VM or the whole fleet on your own terms.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/backups</code> (full/incremental + retention), <code>POST /api/backups/restore</code>, policies via <code>POST /api/backups/policies</code> · Web Backups page (bulk).</li>
+</ul>
+</li>
+<li><strong>Multi-Channel Notifications</strong> — Email, Slack, Microsoft Teams, and webhook alerts with retry and backoff. — <em>The right people hear about problems the moment they happen.</em><ul>
+<li><strong>How:</strong> REST <code>POST /api/notifications/channels</code> (email/slack/webhook/teams) + <code>/rules</code>, verify with <code>POST .../channels/:id/test</code> · Web Notifications page · exponential-backoff retry (max 10 attempts).</li>
+</ul>
+</li>
+<li><strong>Health &amp; Auto-Verify</strong> — Deep health checks (API, disk, DB, timers, KVM) and post-install smoke tests of API, auth, VM CRUD, and backups. — <em>Catch a broken deploy before your users do.</em><ul>
+<li><strong>How:</strong> Run <code>./zyvor-fabricd-ctl health</code> (API/disk/DB/timers/KVM) and <code>./zyvor-fabricd-ctl verify</code> (post-install smoke tests of API, auth, VM CRUD, backups) · health also exposed over REST.</li>
+</ul>
+</li>
+<li><strong>Config Snapshots &amp; Events</strong> — Versioned config-snapshot API, retained lifecycle events, and an SSE event stream for time-machine correlation. — <em>Diff infrastructure over time and reconstruct incidents.</em><ul>
+<li><strong>How:</strong> Versioned config-snapshot REST API + recent events <code>GET /api/events</code> and live SSE <code>GET /api/events/stream</code> (created/started/stopped/migrated/error/…) · Web activity feed.</li>
+</ul>
+</li>
+</ul>
+<h2>8. Interfaces &amp; Automation Surfaces</h2>
+<p><em>Four first-class ways to drive the same daemon — pick per task, not per product.</em></p>
+<table>
+<thead>
+<tr>
+<th>Interface</th>
+<th>Best for</th>
+<th>Highlights</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>fabricctl CLI</td>
+<td>Scripting &amp; automation</td>
+<td>JSON/YAML/table output, apply -f</td>
+</tr>
+<tr>
+<td>Web dashboard</td>
+<td>Operators &amp; teams</td>
+<td>80+ console pages under <code>/app</code> plus marketing routes, Ctrl+K palette, bulk ops</td>
+</tr>
+<tr>
+<td>K8s operator</td>
+<td>GitOps / K8s shops</td>
+<td>VirtualMachine CRD reconciliation</td>
+</tr>
+<tr>
+<td>Terraform / SDK</td>
+<td>Infra-as-code</td>
+<td>plan/apply, typed Rust + Python + Ansible</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p><strong>fabricctl CLI</strong> — Scriptable command-line client with JSON/YAML/table output covering VM, policy, storage, and network operations. — <em>Automate anything the platform can do from a shell script.</em></p>
+<ul>
+<li><strong>How:</strong> Install the <code>fabricctl</code> binary and point it at the daemon: <code>fabricctl list</code>, <code>fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096</code>, <code>fabricctl apply -f config.yaml</code>, with <code>--output json|yaml|table</code> (or <code>-o</code>).</li>
+</ul>
+</li>
+<li><p><strong>Web Dashboard</strong> — Hybrid marketing + <code>/app</code> console, Ctrl+K palette, light Apple UI, live WebSocket updates, and bulk operations. — <em>Give operators a full GUI without giving up the API.</em></p>
+<ul>
+<li><strong>How:</strong> Browse to <a href="http://localhost:9095">http://localhost:9095</a>, sign in at <code>/sign-in</code>, open <code>/app</code> and log in as <code>admin</code>; <code>Ctrl+K</code> command palette, 80+ console pages under <code>/app</code> plus marketing routes, bulk ops, and live WebSocket/SSE updates — served by the daemon itself. A fresh install with no VMs yet shows a &quot;Getting Started&quot; panel instead of an empty table, linking straight to VM creation, templates, the playground, and access control. Deleting a VM is undoable for a few seconds via an Undo bar before the delete actually fires.</li>
+</ul>
+</li>
+<li><p><strong>Console &amp; VNC</strong> — Browser terminal via xterm.js over WebSocket and graphical VNC via a noVNC proxy, authenticated with the same JWT. — <em>Reach any VM&#39;s console without exposing raw ports.</em></p>
+<ul>
+<li><strong>How:</strong> Web VM Console (xterm.js) / VNC (noVNC) buttons · WebSocket <code>ws:///api/vms/:name/console?token=</code> (also <code>/ws/vnc/:name</code>) · <code>websocat</code> from the CLI.</li>
+</ul>
+</li>
+<li><p><strong>Kubernetes Operator</strong> — Manage VMs as VirtualMachine CRDs with continuous reconciliation via a Helm-installable operator. — <em>Define VMs alongside containers in the same GitOps flow.</em></p>
+<ul>
+<li><strong>How:</strong> Install the Helm-packaged operator, then declare <code>VirtualMachine</code> CRDs; the operator continuously reconciles them against the Fabric API.</li>
+</ul>
+</li>
+<li><p><strong>Terraform, SDK &amp; Ansible</strong> — A Terraform provider with full plan/apply, a typed Rust zyvor-fabric-sdk, plus Python and Ansible SDKs. — <em>Provision the fabric from whatever IaC tooling your team already uses.</em></p>
+<ul>
+<li><strong>How:</strong> Use the Terraform provider (<code>terraform plan</code> / <code>apply</code>), the typed Rust <code>zyvor-fabric-sdk</code>, or the Python / Ansible SDKs — all target the same REST API.</li>
+</ul>
+</li>
+</ul>
+<h2>9. Fleet, Cost &amp; Governance</h2>
+<p><em>Datacenter hierarchy, resource pools, chargeback, and lifecycle compliance at scale.</em></p>
+<ul>
+<li><strong>Datacenter Hierarchy</strong> — Model datacenters, clusters, and hosts with registration, heartbeat, maintenance mode, and auto-discovery. — <em>Organize sprawling infrastructure into a navigable topology.</em><ul>
+<li><strong>How:</strong> Register datacenters/clusters/hosts (heartbeat, maintenance mode, auto-discovery) via the datacenter REST endpoints · Web Administration → datacenter / hosts.</li>
+</ul>
+</li>
+<li><strong>Resource Pools &amp; Quotas</strong> — CPU/memory/storage reservations with admission control, overcommit ratios, and pool-level quotas. — <em>Guarantee capacity to teams while preventing runaway usage.</em><ul>
+<li><strong>How:</strong> Pool reservations + overcommit ratios + admission control via the resource-pool/quota REST endpoints · Web Quotas page (usage-vs-limit visualization).</li>
+</ul>
+</li>
+<li><strong>Billing &amp; Chargeback</strong> — Per-VM metering, configurable pricing tiers, invoice generation, and chargeback reports. — <em>Show every team the true cost of what they run.</em><ul>
+<li><strong>How:</strong> REST <code>GET/PUT /api/billing/pricing</code>, <code>GET /api/billing/usage</code>, <code>POST /api/billing/invoice/:tenant_id</code> · Web Monitoring/Analytics · rates set in <code>[billing]</code> config.</li>
+</ul>
+</li>
+<li><strong>Lifecycle Manager</strong> — Host baseline definitions, compliance scanning, remediation, and rolling updates with pause/advance. — <em>Keep every host on a known-good, patched baseline.</em><ul>
+<li><strong>How:</strong> Define host baselines and run remediation + rolling updates (pause/advance) via the lifecycle REST endpoints · Web Administration → lifecycle.</li>
+</ul>
+</li>
+<li><strong>Distributed Storage Policies</strong> — Datastore clusters, storage policies, SDRS recommendations, and compliance checking. — <em>Enforce storage placement rules automatically across pools.</em><ul>
+<li><strong>How:</strong> Define datastore clusters + storage policies and act on SDRS recommendations via the storage-policy REST endpoints · Web Storage policies page.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>Deployment scales from a single 4GB edge server to a 3+ node etcd cluster with shared storage and HA failover — same binary, same API.</p>
+</blockquote>
+<h2>Getting started</h2>
+<ol>
+<li><strong>Install in one command</strong> — Clone the repo and run make build &amp;&amp; sudo make install, or ./zyvor-fabricd-ctl deploy for an auto-sudo end-to-end setup.</li>
+<li><strong>Start the service</strong> — Run sudo systemctl enable --now zyvor-fabric, then read the auto-generated admin password with ./zyvor-fabricd-ctl password.</li>
+<li><strong>Create your first VM</strong> — Use fabricctl create web-01 --image fedora-41 --cpus 2 --memory 4096, or declare it in YAML and run fabricctl apply -f config.yaml.</li>
+<li><strong>Open your interface of choice</strong> — Open the web dashboard at <a href="http://localhost:9095">http://localhost:9095</a> to manage the fleet.</li>
+<li><strong>Verify and monitor</strong> — Run ./zyvor-fabricd-ctl verify and ./zyvor-fabricd-ctl health, then scrape /metrics into Prometheus and import the bundled Grafana dashboard.</li>
+</ol>
+<blockquote>
+<p><strong>Good to know:</strong> Zyvor Fabric requires Linux with systemd 256+ (Fedora, Ubuntu, Debian, RHEL, or SUSE) and KVM; it is not a hosted or Windows-server product. Some enterprise capabilities carry environmental prerequisites — swtpm for vTPM, an etcd cluster and shared/replicated storage for HA and live migration, and matching hardware/IOMMU for GPU passthrough. Multi-node HA is designed for 3+ nodes; single-server deployments run standalone. The published endpoint and page counts (480+ REST endpoints, 37+ web pages) reflect current documentation and may vary by release, and the macOS Machina workbench is a separate desktop product that consumes the Fabric API rather than part of this daemon.</p>
+</blockquote>
+<hr>
+<p><em>Zyvor Fabric is developed by ZyvorAI Labs. Contact <strong><a href="mailto:info@zyvor.dev">info@zyvor.dev</a></strong> · Zyvor Production License v1.0.</em></p>
+</main></body></html>

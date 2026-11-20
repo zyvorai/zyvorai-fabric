@@ -1,0 +1,120 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
+// Accessibility gate (ux-plan step 7): axe-core on the baseline pages in both themes at desktop and phone
+// width, plus a visible-focus check (Tab twice, the focused control must show an outline or ring).
+// Fails on any serious or critical violation (contrast, unlabelled controls, ...) or a missing focus ring.
+// Run: npx vite build && node a11y-check.mjs [--verbose]
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { PAGES, EMPTY_STATE_PAGES, PAGE_TABS, UNSEEDED_PAGES, SIZES, serveDist, launch, newConsolePage, openPage } from './page-harness.mjs'
+
+const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
+const verbose = process.argv.includes('--verbose')
+// `--theme=light|dark` checks one theme and `--port=N` serves on that port, so `a11y-parallel.mjs` can run the two themes at once.
+const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1]
+const only = arg('theme')
+const onlyPages = arg('pages')?.split(',') // e.g. --pages=network,system: check just those pages while fixing them
+const port = Number(arg('port') ?? 3111)
+if (UNSEEDED_PAGES.length) console.log(`not covered (no mock data yet, see page-harness.mjs): ${UNSEEDED_PAGES.join(', ')}`)
+const server = serveDist(port)
+const browser = await launch()
+const focusFailures = []
+const crashedTabs = new Set() // a tab whose click threw the page into the error boundary, which axe cannot see
+const sideways = new Set() // a page (or tab) wider than the window: it scrolls sideways, which axe does not see
+const missingTabs = new Set() // a configured tab the page did not have: the list in page-harness.mjs is stale, which must not pass silently
+const found = new Map() // rule id -> { impact, help, nodes: Set<"page theme size: selector"> }
+for (const theme of only ? [only] : ['light', 'dark']) {
+  for (const [size, dims] of Object.entries(SIZES)) {
+    const page = await newConsolePage(browser, theme, dims)
+    for (const name of onlyPages ?? PAGES) {
+      // an empty page has nothing to wait for; a populated one has charts and polls that need the longer settle
+      await openPage(page, name, port, EMPTY_STATE_PAGES.includes(name) ? 700 : 1800)
+      // keyboard focus must be visible: the skip link is first, so the second Tab lands on a real control
+      await page.keyboard.press('Tab')
+      await page.keyboard.press('Tab')
+      const ring = await page.evaluate(() => {
+        const el = document.activeElement
+        if (!el || el === document.body) return 'nothing focused'
+        const c = getComputedStyle(el)
+        const visible = (c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0) || c.boxShadow !== 'none'
+        return visible ? null : `no focus ring on <${el.tagName.toLowerCase()}> ${String(el.className).slice(0, 60)}`
+      })
+      if (ring) focusFailures.push(`${name || 'dashboard'} ${theme} ${size}: ${ring}`)
+      // settle every animation first: axe reads the colours of elements that are mid-fade
+      await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' })
+      const scan = async (label) => {
+        const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+        if (over > 1) sideways.add(`${label} ${theme} ${size}: ${over}px too wide`)
+        await page.evaluate(axeSource)
+        const { violations } = await page.evaluate(() =>
+          // eslint-disable-next-line no-undef
+          axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'], resultTypes: ['violations'] }),
+        )
+        for (const v of violations) {
+          const entry = found.get(v.id) ?? { impact: v.impact, help: v.help, nodes: [] }
+          for (const n of v.nodes) {
+            const d = n.any[0]?.data
+            const ratio = v.id === 'color-contrast' && d ? ` {${d.fgColor} on ${d.bgColor} = ${d.contrastRatio}}` : ''
+            entry.nodes.push(`${label} ${theme} ${size}: ${n.target.join(' ')}${ratio}`)
+          }
+          found.set(v.id, entry)
+        }
+      }
+      await scan(name || 'dashboard')
+      for (const tab of PAGE_TABS[name] ?? []) {
+        const clicked = await page.evaluate((t) => {
+          // a tab's label may carry a count ("Rules (3)", "Optimization1"): compare without it
+          const norm = (x) => x.trim().replace(/\s*\(\d*\)$/, '').replace(/\d+$/, '')
+          const b = [...document.querySelectorAll('button')].find((x) => norm(x.textContent) === t)
+          if (!b) return false
+          b.click()
+          return true
+        }, tab)
+        if (!clicked) {
+          missingTabs.add(`${name} [${tab}]`)
+          continue
+        }
+        await new Promise((r) => setTimeout(r, 400))
+        const crashed = await page.evaluate(() => document.body.innerText.includes('Section error') || document.body.innerText.includes('Something went wrong'))
+        if (crashed) {
+          // an error page has no axe violations, so without this a crashing tab would pass; reopen the page to carry on with the rest
+          crashedTabs.add(`${name} [${tab}]`)
+          await openPage(page, name, port, EMPTY_STATE_PAGES.includes(name) ? 700 : 1800)
+          await page.addStyleTag({ content: '*,*::before,*::after{animation:none!important;transition:none!important}' })
+          continue
+        }
+        await scan(`${name} [${tab}]`)
+      }
+    }
+    await page.close()
+  }
+}
+await browser.close()
+server.close()
+
+const theme_of = (w) => ''
+let blocking = 0
+for (const [id, v] of [...found].sort((a, b) => b[1].nodes.length - a[1].nodes.length)) {
+  const gate = v.impact === 'serious' || v.impact === 'critical'
+  if (gate) blocking += v.nodes.length
+  console.log(`${gate ? 'FAIL' : 'warn'} ${v.impact} ${id}: ${v.help} (${v.nodes.length})`)
+  // --verbose lists every distinct element (with the pages it appears on); default shows four examples
+  const distinct = new Map()
+  for (const n of v.nodes) {
+    const [where, sel] = n.split(': ')
+    distinct.set(sel, [...(distinct.get(sel) ?? []), where + (theme_of(where))])
+  }
+  for (const [sel, wheres] of verbose ? distinct : [...distinct].slice(0, 4))
+    console.log(`    ${sel}  [${wheres.length}: ${[...new Set(wheres.map((w) => w.split(' ')[0]))].slice(0, 3).join(', ')}]`)
+}
+for (const f of focusFailures) console.log(`FAIL focus ${f}`)
+blocking += focusFailures.length
+for (const t of sideways) console.log(`FAIL scrolls sideways: ${t}`)
+blocking += sideways.size
+for (const t of crashedTabs) console.log(`FAIL tab crashed the page: ${t}`)
+blocking += crashedTabs.size
+for (const t of missingTabs) console.log(`FAIL tab not found: ${t} (update PAGE_TABS in page-harness.mjs)`)
+blocking += missingTabs.size
+console.log(blocking ? `\n${blocking} serious/critical or focus violations` : '\naxe: no serious or critical violations')
+process.exit(blocking ? 1 : 0)

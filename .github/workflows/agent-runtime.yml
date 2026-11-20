@@ -1,0 +1,87 @@
+name: Agent Runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "agent-runtime/**"
+      - "sdk/agent-runtime/**"
+      - "examples/agent-runtime/**"
+      - ".github/workflows/agent-runtime.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "agent-runtime/**"
+      - "sdk/agent-runtime/**"
+      - "examples/agent-runtime/**"
+      - ".github/workflows/agent-runtime.yml"
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Check formatting
+        run: cargo fmt --manifest-path agent-runtime/Cargo.toml -- --check
+      - name: Check
+        run: cargo check --manifest-path agent-runtime/Cargo.toml --all-targets
+      - name: Clippy
+        run: cargo clippy --manifest-path agent-runtime/Cargo.toml --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --manifest-path agent-runtime/Cargo.toml
+
+  sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: Install SDK dependencies
+        run: cd sdk/agent-runtime && npm install --no-audit --no-fund
+      - name: SDK tests
+        run: cd sdk/agent-runtime && npm test
+      - name: SDK syntax
+        run: cd sdk/agent-runtime && npm run lint
+      - name: Package smoke
+        run: cd sdk/agent-runtime && npm pack --dry-run
+      - name: Guest worker syntax
+        run: |
+          node --check agent-runtime/src/worker.mjs
+          node --check agent-runtime/src/harness.mjs
+      # Exercises the actual `fabric-agent build` CLI subcommand (not a
+      # hand-rolled copy of its esbuild call) against both example agents --
+      # the LLM-calling one and the credential-free ops one -- so the CI log
+      # doubles as a live example of how to build a deployable bundle before
+      # uploading it via the web console (docs/tutorials/13-deploy-agent-from-console.md).
+      - name: fabric-agent build smoke (examples)
+        run: |
+          cd sdk/agent-runtime
+          ./src/cli.js build ../../examples/agent-runtime/agent.ts --out /tmp/research-agent.bundle.mjs
+          ./src/cli.js build ../../examples/agent-runtime/ops-agent.ts --out /tmp/ops-agent.bundle.mjs
+          test -s /tmp/research-agent.bundle.mjs
+          test -s /tmp/ops-agent.bundle.mjs
+          node --check /tmp/research-agent.bundle.mjs
+          node --check /tmp/ops-agent.bundle.mjs
+
+  sessions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.23"
+      - name: Build agent runtime
+        run: cargo build --manifest-path agent-runtime/Cargo.toml
+      - name: Install SDK dependencies
+        run: cd sdk/agent-runtime && npm install --no-audit --no-fund
+      - name: Real agent sessions
+        run: bash agent-runtime/tests/session-ci.sh

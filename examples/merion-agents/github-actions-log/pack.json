@@ -1,0 +1,55 @@
+{
+  "kind": "usecase",
+  "name": "github-actions-log",
+  "title": "GitHub Actions failed log",
+  "description": "Drop in `gh run view --log-failed` output and get the error lines, the failing steps, exit codes and the most repeated errors.",
+  "accepts": [
+    "txt",
+    "log"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Error lines",
+      "keywords": [
+        "##[error]"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Failing steps",
+      "pattern": "(?m)^([^\\t]+\\t[^\\t]+)\\t[^\\t]*##\\[error\\]",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Exit codes",
+      "pattern": "exit code ([0-9]+)",
+      "max_matches": 5,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Compiler errors (most repeated first)",
+      "pattern": "error(?:\\[E[0-9]+\\])?: (.{10,120})",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Warnings (most repeated first)",
+      "pattern": "warning: (.{10,100})",
+      "max_matches": 10,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "actions-log.md",
+  "sample_file": "sample.txt"
+}

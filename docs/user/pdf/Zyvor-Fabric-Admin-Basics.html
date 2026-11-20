@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>Admin Basics — Zyvor Fabric</title>
+<style>
+@page{size:A4;margin:15mm 16mm}*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1f2937;line-height:1.58;font-size:10.5pt}
+.cover{height:262mm;margin:-15mm -16mm 0;background:linear-gradient(135deg,#042f2e,#115e59,#0d1b2a);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;page-break-after:always;position:relative}
+.cover .kicker{letter-spacing:5px;text-transform:uppercase;opacity:.72;margin-bottom:1.4em}
+.cover h1{font-size:3.2em;font-weight:800;letter-spacing:-2px}
+.cover h1 span{color:#2dd4bf}
+.cover .sub{font-size:1.3em;font-weight:300;opacity:.93;margin:1em 0;max-width:24em}
+.cover .badge{display:inline-block;background:rgba(96,165,250,.2);border:1px solid #2dd4bf;padding:8px 22px;border-radius:20px;margin-top:2em}
+.cover .foot{position:absolute;bottom:34px;font-size:.82em;opacity:.6}
+h2{page-break-before:always;margin:0 0 .35em;font-size:1.55em;font-weight:750;color:#12203a;border-bottom:2px solid #e5edfb;padding-bottom:.28em}
+h2:first-of-type{page-break-before:avoid}
+h3{margin:1.1em 0 .4em;font-size:1.12em;font-weight:700}
+p,li{margin:.4em 0}ul,ol{margin:.5em 0 .9em 1.4em}
+a{color:#2563eb;text-decoration:none}
+code{background:#eef2f7;padding:1px 6px;border-radius:4px;font-size:.86em;font-family:ui-monospace,Menlo,monospace}
+pre{background:#0f172a;color:#e2e8f0;padding:12px 15px;border-radius:9px;overflow-x:auto;margin:.8em 0}
+table{width:100%;border-collapse:collapse;margin:.8em 0 1.1em;font-size:9.5pt}
+th,td{border:1px solid #e5e7eb;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f1f5f9}
+hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
+</style></head><body>
+<section class="cover"><div class="kicker">ZyvorAI Labs · User Documentation</div>
+<h1>Zyvor <span>Fabric</span></h1>
+<div class="sub">Admin Basics</div>
+<div class="badge">2026-09-11</div>
+<div class="foot">zyvor.dev · Zyvor Production License v1.0</div></section>
+<main><p>Operator reference for ports, auth, remote deploy, TLS, and the FluxVM dependency. For the first-hour UI path, see <a href="getting-started.md">Getting Started</a>.</p>
+<h2>Ports / access</h2>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Service</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>9095</strong></td>
+<td><code>zyvor-fabricd</code> — API + production web UI (same origin)</td>
+</tr>
+<tr>
+<td><strong>7788</strong></td>
+<td>FluxVM (node-local VM engine; Fabric proxies it)</td>
+</tr>
+<tr>
+<td><strong>5173</strong></td>
+<td>Vite UI (dev only)</td>
+</tr>
+</tbody></table>
+<p>Web routes: marketing <code>/</code>, <code>/product</code>, <code>/platform</code>, <code>/security</code>; sign-in <code>/sign-in</code>; console <code>/app/*</code>.</p>
+<p>Open the UI at <code>https://&lt;host&gt;:9095</code> or <code>http://127.0.0.1:9095</code> on the host. Never publish lab IPs in docs or tickets — use <code>&lt;host&gt;</code>.</p>
+<p>Health check:</p>
+<pre><code class="language-bash">curl -sf http://127.0.0.1:9095/readyz | jq &#39;{ok, store, fluxvm_ok: .fluxvm.ok}&#39;
+</code></pre>
+<h2>Auth and admin password</h2>
+<p>JWT bearer auth (local admin by default). Optional LDAP/OIDC/PAM for system users.</p>
+<p>Sign in at <code>https://&lt;host&gt;:9095/sign-in</code> with username <code>admin</code>, then open <code>/app</code>.</p>
+<h3>JWT secret and admin password</h3>
+<p>Both are auto-generated (cryptographically random) on first start if unset, and persisted so they survive restarts:</p>
+<table>
+<thead>
+<tr>
+<th>Env var</th>
+<th>Default when unset</th>
+<th>Persisted at</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ZYVOR_FABRICD_JWT_SECRET</code></td>
+<td>Random, once</td>
+<td><code>/var/lib/zyvor-fabricd/.jwt_secret</code> (mode 0600)</td>
+</tr>
+<tr>
+<td><code>ZYVOR_FABRICD_ADMIN_PASSWORD</code></td>
+<td>Random, once — never defaults to <code>admin</code></td>
+<td><code>/var/lib/zyvor-fabricd/.admin_password</code></td>
+</tr>
+</tbody></table>
+<p>Retrieve or manage the password with the ctl:</p>
+<pre><code class="language-bash">./zyvor-fabricd-ctl password          # show
+sudo cat /var/lib/zyvor-fabricd/.admin_password
+./zyvor-fabricd-ctl password --lab-reset [PASSWORD]   # reseed (lab only)
+</code></pre>
+<p>Set <code>ZYVOR_FABRICD_ADMIN_PASSWORD</code> (or <code>FABRIC_ADMIN_PASSWORD</code>) <strong>before first start</strong> if you want a known value from day one — once persisted, the file wins even if the env var is later unset.</p>
+<h2>Deploy (local and remote)</h2>
+<p>From a Fabric checkout:</p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Local full deploy</td>
+<td><code>./zyvor-fabricd-ctl deploy</code> (deps → build → install → start)</td>
+</tr>
+<tr>
+<td>Bare-metal remote</td>
+<td><code>./scripts/deploy remote USER@HOST</code></td>
+</tr>
+<tr>
+<td>Remote, skip OS deps</td>
+<td><code>./scripts/deploy remote USER@HOST --quick</code></td>
+</tr>
+<tr>
+<td>Kubernetes lab</td>
+<td><code>./scripts/deploy k8s USER@HOST</code></td>
+</tr>
+</tbody></table>
+<p>Remote bare-metal install opens <code>0.0.0.0:9095</code> (HTTPS with a self-signed cert by default). Admin password is generated on deploy unless you set <code>FABRIC_ADMIN_PASSWORD</code> / <code>ZYVOR_FABRICD_ADMIN_PASSWORD</code>, or <code>FABRIC_LAB_DEFAULTS=1</code> for a convenient lab default. Force reseed: <code>FORCE_ADMIN_RESET=1 ./scripts/deploy remote USER@HOST --quick</code>.</p>
+<p>Useful ctl commands after install: <code>status</code>, <code>logs</code>, <code>verify</code>, <code>doctor</code>, <code>restart</code>.</p>
+<h2>TLS</h2>
+<pre><code class="language-bash">./zyvor-fabricd-ctl tls    # generate self-signed server cert (auto-sudo)
+</code></pre>
+<p>Enable the paths the ctl prints in <code>/etc/zyvor-fabricd/zyvor-fabricd.toml</code> (typically under <code>/etc/zyvor-fabricd/tls/</code>). Browsers will warn on self-signed certs in lab — replace with a real cert for production. For local HTTP-only testing, <code>http://127.0.0.1:9095</code> is fine when TLS is off.</p>
+<h2>FluxVM dependency</h2>
+<p>Fabric does <strong>not</strong> run QEMU itself. It orchestrates VMs through a local <a href="https://github.com/zyvorai/fluxvm">FluxVM</a> instance on <code>127.0.0.1:7788</code> (lifecycle, disks, console/VNC, cgroups, per-VM netns, Network Fabric eBPF).</p>
+<ul>
+<li>Dashboard <strong>VM driver</strong> / readiness must show FluxVM reachable (<code>fluxvm.ok</code> on <code>/readyz</code>).</li>
+<li>VM Dataplane (schema v4) and Edge Maglev Services (Service Fabric v6) require FluxVM dataplane features enabled — see <a href="pages/infrastructure/dataplane.md">VM Dataplane</a> and <a href="pages/infrastructure/edge-dataplane.md">Edge Dataplane</a>.</li>
+<li>If FluxVM auth is enabled, set <code>driver.fluxvm_token</code> in <code>zyvor-fabricd.toml</code>.</li>
+</ul>
+<p>Sibling checkouts of FluxVM (and GuestKit for image tooling) are expected for full image builds; see the product <a href="../../README.md">README</a>.</p>
+<h2>Install sketch</h2>
+<ol>
+<li>Deploy locally or <code>./scripts/deploy remote USER@HOST</code>.</li>
+<li>Confirm <code>./zyvor-fabricd-ctl status</code> and <code>/readyz</code>.</li>
+<li>Retrieve admin password → open <code>https://&lt;host&gt;:9095/sign-in</code> → <code>/app</code>.</li>
+<li>Follow <a href="getting-started.md">Getting Started</a>.</li>
+</ol>
+<p>More detail: <a href="../getting-started/01-Installation.md">Installation</a> · <a href="../getting-started/04-Web-UI.md">Web UI</a> · <a href="../deployment/production.md">Production</a>.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="getting-started.md">Getting Started</a></li>
+<li><a href="using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="workflows.md">Common workflows</a></li>
+<li><a href="PAGE_INDEX.md">Complete page index</a></li>
+</ul>
+</main></body></html>

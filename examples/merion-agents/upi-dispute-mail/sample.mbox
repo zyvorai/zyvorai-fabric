@@ -1,0 +1,25 @@
+From customer1@example.com Wed Mar 12 10:02:00 2025
+From: Ana Example <customer1@example.com>
+To: care@bank.example
+Subject: Money debited but not received
+Date: Wed, 12 Mar 2025 10:02:00 +0530
+
+Hello, Rs 1,250.00 was debited from my account on 11-03-2025 but the merchant says the amount was not received.
+UPI reference number 506712345678. Please arrange a reversal.
+
+From customer2@example.com Wed Mar 12 11:15:00 2025
+From: Ben Example <customer2@example.com>
+To: care@bank.example
+Subject: Transaction failed, no refund
+Date: Wed, 12 Mar 2025 11:15:00 +0530
+
+My UPI payment of Rs 4,999.00 failed but my account shows it debited. Ref 506798765432.
+If this is not resolved in 7 days I will file a complaint with the ombudsman.
+
+From customer1@example.com Thu Mar 13 09:40:00 2025
+From: Ana Example <customer1@example.com>
+To: care@bank.example
+Subject: Re: Money debited but not received
+Date: Thu, 13 Mar 2025 09:40:00 +0530
+
+Following up on 506712345678. Still pending.

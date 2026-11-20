@@ -1,0 +1,27 @@
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+[Unit]
+Description=Keep Chromium CDP (loopback only)
+After=network-online.target fluxvm-guest-agent.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+Environment=HOME=/home/agent
+ExecStartPre=/bin/mkdir -p /home/agent/.chromium
+ExecStart=/usr/bin/chromium \
+  --headless=new \
+  --remote-debugging-port=9222 \
+  --remote-debugging-address=127.0.0.1 \
+  --user-data-dir=/home/agent/.chromium \
+  --no-sandbox \
+  --disable-dev-shm-usage \
+  --disable-gpu \
+  about:blank
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

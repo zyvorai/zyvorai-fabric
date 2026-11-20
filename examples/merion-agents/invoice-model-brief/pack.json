@@ -1,0 +1,50 @@
+{
+  "kind": "usecase",
+  "name": "invoice-model-brief",
+  "title": "Invoice brief (with a model)",
+  "description": "Drop in an invoice PDF: rule-based sections plus a short generated summary from a model you approve.",
+  "accepts": [
+    "pdf"
+  ],
+  "extract": "pdftotext",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Totals",
+      "keywords": [
+        "total",
+        "amount due",
+        "balance",
+        "vat"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Dates",
+      "keywords": [
+        "due date",
+        "invoice date",
+        "payment terms",
+        "net 30"
+      ],
+      "max_lines": 4
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "((?:EUR|USD|GBP|\\$|€|£) ?[0-9][0-9,.]*)",
+      "group": 1,
+      "max_matches": 6
+    }
+  ],
+  "model": {
+    "credential": "llm",
+    "base_url": "https://api.example.com/v1",
+    "model": "small-1",
+    "instruction": "In at most five bullet points, list the vendor, invoice number, dates, line items and the total due. Say 'not stated' for anything missing.",
+    "max_input_chars": 12000,
+    "max_output_tokens": 400
+  },
+  "artifact_title": "invoice-brief.md"
+}

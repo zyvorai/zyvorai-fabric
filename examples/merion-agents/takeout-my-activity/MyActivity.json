@@ -1,0 +1,7 @@
+[
+  {"header": "Search", "title": "Searched for example weather", "time": "2026-09-01T09:00:00.000Z", "products": ["Search"]},
+  {"header": "Search", "title": "Searched for example recipes", "time": "2026-09-01T09:05:00.000Z", "products": ["Search"]},
+  {"header": "YouTube", "title": "Watched Example Video", "time": "2026-09-02T20:00:00.000Z", "products": ["YouTube"]},
+  {"header": "Maps", "title": "Searched for Example Cafe", "time": "2026-09-03T08:30:00.000Z", "products": ["Maps"]},
+  {"header": "Search", "title": "Visited Example Docs", "time": "2026-09-03T09:10:00.000Z", "products": ["Search"]}
+]

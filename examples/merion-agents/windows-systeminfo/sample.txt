@@ -1,0 +1,30 @@
+Host Name:                 EXAMPLE-PC
+OS Name:                   Microsoft Windows 11 Pro
+OS Version:                10.0.22631 N/A Build 22631
+OS Manufacturer:           Microsoft Corporation
+OS Configuration:          Standalone Workstation
+OS Build Type:             Multiprocessor Free
+Registered Owner:          Example User
+Original Install Date:     1/12/2024, 9:14:02 AM
+System Boot Time:          9/20/2026, 8:01:44 AM
+System Manufacturer:       Example Computers Inc.
+System Model:              Latitude 5440
+System Type:               x64-based PC
+Processor(s):              1 Processor(s) Installed.
+                           [01]: Intel64 Family 6 Model 186 Stepping 3 GenuineIntel ~2100 Mhz
+BIOS Version:              Example Computers Inc. 1.12.0, 3/4/2024
+Total Physical Memory:     16,145 MB
+Available Physical Memory: 6,201 MB
+Virtual Memory: Max Size:  20,241 MB
+Domain:                    WORKGROUP
+Logon Server:              \\EXAMPLE-PC
+Hotfix(s):                 3 Hotfix(s) Installed.
+                           [01]: KB5034441
+                           [02]: KB5036893
+                           [03]: KB5037771
+Network Card(s):           1 NIC(s) Installed.
+                           [01]: Example Wi-Fi Adapter
+                                 Connection Name: Wi-Fi
+                                 DHCP Enabled:    Yes
+                                 IP address(es)
+                                 [01]: 192.0.2.10

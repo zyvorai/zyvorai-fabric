@@ -1,0 +1,17 @@
+{
+  "kind": "agent",
+  "name": "outlook-compose",
+  "manifest": {
+    "template": "node22-agent",
+    "resources": { "vcpus": 1, "memory_mib": 512 },
+    "egress_mode": "deny",
+    "egress_allow_hosts": ["graph.microsoft.com"],
+    "egress_approval_timeout_seconds": 240,
+    "credentials": ["outlook-draft", "outlook-send"],
+    "confinement": "strict"
+  },
+  "goal": {
+    "title": "Draft or send an Outlook mail",
+    "text": "Write a plain-text mail as an Outlook draft, or send it. Every use waits for a phone-signed approval that shows the real recipients and text."
+  }
+}

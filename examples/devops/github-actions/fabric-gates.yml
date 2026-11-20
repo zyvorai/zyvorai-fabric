@@ -1,0 +1,52 @@
+# Copy into .github/workflows/ or call via workflow_call.
+# Secrets: FABRIC_CI_PASSWORD (optional live). Unit jobs need no secrets.
+name: fabric-devops-gates
+
+on:
+  workflow_call:
+    inputs:
+      fabric_url:
+        type: string
+        default: http://127.0.0.1:9095
+      live:
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      live:
+        type: boolean
+        default: false
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Probe contract unit tests
+        working-directory: examples/devops
+        run: python3 -m unittest test_contract.py -v
+      - name: DevOps gate offline dry-run
+        run: bash scripts/test-devops-gate.sh
+      - name: Proven-infra suites
+        run: |
+          python3 -m unittest benchmarks.test_harness -v
+          bash scripts/test-upgrade-rollback.sh
+          bash scripts/chaos-qualify.sh
+
+  live:
+    if: ${{ inputs.live }}
+    runs-on: [self-hosted, kvm]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Live stack gate
+        env:
+          FABRIC_URL: ${{ inputs.fabric_url }}
+          FLUXVM_URL: http://127.0.0.1:7788
+        run: bash scripts/devops-gate.sh
+      - name: Harness
+        env:
+          TOKEN: ${{ secrets.FABRIC_TOKEN }}
+        run: python3 benchmarks/harness.py --base-url "$FABRIC_URL" --token "$TOKEN" --out /tmp/bench.json

@@ -1,0 +1,30 @@
+groups:
+  - name: zyvor-fabricd
+    interval: 30s
+    rules:
+      - alert: ZyvorFabricdDown
+        expr: up{job="zyvor-fabricd"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "zyvor-fabricd is down"
+          description: "zyvor-fabricd has been down for more than 1 minute"
+
+      - alert: HighVMCount
+        expr: zyvor_fabricd_vms_total > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of VMs"
+          description: "VM count ({{ $value }}) is above 100"
+
+      - alert: NoRunningVMs
+        expr: zyvor_fabricd_vms_running == 0 and zyvor_fabricd_vms_total > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No VMs are running"
+          description: "All VMs are stopped"

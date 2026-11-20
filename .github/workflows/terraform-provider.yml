@@ -1,0 +1,25 @@
+name: Terraform Provider
+
+on:
+  push:
+    paths:
+      - "terraform-provider/**"
+  pull_request:
+    paths:
+      - "terraform-provider/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform-provider
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+      - run: go mod tidy
+      - run: go build -v .
+      - run: go vet ./...
+      - run: go test ./...

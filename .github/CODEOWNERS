@@ -1,0 +1,19 @@
+# CODEOWNERS — replace with org team once @zyvorai/fabric-maintainers exists.
+# See docs/GOVERNANCE.md.
+*       @hypersdk @ssahani
+
+/backend/ @hypersdk @ssahani
+/backend/zyvor-fabricd/src/api/external_auth.rs @hypersdk @ssahani
+/backend/zyvor-fabricd/src/api/auth.rs @hypersdk @ssahani
+/backend/security/ @hypersdk @ssahani
+
+/web/ @hypersdk @ssahani
+
+/operator/ @hypersdk @ssahani
+/charts/ @hypersdk @ssahani
+/k8s/ @hypersdk @ssahani
+/terraform-provider/ @hypersdk @ssahani
+
+/.github/ @hypersdk @ssahani
+/SECURITY.md @hypersdk @ssahani
+/deny.toml @hypersdk @ssahani

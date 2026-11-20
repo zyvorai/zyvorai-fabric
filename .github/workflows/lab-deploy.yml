@@ -1,0 +1,37 @@
+# Rebuild zyvor-fabricd on the lab host and run the same checks as a manual
+# `./scripts/deploy-remote.sh 80.79.5.173 sus --quick --e2e --verify-apis`.
+# SSH uses the LAB_DEPLOY_KEY secret, a key that can log in as sus and nothing else.
+name: Lab deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: lab-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'zyvorai/fabric' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configure deploy SSH key
+        env:
+          LAB_DEPLOY_KEY: ${{ secrets.LAB_DEPLOY_KEY }}
+        run: |
+          if [ -z "$LAB_DEPLOY_KEY" ]; then
+            echo "::error::LAB_DEPLOY_KEY secret is not set"
+            exit 1
+          fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$LAB_DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 80.79.5.173 >> ~/.ssh/known_hosts
+
+      - name: Deploy and test
+        run: ./scripts/deploy-remote.sh 80.79.5.173 sus --quick --e2e --verify-apis

@@ -1,0 +1,73 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
+/** What a person reviews before approving a Merion `changeset` approval. */
+export interface ChangesetSummary {
+  command: string
+  exitCode: number | null
+  added: string[]
+  modified: string[]
+  deleted: string[]
+  unstaged: string[]
+  egress: string | null
+  /** What re-applying the changeset does again: the file changes. From `side_effects.replayable`. */
+  replayable: string[]
+  nonReplayable: string[]
+  /** Unix seconds after which FluxVM drops the changeset, if reported. */
+  expiresAt: number | null
+}
+
+const strings = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []
+
+/**
+ * Read a changeset approval's `planned_action` defensively: it comes from FluxVM through the
+ * runtime, so every field may be missing. Returns null when it is not a changeset at all.
+ */
+export function summarizeChangeset(planned: unknown): ChangesetSummary | null {
+  if (!planned || typeof planned !== 'object') return null
+  const p = planned as Record<string, unknown>
+  if (typeof p.changeset_id !== 'string') return null
+  const changes = (p.changes && typeof p.changes === 'object' ? p.changes : {}) as Record<string, unknown>
+  const effects = (p.side_effects && typeof p.side_effects === 'object' ? p.side_effects : {}) as Record<
+    string,
+    unknown
+  >
+  return {
+    command: typeof p.command === 'string' ? p.command : '',
+    exitCode: typeof p.exit_code === 'number' ? p.exit_code : null,
+    added: strings(changes.added),
+    modified: strings(changes.modified),
+    deleted: strings(changes.deleted),
+    unstaged: strings(p.unstaged),
+    egress: typeof effects.egress === 'string' ? effects.egress : null,
+    replayable: strings(effects.replayable),
+    nonReplayable: strings(effects.non_replayable),
+    expiresAt: typeof p.expires_at === 'number' && p.expires_at > 0 ? p.expires_at : null,
+  }
+}
+
+export function changeCount(s: ChangesetSummary): number {
+  return s.added.length + s.modified.length + s.deleted.length
+}
+
+/** Whole seconds left before the changeset expires (0 once expired); null when FluxVM gave no deadline. */
+export function secondsUntilExpiry(s: ChangesetSummary, nowMs: number): number | null {
+  if (s.expiresAt === null) return null
+  return Math.max(0, Math.ceil(s.expiresAt - nowMs / 1000))
+}
+
+export function formatRemaining(seconds: number): string {
+  if (seconds <= 0) return 'expired'
+  const m = Math.floor(seconds / 60)
+  const sec = seconds % 60
+  return m > 0 ? `${m}m ${String(sec).padStart(2, '0')}s left` : `${sec}s left`
+}
+
+/** The share of the changeset that is added, modified and deleted (each 0 to 1, summing to 1; all 0 when empty), for a
+    proportional bar. A person reads the counts too: the bar is a glance, not the only signal. */
+export function changeShares(s: ChangesetSummary): { added: number; modified: number; deleted: number } {
+  const n = changeCount(s)
+  if (n === 0) return { added: 0, modified: 0, deleted: 0 }
+  return { added: s.added.length / n, modified: s.modified.length / n, deleted: s.deleted.length / n }
+}

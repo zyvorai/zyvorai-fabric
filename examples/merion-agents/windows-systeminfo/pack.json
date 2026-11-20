@@ -1,0 +1,105 @@
+{
+  "kind": "usecase",
+  "name": "windows-systeminfo",
+  "title": "Windows system info",
+  "description": "Drop in `systeminfo` output and get the OS and build, hardware, boot time, memory, domain and installed hotfixes.",
+  "accepts": [
+    "txt"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "regex_extract",
+      "title": "OS",
+      "pattern": "(?m)^OS Name:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Version and build",
+      "pattern": "(?m)^OS Version:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Installed on",
+      "pattern": "(?m)^Original Install Date:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Last boot",
+      "pattern": "(?m)^System Boot Time:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Machine",
+      "pattern": "(?m)^System Manufacturer:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Model",
+      "pattern": "(?m)^System Model:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Architecture",
+      "pattern": "(?m)^System Type:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "BIOS",
+      "pattern": "(?m)^BIOS Version:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Memory total",
+      "pattern": "(?m)^Total Physical Memory:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Memory free",
+      "pattern": "(?m)^Available Physical Memory:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Domain",
+      "pattern": "(?m)^Domain:\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Hotfix count",
+      "pattern": "(?m)^Hotfix\\(s\\):\\s+(.+)",
+      "max_matches": 2,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Hotfixes",
+      "pattern": "\\[\\d+\\]: (KB\\d+)",
+      "max_matches": 40,
+      "group": 1
+    }
+  ],
+  "artifact_title": "windows-systeminfo.md",
+  "sample_file": "sample.txt"
+}

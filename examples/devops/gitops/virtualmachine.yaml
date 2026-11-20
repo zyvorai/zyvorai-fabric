@@ -1,0 +1,22 @@
+apiVersion: zyvor-fabricd.io/v1alpha1
+kind: VirtualMachine
+metadata:
+  name: web-gitops
+  labels:
+    tenant: team-web
+spec:
+  image: /var/lib/zyvor-fabricd/images/ubuntu-22.04.qcow2
+  cpus: 2
+  memory: 2048
+  cloudInit:
+    userData: |
+      #cloud-config
+      packages:
+        - qemu-guest-agent
+      runcmd:
+        - systemctl enable --now qemu-guest-agent
+  tpm:
+    enabled: true
+    version: "2.0"
+  vnc:
+    enabled: true

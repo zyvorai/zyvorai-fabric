@@ -1,0 +1,53 @@
+{
+  "kind": "usecase",
+  "name": "upi-dispute-mail",
+  "title": "UPI dispute mail",
+  "description": "Drop in customer dispute mail (.eml, .mbox) and get what customers report, UPI reference numbers, amounts and escalation asks.",
+  "accepts": [
+    "eml",
+    "mbox"
+  ],
+  "extract": "eml",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "What customers report",
+      "keywords": [
+        "debited",
+        "not received",
+        "not credited",
+        "failed",
+        "pending",
+        "reversal",
+        "refund",
+        "chargeback"
+      ],
+      "max_lines": 12
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Reference numbers (12 digits)",
+      "pattern": "\\b[0-9]{12}\\b",
+      "max_matches": 12
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "(?:Rs\\.?|INR|₹)\\s?[0-9][0-9,]*(?:\\.[0-9]{2})?",
+      "max_matches": 12
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Asks for escalation",
+      "keywords": [
+        "ombudsman",
+        "complaint",
+        "escalate",
+        "legal notice"
+      ],
+      "max_lines": 6
+    }
+  ],
+  "artifact_title": "disputes.md",
+  "sample_file": "sample.mbox"
+}

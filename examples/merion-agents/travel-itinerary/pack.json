@@ -1,0 +1,53 @@
+{
+  "kind": "usecase",
+  "name": "travel-itinerary",
+  "title": "Travel itinerary",
+  "description": "Drop in a booking or boarding-pass email and get flights, stays, booking references and what was paid.",
+  "accepts": [
+    "eml",
+    "mbox"
+  ],
+  "extract": "eml",
+  "summary": [
+    {
+      "kind": "keyword_sections",
+      "title": "Flights",
+      "keywords": [
+        "flight",
+        "departs",
+        "arrives",
+        "boarding",
+        "gate",
+        "check-in",
+        "terminal"
+      ],
+      "max_lines": 8
+    },
+    {
+      "kind": "keyword_sections",
+      "title": "Stays",
+      "keywords": [
+        "hotel",
+        "check-out",
+        "nights",
+        "room"
+      ],
+      "max_lines": 6
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Booking references",
+      "pattern": "(?i)(?:ref(?:erence)?|confirmation(?: number)?)[: ]+([A-Z0-9][A-Z0-9-]{4,9})",
+      "max_matches": 8,
+      "group": 1
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Amounts",
+      "pattern": "(?:Rs\\.?|INR|USD|EUR|GBP|\\$|€|£)\\s?[0-9][0-9,]*(?:\\.[0-9]{2})?",
+      "max_matches": 8
+    }
+  ],
+  "artifact_title": "itinerary.md",
+  "sample_file": "sample.eml"
+}

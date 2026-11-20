@@ -1,0 +1,35 @@
+{
+  "kind": "usecase",
+  "name": "windows-hotfixes",
+  "title": "Windows hotfixes",
+  "description": "Drop in `Get-HotFix` exported as CSV and get the KB numbers, types of update, who installed them and when.",
+  "accepts": [
+    "csv"
+  ],
+  "extract": "text",
+  "summary": [
+    {
+      "kind": "csv_columns",
+      "title": "Updates",
+      "columns": [
+        "hotfixid",
+        "description",
+        "installedby"
+      ],
+      "top": 8
+    },
+    {
+      "kind": "regex_extract",
+      "title": "Install dates",
+      "pattern": "\\\"(\\d{1,2}/\\d{1,2}/\\d{4}) ",
+      "max_matches": 20,
+      "group": 1
+    },
+    {
+      "kind": "stats",
+      "title": "Size"
+    }
+  ],
+  "artifact_title": "windows-hotfixes.md",
+  "sample_file": "sample.csv"
+}
