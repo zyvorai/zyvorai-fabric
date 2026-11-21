@@ -373,7 +373,10 @@ async fn gateway_inner(
             &body_bytes,
             &super::router::header_pairs(&parts.headers),
         );
-        let decision = super::router::decide(&router, &input, rand::random::<u64>());
+        let arms = (router.strategy == super::router::RouteStrategy::Bandit)
+            .then(|| super::router::bandit_arms(state, &router));
+        let decision =
+            super::router::decide_with(&router, &input, rand::random::<u64>(), arms.as_deref());
         let max_attempts = if router.failover {
             router.max_attempts.max(1) as usize
         } else {

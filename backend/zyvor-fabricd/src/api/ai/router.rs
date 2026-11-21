@@ -44,6 +44,8 @@ pub enum RouteStrategy {
     Rules,
     Cost,
     Split,
+    /// Thompson sampling over the traces' scores: traffic drifts to the better arm.
+    Bandit,
 }
 
 /// One arm: an existing `InferenceEndpoint` plus what it costs and how good it is.
@@ -141,12 +143,26 @@ pub struct AiRouter {
     /// Arms tried per request, including the first.
     #[serde(default = "default_max_attempts")]
     pub max_attempts: u32,
+    /// `bandit`: share of requests sent to a uniformly random arm so every
+    /// arm keeps getting measured.
+    #[serde(default = "default_explore")]
+    pub explore: f64,
+    /// `bandit`: scored traces an arm needs before it competes on its record;
+    /// until then arms below it are sampled first.
+    #[serde(default = "default_warmup")]
+    pub warmup: u64,
     #[serde(default)]
     pub updated_unix: i64,
 }
 
 fn default_max_attempts() -> u32 {
     2
+}
+fn default_explore() -> f64 {
+    0.1
+}
+fn default_warmup() -> u64 {
+    20
 }
 
 fn default_sticky() -> String {
@@ -197,6 +213,9 @@ impl AiRouter {
             if !known(&r.to) {
                 return Err(format!("rule target '{}' is not a candidate", r.to));
             }
+        }
+        if !(0.0..=0.5).contains(&self.explore) || self.explore.is_nan() {
+            return Err("explore must be between 0 and 0.5".into());
         }
         if self.strategy == RouteStrategy::Split && self.candidates.iter().all(|c| c.weight == 0) {
             return Err("split needs at least one candidate with weight above 0".into());
@@ -359,6 +378,12 @@ pub struct Decision {
 
 /// Rank the candidates for one request. `roll` is only used by unsticky splits.
 pub fn decide(r: &AiRouter, i: &RouteInput, roll: u64) -> Decision {
+    decide_with(r, i, roll, None)
+}
+
+/// [`decide`] with the per-arm score record the `bandit` strategy learns from
+/// (aligned with `r.candidates`; `None` means no data yet).
+pub fn decide_with(r: &AiRouter, i: &RouteInput, roll: u64, arms: Option<&[ArmScore]>) -> Decision {
     if r.allow_override {
         if let Some(want) = i.header("x-fabric-variant") {
             if let Some(idx) = r.candidates.iter().position(|c| c.name == want) {
@@ -413,6 +438,7 @@ pub fn decide(r: &AiRouter, i: &RouteInput, roll: u64) -> Decision {
                 }
             }
         }
+        RouteStrategy::Bandit => bandit_pick(r, roll, arms),
         RouteStrategy::Split => {
             let total: u64 = r.candidates.iter().map(|c| u64::from(c.weight)).sum();
             let roll = match i.header(&r.sticky_header) {
@@ -467,14 +493,170 @@ fn finish(r: &AiRouter, primary: usize, reason: String) -> Decision {
     Decision { order, reason }
 }
 
+// ---- Bandit ----------------------------------------------------------------
+
+/// Scored traces seen on one arm: how many, and the sum of their 0..1 scores.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct ArmScore {
+    pub n: u64,
+    pub sum: f64,
+}
+
+/// SplitMix64: tiny deterministic PRNG so a decision is reproducible from `roll`.
+struct Rng(u64);
+
+impl Rng {
+    fn next_u64(&mut self) -> u64 {
+        self.0 = self.0.wrapping_add(0x9E37_79B9_7F4A_7C15);
+        let mut z = self.0;
+        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+        z ^ (z >> 31)
+    }
+    /// Uniform in (0, 1).
+    fn unit(&mut self) -> f64 {
+        ((self.next_u64() >> 11) as f64 + 0.5) / (1u64 << 53) as f64
+    }
+    fn normal(&mut self) -> f64 {
+        let (u1, u2) = (self.unit(), self.unit());
+        (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos()
+    }
+    /// Gamma(shape >= 1, 1) by Marsaglia-Tsang.
+    fn gamma(&mut self, shape: f64) -> f64 {
+        let d = shape - 1.0 / 3.0;
+        let c = 1.0 / (9.0 * d).sqrt();
+        loop {
+            let x = self.normal();
+            let v = (1.0 + c * x).powi(3);
+            if v <= 0.0 {
+                continue;
+            }
+            let u = self.unit();
+            if u.ln() < 0.5 * x * x + d - d * v + d * v.ln() {
+                return d * v;
+            }
+        }
+    }
+    fn beta(&mut self, a: f64, b: f64) -> f64 {
+        let x = self.gamma(a);
+        let y = self.gamma(b);
+        x / (x + y)
+    }
+}
+
+/// Thompson sampling with a Beta(1 + score mass, 1 + miss mass) posterior per
+/// arm, which treats a 0..1 score as a fractional success.
+fn bandit_pick(r: &AiRouter, roll: u64, arms: Option<&[ArmScore]>) -> (usize, String) {
+    let n = r.candidates.len();
+    let mut rng = Rng(roll);
+    let stat = |k: usize| arms.and_then(|a| a.get(k)).copied().unwrap_or_default();
+    let cold: Vec<usize> = (0..n).filter(|k| stat(*k).n < r.warmup).collect();
+    if !cold.is_empty() {
+        let k = cold[(rng.next_u64() % cold.len() as u64) as usize];
+        return (
+            k,
+            format!(
+                "bandit warm-up: '{}' has {} of {} scored traces",
+                r.candidates[k].name,
+                stat(k).n,
+                r.warmup
+            ),
+        );
+    }
+    if rng.unit() < r.explore {
+        let k = (rng.next_u64() % n as u64) as usize;
+        return (k, format!("bandit explore ({:.0}%)", r.explore * 100.0));
+    }
+    let mut best = (0usize, f64::NEG_INFINITY);
+    for k in 0..n {
+        let s = stat(k);
+        let sum = s.sum.clamp(0.0, s.n as f64);
+        let draw = rng.beta(1.0 + sum, 1.0 + (s.n as f64 - sum));
+        if draw > best.1 {
+            best = (k, draw);
+        }
+    }
+    let means: Vec<String> = (0..n)
+        .map(|k| {
+            let s = stat(k);
+            format!(
+                "{}={:.2}",
+                r.candidates[k].name,
+                if s.n > 0 { s.sum / s.n as f64 } else { 0.0 }
+            )
+        })
+        .collect();
+    (best.0, format!("bandit thompson ({})", means.join(" ")))
+}
+
+/// Per-arm score record for a bandit router from stored traces, using each
+/// arm's newest `window` scored traces so old behaviour ages out.
+pub fn arm_scores(r: &AiRouter, traces: &[Trace], window: usize) -> Vec<ArmScore> {
+    let mut by: Vec<Vec<(i64, f64)>> = vec![Vec::new(); r.candidates.len()];
+    for t in traces {
+        let (Some(v), Some(score)) = (t.variant.as_deref(), t.score) else {
+            continue;
+        };
+        if let Some(k) = r.candidates.iter().position(|c| c.name == v) {
+            by[k].push((t.created_unix, score));
+        }
+    }
+    by.into_iter()
+        .map(|mut list| {
+            list.sort_by_key(|(ts, _)| std::cmp::Reverse(*ts));
+            list.truncate(window);
+            ArmScore {
+                n: list.len() as u64,
+                sum: list.iter().map(|(_, s)| s).sum(),
+            }
+        })
+        .collect()
+}
+
+const BANDIT_WINDOW: usize = 500;
+const BANDIT_TTL: std::time::Duration = std::time::Duration::from_secs(10);
+
+type ArmCache = std::collections::HashMap<String, (std::time::Instant, Vec<ArmScore>)>;
+static ARM_CACHE: std::sync::LazyLock<std::sync::Mutex<ArmCache>> =
+    std::sync::LazyLock::new(Default::default);
+
+/// Cached [`arm_scores`] for a router (refreshed every few seconds so the hot
+/// path does not scan the trace store per request).
+pub fn bandit_arms(state: &AppState, r: &AiRouter) -> Vec<ArmScore> {
+    if let Ok(cache) = ARM_CACHE.lock() {
+        if let Some((at, arms)) = cache.get(&r.endpoint) {
+            if at.elapsed() < BANDIT_TTL && arms.len() == r.candidates.len() {
+                return arms.clone();
+            }
+        }
+    }
+    let traces: Vec<Trace> = state
+        .store
+        .list_entities_filtered(
+            STORE_TRACES,
+            |t: &Trace| t.router.as_deref() == Some(r.endpoint.as_str()) && t.score.is_some(),
+            1_000_000,
+        )
+        .unwrap_or_default();
+    let arms = arm_scores(r, &traces, BANDIT_WINDOW);
+    if let Ok(mut cache) = ARM_CACHE.lock() {
+        cache.insert(r.endpoint.clone(), (std::time::Instant::now(), arms.clone()));
+    }
+    arms
+}
+
 // ---- A/B report ------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct Comparison {
     pub delta: f64,
     pub z: f64,
+    /// Fixed-horizon p-value: valid only for one look at a planned sample size.
     pub p_value: f64,
     pub significant: bool,
+    /// Always-valid p-value (mixture SPRT): safe to check as data arrives.
+    pub p_sequential: f64,
+    pub sequential_significant: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -557,12 +739,32 @@ pub fn compare(a: &[f64], b: &[f64], alpha: f64) -> Option<Comparison> {
         let z = delta / se;
         (z, 2.0 * (1.0 - normal_cdf(z.abs())))
     };
+    let p_seq = sequential_p(delta, se * se);
     Some(Comparison {
         delta,
         z: if z.is_finite() { z } else { 0.0 },
         p_value: p,
         significant: p < alpha,
+        p_sequential: p_seq,
+        sequential_significant: p_seq < alpha,
     })
+}
+
+/// Prior standard deviation of the true effect for the mixture SPRT: scores are
+/// 0..1, so effects of a few points are the interesting ones.
+const MSPRT_TAU: f64 = 0.1;
+
+/// Always-valid p-value of a mean difference `delta` with variance `v` (mixture
+/// SPRT with a normal prior on the effect). The likelihood ratio is a martingale
+/// under the null, so rejecting whenever it passes 1/alpha keeps the false
+/// positive rate at alpha no matter how often the report is read.
+pub fn sequential_p(delta: f64, v: f64) -> f64 {
+    if v <= 0.0 {
+        return if delta == 0.0 { 1.0 } else { 0.0 };
+    }
+    let t2 = MSPRT_TAU * MSPRT_TAU;
+    let ln_lambda = 0.5 * (v / (v + t2)).ln() + t2 * delta * delta / (2.0 * v * (v + t2));
+    (-ln_lambda).exp().min(1.0)
 }
 
 pub fn build_report(r: &AiRouter, traces: &[Trace], min_samples: u64) -> Report {
@@ -641,7 +843,7 @@ fn recommend(variants: &[VariantStats], control: &str) -> String {
         .iter()
         .filter(|v| {
             let c = v.vs_control.as_ref().expect("filtered");
-            c.significant && c.delta > 0.0
+            c.sequential_significant && c.delta > 0.0
         })
         .max_by(|a, b| {
             let da = a.vs_control.as_ref().map_or(0.0, |c| c.delta);
@@ -650,13 +852,13 @@ fn recommend(variants: &[VariantStats], control: &str) -> String {
         });
     match best {
         Some(v) => format!(
-            "promote '{}': significantly better than '{control}'",
+            "promote '{}': significantly better than '{control}' (sequential test)",
             v.variant
         ),
         None if judged.iter().all(|v| {
             v.vs_control
                 .as_ref()
-                .is_some_and(|c| c.significant && c.delta < 0.0)
+                .is_some_and(|c| c.sequential_significant && c.delta < 0.0)
         }) =>
         {
             format!("keep '{control}': every challenger scores significantly lower")
@@ -778,7 +980,8 @@ pub async fn explain_decision(
     let r = load_router(&state, &endpoint)?;
     let hs = header_pairs(&headers);
     let input = RouteInput::from_request(&body, &hs);
-    let d = decide(&r, &input, rand::random::<u64>());
+    let arms = (r.strategy == RouteStrategy::Bandit).then(|| bandit_arms(&state, &r));
+    let d = decide_with(&r, &input, rand::random::<u64>(), arms.as_deref());
     let order: Vec<&str> = d
         .order
         .iter()
@@ -906,6 +1109,8 @@ mod tests {
             enabled: true,
             failover: true,
             max_attempts: 2,
+            explore: 0.1,
+            warmup: 20,
             updated_unix: 0,
         }
     }
@@ -1211,5 +1416,141 @@ mod tests {
         .unwrap();
         assert!(r.failover);
         assert_eq!(r.max_attempts, 2);
+    }
+
+    fn trace_at(variant: &str, score: Option<f64>, ts: i64) -> Trace {
+        let mut t = trace(variant, score, 200, ts as u64);
+        t.created_unix = ts;
+        t
+    }
+
+    fn arms(a: (u64, f64), b: (u64, f64)) -> Vec<ArmScore> {
+        vec![
+            ArmScore { n: a.0, sum: a.1 },
+            ArmScore { n: b.0, sum: b.1 },
+        ]
+    }
+
+    fn picks(r: &AiRouter, a: &[ArmScore], n: u64) -> [u32; 2] {
+        let mut c = [0u32; 2];
+        for roll in 0..n {
+            let d = decide_with(r, &input("hi"), roll.wrapping_mul(0x9E37_79B9), Some(a));
+            c[d.order[0]] += 1;
+        }
+        c
+    }
+
+    #[test]
+    fn bandit_warms_up_arms_without_data() {
+        let r = router(RouteStrategy::Bandit);
+        // "small" has no scores yet: it is the only cold arm, so it is always picked.
+        let c = picks(&r, &arms((100, 90.0), (0, 0.0)), 200);
+        assert_eq!(c, [0, 200]);
+        let d = decide_with(&r, &input("hi"), 1, None);
+        assert!(d.reason.starts_with("bandit warm-up"));
+    }
+
+    #[test]
+    fn bandit_shifts_traffic_to_the_better_arm() {
+        let mut r = router(RouteStrategy::Bandit);
+        r.explore = 0.0;
+        // big averages 0.9, small 0.5 over 100 scored traces each.
+        let c = picks(&r, &arms((100, 90.0), (100, 50.0)), 1000);
+        assert!(c[0] > 990, "better arm should win nearly always: {c:?}");
+    }
+
+    #[test]
+    fn bandit_still_explores_and_keeps_uncertain_arms_alive() {
+        let mut r = router(RouteStrategy::Bandit);
+        r.explore = 0.2;
+        let c = picks(&r, &arms((100, 90.0), (100, 50.0)), 2000);
+        // 20% explore spreads half of those over the weaker arm: roughly 10%.
+        assert!(c[1] > 120 && c[1] < 300, "explore share off: {c:?}");
+        // Two arms with almost equal records stay close to 50/50.
+        r.explore = 0.0;
+        let c = picks(&r, &arms((30, 21.0), (30, 20.0)), 2000);
+        assert!(c[0] > 700 && c[1] > 500, "near-tie should mix: {c:?}");
+    }
+
+    #[test]
+    fn bandit_is_deterministic_for_a_roll() {
+        let r = router(RouteStrategy::Bandit);
+        let a = arms((50, 40.0), (50, 35.0));
+        let x = decide_with(&r, &input("hi"), 42, Some(&a));
+        let y = decide_with(&r, &input("hi"), 42, Some(&a));
+        assert_eq!(x.order, y.order);
+    }
+
+    #[test]
+    fn beta_sampler_has_the_right_mean() {
+        let mut rng = Rng(7);
+        let n = 20_000;
+        let mean = (0..n).map(|_| rng.beta(9.0, 3.0)).sum::<f64>() / n as f64;
+        assert!((mean - 0.75).abs() < 0.01, "mean {mean}");
+    }
+
+    #[test]
+    fn arm_scores_use_the_newest_window() {
+        let r = router(RouteStrategy::Bandit);
+        let mut ts = Vec::new();
+        for i in 0..10 {
+            ts.push(trace_at("big", Some(if i < 5 { 0.0 } else { 1.0 }), i));
+        }
+        let a = arm_scores(&r, &ts, 5);
+        assert_eq!(a[0], ArmScore { n: 5, sum: 5.0 });
+        assert_eq!(a[1], ArmScore::default());
+    }
+
+    #[test]
+    fn sequential_p_is_conservative_where_fixed_horizon_is_not() {
+        // A borderline effect: z ~ 2.1 passes the fixed test but not the always-valid one.
+        let v: f64 = 0.001; // se ~ 0.0316
+        let delta = 2.1 * v.sqrt();
+        assert!(sequential_p(delta, v) > 0.05);
+        // A large effect clears both.
+        assert!(sequential_p(0.3, v) < 1e-6);
+        // No difference never rejects.
+        assert_eq!(sequential_p(0.0, v), 1.0);
+        assert_eq!(sequential_p(0.0, 0.0), 1.0);
+        assert_eq!(sequential_p(0.1, 0.0), 0.0);
+    }
+
+    #[test]
+    fn sequential_test_holds_its_false_positive_rate_under_peeking() {
+        // Two identical arms, checked after every 10 samples up to 1000.
+        let mut rng = Rng(99);
+        let mut rejected = 0;
+        let trials = 300;
+        for _ in 0..trials {
+            let (mut a, mut b) = (Vec::new(), Vec::new());
+            let mut hit = false;
+            for step in 1..=100 {
+                for _ in 0..10 {
+                    a.push(f64::from(rng.unit() < 0.6));
+                    b.push(f64::from(rng.unit() < 0.6));
+                }
+                if let Some(c) = compare(&a, &b, 0.05) {
+                    if c.sequential_significant {
+                        hit = true;
+                        break;
+                    }
+                }
+                let _ = step;
+            }
+            rejected += usize::from(hit);
+        }
+        // Naive peeking with the fixed test would reject far more than 5%.
+        assert!(
+            (rejected as f64 / trials as f64) < 0.08,
+            "false positives {rejected}/{trials}"
+        );
+    }
+
+    #[test]
+    fn explore_must_be_a_fraction() {
+        let mut r = router(RouteStrategy::Bandit);
+        assert!(r.validate().is_ok());
+        r.explore = 0.9;
+        assert!(r.validate().is_err());
     }
 }
