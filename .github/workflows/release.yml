@@ -171,7 +171,7 @@ jobs:
           push-to-registry: true
 
       - name: Attest SBOM (container image)
-        uses: actions/attest-sbom@v2
+        uses: actions/attest-sbom@v4
         with:
           subject-name: ghcr.io/${{ github.repository }}
           subject-digest: ${{ needs.container.outputs.digest }}
