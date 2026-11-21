@@ -156,7 +156,7 @@ jobs:
       # Provenance + SBOM attestations (Sigstore keyless, same OIDC identity as cosign above).
       # Image attestations are pushed to GHCR next to the image digest.
       - name: Attest build provenance (release archives and charts)
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             release/*.tar.gz
@@ -164,7 +164,7 @@ jobs:
             release/SHA256SUMS.txt
 
       - name: Attest build provenance (container image)
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: ghcr.io/${{ github.repository }}
           subject-digest: ${{ needs.container.outputs.digest }}
