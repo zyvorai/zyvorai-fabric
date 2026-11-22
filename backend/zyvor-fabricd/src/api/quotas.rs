@@ -729,6 +729,34 @@ fn calculate_quota_usage(
 // Enforcement Logic
 // ============================================================================
 
+/// Read-only: enabled quotas that apply to a workload with this tenant/tags,
+/// with `used_*` recomputed live from the store (same accounting as
+/// [`check_quota_enforcement`]). Used by the pre-flight check.
+pub(crate) fn applicable_quotas_with_usage(
+    state: &AppState,
+    tenant: Option<&str>,
+    tags: &[String],
+) -> Vec<ResourceQuota> {
+    let mut quotas: Vec<ResourceQuota> = state
+        .store
+        .list_entities::<ResourceQuota>("quotas")
+        .unwrap_or_default();
+    quotas.retain(|q| q.enabled && quota_applies(q, tenant, tags));
+    if quotas.is_empty() {
+        return quotas;
+    }
+    let vms = state.store.list_vms().unwrap_or_default();
+    let container_groups: Vec<ContainerGroupSpec> = state
+        .store
+        .list_entities::<ContainerGroupSpec>("container_groups")
+        .unwrap_or_default();
+    let gpu_workloads = list_gpu_workloads(state);
+    for quota in quotas.iter_mut() {
+        calculate_quota_usage(&vms, &container_groups, &gpu_workloads, quota);
+    }
+    quotas
+}
+
 /// Check if creating/applying a workload would exceed any applicable quota.
 /// Usage is recalculated live from the current VM/ContainerGroup/AI
 /// deployment lists rather than trusting each quota's stored `used_*`

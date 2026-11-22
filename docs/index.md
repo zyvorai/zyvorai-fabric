@@ -269,7 +269,7 @@ Detailed documentation for each major feature area.
 | `fabricctl stop` | Stop a running VM |
 | `fabricctl restart` | Restart a VM |
 | `fabricctl delete` | Delete a VM |
-| `fabricctl apply` | Apply declarative YAML specification |
+| `fabricctl apply` | Apply declarative YAML specification; `--dry-run` prints the plan ([details](declarative-plan.md)) |
 | `fabricctl policy` | Manage network policies |
 | `fabricctl dataplane` | VM edge dataplane (policy, flows, hubble, CNP, …) |
 | `fabricctl status` | Fabric API + dataplane health checklist |
@@ -414,7 +414,7 @@ The REST API is organized into the following endpoint groups:
 | iSCSI | `/api/iscsi/` | 5 | iSCSI target discovery and session management |
 | USB | `/api/usb/` | 4 | USB device listing and passthrough |
 | SPICE | `/api/vms/{name}/spice/` | 2 | SPICE display connection |
-| Declarative | `/api/vms/apply` | 2 | YAML spec apply and export |
+| Declarative | `/api/vms/apply`, `/api/vms/plan` | 3 | YAML spec apply, export, and dry-run plan ([details](declarative-plan.md)) |
 | Auto-Scale | `/api/autoscale/` | 4 | Scaling policies and events |
 | WebSocket | `/api/ws/` | 3 | Console, VNC, events |
 

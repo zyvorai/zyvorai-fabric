@@ -433,6 +433,10 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             get(api::ux_extensions::vm_healthcheck),
         )
         .route("/vms/{name}/start", post(routes::start_vm))
+        .route(
+            "/vms/{name}/preflight",
+            post(crate::preflight::preflight_vm),
+        )
         .route("/vms/{name}/port-forwards", post(routes::add_port_forward))
         .route(
             "/vms/{name}/port-forwards/{host_port}",
@@ -1186,6 +1190,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route("/vms/{name}/fork", post(api::vm_advanced::fork_vm))
         // Declarative VM spec
         .route("/vms/apply", post(api::declarative::apply_vm_spec))
+        .route("/vms/plan", post(api::declarative::plan_vm_specs))
         .route("/vms/{name}/spec", get(api::declarative::export_vm_spec))
         // Declarative ContainerGroup spec (FluxVM Secure Containers)
         .route(

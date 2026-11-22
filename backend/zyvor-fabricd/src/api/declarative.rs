@@ -1,7 +1,12 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{
+    extract::{Query, State},
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::Arc;
@@ -228,7 +233,7 @@ pub(crate) fn parse_memory_mb(s: &str) -> Result<u64, String> {
 
 /// Parse disk string like "20G", "100G" to GB.
 /// Returns an error on invalid input instead of silently defaulting.
-fn parse_disk_gb(s: &str) -> Result<u64, String> {
+pub(crate) fn parse_disk_gb(s: &str) -> Result<u64, String> {
     let s = s.trim();
     if let Some(gb) = s
         .strip_suffix('G')
@@ -262,12 +267,95 @@ fn parse_disk_gb(s: &str) -> Result<u64, String> {
 // Handlers
 // ============================================================================
 
+/// Optional query parameters for `POST /api/vms/apply`. Both are additive:
+/// with neither present the apply behaves exactly as it always has.
+#[derive(Debug, Default, Deserialize)]
+pub struct ApplyQuery {
+    /// Return the plan and change nothing.
+    #[serde(default)]
+    pub dry_run: bool,
+    /// Refuse (409) unless the live plan for this spec hashes to this value.
+    #[serde(default)]
+    pub expected_plan_hash: Option<String>,
+}
+
+type ApiError = (StatusCode, Json<serde_json::Value>);
+
+/// Rebuild the declarative spec for a stored VM (shared by export and plan).
+fn build_vm_spec(store: &state_store::StateStore, vm: vm_model::VM) -> VMSpec {
+    let name = vm.name.clone();
+    let volumes: Vec<VolumeMount> = store
+        .get_entity("vm_volumes", &name)
+        .ok()
+        .flatten()
+        .unwrap_or_default();
+    let autoscale: Option<AutoScaleSpec> =
+        store.get_entity("autoscale_policies", &name).ok().flatten();
+    let memory_str = if vm.memory >= 1024 && vm.memory & 1023 == 0 {
+        format!("{}G", vm.memory / 1024)
+    } else {
+        format!("{}M", vm.memory)
+    };
+    let start_options: StartOptionsSpec = store
+        .get_entity("vm_start_options", &name)
+        .ok()
+        .flatten()
+        .unwrap_or_default();
+    VMSpec {
+        name: vm.name,
+        image: vm.image,
+        resources: ResourceSpec {
+            cpus: vm.cpus,
+            memory: memory_str,
+            disk: format!("{}G", vm.disk),
+        },
+        network: Vec::new(),
+        volumes,
+        credentials: Vec::new(),
+        start_options,
+        autoscale,
+        hostname: vm.hostname,
+        tags: vm.tags.unwrap_or_default(),
+        direct_uplink: vm.direct_uplink,
+        direct_mode: vm.direct_mode,
+        direct_guest_ips: vm.direct_guest_ips,
+        auto_start: false,
+    }
+}
+
+fn internal_err(e: impl ToString) -> ApiError {
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        Json(json!({"error": e.to_string()})),
+    )
+}
+
+/// Best-effort audit entry for a plan/dry run, recorded as a read.
+async fn audit_plan_read(state: &AppState, user: &str, resource: &str, details: &str) {
+    let _ = crate::api::audit::log_audit_event(
+        state,
+        user,
+        "read",
+        "vm_apply_plan",
+        resource,
+        crate::api::audit::AuditStatus::Success,
+        None,
+        Some(details),
+        None,
+    )
+    .await;
+}
+
 /// POST /api/vms/apply - Apply a declarative VM spec (create + configure)
+///
+/// `?dry_run=true` returns the plan and changes nothing.
+/// `?expected_plan_hash=<hash>` refuses with 409 if the live plan differs.
 pub async fn apply_vm_spec(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
+    Query(query): Query<ApplyQuery>,
     Json(spec): Json<VMSpec>,
-) -> Result<(StatusCode, Json<ApplyResult>), (StatusCode, Json<serde_json::Value>)> {
+) -> Result<Response, ApiError> {
     tracing::debug!("declarative::{}", stringify!(apply_vm_spec));
     crate::validation::validate_vm_name(&spec.name)
         .map_err(|(s, m)| (s, Json(json!({"error": m}))))?;
@@ -325,6 +413,39 @@ pub async fn apply_vm_spec(
         .map_err(|e| (StatusCode::BAD_REQUEST, Json(json!({"error": e}))))?;
     let disk_gb = parse_disk_gb(&spec.resources.disk)
         .map_err(|e| (StatusCode::BAD_REQUEST, Json(json!({"error": e}))))?;
+
+    // Dry run / plan-hash guard (both optional; absent = unchanged behaviour).
+    if query.dry_run || query.expected_plan_hash.is_some() {
+        let current: Vec<VMSpec> = match state.store.get_vm(&spec.name) {
+            Ok(Some(vm)) => vec![build_vm_spec(&state.store, vm)],
+            Ok(None) => Vec::new(),
+            Err(e) => return Err(internal_err(e)),
+        };
+        let live = super::declarative_plan::plan(
+            &current,
+            &super::declarative_plan::DesiredSpec {
+                vms: vec![spec.clone()],
+                prune: false,
+            },
+        );
+        if query.dry_run {
+            audit_plan_read(&state, &claims.sub, &spec.name, "dry run").await;
+            return Ok((StatusCode::OK, Json(live)).into_response());
+        }
+        if let Some(expected) = &query.expected_plan_hash {
+            if *expected != live.plan_hash {
+                return Err((
+                    StatusCode::CONFLICT,
+                    Json(json!({
+                        "error": "plan changed since it was reviewed; re-run the dry run",
+                        "expected_plan_hash": expected,
+                        "actual_plan_hash": live.plan_hash,
+                        "plan": live,
+                    })),
+                ));
+            }
+        }
+    }
 
     // Check if VM already exists
     let vm_exists = matches!(state.store.get_vm(&spec.name), Ok(Some(_)));
@@ -586,7 +707,57 @@ pub async fn apply_vm_spec(
             autoscale_enabled,
             warnings,
         }),
-    ))
+    )
+        .into_response())
+}
+
+/// POST /api/vms/plan - Plan a set of declarative VM specs against the live
+/// state without changing anything. With `"prune": true` VMs missing from the
+/// set are planned as deletes; otherwise they are reported as unmanaged.
+/// (Apply itself is per-VM and never deletes; a delete entry is advisory.)
+pub async fn plan_vm_specs(
+    RequireRead(claims): RequireRead,
+    State(state): State<Arc<AppState>>,
+    Json(desired): Json<super::declarative_plan::DesiredSpec>,
+) -> Result<Json<super::declarative_plan::Plan>, ApiError> {
+    tracing::debug!("declarative::{}", stringify!(plan_vm_specs));
+    if desired.vms.len() > 1000 {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": "vms count must not exceed 1000"})),
+        ));
+    }
+    let mut seen = std::collections::HashSet::new();
+    for v in &desired.vms {
+        crate::validation::validate_vm_name(&v.name)
+            .map_err(|(s, m)| (s, Json(json!({"error": m}))))?;
+        if !seen.insert(v.name.as_str()) {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                Json(json!({"error": format!("duplicate VM name in spec: {}", v.name)})),
+            ));
+        }
+    }
+    let current: Vec<VMSpec> = state
+        .store
+        .list_vms()
+        .map_err(internal_err)?
+        .into_iter()
+        .map(|vm| build_vm_spec(&state.store, vm))
+        .collect();
+    let live = super::declarative_plan::plan(&current, &desired);
+    audit_plan_read(
+        &state,
+        &claims.sub,
+        "*",
+        &format!(
+            "plan of {} VM spec(s), prune={}",
+            desired.vms.len(),
+            desired.prune
+        ),
+    )
+    .await;
+    Ok(Json(live))
 }
 
 /// GET /api/vms/:name/spec - Export VM as declarative spec
@@ -613,52 +784,7 @@ pub async fn export_vm_spec(
         }
     };
 
-    let volumes: Vec<VolumeMount> = state
-        .store
-        .get_entity("vm_volumes", &name)
-        .ok()
-        .flatten()
-        .unwrap_or_default();
-
-    let autoscale: Option<AutoScaleSpec> = state
-        .store
-        .get_entity("autoscale_policies", &name)
-        .ok()
-        .flatten();
-
-    let memory_str = if vm.memory >= 1024 && vm.memory % 1024 == 0 {
-        format!("{}G", vm.memory / 1024)
-    } else {
-        format!("{}M", vm.memory)
-    };
-
-    let start_options: StartOptionsSpec = state
-        .store
-        .get_entity("vm_start_options", &name)
-        .ok()
-        .flatten()
-        .unwrap_or_default();
-
-    let spec = VMSpec {
-        name: vm.name,
-        image: vm.image,
-        resources: ResourceSpec {
-            cpus: vm.cpus,
-            memory: memory_str,
-            disk: format!("{}G", vm.disk),
-        },
-        network: Vec::new(),
-        volumes,
-        credentials: Vec::new(),
-        start_options,
-        autoscale,
-        hostname: vm.hostname,
-        tags: vm.tags.unwrap_or_default(),
-        direct_uplink: vm.direct_uplink,
-        direct_mode: vm.direct_mode,
-        direct_guest_ips: vm.direct_guest_ips,
-        auto_start: false,
-    };
+    let spec = build_vm_spec(&state.store, vm);
 
     Ok(Json(spec))
 }

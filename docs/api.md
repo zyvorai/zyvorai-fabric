@@ -123,6 +123,7 @@ Core virtual machine lifecycle operations.
 | GET | `/app/vms/:name` | Get VM details |
 | DELETE | `/app/vms/:name` | Delete a VM |
 | POST | `/app/vms/:name/start` | Start a VM |
+| POST | `/app/vms/:name/preflight` | Read-only pre-flight check: can this VM start here? (`can_start` plus findings) |
 | POST | `/app/vms/:name/stop` | Stop a VM |
 | POST | `/app/vms/:name/restart` | Restart a VM |
 | POST | `/app/vms/:name/pause` | Pause a VM |

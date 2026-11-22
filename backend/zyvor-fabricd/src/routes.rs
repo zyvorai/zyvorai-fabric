@@ -718,7 +718,7 @@ pub struct SetDirectUplinkRequest {
     pub guest_ips: Vec<String>,
 }
 
-fn stored_start_options(vm: &vm_model::VM) -> VMStartOptions {
+pub(crate) fn stored_start_options(vm: &vm_model::VM) -> VMStartOptions {
     VMStartOptions {
         port_forwards: vm.port_forwards.clone(),
         network_tap: vm.network_tap,
@@ -915,6 +915,27 @@ pub async fn start_vm(
             return json_error(
                 StatusCode::BAD_REQUEST,
                 format!("Invalid start options: {}", errors.join("; ")),
+            )
+            .into_response();
+        }
+    }
+
+    // Reject options/specs the backend is known to refuse, with the same
+    // text the pre-flight check reports, instead of a generic async driver
+    // failure after the VM was already marked Starting.
+    if let Ok(Some(vm)) = state.store.get_vm(&name) {
+        let effective = start_opts
+            .clone()
+            .unwrap_or_else(|| stored_start_options(&vm));
+        let caps = crate::preflight::BackendCaps::for_backend(state.driver.backend_name());
+        let blockers: Vec<String> = crate::preflight::capability_findings(&vm, &effective, &caps)
+            .into_iter()
+            .map(|f| format!("{} {}", f.message, f.hint))
+            .collect();
+        if !blockers.is_empty() {
+            return json_error(
+                StatusCode::BAD_REQUEST,
+                format!("VM cannot start on this backend: {}", blockers.join("; ")),
             )
             .into_response();
         }
@@ -1516,7 +1537,7 @@ pub async fn get_metrics(
     }
 }
 
-fn resolve_image_source(state: &AppState, image: &str) -> std::path::PathBuf {
+pub(crate) fn resolve_image_source(state: &AppState, image: &str) -> std::path::PathBuf {
     let path = std::path::Path::new(image);
     if path.is_absolute() {
         return path.to_path_buf();
