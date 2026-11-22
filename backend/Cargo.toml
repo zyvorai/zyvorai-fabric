@@ -61,7 +61,7 @@ members = [
 [workspace.package]
 version = "0.5.1"
 edition = "2021"
-license = "LicenseRef-Zyvor-Production-1.0"
+license = "LicenseRef-Zyvor-Production-2.0"
 authors = ["zyvor-fabricd contributors"]
 
 [workspace.dependencies]

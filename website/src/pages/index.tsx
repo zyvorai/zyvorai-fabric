@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 import type {ReactNode} from 'react';
 import Link from '@docusaurus/Link';
@@ -75,7 +75,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title="Zyvor Fabric — the private cloud that fits in one daemon"
-      description="VMs, networking, storage, security and AI inference from one ~15 MB Rust daemon on any Linux server with KVM. Source-available, Zyvor Production License v1.0.">
+      description="VMs, networking, storage, security and AI inference from one ~15 MB Rust daemon on any Linux server with KVM. Source-available, Zyvor Production Licence v2.0.">
       <PageMetadata image="/img/social-card.png" />
       <Page>
         <HeroShell

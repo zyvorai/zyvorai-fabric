@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 #
 # Two users on a LIVE shard, in real cells: user tokens, isolation, a phone-signed approval, and (with
 # --gateway) the reference vendor gateway in front. Needs the operator token; needs the node22-agent template.

@@ -28,12 +28,12 @@ Part of the [Zyvor](https://zyvor.dev) product family from ZyvorAI Labs.
 
 | Persona | Role | What they care about | Where Fabric fits |
 |---------|------|----------------------|--------------------|
-| **Economic buyer** — VP Infrastructure / CTO at a mid-size org | Owns the build-vs-buy decision and the budget | Total cost of ownership, operational headcount, vendor lock-in risk, time-to-value | One binary instead of a multi-server stack; Zyvor Production License v1.0 (production use needs a commercial license; paid enterprise support is separate) — see [License & Support](#license--support) below |
+| **Economic buyer** — VP Infrastructure / CTO at a mid-size org | Owns the build-vs-buy decision and the budget | Total cost of ownership, operational headcount, vendor lock-in risk, time-to-value | One binary instead of a multi-server stack; Zyvor Production Licence v2.0 (production use needs a commercial license; paid enterprise support is separate) — see [License & Support](#license--support) below |
 | **Platform engineer** ("Morgan" in [USER_STORIES.md](USER_STORIES.md)) | Builds the infrastructure other teams consume | Kubernetes operator, Terraform provider, GitOps-friendly declarative config | `VirtualMachine` CRD + `fabricctl apply -f config.yaml`, both backed by the same REST API as the UI |
 | **Private cloud admin** ("Alex" in [USER_STORIES.md](USER_STORIES.md)) | Day-2 VM lifecycle, backups, incident response | A UI and CLI that don't drift from each other, audit trail for every action | Web console + `fabricctl`, both hitting the identical 780+-endpoint API |
 | **Developer** ("Jordan" in [USER_STORIES.md](USER_STORIES.md)) | Needs VMs for testing/dev without filing a ticket | Self-service, scriptable, fast | CLI + REST API, VM creation in one command |
 
-The economic-buyer row is the one most positioning docs skip. The short version for that persona: Fabric is under the Zyvor Production License v1.0 (a commercial license is required, sales@zyvor.dev); the cost you're actually evaluating is **operational** — one 15MB binary and one config file. Paid Enterprise support/SLAs are separate from the production license.
+The economic-buyer row is the one most positioning docs skip. The short version for that persona: Fabric is under the Zyvor Production Licence v2.0 (a commercial license is required, sales@zyvor.dev); the cost you're actually evaluating is **operational** — one 15MB binary and one config file. Paid Enterprise support/SLAs are separate from the production license.
 
 ---
 
@@ -141,7 +141,7 @@ Then use the appropriate name for context (product in prose, `zyvor-fabricd` in 
 
 ## License & Support
 
-Zyvor Production License v1.0 (SPDX: LicenseRef-Zyvor-Production-1.0), applied to the entire repository. Non-production use is free; production use requires a commercial license from Zyvor AI Labs Private Limited. Production support, SLAs, and Zyvor Enterprise products are licensed and sold separately — contact [sales@zyvor.dev](mailto:sales@zyvor.dev). Full text: [README.md — License](../README.md#license).
+Zyvor Production Licence v2.0 (SPDX: LicenseRef-Zyvor-Production-2.0), applied to the entire repository. A 30-day trial is available on request from sales@zyvor.dev (a paid evaluation Order at no charge); production and any other use needs a paid Order under the Zyvor Production Licence v2.0. Production support, SLAs, and Zyvor Enterprise products are licensed and sold separately — contact [sales@zyvor.dev](mailto:sales@zyvor.dev). Full text: [README.md — License](../README.md#license).
 
 ---
 

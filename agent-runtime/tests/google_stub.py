@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 """A stand-in for Google's token endpoint, Gmail API and Calendar API, for the demos e2e.
 
     google_stub.py API_PORT TOKEN_PORT CERT KEY

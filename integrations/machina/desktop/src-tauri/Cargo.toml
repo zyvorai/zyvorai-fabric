@@ -3,7 +3,7 @@ name = "machina-desktop"
 version = "0.1.0"
 description = "Machina — macOS workbench for Zyvor Fabric"
 edition = "2021"
-license = "LicenseRef-Zyvor-Production-1.0"
+license = "LicenseRef-Zyvor-Production-2.0"
 
 [lib]
 name = "machina_desktop_lib"

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Pinned OIDC JWT verifier. Only the operator-configured JWKS URL is fetched; untrusted
 // token headers (jku, x5u, kid) can never choose a network destination.

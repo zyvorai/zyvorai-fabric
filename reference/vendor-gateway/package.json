@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Reference gateway that puts a vendor's accounts, regions and push in front of many Keep shards",
   "type": "module",
-  "license": "LicenseRef-Zyvor-Production-1.0",
+  "license": "LicenseRef-Zyvor-Production-2.0",
   "private": true,
   "engines": { "node": ">=20" },
   "scripts": {

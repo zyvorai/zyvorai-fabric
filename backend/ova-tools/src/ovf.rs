@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 /// Generate an OVF XML descriptor for a virtual machine.
 pub fn generate_ovf(name: &str, cpus: u32, memory_mb: u64, disk_size: u64) -> String {

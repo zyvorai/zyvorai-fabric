@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Marketing pages (signed out): axe in both themes at desktop and phone width, plus a sideways-scroll check. These pages were not
 // in any gate before, and the check found a brand link whose label did not match its text, a button with low contrast on the

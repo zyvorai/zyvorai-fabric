@@ -88,4 +88,4 @@ When changing those APIs, keep the stub and Vitest paths in sync.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the Zyvor Production License v1.0 (see [LICENSE](LICENSE)).
+By contributing, you agree that your contributions will be licensed under the Zyvor Production Licence v2.0 (see [LICENSE](LICENSE)).

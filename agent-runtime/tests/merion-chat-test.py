@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 """scripts/merion-chat.py: the chat proxy forwards the chat run, the conversation list, the person's memory and their goals with the token added server-side, fixes the
 agent, streams, reaches a thread, memory entry or goal only if the host lists it for this agent and user, allows only a few fields through, and refuses foreign hosts

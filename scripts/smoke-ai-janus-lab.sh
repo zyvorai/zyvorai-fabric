@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 # Lab smoke for the Janus GPU stand-in (Preview).
 # Requires fabricd with FLUXVM_AI_JANUS_URL and a healthy Janus NodePort.

@@ -1,5 +1,5 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Builds zyvor-fabricd + fabricctl (Rust) and the web console (Node), then
 # assembles a single runtime image. See docs/DOCKER.md for how to run it
 # with Docker or Podman, and why it needs network_mode: host + the specific

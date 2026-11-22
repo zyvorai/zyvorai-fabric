@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 //! Native TLS for the daemon's own listening socket — not a reverse-proxy
 //! config. Works identically bare-metal, in a VM, or in a Kubernetes pod: a

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 """A stand-in OpenAI-compatible model endpoint for the demos e2e.
 
 Answers POST /v1/chat/completions with a fixed reply and appends one JSON line per request

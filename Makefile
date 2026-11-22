@@ -1,5 +1,5 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 .PHONY: all build build-backend build-web \
        install install-bin install-conf install-systemd install-web install-modules install-libexec \
        uninstall run dev cli test clean fmt lint \

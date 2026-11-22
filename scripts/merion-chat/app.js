@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // AG-UI custom events arrive as keep.<x> (default) or merion.<x> (forwardedProps.eventNames: "merion").
 function evName(e) { return typeof e.name === "string" ? e.name.replace(/^(keep|merion)\./, "") : ""; }

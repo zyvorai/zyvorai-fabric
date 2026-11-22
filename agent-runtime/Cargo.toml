@@ -2,7 +2,7 @@
 name = "zyvor-fabric-agent-runtime"
 version = "0.5.1"
 edition = "2021"
-license = "LicenseRef-Zyvor-Production-1.0"
+license = "LicenseRef-Zyvor-Production-2.0"
 description = "Durable TypeScript agent sessions backed by Zyvor FluxVM sandboxes"
 
 # This component intentionally stays outside backend/Cargo.toml's legacy workspace.

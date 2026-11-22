@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 """One-time consent for the Google connectors (Gmail, Calendar): prints a refresh token.
 
 You bring your own Google OAuth client (Google Cloud console -> APIs & Services -> Credentials ->

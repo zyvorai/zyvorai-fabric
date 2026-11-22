@@ -6,7 +6,7 @@
 
 Merion is a personal workstation for an untrusted agent. Merion is the version you run on your own hardware: **you run it, you read it, you take it with you.**
 
-Zyvor Production License v1.0, same as FluxVM. Merion is a **product layer in Fabric** on FluxVM —
+Zyvor Production Licence v2.0, same as FluxVM. Merion is a **product layer in Fabric** on FluxVM —
 not a third repo and not a second VMM.
 
 **Docs home:** `fabric/docs/merion/` (this tree).  

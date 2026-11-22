@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Builds src/data/packGallery.generated.ts from examples/merion-agents/*/pack.json (kind: usecase) and each pack's README.
 // Run by `npm run gen:packs` and before every build, so the gallery cannot drift from the packs that ship.

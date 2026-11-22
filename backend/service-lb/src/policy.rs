@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 //! Distributed Service Fabric v6+ identity/L7 policy orchestration.
 //! Fabric owns fan-out and rollback; FluxVM owns the local compiler/BPF maps.

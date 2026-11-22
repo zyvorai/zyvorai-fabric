@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Push relay: the runtime POSTs a signed "approval.requested" message here; this turns it into a push.
 // Keep embeds no vendor push SDK. Each `push.kind` is an adapter: implement `send(device, message)`.

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Shared by baseline-shots.mjs and a11y-check.mjs: serves dist/ (SPA fallback), answers the mock API with
 // the same rules as mock-api.ts, and opens console pages signed in, in a chosen theme and viewport.

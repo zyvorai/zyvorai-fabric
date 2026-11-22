@@ -26,7 +26,7 @@ blockquote{border-left:3px solid #2dd4bf;padding:.2em .9em;color:#475569;margin:
 <h1>Zyvor <span>Fabric</span></h1>
 <div class="sub">A private cloud control plane with no systemd dependency.</div>
 <div class="badge">2026-09-02</div>
-<div class="foot">zyvor.dev · Zyvor Production License v1.0</div></section>
+<div class="foot">zyvor.dev · Zyvor Production Licence v2.0</div></section>
 <main><p>Zyvor Fabric is a complete Rust control plane giving you VM-platform and KubeVirt-style capabilities without a heavyweight stack. Manage the same infrastructure four ways — CLI, web dashboard, Kubernetes operator, or Terraform — over a single daemon exposing 480+ REST endpoints and live WebSocket channels. VM lifecycle runs through <a href="https://github.com/zyvorai/fluxvm">FluxVM</a>, a disposable-VM engine with no systemd dependency of its own (<code>driver.fluxvm_url</code> in <code>zyvor-fabricd.toml</code>). There are no custom hypervisor patches or kernel modules to maintain, and the daemon itself runs fine under systemd or any other supervisor — it&#39;s no longer a hard requirement.</p>
 <p><strong>480+</strong> REST API endpoints · <strong>4</strong> management interfaces · <strong>40+</strong> Rust backend crates · <strong>6</strong> storage backends · <strong>37+</strong> web dashboard pages · <strong>1</strong> binary, one config, one service</p>
 <p>This is the user-facing onboarding guide — how to access the product, your first workflows, and how to use every feature. A print-ready PDF of the same content sits alongside this file.</p>
@@ -411,5 +411,5 @@ blockquote{border-left:3px solid #2dd4bf;padding:.2em .9em;color:#475569;margin:
 <p><strong>Good to know:</strong> Zyvor Fabric requires Linux with systemd 256+ (Fedora, Ubuntu, Debian, RHEL, or SUSE) and KVM; it is not a hosted or Windows-server product. Some enterprise capabilities carry environmental prerequisites — swtpm for vTPM, an etcd cluster and shared/replicated storage for HA and live migration, and matching hardware/IOMMU for GPU passthrough. Multi-node HA is designed for 3+ nodes; single-server deployments run standalone. The published endpoint and page counts (480+ REST endpoints, 37+ web pages) reflect current documentation and may vary by release, and the macOS Machina workbench is a separate desktop product that consumes the Fabric API rather than part of this daemon.</p>
 </blockquote>
 <hr>
-<p><em>Zyvor Fabric is developed by ZyvorAI Labs. Contact <strong><a href="mailto:info@zyvor.dev">info@zyvor.dev</a></strong> · Zyvor Production License v1.0.</em></p>
+<p><em>Zyvor Fabric is developed by ZyvorAI Labs. Contact <strong><a href="mailto:info@zyvor.dev">info@zyvor.dev</a></strong> · Zyvor Production Licence v2.0.</em></p>
 </main></body></html>

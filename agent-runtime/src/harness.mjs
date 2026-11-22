@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Session adapter for a coding-agent CLI that is already installed in the
 // FluxVM template (claude, codex, or gemini). The CLI choice comes from the

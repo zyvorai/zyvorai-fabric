@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 """Tests scripts/merion-google-auth.py against a fake Google (auth and token endpoints on loopback).
 The 'browser' is simulated by requesting the redirect URL the script prints."""
 import http.server, json, os, re, stat, subprocess, sys, tempfile, threading, urllib.parse, urllib.request

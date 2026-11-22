@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Build the two local images docker-compose.yml expects: zyvor-fabricd's own
 # (a plain single-context build) and fluxvm's (which needs the sibling
 # guestkit repo as a second BuildKit build context -- not something a

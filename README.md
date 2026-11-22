@@ -40,7 +40,7 @@
 
 ## 780+ endpoints. 4 front doors. 1 API.
 
-**53** Rust crates  ·  **92** console pages  ·  **31** security audit rounds, **0** outstanding  ·  Zyvor Production License v1.0
+**53** Rust crates  ·  **92** console pages  ·  **31** security audit rounds, **0** outstanding  ·  Zyvor Production Licence v2.0
 
 <sub>Counted from source. <a href="docs/PRODUCT_OVERVIEW.md">Methodology</a></sub>
 
@@ -293,11 +293,11 @@ make lint && make fmt
 
 ## Support
 
-Evaluation is free for 30 days per organization under the Zyvor Production License v1.0; production use requires a commercial license (sales@zyvor.dev). If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
+A 30-day trial is available on request from sales@zyvor.dev (a paid evaluation Order at no charge); production and any other use needs a paid Order under the Zyvor Production Licence v2.0. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
 ## License and support
 
-Zyvor Fabric is **source-available** under the [Zyvor Production License v1.0](LICENSE) (SPDX: `LicenseRef-Zyvor-Production-1.0`). Evaluation (evaluation, development, testing, research, education) is free for 30 days per organization. Production Use requires a paid commercial license from Zyvor AI Labs Private Limited: [sales@zyvor.dev](mailto:sales@zyvor.dev) · [zyvor.dev/buy](https://zyvor.dev/buy); a 30-day trial key is available for production evaluation. See [NOTICE](NOTICE).
+Zyvor Fabric is **source-available** under the [Zyvor Production Licence v2.0](LICENSE) (SPDX: `LicenseRef-Zyvor-Production-2.0`). A 30-day trial is available on request from [sales@zyvor.dev](mailto:sales@zyvor.dev) (a paid evaluation Order at no charge); production and any other use needs a paid Order under the Zyvor Production Licence v2.0 ([zyvor.dev/buy](https://zyvor.dev/buy)). See [NOTICE](NOTICE).
 
 **Price:** INR 67,999 per node per year incl. 18% GST in India; US$686 per node per year excl. tax elsewhere. Buy: [zyvor.dev/buy](https://zyvor.dev/buy). Orders of USD 5,000 or more and quotes are invoiced in USD through Skydo.
 

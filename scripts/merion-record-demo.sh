@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 #
 # Record the real Keep e2e run as docs/assets/merion/demo.gif (needs `vhs`:
 # https://github.com/charmbracelet/vhs). Nothing is scripted or faked: the tape

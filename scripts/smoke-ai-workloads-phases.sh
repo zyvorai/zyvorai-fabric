@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 # Lab smoke for Fabric AI Workloads Phases 3–6 (dry-run).
 # Usage: FABRIC_URL=https://127.0.0.1:8443 ./scripts/smoke-ai-workloads-phases.sh

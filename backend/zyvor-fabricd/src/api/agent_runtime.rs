@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 //! Thin reverse-proxy from Fabric JWT-auth'd `/api/agents|sessions/*`
 //! onto the sibling `zyvor-fabric-agent-runtime` service (`:9096`).

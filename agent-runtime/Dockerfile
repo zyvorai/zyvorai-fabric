@@ -1,5 +1,5 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Builds the Keep runtime (zyvor-fabric-agent-runtime). Build from the repo root:
 #   docker build -f agent-runtime/Dockerfile -t zyvor-fabric-agent-runtime:local agent-runtime
 # It only serves HTTP and talks to FluxVM, so it needs no capabilities; see charts/zyvor-merion.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 #
 # Measure a live Keep shard: how long a real cell run takes end to end, and how that holds up as more
 # run at once. Every run boots a fresh cell from the template and extracts, so these are COLD numbers.

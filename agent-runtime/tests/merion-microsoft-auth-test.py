@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 """Tests scripts/merion-microsoft-auth.py against a fake Microsoft (auth and token endpoints on loopback).
 The 'browser' is simulated by requesting the redirect URL the script prints."""
 import http.server, json, os, stat, subprocess, sys, tempfile, threading, urllib.parse, urllib.request

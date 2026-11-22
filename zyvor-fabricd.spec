@@ -3,7 +3,7 @@ Version:        0.1.0
 Release:        1%{?dist}
 Summary:        Virtual Machine Management Daemon
 
-License:        LicenseRef-Zyvor-Production-1.0
+License:        LicenseRef-Zyvor-Production-2.0
 URL:            https://github.com/zyvorai/fabric
 Source0:        %{name}-%{version}.tar.gz
 

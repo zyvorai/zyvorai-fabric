@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Print Merion attestation honesty: evidence stays software-test until FluxVM reports SNP/TDX verified.
 #   ./scripts/merion-check-attestation.sh
 set -euo pipefail
