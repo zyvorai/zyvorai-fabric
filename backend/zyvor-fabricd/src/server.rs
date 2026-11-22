@@ -2641,6 +2641,10 @@ pub fn build_router(state: Arc<AppState>) -> Router {
                 .put(api::resource_policy::update_overcommit_policy),
         )
         .route("/system/capacity", get(api::resource_policy::get_capacity))
+        .route(
+            "/capacity/whatif",
+            post(api::capacity_whatif::capacity_whatif),
+        )
         // Metrics retention
         .route(
             "/system/metrics/retention",

@@ -4,11 +4,13 @@
 import { PanelLoading } from '../components/Skeleton'
 import { useState, useEffect, useCallback } from 'react'
 import { TrendingUp, TrendingDown, Cpu, HardDrive, Database, AlertTriangle } from 'lucide-react'
-import { apiFetch } from '../api/client'
+import { apiFetch, apiPost } from '../api/client'
 import { listVMs } from '../api/vm'
 import PageLoadBanner from '../components/PageLoadBanner'
 import { PageHeader } from '../components/ui'
 import { usePageLoader } from '../hooks/usePageLoader'
+import { WhatIfView } from '../components/WhatIfView'
+import { EMPTY_ROW, NO_OVERCOMMIT, fitVms, hostFromMetrics, parseRows, type FitReport, type WhatIfFormRow } from '../lib/capacity'
 
 interface ResourceMetric { label: string; used: number; total: number; unit: string; trend: number; projected_full?: string }
 
@@ -24,6 +26,33 @@ export default function CapacityPlanning() {
   const [metrics, setMetrics] = useState<ResourceMetric[]>([])
   const [vmCount, setVmCount] = useState(0)
   const { loading, loadError, run } = usePageLoader('Failed to load capacity data')
+  const [rows, setRows] = useState<WhatIfFormRow[]>([{ ...EMPTY_ROW }])
+  const [report, setReport] = useState<FitReport | null>(null)
+  const [reportSource, setReportSource] = useState<'api' | 'local' | null>(null)
+  const [simulating, setSimulating] = useState(false)
+  const [whatIfError, setWhatIfError] = useState<string | null>(null)
+
+  const simulate = useCallback(async () => {
+    setWhatIfError(null)
+    const parsed = parseRows(rows)
+    if ('error' in parsed) { setWhatIfError(parsed.error); return }
+    setSimulating(true)
+    try {
+      const disk = metrics.find(m => /storage|disk/i.test(m.label))
+      const body = { vms: parsed.specs, ...(disk && disk.total > 0 ? { disk_gb_total: Math.floor(disk.total) } : {}) }
+      try {
+        setReport(await apiPost<FitReport>('/api/capacity/whatif', body))
+        setReportSource('api')
+      } catch {
+        const model = hostFromMetrics(metrics)
+        if (!model) { setWhatIfError('Capacity data is unavailable, so the simulation cannot run.'); return }
+        setReport(fitVms([model.host], model.existing, parsed.specs, NO_OVERCOMMIT))
+        setReportSource('local')
+      }
+    } finally {
+      setSimulating(false)
+    }
+  }, [rows, metrics])
 
   const load = useCallback(() => {
     return run(async () => {
@@ -144,6 +173,18 @@ export default function CapacityPlanning() {
           )
         })}
       </div>
+
+      <WhatIfView
+        rows={rows}
+        report={report}
+        source={reportSource}
+        loading={simulating}
+        error={whatIfError}
+        onRowChange={(i, field, value) => setRows(rs => rs.map((r, j) => (j === i ? { ...r, [field]: value } : r)))}
+        onAddRow={() => setRows(rs => [...rs, { ...EMPTY_ROW }])}
+        onRemoveRow={(i) => setRows(rs => rs.filter((_, j) => j !== i))}
+        onRun={() => void simulate()}
+      />
 
       {metrics.length === 0 && (
         <div className="bg-[var(--zf-surface)] rounded-xl p-10 border border-[var(--zf-hairline)] text-center text-[var(--zf-muted)] text-sm">No capacity data available</div>

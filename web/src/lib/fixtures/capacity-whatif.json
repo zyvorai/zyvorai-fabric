@@ -1,0 +1,448 @@
+{
+  "cases": [
+    {
+      "name": "everything fits with headroom",
+      "input": {
+        "hosts": [
+          {
+            "name": "h1",
+            "vcpus": 16,
+            "memory_mb": 32768,
+            "disk_gb": 500
+          }
+        ],
+        "existing": [
+          {
+            "host": null,
+            "vcpus": 4,
+            "memory_mb": 8192,
+            "disk_gb": 100
+          }
+        ],
+        "new_vms": [
+          {
+            "name": "web",
+            "vcpus": 2,
+            "memory_mb": 4096,
+            "disk_gb": 40,
+            "count": 3
+          }
+        ],
+        "overcommit": {
+          "cpu_ratio": 1.0,
+          "memory_ratio": 1.0,
+          "storage_ratio": 1.0
+        }
+      },
+      "expected": {
+        "requested": 3,
+        "fitted": 3,
+        "all_fit": true,
+        "placements": [
+          {
+            "name": "web",
+            "index": 1,
+            "host": "h1"
+          },
+          {
+            "name": "web",
+            "index": 2,
+            "host": "h1"
+          },
+          {
+            "name": "web",
+            "index": 3,
+            "host": "h1"
+          }
+        ],
+        "unplaced": [],
+        "hosts": [
+          {
+            "name": "h1",
+            "effective": {
+              "vcpus": 16,
+              "memory_mb": 32768,
+              "disk_gb": 500
+            },
+            "used_before": {
+              "vcpus": 4,
+              "memory_mb": 8192,
+              "disk_gb": 100
+            },
+            "used_after": {
+              "vcpus": 10,
+              "memory_mb": 20480,
+              "disk_gb": 220
+            },
+            "headroom_after": {
+              "vcpus": 6,
+              "memory_mb": 12288,
+              "disk_gb": 280
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "memory is the limit and big VMs are placed first",
+      "input": {
+        "hosts": [
+          {
+            "name": "h1",
+            "vcpus": 64,
+            "memory_mb": 16384,
+            "disk_gb": null
+          }
+        ],
+        "existing": [],
+        "new_vms": [
+          {
+            "name": "small",
+            "vcpus": 1,
+            "memory_mb": 2048,
+            "disk_gb": 10,
+            "count": 3
+          },
+          {
+            "name": "big",
+            "vcpus": 4,
+            "memory_mb": 12288,
+            "disk_gb": 50,
+            "count": 1
+          }
+        ],
+        "overcommit": {
+          "cpu_ratio": 1.0,
+          "memory_ratio": 1.0,
+          "storage_ratio": 1.0
+        }
+      },
+      "expected": {
+        "requested": 4,
+        "fitted": 3,
+        "all_fit": false,
+        "placements": [
+          {
+            "name": "big",
+            "index": 1,
+            "host": "h1"
+          },
+          {
+            "name": "small",
+            "index": 1,
+            "host": "h1"
+          },
+          {
+            "name": "small",
+            "index": 2,
+            "host": "h1"
+          }
+        ],
+        "unplaced": [
+          {
+            "name": "small",
+            "index": 3,
+            "reasons": [
+              "memory"
+            ]
+          }
+        ],
+        "hosts": [
+          {
+            "name": "h1",
+            "effective": {
+              "vcpus": 64,
+              "memory_mb": 16384,
+              "disk_gb": null
+            },
+            "used_before": {
+              "vcpus": 0,
+              "memory_mb": 0,
+              "disk_gb": 0
+            },
+            "used_after": {
+              "vcpus": 6,
+              "memory_mb": 16384,
+              "disk_gb": 70
+            },
+            "headroom_after": {
+              "vcpus": 58,
+              "memory_mb": 0,
+              "disk_gb": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "vcpu and disk both exhausted",
+      "input": {
+        "hosts": [
+          {
+            "name": "h1",
+            "vcpus": 4,
+            "memory_mb": 65536,
+            "disk_gb": 100
+          }
+        ],
+        "existing": [
+          {
+            "host": "h1",
+            "vcpus": 3,
+            "memory_mb": 1024,
+            "disk_gb": 90
+          }
+        ],
+        "new_vms": [
+          {
+            "name": "db",
+            "vcpus": 2,
+            "memory_mb": 1024,
+            "disk_gb": 20,
+            "count": 1
+          }
+        ],
+        "overcommit": {
+          "cpu_ratio": 1.0,
+          "memory_ratio": 1.0,
+          "storage_ratio": 1.0
+        }
+      },
+      "expected": {
+        "requested": 1,
+        "fitted": 0,
+        "all_fit": false,
+        "placements": [],
+        "unplaced": [
+          {
+            "name": "db",
+            "index": 1,
+            "reasons": [
+              "vcpu",
+              "disk"
+            ]
+          }
+        ],
+        "hosts": [
+          {
+            "name": "h1",
+            "effective": {
+              "vcpus": 4,
+              "memory_mb": 65536,
+              "disk_gb": 100
+            },
+            "used_before": {
+              "vcpus": 3,
+              "memory_mb": 1024,
+              "disk_gb": 90
+            },
+            "used_after": {
+              "vcpus": 3,
+              "memory_mb": 1024,
+              "disk_gb": 90
+            },
+            "headroom_after": {
+              "vcpus": 1,
+              "memory_mb": 64512,
+              "disk_gb": 10
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "overcommit raises cpu and memory but not disk",
+      "input": {
+        "hosts": [
+          {
+            "name": "h1",
+            "vcpus": 4,
+            "memory_mb": 8192,
+            "disk_gb": 100
+          }
+        ],
+        "existing": [],
+        "new_vms": [
+          {
+            "name": "app",
+            "vcpus": 4,
+            "memory_mb": 6144,
+            "disk_gb": 30,
+            "count": 2
+          }
+        ],
+        "overcommit": {
+          "cpu_ratio": 2.0,
+          "memory_ratio": 1.5,
+          "storage_ratio": 1.0
+        }
+      },
+      "expected": {
+        "requested": 2,
+        "fitted": 2,
+        "all_fit": true,
+        "placements": [
+          {
+            "name": "app",
+            "index": 1,
+            "host": "h1"
+          },
+          {
+            "name": "app",
+            "index": 2,
+            "host": "h1"
+          }
+        ],
+        "unplaced": [],
+        "hosts": [
+          {
+            "name": "h1",
+            "effective": {
+              "vcpus": 8,
+              "memory_mb": 12288,
+              "disk_gb": 100
+            },
+            "used_before": {
+              "vcpus": 0,
+              "memory_mb": 0,
+              "disk_gb": 0
+            },
+            "used_after": {
+              "vcpus": 8,
+              "memory_mb": 12288,
+              "disk_gb": 60
+            },
+            "headroom_after": {
+              "vcpus": 0,
+              "memory_mb": 0,
+              "disk_gb": 40
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "per-dimension room on different hosts is reported as no_single_host",
+      "input": {
+        "hosts": [
+          {
+            "name": "a",
+            "vcpus": 4,
+            "memory_mb": 4096,
+            "disk_gb": 100
+          },
+          {
+            "name": "b",
+            "vcpus": 4,
+            "memory_mb": 4096,
+            "disk_gb": 100
+          }
+        ],
+        "existing": [
+          {
+            "host": "a",
+            "vcpus": 1,
+            "memory_mb": 3072,
+            "disk_gb": 10
+          },
+          {
+            "host": "b",
+            "vcpus": 3,
+            "memory_mb": 1024,
+            "disk_gb": 10
+          }
+        ],
+        "new_vms": [
+          {
+            "name": "z",
+            "vcpus": 2,
+            "memory_mb": 2048,
+            "disk_gb": 10,
+            "count": 1
+          },
+          {
+            "name": "s",
+            "vcpus": 1,
+            "memory_mb": 512,
+            "disk_gb": 10,
+            "count": 1
+          }
+        ],
+        "overcommit": {
+          "cpu_ratio": 1.0,
+          "memory_ratio": 1.0,
+          "storage_ratio": 1.0
+        }
+      },
+      "expected": {
+        "requested": 2,
+        "fitted": 1,
+        "all_fit": false,
+        "placements": [
+          {
+            "name": "s",
+            "index": 1,
+            "host": "a"
+          }
+        ],
+        "unplaced": [
+          {
+            "name": "z",
+            "index": 1,
+            "reasons": [
+              "no_single_host"
+            ]
+          }
+        ],
+        "hosts": [
+          {
+            "name": "a",
+            "effective": {
+              "vcpus": 4,
+              "memory_mb": 4096,
+              "disk_gb": 100
+            },
+            "used_before": {
+              "vcpus": 1,
+              "memory_mb": 3072,
+              "disk_gb": 10
+            },
+            "used_after": {
+              "vcpus": 2,
+              "memory_mb": 3584,
+              "disk_gb": 20
+            },
+            "headroom_after": {
+              "vcpus": 2,
+              "memory_mb": 512,
+              "disk_gb": 80
+            }
+          },
+          {
+            "name": "b",
+            "effective": {
+              "vcpus": 4,
+              "memory_mb": 4096,
+              "disk_gb": 100
+            },
+            "used_before": {
+              "vcpus": 3,
+              "memory_mb": 1024,
+              "disk_gb": 10
+            },
+            "used_after": {
+              "vcpus": 3,
+              "memory_mb": 1024,
+              "disk_gb": 10
+            },
+            "headroom_after": {
+              "vcpus": 1,
+              "memory_mb": 3072,
+              "disk_gb": 90
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -328,6 +328,22 @@ Daemon health, configuration, and system information.
 | GET | `/app/system/config` | Get daemon configuration |
 | PUT | `/app/system/config` | Update daemon configuration |
 | GET | `/metrics` | Prometheus-format metrics |
+| GET | `/system/capacity` | Host CPU/memory capacity with the overcommit policy applied, allocated and available |
+| GET | `/system/overcommit` | Overcommit policy (admin `PUT` to change) |
+| POST | `/capacity/whatif` | Capacity what-if (read-only): which of these new VMs would fit, and why not |
+
+### Capacity what-if
+
+`POST /api/capacity/whatif` needs read access and never creates, reserves or changes anything. It uses the same inputs as `GET /api/system/capacity`: this host's CPUs and memory, the stored VMs, and the overcommit policy (ratios apply only when the policy is enabled).
+
+```json
+{
+  "vms": [{ "name": "web", "vcpus": 2, "memory_mb": 4096, "disk_gb": 40, "count": 3 }],
+  "disk_gb_total": 500
+}
+```
+
+`disk_gb_total` is optional; when omitted, disk is not checked (the daemon does not track VM disk capacity). Limits: 1-200 entries, `count` 1-1000, at most 5000 VMs in total. VMs are placed first-fit-decreasing (memory, then vCPUs, then disk, then name), so the result is deterministic. The response lists `placements`, `unplaced` (each with `reasons` of `vcpu`, `memory`, `disk` or `no_single_host`) and per-host `headroom_after`.
 
 ## Quotas
 

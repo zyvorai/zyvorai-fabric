@@ -5,7 +5,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::get,
+    routing::{delete, get, post, MethodRouter},
     Json, Router,
 };
 use serde::Deserialize;
@@ -16,9 +16,20 @@ use crate::store::Cloud;
 pub fn router(cloud: Cloud) -> Router {
     Router::new()
         .route("/", get(versions))
-        .route("/v2/images", get(list).post(create))
-        .route("/v2/images/{id}", get(get_one).delete(delete))
+        .route("/v2/images", get(list).merge(guarded(&cloud, post(create))))
+        .route(
+            "/v2/images/{id}",
+            get(get_one).merge(guarded(&cloud, delete(delete_image))),
+        )
         .with_state(cloud)
+}
+
+/// Wrap a mutating method handler so it requires a live token.
+fn guarded(cloud: &Cloud, m: MethodRouter<Cloud>) -> MethodRouter<Cloud> {
+    m.route_layer(axum::middleware::from_fn_with_state(
+        cloud.clone(),
+        crate::identity::require_token,
+    ))
 }
 
 async fn versions() -> Json<Value> {
@@ -66,7 +77,7 @@ async fn get_one(State(cloud): State<Cloud>, Path(id): Path<String>) -> impl Int
     }
 }
 
-async fn delete(State(cloud): State<Cloud>, Path(id): Path<String>) -> impl IntoResponse {
+async fn delete_image(State(cloud): State<Cloud>, Path(id): Path<String>) -> impl IntoResponse {
     if cloud.delete_image(&id).await {
         StatusCode::NO_CONTENT.into_response()
     } else {

@@ -13,6 +13,9 @@ use serde_json::{json, Value};
 
 use crate::store::{Cloud, Token};
 
+// Auth: `POST /v3/auth/tokens` (issuance) and the version-discovery GETs must
+// stay unauthenticated per the Keystone protocol (a client has no token before
+// it logs in). Token validation and the catalog check the token themselves.
 pub fn router(cloud: Cloud) -> Router {
     Router::new()
         .route("/", get(versions))
@@ -152,11 +155,7 @@ async fn validate_token(State(cloud): State<Cloud>, headers: HeaderMap) -> impl 
 
 async fn catalog(State(cloud): State<Cloud>, headers: HeaderMap) -> impl IntoResponse {
     if cloud.token(auth_token(&headers)).await.is_none() {
-        return (
-            StatusCode::UNAUTHORIZED,
-            Json(json!({"error": {"code": 401}})),
-        )
-            .into_response();
+        return unauthorized();
     }
     Json(json!({"catalog": crate::catalog::catalog(&cloud.public_url)})).into_response()
 }
@@ -176,6 +175,28 @@ async fn users(State(_cloud): State<Cloud>) -> Json<Value> {
             {"id": "user-admin", "name": "admin", "domain_id": "default", "enabled": true}
         ]
     }))
+}
+
+/// OpenStack-style 401 body shared by every route that requires a token.
+pub fn unauthorized() -> Response {
+    (
+        StatusCode::UNAUTHORIZED,
+        Json(json!({"error": {"code": 401}})),
+    )
+        .into_response()
+}
+
+/// Middleware: require a valid, unexpired `X-Auth-Token`. Runs before body
+/// extraction, so an unauthenticated request gets 401 even with a bad body.
+pub async fn require_token(
+    State(cloud): State<Cloud>,
+    req: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> Response {
+    if cloud.token(auth_token(req.headers())).await.is_none() {
+        return unauthorized();
+    }
+    next.run(req).await
 }
 
 pub fn auth_token(headers: &HeaderMap) -> &str {

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 import { PageLoading } from '../components/Skeleton'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Search, Download, Filter, X, AlertCircle, CheckCircle, FileText } from 'lucide-react'
 import {
   listAuditLogs,
@@ -19,6 +19,8 @@ import { formatUserError } from '../utils/apiError'
 import { toastFailure } from '../utils/toastError'
 import { hintsForError } from '../utils/daemonHints'
 import RelativeTime from '../components/RelativeTime'
+import { AuditInsightsPanel } from '../components/AuditInsightsPanel'
+import { computeAuditInsights } from '../lib/auditInsights'
 
 export default function AuditLogs() {
   const toast = useToastContext()
@@ -86,6 +88,8 @@ export default function AuditLogs() {
       setExporting(false)
     }
   }
+
+  const insights = useMemo(() => computeAuditInsights(logs), [logs])
 
   const filteredLogs = logs.filter((log) => {
     if (!searchQuery) return true
@@ -218,6 +222,8 @@ export default function AuditLogs() {
           </div>
         </div>
       )}
+
+      <AuditInsightsPanel insights={insights} analysed={logs.length} />
 
       {/* Search Bar */}
       <div className="mb-6">
