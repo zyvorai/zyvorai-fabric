@@ -1183,11 +1183,11 @@ mod tests {
         let token = encode(
             &Header::new(Algorithm::HS256),
             &claims,
-            &EncodingKey::from_secret(secret),
+            &EncodingKey::from_secret(secret).unwrap(),
         )
         .unwrap();
 
-        let key = DecodingKey::from_secret(secret);
+        let key = DecodingKey::from_secret(secret).unwrap();
         let ok = verify_id_token_with_key(
             &token,
             "https://issuer.example",

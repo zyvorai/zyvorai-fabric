@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+- **The backend compiles again with `jsonwebtoken` 12.** The 11 to 12 bump (#558) changed `EncodingKey::from_secret` and `DecodingKey::from_secret` to return a `Result`; the security crate and one test were not updated, so `cargo build` failed on main. The call sites now propagate the error.
+
+### Changed
+- Compatible dependency updates (`cargo update` for the backend, operator and agent-runtime; `npm update` for the web console, website and agent-runtime SDK).
+
 ### Added
 - **`/metrics` reflects reality.** The VM gauges (`vms_total`, `vms_running`, `vms_stopped`, plus `vms_by_state{state}`) are refreshed from the VM list on every scrape and by the 60-second collector; API requests are counted by method, route template and status class with a latency histogram (unmatched routes share one label, so label cardinality stays bounded); per-VM CPU/memory series are opt-in (`[metrics] per_vm = true`, capped by `per_vm_max`, default 50). The four lifecycle counters (starts, stops, creates, deletes) are still not incremented by any handler. Per-VM disk and network are not exported.
 - **Configuration snapshot history and diff.** `POST /api/config/snapshots` stores the current configuration snapshot (capped at 50, audit-logged as `config.snapshot.create`), `GET /api/config/snapshots` lists them, `GET /api/config/diff?from=&to=` compares two snapshots or one against `current` (secret-looking values are redacted in the diff output; stored snapshots keep raw values like the rest of the state store). A "Snapshots & diff" tab was added to the Timeline page. Covered by unit and router tests; not exercised against a live daemon with real VMs.
