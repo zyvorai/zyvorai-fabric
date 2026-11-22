@@ -357,6 +357,57 @@ curl -s -X POST http://localhost:3000/api/vms/my-vm/preflight \
 
 ---
 
+### POST /api/vms/autostart/reconcile
+
+Compare every VM flagged for autostart with its actual state (as the backend reports it, not the stored state) and start the ones that should be running. Each candidate goes through the same pre-flight check as `POST /api/vms/:name/preflight`: a VM with a blocker is reported as skipped and not started.
+
+A VM opts in with the tag `autostart` or the label `autostart=true` (a label `autostart=false` wins over the tag). Start order is the lowest `autostart.order` label (or `autostart-order:N` tag) first, default 1000, ties by name. After a VM is started the daemon waits `autostart.delay` seconds (label, or `autostart-delay:N` tag), else `[autostart] start_delay_secs`, before the next start, never more than `max_delay_secs`.
+
+The daemon runs the same pass once after startup when `[autostart] enabled = true` (default `false`, which keeps the previous behaviour):
+
+```toml
+[autostart]
+enabled = false          # reconcile once at daemon start
+startup_delay_secs = 5   # wait after start so the VM backend is up
+start_delay_secs = 0     # default pause between starts
+max_delay_secs = 600     # cap for any pause
+```
+
+**Auth level:** Operator+ (write); not available to tenant-scoped users
+
+**Query:** `dry_run=true|false` (default `false`). A dry run starts nothing and waits for nothing; `started` then lists the VMs that would be started.
+
+**Response (200):** the request returns when the pass is complete, so with delays it can take a while.
+
+```json
+{
+  "dry_run": false,
+  "trigger": "manual",
+  "started": [{ "vm": "db", "order": 1, "delay_after_secs": 10 }],
+  "skipped": [
+    { "vm": "web", "code": "already_running", "reason": "The VM is already running." },
+    { "vm": "tpm-vm", "code": "preflight_blocked", "reason": "The fluxvm backend does not support TPM.",
+      "findings": [{ "id": "backend.tpm", "severity": "blocker", "message": "...", "hint": "..." }] }
+  ],
+  "failed": [{ "vm": "app", "reason": "driver error text" }],
+  "summary": { "candidates": 4, "started": 1, "skipped": 2, "failed": 1 }
+}
+```
+
+Skip codes: `already_running`, `stopping`, `paused` (resume it instead), `preflight_blocked`, `shutdown`. A failed start does not stop the pass.
+
+**Error responses:**
+- `403` -- Tenant-scoped token
+- `409` -- Another live reconciliation is already running
+
+```bash
+curl -s -X POST "http://localhost:3000/api/vms/autostart/reconcile?dry_run=true" \
+  -H "Authorization: Bearer $TOKEN" | jq
+fabricctl autostart reconcile --dry-run
+```
+
+---
+
 ### POST /api/vms/:name/stop
 
 Gracefully power off a VM via the active VM driver.

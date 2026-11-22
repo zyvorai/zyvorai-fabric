@@ -182,3 +182,104 @@ export function summarizeReport(r: FitReport): string {
   if (r.all_fit) return `All ${r.requested} VM${r.requested === 1 ? '' : 's'} fit`
   return `${r.fitted} of ${r.requested} VMs fit`
 }
+
+// ---- /api/system/capacity mapping and density ------------------------------
+
+export interface CapacityResponseLike {
+  physical: { cpus: number; memory_mb: number }
+  effective: { cpus: number; memory_mb: number }
+  allocated: { cpus: number; memory_mb: number }
+  available: { cpus: number; memory_mb: number }
+  overcommit: { enabled: boolean; cpu_ratio: number; memory_ratio: number }
+  vm_count: number
+}
+
+export interface UsageMetric { label: string; used: number; total: number; unit: string; trend: number; projected_full?: string }
+
+/** Map the daemon shape to metric cards: used = allocated, total = effective capacity. Memory in GB. */
+export function metricsFromCapacity(c: CapacityResponseLike): UsageMetric[] {
+  const gb = (mb: number) => mb / 1024
+  return [
+    { label: 'CPU Cores', used: c.allocated.cpus, total: c.effective.cpus, unit: 'cores', trend: 0 },
+    { label: 'Memory', used: gb(c.allocated.memory_mb), total: gb(c.effective.memory_mb), unit: 'GB', trend: 0 },
+  ]
+}
+
+export type DensityLevel = 'ok' | 'warn' | 'critical'
+export interface DensityRow {
+  resource: 'CPU' | 'Memory'
+  /** allocated / physical */
+  commit_ratio: number
+  /** configured ratio when overcommit is enabled, otherwise 1 */
+  limit_ratio: number
+  /** allocated / effective, percent */
+  utilization_pct: number
+  headroom: number
+  unit: string
+  level: DensityLevel
+  warning: string | null
+}
+export interface DensityReport {
+  vm_count: number
+  vcpus_per_vm: number | null
+  memory_gb_per_vm: number | null
+  /** how many more VMs of the current average size fit in the remaining headroom */
+  more_vms_fit: number | null
+  overcommit_enabled: boolean
+  rows: DensityRow[]
+}
+
+/** Warn when the commit ratio reaches this share of the allowed ratio. */
+export const DENSITY_WARN_SHARE = 0.9
+
+function densityRow(resource: 'CPU' | 'Memory', physical: number, effective: number, allocated: number, available: number, enabled: boolean, ratio: number, unit: string): DensityRow {
+  const commit = physical > 0 ? allocated / physical : 0
+  const limit = enabled ? ratio : 1
+  let level: DensityLevel = 'ok'
+  let warning: string | null = null
+  if (physical > 0 && commit > limit + 1e-9) {
+    level = 'critical'
+    warning = enabled
+      ? `${resource} is committed ${commit.toFixed(2)}:1, above the configured ${limit.toFixed(2)}:1 limit`
+      : `${resource} is committed ${commit.toFixed(2)}:1 but overcommit is disabled`
+  } else if (physical > 0 && commit >= limit * DENSITY_WARN_SHARE && commit > 1) {
+    level = 'warn'
+    warning = `${resource} commit ${commit.toFixed(2)}:1 is near the ${limit.toFixed(2)}:1 limit`
+  } else if (physical > 0 && limit === 1 && commit >= DENSITY_WARN_SHARE) {
+    level = 'warn'
+    warning = `${resource} is ${(commit * 100).toFixed(0)}% allocated with no overcommit headroom`
+  }
+  return {
+    resource,
+    commit_ratio: commit,
+    limit_ratio: limit,
+    utilization_pct: effective > 0 ? (allocated / effective) * 100 : 0,
+    headroom: available,
+    unit,
+    level,
+    warning,
+  }
+}
+
+export function densityReport(c: CapacityResponseLike): DensityReport {
+  const { enabled, cpu_ratio, memory_ratio } = c.overcommit
+  const rows = [
+    densityRow('CPU', c.physical.cpus, c.effective.cpus, c.allocated.cpus, c.available.cpus, enabled, cpu_ratio, 'vCPUs'),
+    densityRow('Memory', c.physical.memory_mb / 1024, c.effective.memory_mb / 1024, c.allocated.memory_mb / 1024, c.available.memory_mb / 1024, enabled, memory_ratio, 'GB'),
+  ]
+  const n = c.vm_count
+  const avgCpu = n > 0 ? c.allocated.cpus / n : null
+  const avgMemMb = n > 0 ? c.allocated.memory_mb / n : null
+  let more: number | null = null
+  if (avgCpu && avgMemMb && avgCpu > 0 && avgMemMb > 0) {
+    more = Math.floor(Math.min(c.available.cpus / avgCpu, c.available.memory_mb / avgMemMb))
+  }
+  return {
+    vm_count: n,
+    vcpus_per_vm: avgCpu,
+    memory_gb_per_vm: avgMemMb === null ? null : avgMemMb / 1024,
+    more_vms_fit: more,
+    overcommit_enabled: enabled,
+    rows,
+  }
+}

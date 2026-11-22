@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- **Autostart reconciliation.** `POST /api/vms/autostart/reconcile?dry_run=true|false` and `fabricctl autostart reconcile [--dry-run]` compare each VM tagged `autostart` (or labelled `autostart=true`) with its actual state and start the ones that should be running, lowest `autostart.order` first with an optional delay between starts, using the pre-flight check so unsupported VMs are reported as skipped, not started. The structured report lists started, skipped (with a code and reason) and failed VMs. A new `[autostart]` config section (`enabled`, `startup_delay_secs`, `start_delay_secs`, `max_delay_secs`) runs the same pass once at daemon start; it is off by default, so existing behaviour is unchanged.
 - **Capacity what-if.** `POST /api/capacity/whatif` (read-only, never reserves anything) places a list of prospective VMs on the host with first-fit-decreasing and reports which fit and which do not (vCPU, memory or disk), with headroom after placement; overcommit applies only when the policy is enabled. Disk is checked only when `disk_gb_total` is supplied. A "What if I add..." form on the Capacity Planning page; the same maths in `web/src/lib/capacity.ts`, tested against shared fixtures.
 - **Audit insights.** An Insights panel on the Audit Logs page flags bursts by one actor, failed sign-in streaks, privileged actions outside working hours and newly seen actors or addresses, computed on the entries currently loaded (so it follows the active filters).
 - **Pre-flight start check.** `POST /api/vms/{name}/preflight` (read-only) reports blockers, warnings and a `can_start` answer before a VM is started: backend capability limits taken from what the FluxVM driver actually rejects (TPM, Secure Boot, vsock, directory shares, extra drives, bind users, credentials, SMBIOS, more than 255 vCPUs), memory above the host, and, as warnings, missing images or NICs and quota overruns. A "Pre-flight check" panel was added to the VM details page.
@@ -16,9 +17,7 @@
 ### Fixed
 - **The backend compiles again with `jsonwebtoken` 12.** The 11 to 12 bump (#558) changed `EncodingKey::from_secret` and `DecodingKey::from_secret` to return a `Result`; the security crate and one test were not updated, so `cargo build` failed on main. The call sites now propagate the error.
 - The user guide no longer claims vTPM and Secure Boot work on every backend.
-
-### Known issues
-- The Capacity Planning metric cards read `metrics`/`resources` from `/api/system/capacity`, but the daemon returns `physical/effective/allocated/available`, so the cards are empty against a real daemon (pre-existing). The what-if form calls the new endpoint and does not depend on them, but its local fallback does.
+- **Capacity Planning metric cards work against a real daemon.** They now map the `/api/system/capacity` response (`physical/effective/allocated/available`) instead of the nonexistent `metrics`/`resources` fields; a VM density and overcommit panel was added (commit ratios against the policy limit, headroom, warnings). The daemon reports no disk or growth trend, so there is no Storage card and trend shows 0.
 
 ## 0.5.1 - 2026-11-19
 

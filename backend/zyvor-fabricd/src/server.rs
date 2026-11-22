@@ -258,6 +258,15 @@ impl Server {
         // Start background scheduler for automated schedule execution
         spawn_bg!(self.state, "schedule_checker", run_schedule_checker);
 
+        // Autostart reconciliation after daemon start (off unless [autostart] enabled)
+        if self.state.config.autostart.enabled {
+            spawn_bg!(
+                self.state,
+                "autostart_reconcile",
+                crate::autostart::run_startup_reconcile
+            );
+        }
+
         // Start background metrics collector
         spawn_bg!(self.state, "metrics_collector", run_metrics_collector);
 
@@ -1189,6 +1198,10 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         // VM forking
         .route("/vms/{name}/fork", post(api::vm_advanced::fork_vm))
         // Declarative VM spec
+        .route(
+            "/vms/autostart/reconcile",
+            post(crate::autostart::reconcile_autostart),
+        )
         .route("/vms/apply", post(api::declarative::apply_vm_spec))
         .route("/vms/plan", post(api::declarative::plan_vm_specs))
         .route("/vms/{name}/spec", get(api::declarative::export_vm_spec))

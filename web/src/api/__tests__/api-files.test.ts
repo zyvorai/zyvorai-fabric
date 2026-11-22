@@ -2341,6 +2341,12 @@ describe('vm', () => {
 // ─── system.ts ────────────────────────────────────────────────────────────────
 
 describe('system', () => {
+  it('getSystemCapacity calls apiGet', async () => {
+    const { getSystemCapacity } = await import('../system')
+    await getSystemCapacity()
+    expect(mockApiGet).toHaveBeenCalledWith('/api/system/capacity')
+  })
+
   it('getCpuTopology calls apiGet', async () => {
     const { getCpuTopology } = await import('../system')
     await getCpuTopology()

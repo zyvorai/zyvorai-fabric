@@ -189,3 +189,18 @@ export async function getOptimizationRecommendations(): Promise<OptimizationReco
 export async function optimizeVM(vmName: string): Promise<OptimizationResult> {
   return apiPost<OptimizationResult>(`${API_BASE_URL}/vms/${vmName}/optimize`)
 }
+
+// GET /api/system/capacity (backend resource_policy.rs get_capacity)
+export interface CapacityAmounts { cpus: number; memory_mb: number }
+export interface SystemCapacity {
+  physical: CapacityAmounts
+  effective: CapacityAmounts
+  allocated: CapacityAmounts
+  available: CapacityAmounts
+  overcommit: { enabled: boolean; cpu_ratio: number; memory_ratio: number }
+  vm_count: number
+}
+
+export async function getSystemCapacity(): Promise<SystemCapacity> {
+  return apiGet<SystemCapacity>(`${API_BASE_URL}/system/capacity`)
+}
