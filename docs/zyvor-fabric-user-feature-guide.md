@@ -183,8 +183,8 @@ _Low-level control over CPU topology, memory, accelerators, and firmware._
 
 _Metrics, scheduling, notifications, and self-checks that keep the fabric healthy._
 
-- **Prometheus Metrics** — A /metrics endpoint exposing VM-count and lifecycle metrics (total/running/stopped, start/stop/create/delete counters), with a prebuilt Grafana dashboard. — _Drop into your existing observability stack instantly._
-  - **How:** Scrape `GET /metrics` (no auth) into Prometheus; live per-VM CPU/memory/disk/network detail via `GET /api/vms/:name/metrics` (not yet exported as Prometheus series) · Web Monitoring page · import the bundled Grafana dashboard.
+- **Prometheus Metrics** — A /metrics endpoint exposing VM-count gauges (total/running/stopped and per state), API request counts and latency histograms (by method, route template and status class), and opt-in per-VM CPU/memory gauges, with a prebuilt Grafana dashboard. — _Drop into your existing observability stack instantly._
+  - **How:** Scrape `GET /metrics` (no auth) into Prometheus; enable `[metrics] per_vm = true` for per-VM CPU/memory series (capped by `per_vm_max`, default 50); live per-VM disk/network detail via `GET /api/vms/:name/metrics` (not exported as Prometheus series) · Web Monitoring page · import the bundled Grafana dashboard.
 - **Scheduling & Auto Backups** — Once/daily/weekly VM schedules plus automated daily backups and weekly state-store cleanup via systemd timers. — _Routine operations run themselves, on time, every time._
   - **How:** Once/daily/weekly schedules via the schedule REST endpoints (backed by systemd timers) · Web Scheduling page (cron-style + one-time, with execution history).
 - **Backup & Restore** — Per-VM and bulk backups with retention policies and incremental backups from web UI. — _Recover a single VM or the whole fleet on your own terms._

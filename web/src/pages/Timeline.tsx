@@ -10,6 +10,7 @@ import { formatUserError } from '../utils/apiError'
 import { toastFailure } from '../utils/toastError'
 import { hintsForError } from '../utils/daemonHints'
 import { useToastContext } from '../contexts/ToastContext'
+import ConfigSnapshotsTab from '../components/ConfigSnapshotsTab'
 
 interface TimelineEntry {
   id: string
@@ -18,6 +19,8 @@ interface TimelineEntry {
   description: string
   source: 'audit' | 'alert'
 }
+
+type TimelineTab = 'activity' | 'snapshots'
 
 type FilterType = 'all' | 'action' | 'alert' | 'deploy' | 'error'
 
@@ -53,6 +56,7 @@ function formatTimestamp(ts: string): string {
 export default function Timeline() {
   const toast = useToastContext()
   const [entries, setEntries] = useState<TimelineEntry[]>([])
+  const [tab, setTab] = useState<TimelineTab>('activity')
   const [filter, setFilter] = useState<FilterType>('all')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -142,7 +146,25 @@ export default function Timeline() {
         refreshing={loading}
         description={`Updated ${formatTimestamp(lastRefresh.toISOString())}`}
       />
-      {loadError && (
+      <div role="tablist" aria-label="Timeline views" className="flex items-center gap-2">
+        {(['activity', 'snapshots'] as const).map((t) => (
+          <button
+            key={t}
+            role="tab"
+            aria-selected={tab === t}
+            onClick={() => setTab(t)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              tab === t
+                ? 'bg-[var(--zf-ink)] text-[var(--zf-canvas)] border-[var(--zf-ink)]'
+                : 'text-[var(--zf-muted)] hover:text-[var(--zf-ink)] bg-[var(--zf-canvas)] border-[var(--zf-hairline)]'
+            }`}
+          >
+            {t === 'activity' ? 'Activity' : 'Snapshots & diff'}
+          </button>
+        ))}
+      </div>
+      {tab === 'snapshots' && <ConfigSnapshotsTab />}
+      {tab === 'activity' && loadError && (
         <ErrorBanner
           title="Could not load timeline"
           headline={loadError}
@@ -150,12 +172,13 @@ export default function Timeline() {
           onRetry={() => void fetchData()}
         />
       )}
-      {refreshError && !loadError && (
+      {tab === 'activity' && refreshError && !loadError && (
         <div className="bg-amber-50 rounded-lg border border-amber-200 px-4 py-2 text-xs text-amber-800">
           {refreshError} — showing last known data
         </div>
       )}
 
+      {tab === 'activity' && (<>
       <div className="flex items-center gap-2">
         <Filter className="w-4 h-4 text-[var(--zf-muted)]" />
         {filters.map((f) => (
@@ -211,6 +234,7 @@ export default function Timeline() {
           </div>
         </div>
       )}
+      </>)}
     </div>
   )
 }

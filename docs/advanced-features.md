@@ -234,10 +234,47 @@ See [terraform-provider/README.md](../terraform-provider/README.md) for full doc
 | `zyvor_fabricd_vm_stops_total` | Total VM stop operations |
 | `zyvor_fabricd_vm_creates_total` | Total VM create operations |
 | `zyvor_fabricd_vm_deletes_total` | Total VM delete operations |
+| `zyvor_fabricd_vms_by_state{state}` | VM count per state (`running`, `stopped`, `paused`, `starting`, `stopping`, `failed`, `unknown`; always all seven, zero included) |
 
-These seven are the full metric set the daemon exports today. Per-VM CPU/memory/disk/network
-utilization and API request/latency metrics are not yet implemented as Prometheus series -- use
-`GET /api/vms/{name}/metrics` for live per-VM resource figures in the meantime.
+The VM gauges (`vms_total`, `vms_running`, `vms_stopped`, `vms_by_state`) are recomputed from the
+VM store on every `/metrics` scrape and by the 60-second background collector, so they reflect
+current state. The four `*_total` lifecycle counters are registered but are not yet incremented by
+the VM lifecycle handlers, so they currently stay at 0; use the gauges for fleet state.
+
+### API Request Metrics
+
+Recorded by a middleware over every route (including `/metrics` itself).
+
+| Metric | Labels | Description |
+|--------|--------|-------------|
+| `zyvor_fabricd_http_requests_total` | `method`, `route`, `status_class` | Requests handled |
+| `zyvor_fabricd_http_request_duration_seconds` | `method`, `route` | Latency histogram (buckets 5 ms to 60 s) |
+
+Label cardinality is bounded: `route` is the matched route template (for example
+`/api/vms/{name}`), never the raw path, so VM names and IDs never become label values. Requests
+that match no route (static web assets, 404s, scanners) all share the single label
+`route="unmatched"`. `method` is one of GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS or `OTHER`;
+`status_class` is `1xx`..`5xx` (or `other`).
+
+### Per-VM CPU/Memory Metrics (opt-in)
+
+Off by default. Enable in the daemon config:
+
+```toml
+[metrics]
+per_vm = true        # default false
+per_vm_max = 50      # default 50: cap on labelled VMs
+```
+
+| Metric | Labels | Description |
+|--------|--------|-------------|
+| `zyvor_fabricd_vm_cpu_usage_percent` | `vm` | CPU usage percent of a running VM |
+| `zyvor_fabricd_vm_memory_usage_percent` | `vm` | Memory usage as percent of the VM's allocation |
+
+Only running VMs are exported, refreshed every 60 seconds by the metrics collector. At most
+`per_vm_max` VMs are labelled (alphabetically first by name); the rest are omitted, and series of
+VMs that stop or are deleted disappear on the next refresh. Per-VM disk and network series are not
+exported as Prometheus series; use `GET /api/vms/{name}/metrics` for live per-VM figures.
 
 ### Prometheus Configuration
 

@@ -10,3 +10,7 @@ tokio.workspace = true
 anyhow.workspace = true
 prometheus = "0.14"
 lazy_static = "1.5"
+vm-model = { path = "../vm-model" }
+
+[dev-dependencies]
+serde_json.workspace = true

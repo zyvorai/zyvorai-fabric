@@ -4,6 +4,7 @@
 pub mod api;
 pub mod api_error;
 pub mod config;
+pub mod metrics_layer;
 pub mod plugins;
 pub mod qmp;
 pub mod routes;
