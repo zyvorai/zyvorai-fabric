@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 """Rebrand user-facing vmspawn/zyvor-fabricd prose to Zyvor Fabric while preserving technical identifiers."""
 
 from __future__ import annotations

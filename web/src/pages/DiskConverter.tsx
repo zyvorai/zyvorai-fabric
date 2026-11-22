@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { RefreshCw, HardDrive, ArrowRight, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react'

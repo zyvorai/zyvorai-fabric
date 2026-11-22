@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 //! Warm VM pools -- pre-boot N VMs from a template, pause each once ready,
 //! then hand one out instantly on claim instead of a slow cold create+boot.

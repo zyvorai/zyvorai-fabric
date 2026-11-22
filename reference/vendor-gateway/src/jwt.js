@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Identity adapter: verify the vendor's own login token (HS256 JWT here). Replace this file with your
 // account system's verifier (OIDC, a session lookup, ...). The gateway only needs `{ sub, region? }`.

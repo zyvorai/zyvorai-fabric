@@ -28,7 +28,7 @@ introduced. Type is Helvetica Neue with Menlo for labels.
 
 Copy follows [docs/POSITIONING.md](../POSITIONING.md) and the project README. The version string (`v0.3.0`) matches
 `backend/Cargo.toml` and the `zyvor-fabric/v0.3.0` tag; update it in all three HTML files when releasing. Licence
-wording follows `LICENSE` (Zyvor Production License v1.0).
+wording follows `LICENSE` (Zyvor Production Licence v2.0).
 
 ## GitHub social preview
 

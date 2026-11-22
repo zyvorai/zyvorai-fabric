@@ -3,7 +3,7 @@ name = "machina-fabric"
 version = "0.1.0"
 edition = "2021"
 description = "Machina v0.1 CLI — Zyvor Fabric cluster probe (macOS/Linux)"
-license = "LicenseRef-Zyvor-Production-1.0"
+license = "LicenseRef-Zyvor-Production-2.0"
 
 [[bin]]
 name = "machina-fabric"

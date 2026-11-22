@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 /** Parse JSON from a fetch Response; rejects HTML SPA fallthrough. */
 export async function parseJsonResponse<T>(res: Response): Promise<T> {

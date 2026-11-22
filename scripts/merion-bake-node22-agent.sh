@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 #
 # Bake and register the node22-agent FluxVM template (Ubuntu 24.04 + Node 22 + poppler + tesseract + guest agent):
 # the cell every Keep use case runs in.

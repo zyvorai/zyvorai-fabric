@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Fail closed if this Merion/Keep host is missing the agent egress advertise address.
 #   sudo ./scripts/merion-check-agent-egress.sh
 # Optional: ENV_FILE=/etc/zyvor-fabricd/zyvor-fabric-agent.env

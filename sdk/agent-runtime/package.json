@@ -3,7 +3,7 @@
   "version": "0.5.1",
   "description": "TypeScript/JavaScript SDK and deploy CLI for Zyvor Fabric Agent Runtime",
   "type": "module",
-  "license": "LicenseRef-Zyvor-Production-1.0",
+  "license": "LicenseRef-Zyvor-Production-2.0",
   "engines": {
     "node": ">=20"
   },

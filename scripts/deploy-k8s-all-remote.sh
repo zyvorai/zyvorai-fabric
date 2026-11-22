@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # ============================================================================
 # deploy-k8s-all-remote.sh — Fabric K8s deploy to a remote host (Ragnarok-style)
 # ============================================================================

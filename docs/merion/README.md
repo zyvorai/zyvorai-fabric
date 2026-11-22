@@ -7,7 +7,7 @@
 **Your agent gets a real computer. You keep the keys.**
 
 Merion gives an untrusted AI agent its own sealed computer on hardware you control,
-while you hold the policy, the credentials and the approvals. Source-available, Zyvor Production License v1.0.
+while you hold the policy, the credentials and the approvals. Source-available, Zyvor Production Licence v2.0.
 
 [![Merion CI](https://github.com/zyvorai/fabric/actions/workflows/merion.yml/badge.svg)](../../.github/workflows/merion.yml)
 [![License: Zyvor Production](https://img.shields.io/badge/license-Zyvor%20Production-blue.svg)](../../LICENSE)
@@ -361,4 +361,4 @@ Start with [VENDORS.md](VENDORS.md); it lists what is built, what is reference c
 - [PRODUCTION.md](PRODUCTION.md) — production checklist · [STATUS.md](STATUS.md) — what ships today
 - [Fabric](../../README.md) — the control plane Merion runs on
 
-License: Zyvor Production License v1.0 (a commercial license is required, sales@zyvor.dev).
+License: Zyvor Production Licence v2.0 (a commercial license is required, sales@zyvor.dev).

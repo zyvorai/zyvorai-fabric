@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Runs the console accessibility gate for the light and the dark theme at the same time (two processes, two ports), which about
 // halves the wall-clock time of the 80-odd page check. Exits non-zero if either fails. Run: npx vite build && node a11y-parallel.mjs

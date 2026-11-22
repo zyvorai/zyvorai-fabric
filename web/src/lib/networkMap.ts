@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 /** The graph behind the Network page's map: which interface belongs to which bond or bridge, which VLAN, macvtap or VXLAN sits on
     which parent, and which tap is plugged into which bridge. Built only from the fields the API already returns (a bond's members,

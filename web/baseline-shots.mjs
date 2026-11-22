@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Baseline screenshots of the busiest console pages (ux-plan step 0).
 // Run: npx vite build && node baseline-shots.mjs <outdir>

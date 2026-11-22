@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 //! Cilium-style per-VM packet-flow controls mapped onto FluxVM
 //! `VmNetworkPolicy` (schema v4). Fabric does not write Cilium-private maps.

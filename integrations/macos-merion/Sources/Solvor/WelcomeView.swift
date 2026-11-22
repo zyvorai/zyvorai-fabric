@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 import MerionKit
 import SwiftUI
@@ -51,7 +51,7 @@ struct AboutView: View {
             Text("A Mac client for Keep").foregroundStyle(.secondary)
             Text("Files you choose are uploaded to the Keep host you configured and read in a sealed cell with no network. The evidence class is software-test: whoever operates the host could still read a cell's memory. Solvor never runs commands on your Mac, never sends or replies to mail, and never approves anything by voice.")
                 .font(.callout).multilineTextAlignment(.center).foregroundStyle(.secondary)
-            Text("Version 0.1 · Zyvor Production License").font(.caption).foregroundStyle(.tertiary)
+            Text("Version 0.1 · Zyvor Production Licence").font(.caption).foregroundStyle(.tertiary)
             Button("Close") { dismiss() }.keyboardShortcut(.defaultAction)
         }.padding(28).frame(width: 440)
     }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 #
 # ILLUSTRATIVE scripted replay of the credential-broker idea. It prints fixed text: it does not
 # run Merion or FluxVM, and it contains no measured numbers. The first line says so on screen.

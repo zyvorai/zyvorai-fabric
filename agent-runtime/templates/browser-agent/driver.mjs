@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 //
 // Keep browser a11y driver — Playwright is private. Model tools only see
 // snapshot refs (@eN) and act ops. No page.evaluate / page.content / DOM CDP.

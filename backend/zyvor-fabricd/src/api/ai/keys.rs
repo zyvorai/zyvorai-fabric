@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 //!
 //! Inference endpoint API keys (Phase 4, preview).
 //! Secrets are hashed at rest; plaintext returned once on create.

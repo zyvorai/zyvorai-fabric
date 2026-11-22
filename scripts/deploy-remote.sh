@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # scripts/deploy-remote.sh — rsync sources to remote, compile & install ONLY on remote
 #
 # Nothing is built on your laptop: cargo/npm run on the SSH host (--quick skips system deps).

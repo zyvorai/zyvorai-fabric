@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Validates an AG-UI event stream (server-sent events on stdin) against the official @ag-ui/core schemas, and checks the ordering rules a client
 // relies on: RUN_STARTED first, text messages opened, filled and closed in order, and exactly one terminal RUN_FINISHED or RUN_ERROR, last.

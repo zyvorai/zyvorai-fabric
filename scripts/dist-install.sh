@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # install.sh — offline installer bundled inside the zyvor-fabric distribution
 # tar.gz. Installs prebuilt binaries only: no git, no cargo, no npm, no
 # network access required. Run as root (or with sudo) from the extracted

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 //! `ConsoleDriver` backed by FluxVM's `GET /v1/vms/{id}/console`
 //! WebSocket (`FluxVmClient::open_console`), itself backed by the vsock

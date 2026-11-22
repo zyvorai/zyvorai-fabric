@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // The price-watch example agent: a plain API-key connector (docs/merion/connectors/README.md), paired with calendar-suggestions as the
 // second proactive finder. api.pricewatch.example is a placeholder host, not a real vendor; tested against a fake ctx.fetch only.

@@ -1,5 +1,5 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 # Gives accessible names to controls the axe gate cannot see (it only loads empty pages):
 #  - icon-only <button>s get aria-label + title from the icon's name

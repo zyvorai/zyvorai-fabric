@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // The calendar-suggestions example agent: a heuristic proactive finder (docs/merion/REMAINING.md's "a real finder"). Pure decision
 // functions tested directly, then the whole agent against a fake `ctx.fetch`, the same pattern google-agents.test.js uses.

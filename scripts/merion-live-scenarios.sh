@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 #
 # Run the Keep scenarios against a LIVE runtime, in real cells (needs the node22-agent template:
 # ./scripts/merion-bake-node22-agent.sh). Unlike agent-runtime/tests/demos-ci.sh this uses no stand-in.

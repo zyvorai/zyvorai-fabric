@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 /** Real output of scripts/merion-e2e.sh, condensed (public/merion/demo-static.svg). */
 export default function MerionDemoFrame() {
