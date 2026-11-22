@@ -102,7 +102,7 @@ impl JwtConfig {
         let token = encode(
             &Header::default(),
             &claims,
-            &EncodingKey::from_secret(self.secret.as_bytes()),
+            &EncodingKey::from_secret(self.secret.as_bytes())?,
         )?;
 
         Ok(token)
@@ -111,7 +111,7 @@ impl JwtConfig {
     pub fn validate_token(&self, token: &str) -> Result<Claims> {
         let token_data = decode::<Claims>(
             token,
-            &DecodingKey::from_secret(self.secret.as_bytes()),
+            &DecodingKey::from_secret(self.secret.as_bytes())?,
             &Validation::default(),
         )?;
 
@@ -500,7 +500,7 @@ mod tests {
         let token = jsonwebtoken::encode(
             &jsonwebtoken::Header::default(),
             &claims,
-            &jsonwebtoken::EncodingKey::from_secret(jwt.secret.as_bytes()),
+            &jsonwebtoken::EncodingKey::from_secret(jwt.secret.as_bytes()).unwrap(),
         )
         .unwrap();
         assert!(jwt.validate_token(&token).is_err());
