@@ -2960,7 +2960,9 @@ dependencies = [
  "axum",
  "lazy_static",
  "prometheus",
+ "serde_json",
  "tokio",
+ "vm-model",
 ]
 
 [[package]]

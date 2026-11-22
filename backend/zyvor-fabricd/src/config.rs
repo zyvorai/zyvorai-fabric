@@ -22,6 +22,35 @@ pub struct Config {
     pub container_groups: ContainerGroupsConfig,
     #[serde(default)]
     pub agent_runtime: AgentRuntimeConfig,
+    #[serde(default)]
+    pub metrics: MetricsConfig,
+}
+
+/// Prometheus `/metrics` options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetricsConfig {
+    /// Export per-VM CPU/memory series (`zyvor_fabricd_vm_cpu_usage_percent`,
+    /// `zyvor_fabricd_vm_memory_usage_percent`, label `vm`). Off by default
+    /// because it adds one label value per VM.
+    #[serde(default)]
+    pub per_vm: bool,
+    /// Maximum number of VMs labelled when `per_vm` is on (alphabetically
+    /// first by name); the rest are not exported.
+    #[serde(default = "default_per_vm_max")]
+    pub per_vm_max: usize,
+}
+
+fn default_per_vm_max() -> usize {
+    prometheus_exporter::DEFAULT_PER_VM_MAX
+}
+
+impl Default for MetricsConfig {
+    fn default() -> Self {
+        Self {
+            per_vm: false,
+            per_vm_max: default_per_vm_max(),
+        }
+    }
 }
 
 /// Optional proxy to the sibling `zyvor-fabric-agent-runtime` service
@@ -483,6 +512,7 @@ impl Config {
             driver: DriverConfig::default(),
             tls: TlsConfig::default(),
             container_groups: ContainerGroupsConfig::default(),
+            metrics: MetricsConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         })
     }
@@ -533,6 +563,7 @@ mod tests {
                 ..TlsConfig::default()
             },
             container_groups: ContainerGroupsConfig::default(),
+            metrics: MetricsConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         }
     }

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+- **`/metrics` reflects reality.** The VM gauges (`vms_total`, `vms_running`, `vms_stopped`, plus `vms_by_state{state}`) are refreshed from the VM list on every scrape and by the 60-second collector; API requests are counted by method, route template and status class with a latency histogram (unmatched routes share one label, so label cardinality stays bounded); per-VM CPU/memory series are opt-in (`[metrics] per_vm = true`, capped by `per_vm_max`, default 50). The four lifecycle counters (starts, stops, creates, deletes) are still not incremented by any handler. Per-VM disk and network are not exported.
+- **Configuration snapshot history and diff.** `POST /api/config/snapshots` stores the current configuration snapshot (capped at 50, audit-logged as `config.snapshot.create`), `GET /api/config/snapshots` lists them, `GET /api/config/diff?from=&to=` compares two snapshots or one against `current` (secret-looking values are redacted in the diff output; stored snapshots keep raw values like the rest of the state store). A "Snapshots & diff" tab was added to the Timeline page. Covered by unit and router tests; not exercised against a live daemon with real VMs.
+
+### Fixed
+- Formatting of `backend/zyvor-fabricd/src/api/ai/router.rs` (`cargo fmt --check` failed on main).
+
 ## 0.5.1 - 2026-11-19
 
 ### Fixed

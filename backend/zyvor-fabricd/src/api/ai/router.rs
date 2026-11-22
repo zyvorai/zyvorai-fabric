@@ -640,7 +640,10 @@ pub fn bandit_arms(state: &AppState, r: &AiRouter) -> Vec<ArmScore> {
         .unwrap_or_default();
     let arms = arm_scores(r, &traces, BANDIT_WINDOW);
     if let Ok(mut cache) = ARM_CACHE.lock() {
-        cache.insert(r.endpoint.clone(), (std::time::Instant::now(), arms.clone()));
+        cache.insert(
+            r.endpoint.clone(),
+            (std::time::Instant::now(), arms.clone()),
+        );
     }
     arms
 }
@@ -1425,10 +1428,7 @@ mod tests {
     }
 
     fn arms(a: (u64, f64), b: (u64, f64)) -> Vec<ArmScore> {
-        vec![
-            ArmScore { n: a.0, sum: a.1 },
-            ArmScore { n: b.0, sum: b.1 },
-        ]
+        vec![ArmScore { n: a.0, sum: a.1 }, ArmScore { n: b.0, sum: b.1 }]
     }
 
     fn picks(r: &AiRouter, a: &[ArmScore], n: u64) -> [u32; 2] {

@@ -28,6 +28,15 @@ pub async fn export_config_snapshot(
     RequireRead(_claims): RequireRead,
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
+    Json(build_snapshot(&state).await)
+}
+
+/// The current snapshot as JSON (same document  returns).
+pub async fn collect_snapshot(state: &AppState) -> serde_json::Value {
+    json!(build_snapshot(state).await)
+}
+
+async fn build_snapshot(state: &AppState) -> ConfigSnapshot {
     let vms = state.store.list_vms().unwrap_or_default();
     let network_policies: Vec<NetworkPolicy> = state
         .store
@@ -40,14 +49,12 @@ pub async fn export_config_snapshot(
     let events: Vec<crate::api::events::VMEvent> =
         state.store.list_entities("vm_events").unwrap_or_default();
 
-    let snapshot = ConfigSnapshot {
+    ConfigSnapshot {
         version: "1".into(),
         exported_at: Utc::now().to_rfc3339(),
         vms: json!(vms),
         network_policies,
         storage_pools: json!(storage_pools),
         recent_events_count: events.len(),
-    };
-
-    Json(snapshot)
+    }
 }

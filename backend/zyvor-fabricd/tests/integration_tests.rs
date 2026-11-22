@@ -1554,3 +1554,92 @@ async fn test_snapshot_tree_empty() {
     let tree: Vec<serde_json::Value> = serde_json::from_slice(&body).unwrap();
     assert!(tree.is_empty());
 }
+
+// ─── Config snapshot history and diff ────────────────────────────────────────
+
+async fn cfg_json(app: &axum::Router, method: &str, uri: &str) -> (StatusCode, serde_json::Value) {
+    let request = Request::builder()
+        .method(method)
+        .uri(uri)
+        .body(Body::empty())
+        .unwrap();
+    let response = app.clone().oneshot(request).await.unwrap();
+    let status = response.status();
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
+    (status, serde_json::from_slice(&body).unwrap_or_default())
+}
+
+#[tokio::test]
+async fn test_config_snapshots_store_list_and_diff() {
+    let app = common::create_test_app().await;
+
+    let (status, before) = cfg_json(&app, "GET", "/api/config/snapshots").await;
+    assert_eq!(status, StatusCode::OK);
+    let existing = before["snapshots"].as_array().unwrap().len();
+
+    let (status, meta) = cfg_json(&app, "POST", "/api/config/snapshots").await;
+    assert_eq!(status, StatusCode::CREATED);
+    let id = meta["id"].as_str().unwrap().to_string();
+    assert!(id.starts_with("snap-"));
+    assert!(
+        meta.get("snapshot").is_none(),
+        "metadata must not embed the snapshot"
+    );
+
+    let (_, list) = cfg_json(&app, "GET", "/api/config/snapshots").await;
+    let items = list["snapshots"].as_array().unwrap();
+    assert_eq!(items.len(), existing + 1);
+    assert_eq!(items[0]["id"], id.as_str());
+    assert_eq!(list["max"], 50);
+
+    // Stored snapshot vs the live state: nothing changed in between.
+    let (status, diff) = cfg_json(
+        &app,
+        "GET",
+        &format!("/api/config/diff?from={id}&to=current"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(diff["change_count"], 0);
+    assert_eq!(diff["from"], id.as_str());
+    assert!(diff["changes"].as_array().unwrap().is_empty());
+
+    let (status, _) = cfg_json(&app, "GET", "/api/config/diff?from=current&to=current").await;
+    assert_eq!(status, StatusCode::OK);
+
+    // History is capped at 50; the oldest snapshot is the one dropped.
+    for _ in 0..51 {
+        let (status, _) = cfg_json(&app, "POST", "/api/config/snapshots").await;
+        assert_eq!(status, StatusCode::CREATED);
+    }
+    let (_, list) = cfg_json(&app, "GET", "/api/config/snapshots").await;
+    let items = list["snapshots"].as_array().unwrap();
+    assert_eq!(items.len(), 50);
+    assert!(
+        !items.iter().any(|m| m["id"] == id.as_str()),
+        "oldest snapshot must be pruned"
+    );
+    let (status, _) = cfg_json(
+        &app,
+        "GET",
+        &format!("/api/config/diff?from={id}&to=current"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn test_config_diff_rejects_bad_requests() {
+    let app = common::create_test_app().await;
+
+    let (status, _) = cfg_json(&app, "GET", "/api/config/diff?from=current").await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    let (status, _) = cfg_json(&app, "GET", "/api/config/diff?from=snap-nope&to=current").await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    let (status, _) = cfg_json(&app, "GET", "/api/config/diff?from=..%2Fetc&to=current").await;
+    assert!(status == StatusCode::BAD_REQUEST || status == StatusCode::NOT_FOUND);
+}

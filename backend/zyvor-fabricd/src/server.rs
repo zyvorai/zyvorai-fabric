@@ -1091,6 +1091,11 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/config/snapshot",
             get(api::config_snapshot::export_config_snapshot),
         )
+        .route(
+            "/config/snapshots",
+            get(api::config_diff::list_snapshots).post(api::config_diff::create_snapshot),
+        )
+        .route("/config/diff", get(api::config_diff::diff_endpoint))
         // Floating IP routes
         .route(
             "/floating-ips",
@@ -2891,7 +2896,20 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .nest("/volume", openstack_compat::volume_router(os_cloud))
         .merge(readyz_routes)
         .route("/health", get(|| async { "OK" }))
-        .route("/metrics", get(prometheus_exporter::metrics_handler))
+        .route("/metrics", {
+            // Refresh VM gauges from the store on every scrape so /metrics
+            // reflects reality between collector ticks (read-only).
+            let st = state.clone();
+            get(move || {
+                let st = st.clone();
+                async move {
+                    if let Ok(vms) = st.store.list_vms() {
+                        prometheus_exporter::update_vm_gauges(&vms);
+                    }
+                    prometheus_exporter::metrics_handler().await
+                }
+            })
+        })
         // Unauthenticated on purpose -- cloud-init's first-boot runcmd has
         // no bearer token to send, and this is a public agent binary, not
         // sensitive data. Lets a VM's own cloud-init curl the GuestKit
@@ -2929,6 +2947,9 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             std::time::Duration::from_secs(330),
         ))
         .layer(TraceLayer::new_for_http())
+        .layer(axum::middleware::from_fn(
+            crate::metrics_layer::track_metrics,
+        ))
         .layer(cors)
 }
 
@@ -3272,7 +3293,10 @@ async fn run_metrics_collector(state: Arc<AppState>) {
             }
         };
 
+        prometheus_exporter::update_vm_gauges(&vms);
+
         let now = Utc::now();
+        let mut per_vm_samples: Vec<(String, f64, f64)> = Vec::new();
         let running_vms: Vec<_> = vms
             .iter()
             .filter(|vm| matches!(vm.state, vm_model::VMState::Running))
@@ -3339,6 +3363,7 @@ async fn run_metrics_collector(state: Arc<AppState>) {
                         );
                     }
 
+                    per_vm_samples.push((vm.name.clone(), metrics.cpu_usage, memory_pct));
                     total_cpu += metrics.cpu_usage;
                     total_memory += memory_pct.min(100.0);
                     total_network_rx += metrics.network_rx;
@@ -3360,6 +3385,10 @@ async fn run_metrics_collector(state: Arc<AppState>) {
                     );
                 }
             }
+        }
+
+        if state.config.metrics.per_vm {
+            prometheus_exporter::set_per_vm_usage(&per_vm_samples, state.config.metrics.per_vm_max);
         }
 
         // Compute and store aggregate system performance
