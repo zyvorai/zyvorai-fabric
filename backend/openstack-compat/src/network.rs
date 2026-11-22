@@ -5,7 +5,7 @@ use axum::{
     extract::State,
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
-    routing::get,
+    routing::{get, post, MethodRouter},
     Json, Router,
 };
 use serde::Deserialize;
@@ -17,10 +17,27 @@ use crate::store::Cloud;
 pub fn router(cloud: Cloud) -> Router {
     Router::new()
         .route("/", get(versions))
-        .route("/v2.0/networks", get(list_nets).post(create_net))
-        .route("/v2.0/subnets", get(list_subnets).post(create_subnet))
-        .route("/v2.0/ports", get(list_ports).post(create_port))
+        .route(
+            "/v2.0/networks",
+            get(list_nets).merge(guarded(&cloud, post(create_net))),
+        )
+        .route(
+            "/v2.0/subnets",
+            get(list_subnets).merge(guarded(&cloud, post(create_subnet))),
+        )
+        .route(
+            "/v2.0/ports",
+            get(list_ports).merge(guarded(&cloud, post(create_port))),
+        )
         .with_state(cloud)
+}
+
+/// Wrap a mutating method handler so it requires a live token.
+fn guarded(cloud: &Cloud, m: MethodRouter<Cloud>) -> MethodRouter<Cloud> {
+    m.route_layer(axum::middleware::from_fn_with_state(
+        cloud.clone(),
+        crate::identity::require_token,
+    ))
 }
 
 async fn versions() -> Json<Value> {

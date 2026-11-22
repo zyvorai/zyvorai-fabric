@@ -3,16 +3,22 @@
 ## Unreleased
 
 ### Added
+- **Capacity what-if.** `POST /api/capacity/whatif` (read-only, never reserves anything) places a list of prospective VMs on the host with first-fit-decreasing and reports which fit and which do not (vCPU, memory or disk), with headroom after placement; overcommit applies only when the policy is enabled. Disk is checked only when `disk_gb_total` is supplied. A "What if I add..." form on the Capacity Planning page; the same maths in `web/src/lib/capacity.ts`, tested against shared fixtures.
+- **Audit insights.** An Insights panel on the Audit Logs page flags bursts by one actor, failed sign-in streaks, privileged actions outside working hours and newly seen actors or addresses, computed on the entries currently loaded (so it follows the active filters).
 - **Pre-flight start check.** `POST /api/vms/{name}/preflight` (read-only) reports blockers, warnings and a `can_start` answer before a VM is started: backend capability limits taken from what the FluxVM driver actually rejects (TPM, Secure Boot, vsock, directory shares, extra drives, bind users, credentials, SMBIOS, more than 255 vCPUs), memory above the host, and, as warnings, missing images or NICs and quota overruns. A "Pre-flight check" panel was added to the VM details page.
 - **Declarative apply plan.** `?dry_run=true` on `POST /api/vms/apply` and the new `POST /api/vms/plan` show what an apply would do (create, update with per-field before/after, noop, unmanaged; delete only with `prune:true`, advisory) with a stable `plan_hash` and secrets redacted; an apply can carry `expected_plan_hash` and is refused with 409 if the live plan differs (not atomic with the apply). `fabricctl apply -f <file> --dry-run [--detailed-exitcode] [--expected-plan-hash]` works for `kind: vm-spec`. A plan only lists changes apply really performs: image, CPU, memory, disk, hostname and tag changes on an existing VM are reported as not applied.
 
 ### Changed
+- **OpenStack-compatible API: mutating routes now require a live token.** Before, no mutating route checked the token (server, network, subnet, port, volume and image creates, deletes and actions only read it to pick a project and fell back to the admin project). They now return 401 for a missing, bad or expired token; token issuance and version discovery stay open and reads are unchanged. Clients that call mutating routes without `X-Auth-Token` will get 401. `docs/openstack-compat.md` now has a per-route auth table and corrected limitations.
 - Starting a VM with options its backend cannot run (for example TPM or Secure Boot on FluxVM) now returns a 400 naming the problem before the VM is marked Starting, instead of a generic driver error later.
 - Compatible dependency updates (`cargo update` for the backend, operator and agent-runtime; `npm update` for the web console, website and agent-runtime SDK).
 
 ### Fixed
 - **The backend compiles again with `jsonwebtoken` 12.** The 11 to 12 bump (#558) changed `EncodingKey::from_secret` and `DecodingKey::from_secret` to return a `Result`; the security crate and one test were not updated, so `cargo build` failed on main. The call sites now propagate the error.
 - The user guide no longer claims vTPM and Secure Boot work on every backend.
+
+### Known issues
+- The Capacity Planning metric cards read `metrics`/`resources` from `/api/system/capacity`, but the daemon returns `physical/effective/allocated/available`, so the cards are empty against a real daemon (pre-existing). The what-if form calls the new endpoint and does not depend on them, but its local fallback does.
 
 ## 0.5.1 - 2026-11-19
 

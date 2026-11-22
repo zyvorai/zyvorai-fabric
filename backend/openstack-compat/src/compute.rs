@@ -5,7 +5,7 @@ use axum::{
     extract::{Path, State},
     http::{HeaderMap, StatusCode},
     response::IntoResponse,
-    routing::{get, post},
+    routing::{delete, get, post, MethodRouter},
     Json, Router,
 };
 use serde::Deserialize;
@@ -22,11 +22,28 @@ pub fn router(cloud: Cloud) -> Router {
         .route("/v2.1/flavors", get(flavors))
         .route("/v2.1/flavors/detail", get(flavors_detail))
         .route("/v2.1/flavors/{id}", get(flavor_show))
-        .route("/v2.1/servers", get(list_servers).post(create_server))
+        .route(
+            "/v2.1/servers",
+            get(list_servers).merge(guarded(&cloud, post(create_server))),
+        )
         .route("/v2.1/servers/detail", get(list_servers_detail))
-        .route("/v2.1/servers/{id}", get(get_server).delete(delete_server))
-        .route("/v2.1/servers/{id}/action", post(server_action))
+        .route(
+            "/v2.1/servers/{id}",
+            get(get_server).merge(guarded(&cloud, delete(delete_server))),
+        )
+        .route(
+            "/v2.1/servers/{id}/action",
+            guarded(&cloud, post(server_action)),
+        )
         .with_state(cloud)
+}
+
+/// Wrap a mutating method handler so it requires a live token.
+fn guarded(cloud: &Cloud, m: MethodRouter<Cloud>) -> MethodRouter<Cloud> {
+    m.route_layer(axum::middleware::from_fn_with_state(
+        cloud.clone(),
+        crate::identity::require_token,
+    ))
 }
 
 async fn version(State(cloud): State<Cloud>) -> Json<Value> {

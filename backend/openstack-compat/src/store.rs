@@ -170,6 +170,14 @@ impl Cloud {
     }
 
     pub async fn issue_token(&self, user: &str, project: &str) -> Token {
+        self.issue_token_with_ttl(user, project, Duration::hours(8))
+            .await
+    }
+
+    /// Issue a token with an explicit lifetime. A zero or negative `ttl`
+    /// yields an already-expired token (used by tests).
+    #[doc(hidden)]
+    pub async fn issue_token_with_ttl(&self, user: &str, project: &str, ttl: Duration) -> Token {
         let token = Token {
             id: format!("tok-{}", Uuid::new_v4()),
             user_id: format!("user-{}", user),
@@ -177,7 +185,7 @@ impl Cloud {
             project_id: format!("proj-{}", project),
             project_name: project.to_string(),
             roles: vec!["admin".into(), "member".into()],
-            expires_at: (Utc::now() + Duration::hours(8)).to_rfc3339(),
+            expires_at: (Utc::now() + ttl).to_rfc3339(),
         };
         self.inner
             .write()

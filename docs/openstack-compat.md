@@ -134,18 +134,63 @@ OpenStack.”
 
 - Password auth accepts any password in the drop-in so the CLI works on day
   one. Wire `issue_token` to Fabric `enterprise-identity` / JWT for production.
-- Most mutating routes do not yet require a live token (catalog does).
-- Tokens write `expires_at` but lookup does not yet enforce expiry.
+  Tokens are random IDs held only in memory, valid for 8 hours, and lost on
+  daemon restart.
+- Only the routes marked "token" in [Authentication](#authentication) check a
+  token. Read-only list/show routes (flavors, servers, images, networks,
+  subnets, ports, volumes, projects, users) are served **without** a token,
+  and no route checks roles or that a resource belongs to the token's project.
 - In-memory store: `os-stop` flips a string; FluxVM is unchanged until `Cloud`
-  calls the real driver.
-- Gaps vs full OpenStack clients: flavor show by id, keypairs, project-prefixed
-  Nova paths, microversions, Glance image upload, security groups, floating IPs.
+  calls the real driver. There is no real infrastructure behind this surface.
+- Gaps vs full OpenStack clients: keypairs, project-prefixed Nova paths,
+  microversions, Glance image upload, security groups, floating IPs, and
+  PUT/PATCH routes (none exist).
+
+## Authentication
+
+Keystone-compat issues a token at `POST /identity/v3/auth/tokens` (any
+password is accepted) and returns it in the `X-Subject-Token` header. Clients
+send it as `X-Auth-Token`. A token is valid only while it exists in the
+in-memory store **and** its `expires_at` (issue time + 8 hours) is in the
+future; lookup enforces this, so an expired token behaves exactly like an
+unknown one.
+
+Routes that require a token answer a missing, unknown or expired token with
+`401` and the body `{"error":{"code":401}}` (token validation uses
+`{"error":{"code":401,"title":"Unauthorized"}}`). For the mutating routes the
+check runs before the request body is parsed, so a malformed body without a
+token is still `401`.
+
+| Route | Token | Success status |
+|-------|-------|----------------|
+| `GET /`, `GET /identity`, `/identity/v3`, `/identity/v3/`, `/compute`, `/compute/v2.1`, `/compute/v2.1/`, `/image`, `/network`, `/volume` (version discovery) | none | 200 |
+| `POST /identity/v3/auth/tokens` (issue; must be open, it is how a token is obtained) | none | 201 |
+| `GET /identity/v3/auth/tokens` (validate `X-Subject-Token`, or `X-Auth-Token`) | the token being validated | 200 |
+| `GET /identity/v3/auth/catalog` | token | 200 |
+| `GET /identity/v3/projects`, `/identity/v3/users` | none | 200 |
+| `GET /compute/v2.1/flavors`, `/flavors/detail`, `/flavors/{id}` | none | 200 (404 unknown id) |
+| `GET /compute/v2.1/servers`, `/servers/detail`, `/servers/{id}` | none | 200 (404 unknown id) |
+| `POST /compute/v2.1/servers` | token | 202 |
+| `POST /compute/v2.1/servers/{id}/action` | token | 202 |
+| `DELETE /compute/v2.1/servers/{id}` | token | 204 |
+| `GET /image/v2/images`, `/image/v2/images/{id}` | none | 200 (404 unknown id) |
+| `POST /image/v2/images` | token | 201 |
+| `DELETE /image/v2/images/{id}` | token | 204 |
+| `GET /network/v2.0/networks`, `/subnets`, `/ports` | none | 200 |
+| `POST /network/v2.0/networks`, `/subnets`, `/ports` | token | 201 |
+| `GET /volume/v3/{project_id}/volumes`, `/volumes/detail`, `/volumes/{id}` | none | 200 (404 unknown id) |
+| `POST /volume/v3/{project_id}/volumes` | token | 202 |
+| `POST /volume/v3/{project_id}/volumes/{id}/action` | token | 202 |
+
+The token's project is used as the owner of created servers, networks,
+subnets, ports and volumes. The `{project_id}` path segment of Cinder routes
+is accepted but not checked against the token.
 
 ## Tests
 
 ```bash
 cd backend
-cargo test -p openstack-compat
+cargo test -p openstack-compat   # tests/api.rs round trips, tests/auth.rs auth matrix
 ```
 
 ## See also
