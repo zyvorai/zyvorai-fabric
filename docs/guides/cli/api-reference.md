@@ -281,7 +281,7 @@ Without a body, the VM is started as previously configured.
 ```
 
 **Error responses:**
-- `400` -- Invalid start options
+- `400` -- Invalid start options, or options/vCPU count the backend is known to reject (message names the cause; see `POST /api/vms/:name/preflight`)
 - `409` -- VM is already running, starting, or stopping
 
 **curl example:**
@@ -297,6 +297,63 @@ curl -s -X POST http://localhost:3000/api/vms/my-vm/start \
   -H "Content-Type: application/json" \
   -d '{"console": true}' | jq
 ```
+
+---
+
+### POST /api/vms/:name/preflight
+
+Read-only "can this VM start here?" check. It never starts, changes or reserves anything. Accepts the same optional `VMStartOptions` body as `POST /api/vms/:name/start` (without a body it checks the VM as stored), so you can test options before using them.
+
+**Auth level:** Viewer+ (read)
+
+**Response (200):**
+
+```json
+{
+  "vm": "my-vm",
+  "backend": "fluxvm",
+  "can_start": false,
+  "summary": { "blockers": 1, "warnings": 0, "infos": 0 },
+  "findings": [
+    {
+      "id": "backend.tpm",
+      "severity": "blocker",
+      "message": "The fluxvm backend does not support TPM.",
+      "hint": "Remove the TPM option, or start without tpm=true."
+    }
+  ]
+}
+```
+
+`can_start` is `false` if and only if at least one finding has severity `blocker`. Findings are ordered blocker, warning, info. Rule ids:
+
+| Id | Severity | Meaning |
+|----|----------|---------|
+| `vm.state` | blocker / warning | Running, Starting or Stopping VMs cannot be started (blocker); a Paused VM should be resumed (warning) |
+| `vm.last_error` | info | Previous start failed; shows the recorded error |
+| `backend.tpm`, `backend.secure_boot`, `backend.vsock`, `backend.directory_boot`, `backend.extra_drives`, `backend.bind_users`, `backend.credentials`, `backend.smbios11` | blocker | Option the active backend rejects at start (FluxVM: the same options listed under start) |
+| `backend.vcpu_limit` | blocker | vCPU count above the backend limit (FluxVM: 255) |
+| `vm.image.missing` | blocker | VM has no image reference |
+| `vm.image.not_found` | warning | Image not found on this host and the VM has no provisioned disk here |
+| `net.direct_uplink.invalid` | blocker | Direct uplink settings conflict or are malformed |
+| `net.direct_uplink.missing` | warning | Direct uplink NIC not present on this host |
+| `storage.backend.unknown` | warning | Unrecognised storage backend (the default is used) |
+| `capacity.memory` | blocker | VM memory exceeds host memory (times the memory overcommit ratio when overcommit is enabled) |
+| `capacity.memory.shared`, `capacity.cpu`, `capacity.cpu.shared` | warning | Running VMs plus this one exceed host capacity, or the VM has more vCPUs than the host offers |
+| `quota.exceeded` | warning | An enabled quota covering the tenant or tags of this VM is already exceeded (start itself does not enforce quotas) |
+
+Checks that depend on this host's filesystem or NICs are warnings, because the FluxVM daemon can run elsewhere.
+
+**Error responses:**
+- `400` -- Invalid start options
+- `404` -- VM not found
+
+```bash
+curl -s -X POST http://localhost:3000/api/vms/my-vm/preflight \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+`POST /api/vms/:name/start` applies the backend-capability rules itself and returns `400` with the finding text (instead of failing later in the background) when the start options or vCPU count are known to be rejected by the backend.
 
 ---
 

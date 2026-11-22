@@ -19,6 +19,7 @@ import { StatusBadge } from '../components/ui'
 import ConfirmDialog from '../components/ConfirmDialog'
 import CloneVMDialog from '../components/CloneVMDialog'
 import ErrorBanner from '../components/ErrorBanner'
+import PreflightPanel from '../components/PreflightPanel'
 import CopyButton from '../components/CopyButton'
 import UndoBar from '../components/UndoBar'
 import { useUndoableAction } from '../hooks/useUndoableAction'
@@ -345,6 +346,7 @@ function OverviewTab({ vm, onRetryStart }: { vm: VM; onRetryStart: () => void })
           />
         </div>
       )}
+      <PreflightPanel vmName={vm.name} />
       <div className="zf-panel p-5">
         <h3 className="text-sm font-medium text-[var(--zf-muted)] mb-3">Configuration</h3>
         <dl>

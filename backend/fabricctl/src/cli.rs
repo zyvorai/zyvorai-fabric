@@ -252,6 +252,18 @@ enum Commands {
         /// Path to JSON or YAML config file
         #[arg(short, long)]
         file: String,
+        /// Show the plan (create/update/noop) and change nothing. Supported for
+        /// `kind: vm-spec` (the declarative VM spec, POST /vms/apply).
+        #[arg(long)]
+        dry_run: bool,
+        /// With --dry-run: exit 0 when nothing would change, 2 when changes are
+        /// pending (like `terraform plan -detailed-exitcode`)
+        #[arg(long, requires = "dry_run")]
+        detailed_exitcode: bool,
+        /// Refuse to apply (HTTP 409) unless the live plan has this hash, as
+        /// printed by a previous --dry-run. `kind: vm-spec` only.
+        #[arg(long, conflicts_with = "dry_run")]
+        expected_plan_hash: Option<String>,
     },
     /// Export current config to JSON or YAML
     Export {
@@ -1396,6 +1408,88 @@ fn load_config_file(path: &str) -> Result<serde_json::Value> {
     }
 }
 
+/// True when a plan from `POST /vms/apply?dry_run=true` has pending changes.
+fn plan_has_changes(plan: &serde_json::Value) -> bool {
+    plan.get("has_changes")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+}
+
+/// Render a declarative apply plan as terraform-style text.
+fn render_plan(plan: &serde_json::Value) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::new();
+    let compact = |v: &serde_json::Value| serde_json::to_string(v).unwrap_or_default();
+    for e in plan
+        .get("entries")
+        .and_then(|v| v.as_array())
+        .map(Vec::as_slice)
+        .unwrap_or(&[])
+    {
+        let name = e.get("name").and_then(|v| v.as_str()).unwrap_or("?");
+        let action = e.get("action").and_then(|v| v.as_str()).unwrap_or("?");
+        let sym = match action {
+            "create" => "+",
+            "update" => "~",
+            "delete" => "-",
+            "noop" => "=",
+            _ => "?",
+        };
+        let _ = writeln!(out, "{sym} {action} {name}");
+        for c in e
+            .get("changes")
+            .and_then(|v| v.as_array())
+            .map(Vec::as_slice)
+            .unwrap_or(&[])
+        {
+            let field = c.get("field").and_then(|v| v.as_str()).unwrap_or("?");
+            let before = c.get("before").cloned().unwrap_or_default();
+            let after = c.get("after").cloned().unwrap_or_default();
+            let note = if c.get("applied").and_then(|v| v.as_bool()) == Some(false) {
+                "  (not changed by apply)"
+            } else {
+                ""
+            };
+            let empty =
+                |v: &serde_json::Value| v.is_null() || v.as_array().is_some_and(|a| a.is_empty());
+            match action {
+                "create" if empty(&after) => {}
+                "create" => {
+                    let _ = writeln!(out, "    + {field}: {}", compact(&after));
+                }
+                "delete" => {}
+                _ => {
+                    let _ = writeln!(
+                        out,
+                        "    ~ {field}: {} -> {}{note}",
+                        compact(&before),
+                        compact(&after)
+                    );
+                }
+            }
+        }
+    }
+    let n = |k: &str| {
+        plan.get("summary")
+            .and_then(|s| s.get(k))
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0)
+    };
+    let _ = writeln!(
+        out,
+        "Plan: {} to create, {} to update, {} to delete, {} unchanged, {} unmanaged.",
+        n("create"),
+        n("update"),
+        n("delete"),
+        n("noop"),
+        n("unmanaged")
+    );
+    if let Some(h) = plan.get("plan_hash").and_then(|v| v.as_str()) {
+        let _ = writeln!(out, "plan_hash: {h}");
+    }
+    out
+}
+
 fn format_output<T: Serialize>(val: &T, fmt: OutputFormat) -> Result<String> {
     match fmt {
         OutputFormat::Json => Ok(serde_json::to_string_pretty(val)?),
@@ -2493,12 +2587,49 @@ impl Cli {
             },
 
             // ── Apply / Export ────────────────────────────────────────────
-            Commands::Apply { file } => {
+            Commands::Apply {
+                file,
+                dry_run,
+                detailed_exitcode,
+                expected_plan_hash,
+            } => {
                 let config = load_config_file(&file)?;
                 let kind = config.get("kind").and_then(|v| v.as_str())
                     .context("Config must have a 'kind' field (vm, firewall-profile, network-policy, service, qos-policy, dns-zone, dns-policy, vpn-tunnel, vpn-network, mirror-session, nat-rule, nat-pool, nat-gateway, monitor-policy, bridge, vlan, bond, port-forward)")?;
 
                 let spec = config.get("spec").unwrap_or(&config);
+
+                if kind == "vm-spec" {
+                    // Declarative VMSpec: POST /vms/apply, with optional plan/guard.
+                    if dry_run {
+                        let plan = api_post(&client, "/vms/apply?dry_run=true", spec).await?;
+                        if matches!(fmt, OutputFormat::Table) {
+                            print!("{}", render_plan(&plan));
+                        } else {
+                            print_value(&plan, fmt);
+                        }
+                        if detailed_exitcode && plan_has_changes(&plan) {
+                            std::process::exit(2);
+                        }
+                        return Ok(());
+                    }
+                    let path = match &expected_plan_hash {
+                        Some(h) => format!("/vms/apply?expected_plan_hash={h}"),
+                        None => "/vms/apply".to_string(),
+                    };
+                    let result = api_post(&client, &path, spec).await?;
+                    println!("Applied {} successfully", kind);
+                    if !matches!(fmt, OutputFormat::Table) {
+                        print_value(&result, fmt);
+                    }
+                    return Ok(());
+                }
+                if dry_run || expected_plan_hash.is_some() {
+                    anyhow::bail!(
+                        "--dry-run / --expected-plan-hash are only supported for kind vm-spec"
+                    );
+                }
+
                 let (method, path) = match kind {
                     "vm" => ("POST", "/vms"),
                     "firewall-profile" => ("POST", "/firewall-profiles"),
@@ -4102,5 +4233,91 @@ mod default_server_probe_tests {
         let addr = listener.local_addr().unwrap().to_string();
         drop(listener);
         assert!(!port_speaks_tls(&addr).await);
+    }
+}
+
+#[cfg(test)]
+mod apply_plan_cli_tests {
+    use super::*;
+
+    #[test]
+    fn apply_dry_run_flags_parse() {
+        let cli = Cli::try_parse_from([
+            "fabricctl",
+            "apply",
+            "-f",
+            "vm.yaml",
+            "--dry-run",
+            "--detailed-exitcode",
+        ])
+        .unwrap();
+        match cli.command {
+            Some(Commands::Apply {
+                file,
+                dry_run,
+                detailed_exitcode,
+                expected_plan_hash,
+            }) => {
+                assert_eq!(file, "vm.yaml");
+                assert!(dry_run && detailed_exitcode && expected_plan_hash.is_none());
+            }
+            _ => panic!("expected Apply"),
+        }
+        // plain apply unchanged
+        let cli = Cli::try_parse_from(["fabricctl", "apply", "-f", "vm.yaml"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Apply {
+                dry_run: false,
+                detailed_exitcode: false,
+                ..
+            })
+        ));
+        // --detailed-exitcode needs --dry-run; hash conflicts with --dry-run
+        assert!(
+            Cli::try_parse_from(["fabricctl", "apply", "-f", "a", "--detailed-exitcode"]).is_err()
+        );
+        assert!(Cli::try_parse_from([
+            "fabricctl",
+            "apply",
+            "-f",
+            "a",
+            "--dry-run",
+            "--expected-plan-hash",
+            "x"
+        ])
+        .is_err());
+    }
+
+    #[test]
+    fn render_plan_and_exit_semantics() {
+        let plan = serde_json::json!({
+            "entries": [
+                {"name": "a", "action": "create", "changes": [
+                    {"field": "cpus", "before": null, "after": 2, "applied": true},
+                    {"field": "tags", "before": null, "after": [], "applied": true}]},
+                {"name": "b", "action": "update", "changes": [
+                    {"field": "volumes", "before": [], "after": [{"host": "/x"}], "applied": true},
+                    {"field": "cpus", "before": 2, "after": 4, "applied": false}]},
+                {"name": "c", "action": "unmanaged", "changes": []}
+            ],
+            "summary": {"create": 1, "update": 1, "delete": 0, "noop": 0, "unmanaged": 1},
+            "has_changes": true,
+            "plan_hash": "abc"
+        });
+        let out = render_plan(&plan);
+        assert!(out.contains("+ create a"));
+        assert!(out.contains("    + cpus: 2"));
+        assert!(!out.contains("tags"));
+        assert!(out.contains("~ update b"));
+        assert!(out.contains("cpus: 2 -> 4  (not changed by apply)"));
+        assert!(
+            out.contains("Plan: 1 to create, 1 to update, 0 to delete, 0 unchanged, 1 unmanaged.")
+        );
+        assert!(out.contains("plan_hash: abc"));
+        assert!(plan_has_changes(&plan));
+        assert!(!plan_has_changes(
+            &serde_json::json!({"has_changes": false})
+        ));
     }
 }

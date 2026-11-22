@@ -73,6 +73,8 @@ _Create, run, and reshape virtual machines with declarative or interactive workf
 
 - **Full VM Lifecycle** — Create, start, stop, restart, pause, resume, hibernate, and delete VMs backed by KVM, via FluxVM. — _One consistent lifecycle across CLI, web, Terraform, and Kubernetes._
   - **How:** CLI `fabricctl start|stop|restart|delete <name>` (pause/resume are REST/Web only) · Web dashboard VM-list quick actions VMs view (`s`/`t`/`r`/`d`) · REST `POST /api/vms/:name/{start,stop,restart,pause,resume}` and `DELETE /api/vms/:name`.
+- **Pre-flight Start Check** — Ask "can this VM start here?" before pressing Start: the check reports blockers (backend does not support TPM or Secure Boot, VM already running, memory above host capacity, no image) and warnings (overcommit or quota exceeded, image or uplink not found on this host) with a plain-text fix for each. — _Find out why a VM will not start before it fails in the background._
+  - **How:** REST `POST /api/vms/:name/preflight` (read-only; optional `VMStartOptions` body to test options; returns `can_start` plus findings) · Web VM detail Overview tab → Pre-flight check · `POST .../start` rejects backend-unsupported options with the same message (REST/Web only — no `fabricctl` command).
 - **Declarative Apply** — Define VMs in YAML and reconcile them with fabricctl apply -f config.yaml. — _GitOps-friendly infrastructure without a control-plane rewrite._
   - **How:** CLI `fabricctl apply -f config.yaml` reconciles a YAML spec (version it in git); equivalent imperative path is REST `POST /api/vms`, or a `VirtualMachine` CRD via the K8s operator.
 - **Cloning & Templates** — Full and linked copy-on-write clones plus reusable templates for rapid deployment. — _Stand up fleets from a golden image in seconds, not minutes._
@@ -172,7 +174,7 @@ _Low-level control over CPU topology, memory, accelerators, and firmware._
   - **How:** REST `GET /api/system/numa-topology`, placement hint `GET /api/system/numa/placement`, and `POST /api/system/vms/:name/cpu-pinning` (Auto/NumaNode/Socket/Explicit) · Web VM advanced CPU settings.
 - **Memory Optimization** — Memory ballooning, hugepages, and KSM page deduplication via a system resource manager. — _Fit more VMs per host without starving any of them._
   - **How:** REST `POST /api/system/vms/:name/memory-ballooning`, `/memory-limit`, and `POST /api/system/hugepages/allocate`; KSM handled by the resource manager · Web VM settings.
-- **vTPM & Secure Boot** — TPM 1.2/2.0 via swtpm with per-VM isolated state, UEFI, and Secure Boot firmware management. — _Support BitLocker, LUKS, and measured boot inside guests._
+- **vTPM & Secure Boot** — TPM 1.2/2.0 via swtpm with per-VM isolated state, UEFI, and Secure Boot firmware management, on backends that implement them. The FluxVM backend rejects TPM and Secure Boot at start; the Pre-flight Start Check reports this as a blocker before you press Start. — _Support BitLocker, LUKS, and measured boot inside guests._
   - **How:** Pass `tpm: true` / `secure_boot` in VMStartOptions on `POST /api/vms/:name/start` (swtpm gives each VM isolated state) · Web VM Create advanced boot/display settings · requires swtpm on the host.
 - **cloud-init Provisioning** — NoCloud datasource generation for users, packages, network config, and SSH key injection. — _Boot fully configured VMs on first start, hands-free._
   - **How:** REST `POST /api/vms/:name/cloud-init` (users, packages, runcmd, write_files → NoCloud ISO) · Web VM detail Cloud-init tab · applied on next start/restart.

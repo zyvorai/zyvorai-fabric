@@ -163,7 +163,7 @@ pub async fn get_capacity(
     })))
 }
 
-async fn num_cpus() -> u32 {
+pub(crate) async fn num_cpus() -> u32 {
     tokio::fs::read_to_string("/proc/cpuinfo")
         .await
         .map(|c| c.lines().filter(|l| l.starts_with("processor")).count() as u32)
@@ -171,7 +171,7 @@ async fn num_cpus() -> u32 {
         .max(1)
 }
 
-async fn total_memory_mb() -> u64 {
+pub(crate) async fn total_memory_mb() -> u64 {
     tokio::fs::read_to_string("/proc/meminfo")
         .await
         .ok()

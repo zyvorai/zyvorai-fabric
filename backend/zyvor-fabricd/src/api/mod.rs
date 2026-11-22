@@ -13,6 +13,7 @@ pub mod audit;
 pub mod autoscale;
 pub mod backups;
 pub mod declarative;
+pub mod declarative_plan;
 pub mod events;
 pub mod firmware;
 pub mod guest_rescue;
