@@ -932,24 +932,21 @@ fn refresh_good(state: &AppState, vm: &str, mut revs: Vec<Revision>) -> Vec<Revi
     }
     let now = Utc::now();
     let starts: Vec<DateTime<Utc>> = revs.iter().map(|r| r.timestamp).collect();
-    for i in 0..revs.len() {
-        if revs[i].good.is_some() {
+    for (i, r) in revs.iter_mut().enumerate() {
+        if r.good.is_some() {
             continue;
         }
         let end = starts.get(i + 1).copied().unwrap_or(now);
-        let secs = healthy_overlap_secs(&events, revs[i].timestamp, end, now, running_now);
+        let secs = healthy_overlap_secs(&events, r.timestamp, end, now, running_now);
         if secs >= need {
-            revs[i].good = Some(GoodMark {
+            r.good = Some(GoodMark {
                 source: "auto".into(),
                 at: now,
                 by: None,
                 note: None,
                 healthy_minutes: Some(secs / 60),
             });
-            if let Err(e) = state
-                .store
-                .save_entity(&dir_for(vm), &rev_id(revs[i].rev), &revs[i])
-            {
+            if let Err(e) = state.store.save_entity(&dir_for(vm), &rev_id(r.rev), &*r) {
                 tracing::warn!(
                     "config history: could not persist good mark for '{}': {}",
                     vm,
@@ -1684,7 +1681,7 @@ pub struct DiffQuery {
     pub to: Option<String>,
 }
 
-fn find<'a>(revs: &'a [Revision], n: u64) -> Result<&'a Revision, ApiErr> {
+fn find(revs: &[Revision], n: u64) -> Result<&Revision, ApiErr> {
     revs.iter().find(|r| r.rev == n).ok_or_else(|| {
         json_error(
             StatusCode::NOT_FOUND,
