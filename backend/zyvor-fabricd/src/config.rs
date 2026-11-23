@@ -28,6 +28,45 @@ pub struct Config {
     pub autostart: AutostartConfig,
     #[serde(default)]
     pub snapshots: SnapshotsConfig,
+    #[serde(default)]
+    pub audit: AuditConfig,
+}
+
+/// Audit trail (`[audit]`). Everything is off or unbounded by default, so
+/// existing behaviour is unchanged.
+///
+/// - `chain`: hash-chain new audit events (tamper evidence). Once a chain has
+///   started it continues even if this is later set to false.
+/// - `retention_max_age_days` / `retention_max_events`: the limits used by
+///   `POST /api/audit/retention` and `fabricctl audit retention`. Retention
+///   only runs when asked; nothing prunes on its own.
+/// - `max_export_events`: an export matching more events than this is
+///   refused (413) so one request cannot load the whole log.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditConfig {
+    #[serde(default)]
+    pub chain: bool,
+    #[serde(default)]
+    pub retention_max_age_days: Option<u64>,
+    #[serde(default)]
+    pub retention_max_events: Option<u64>,
+    #[serde(default = "default_max_export_events")]
+    pub max_export_events: usize,
+}
+
+fn default_max_export_events() -> usize {
+    100_000
+}
+
+impl Default for AuditConfig {
+    fn default() -> Self {
+        Self {
+            chain: false,
+            retention_max_age_days: None,
+            retention_max_events: None,
+            max_export_events: default_max_export_events(),
+        }
+    }
 }
 
 /// Snapshot policy scheduler (`[snapshots]`). Off by default: with
@@ -585,6 +624,7 @@ impl Config {
             metrics: MetricsConfig::default(),
             autostart: AutostartConfig::default(),
             snapshots: SnapshotsConfig::default(),
+            audit: AuditConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         })
     }
@@ -638,6 +678,7 @@ mod tests {
             metrics: MetricsConfig::default(),
             autostart: AutostartConfig::default(),
             snapshots: SnapshotsConfig::default(),
+            audit: AuditConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         }
     }

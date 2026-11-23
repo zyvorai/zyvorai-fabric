@@ -2030,6 +2030,33 @@ describe('snapshots', () => {
   })
 })
 
+describe('snapshot tags and policy', () => {
+  it('setSnapshotTags PUTs the tag list', async () => {
+    const { setSnapshotTags } = await import('../snapshots')
+    await setSnapshotTags('vm1', 's1', ['keep'])
+    expect(mockApiPut).toHaveBeenCalledWith('/api/vms/vm1/snapshots/s1/tags', { tags: ['keep'] })
+  })
+
+  it('previewSnapshotPolicy always dry-runs', async () => {
+    const { previewSnapshotPolicy } = await import('../snapshotPolicy')
+    await previewSnapshotPolicy('vm1')
+    expect(mockApiPost).toHaveBeenCalledWith('/api/vms/vm1/snapshot-policy/run?dry_run=true')
+  })
+
+  it('getSnapshotPolicy maps 404 to null and parses a policy', async () => {
+    const { getSnapshotPolicy } = await import('../snapshotPolicy')
+    mockApiFetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response)
+    expect(await getSnapshotPolicy('vm1')).toBeNull()
+    mockApiFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(JSON.stringify({ vm_name: 'vm1', enabled: true })),
+      json: () => Promise.resolve({ vm_name: 'vm1', enabled: true }),
+    } as unknown as Response)
+    expect((await getSnapshotPolicy('vm1'))?.vm_name).toBe('vm1')
+  })
+})
+
 // ─── storage.ts ───────────────────────────────────────────────────────────────
 
 describe('storage', () => {

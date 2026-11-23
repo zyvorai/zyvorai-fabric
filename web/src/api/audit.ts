@@ -71,3 +71,65 @@ export interface AuditStats {
 export async function getAuditStats(): Promise<AuditStats> {
   return apiGet<AuditStats>(`${API_BASE}/audit/stats`)
 }
+
+// --- Export and integrity (GET /api/audit/export, GET /api/audit/verify) ---
+
+export interface AuditExportParams {
+  from?: string
+  to?: string
+  actor?: string
+  action?: string
+}
+
+export type AuditExportFormat = 'ndjson' | 'csv'
+
+export interface AuditChainBreak {
+  reason: string
+  seq?: number | null
+  id?: string | null
+  detail: string
+}
+
+export interface AuditVerifyReport {
+  status: 'ok' | 'broken' | 'not_chained'
+  ok: boolean
+  chain_enabled: boolean
+  total: number
+  chained: number
+  legacy_unchained: number
+  malformed: string[]
+  head?: { seq: number; hash: string } | null
+  anchor?: { seq: number; hash: string } | null
+  first_break?: AuditChainBreak | null
+  checked_at: string
+}
+
+export function auditExportQuery(params: AuditExportParams, format: AuditExportFormat): string {
+  const q = new URLSearchParams()
+  for (const [k, v] of Object.entries(params)) {
+    const t = typeof v === 'string' ? v.trim() : ''
+    if (t) q.append(k, t)
+  }
+  q.append('format', format)
+  return q.toString()
+}
+
+/** Download matching events as NDJSON or CSV. Rejects with the daemon's message (e.g. a 413 "narrow the filters"). */
+export async function exportAuditEvents(params: AuditExportParams, format: AuditExportFormat): Promise<Blob> {
+  const res = await apiFetch(`${API_BASE}/audit/export?${auditExportQuery(params, format)}`)
+  if (!res.ok) {
+    let msg = `Export failed (${res.status})`
+    try {
+      const body = await res.json()
+      if (body && typeof body.error === 'string') msg = body.error
+    } catch {
+      /* keep the generic message */
+    }
+    throw new Error(msg)
+  }
+  return res.blob()
+}
+
+export async function verifyAuditChain(): Promise<AuditVerifyReport> {
+  return apiGet<AuditVerifyReport>(`${API_BASE}/audit/verify`)
+}

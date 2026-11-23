@@ -246,6 +246,26 @@ enum Commands {
     #[command(subcommand, name = "snapshot-policy")]
     SnapshotPolicy(SnapshotPolicyCmd),
 
+    /// Edit the tags of a snapshot (`keep` protects it from policy pruning)
+    #[command(name = "snapshot-tags")]
+    SnapshotTags {
+        vm: String,
+        /// Snapshot id
+        id: String,
+        /// Replace all tags with these (repeatable); omit to start from the current tags
+        #[arg(long = "tag")]
+        tags: Vec<String>,
+        /// Add the `keep` tag
+        #[arg(long, conflicts_with = "no_keep")]
+        keep: bool,
+        /// Remove the `keep` tag
+        #[arg(long)]
+        no_keep: bool,
+    },
+    /// Audit log: export, verify the hash chain, prune by age/size
+    #[command(subcommand)]
+    Audit(AuditCmd),
+
     /// Autostart: start the VMs tagged `autostart` that are not running
     #[command(subcommand)]
     Autostart(AutostartCmd),
@@ -414,6 +434,48 @@ enum SnapshotPolicyCmd {
         /// Report what would be created and pruned and change nothing
         #[arg(long)]
         dry_run: bool,
+    },
+}
+
+#[derive(Subcommand)]
+enum AuditCmd {
+    /// Export audit events as NDJSON or CSV (admin or read-only auditor)
+    Export {
+        /// Earliest time, inclusive (RFC 3339 or YYYY-MM-DD)
+        #[arg(long)]
+        from: Option<String>,
+        /// Latest time, exclusive (RFC 3339; a YYYY-MM-DD covers that whole day)
+        #[arg(long)]
+        to: Option<String>,
+        /// Only events by this user (exact, case-insensitive)
+        #[arg(long)]
+        actor: Option<String>,
+        /// Only this action (exact, case-insensitive)
+        #[arg(long)]
+        action: Option<String>,
+        /// `ndjson` or `csv`
+        #[arg(long, default_value = "ndjson")]
+        format: String,
+        /// Write to this file instead of standard output
+        #[arg(long)]
+        file: Option<String>,
+    },
+    /// Check the audit hash chain; exits 2 and names the first broken link if it fails
+    Verify,
+    /// Prune old audit events by age and/or count (admin). Writes an AUDIT_RETENTION event first.
+    Retention {
+        /// Report what would be pruned and change nothing
+        #[arg(long)]
+        dry_run: bool,
+        /// Prune events older than this many days (default: `[audit] retention_max_age_days`)
+        #[arg(long)]
+        max_age_days: Option<u64>,
+        /// Keep at most this many events (default: `[audit] retention_max_events`)
+        #[arg(long)]
+        max_events: Option<u64>,
+        /// Prune even though the chain does not verify
+        #[arg(long)]
+        force: bool,
     },
 }
 
@@ -1469,7 +1531,106 @@ fn load_config_file(path: &str) -> Result<serde_json::Value> {
     }
 }
 
+/// Apply `--keep` / `--no-keep` to a tag list (no duplicates).
+fn merge_snapshot_tags(mut tags: Vec<String>, keep: bool, no_keep: bool) -> Vec<String> {
+    if no_keep {
+        tags.retain(|t| t != "keep");
+    }
+    if keep && !tags.iter().any(|t| t == "keep") {
+        tags.push("keep".into());
+    }
+    tags
+}
+
 /// Render a snapshot-policy run report as text.
+/// Percent-encode a query value.
+fn pct_encode(v: &str) -> String {
+    let mut out = String::new();
+    for b in v.bytes() {
+        if b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.' | b'~') {
+            out.push(b as char);
+        } else {
+            out.push_str(&format!("%{b:02X}"));
+        }
+    }
+    out
+}
+
+/// Path for `GET /audit/export` with only the filters that were given.
+fn audit_export_path(
+    from: &Option<String>,
+    to: &Option<String>,
+    actor: &Option<String>,
+    action: &Option<String>,
+    format: &str,
+) -> String {
+    let mut q = vec![format!("format={}", pct_encode(format))];
+    for (k, v) in [
+        ("from", from),
+        ("to", to),
+        ("actor", actor),
+        ("action", action),
+    ] {
+        if let Some(v) = v {
+            q.push(format!("{k}={}", pct_encode(v)));
+        }
+    }
+    format!("/audit/export?{}", q.join("&"))
+}
+
+/// Text for `fabricctl audit verify`.
+fn render_audit_verify(r: &serde_json::Value) -> String {
+    let n = |k: &str| r[k].as_u64().unwrap_or(0);
+    let mut out = format!(
+        "Audit chain: {}\n  events {} (chained {}, unchained {})\n",
+        r["status"].as_str().unwrap_or("unknown"),
+        n("total"),
+        n("chained"),
+        n("legacy_unchained")
+    );
+    if let Some(h) = r.get("head").filter(|h| !h.is_null()) {
+        out.push_str(&format!("  head seq {}\n", h["seq"]));
+    }
+    if let Some(a) = r.get("anchor").filter(|a| !a.is_null()) {
+        out.push_str(&format!("  pruned up to seq {}\n", a["seq"]));
+    }
+    if let Some(b) = r.get("first_break").filter(|b| !b.is_null()) {
+        out.push_str(&format!(
+            "  FIRST BROKEN LINK: {} (seq {}, event {})\n    {}\n",
+            b["reason"].as_str().unwrap_or("?"),
+            b["seq"],
+            b["id"].as_str().unwrap_or("-"),
+            b["detail"].as_str().unwrap_or("")
+        ));
+    }
+    out
+}
+
+/// Text for `fabricctl audit retention`.
+fn render_audit_retention(r: &serde_json::Value) -> String {
+    let dry = r["dry_run"].as_bool().unwrap_or(false);
+    let mut out = format!(
+        "{}: {} of {} events {}, {} remain\n",
+        if dry { "Dry run" } else { "Audit retention" },
+        r["pruned"],
+        r["total"],
+        if dry { "would be pruned" } else { "pruned" },
+        r["remaining"]
+    );
+    if r["pruned"].as_u64().unwrap_or(0) > 0 {
+        out.push_str(&format!(
+            "  range {} .. {} ({} chained)\n",
+            r["oldest_pruned"].as_str().unwrap_or("-"),
+            r["newest_pruned"].as_str().unwrap_or("-"),
+            r["chained_pruned"]
+        ));
+    }
+    if let Some(id) = r["event_id"].as_str() {
+        out.push_str(&format!("  recorded as audit event {id}\n"));
+    }
+    out
+}
+
 fn render_snapshot_policy_report(r: &serde_json::Value) -> String {
     let dry = r["dry_run"].as_bool().unwrap_or(false);
     let mut out = format!(
@@ -2423,6 +2584,32 @@ impl Cli {
                 }
             }
 
+            Commands::SnapshotTags {
+                vm,
+                id,
+                tags,
+                keep,
+                no_keep,
+            } => {
+                let current = if tags.is_empty() && (keep || no_keep) {
+                    let snap = api_get(&client, &format!("/vms/{vm}/snapshots/{id}")).await?;
+                    snap["tags"]
+                        .as_array()
+                        .map(|a| {
+                            a.iter()
+                                .filter_map(|t| t.as_str().map(String::from))
+                                .collect()
+                        })
+                        .unwrap_or_default()
+                } else {
+                    tags
+                };
+                let new_tags = merge_snapshot_tags(current, keep, no_keep);
+                let body = serde_json::json!({ "tags": new_tags });
+                let v = api_put(&client, &format!("/vms/{vm}/snapshots/{id}/tags"), &body).await?;
+                print_value(&v, fmt);
+            }
+
             Commands::SnapshotPolicy(cmd) => match cmd {
                 SnapshotPolicyCmd::Show { vm } => {
                     let v = api_get(&client, &format!("/vms/{vm}/snapshot-policy")).await?;
@@ -2459,6 +2646,71 @@ impl Cli {
                         print!("{}", render_snapshot_policy_report(&report));
                     } else {
                         print_value(&report, fmt);
+                    }
+                }
+            },
+
+            Commands::Audit(cmd) => match cmd {
+                AuditCmd::Export {
+                    from,
+                    to,
+                    actor,
+                    action,
+                    format,
+                    file,
+                } => {
+                    let path = audit_export_path(&from, &to, &actor, &action, &format);
+                    let res = client.get(format!("{}{}", api_base(), path)).send().await?;
+                    if !res.status().is_success() {
+                        let status = res.status();
+                        let body = res.text().await.unwrap_or_default();
+                        anyhow::bail!("{}: {}", status, body);
+                    }
+                    let bytes = res.bytes().await?;
+                    match file {
+                        Some(file) => {
+                            std::fs::write(&file, &bytes)
+                                .with_context(|| format!("Writing {file}"))?;
+                            eprintln!("Wrote {} bytes to {file}", bytes.len());
+                        }
+                        None => {
+                            use std::io::Write;
+                            std::io::stdout().write_all(&bytes)?;
+                        }
+                    }
+                }
+                AuditCmd::Verify => {
+                    let r = api_get(&client, "/audit/verify").await?;
+                    if matches!(fmt, OutputFormat::Table) {
+                        print!("{}", render_audit_verify(&r));
+                    } else {
+                        print_value(&r, fmt);
+                    }
+                    if r["ok"].as_bool() == Some(false) {
+                        std::process::exit(2);
+                    }
+                }
+                AuditCmd::Retention {
+                    dry_run,
+                    max_age_days,
+                    max_events,
+                    force,
+                } => {
+                    let mut path = format!("/audit/retention?dry_run={dry_run}");
+                    if let Some(d) = max_age_days {
+                        path.push_str(&format!("&max_age_days={d}"));
+                    }
+                    if let Some(n) = max_events {
+                        path.push_str(&format!("&max_events={n}"));
+                    }
+                    if force {
+                        path.push_str("&force=true");
+                    }
+                    let r = api_post_empty(&client, &path).await?;
+                    if matches!(fmt, OutputFormat::Table) {
+                        print!("{}", render_audit_retention(&r));
+                    } else {
+                        print_value(&r, fmt);
                     }
                 }
             },
@@ -4496,6 +4748,99 @@ mod apply_plan_cli_tests {
         let out = render_snapshot_policy_report(&r);
         assert!(out.contains("would create auto-x"));
         assert!(out.contains("delete auto-a"));
+    }
+
+    #[test]
+    fn snapshot_tags_parses_and_merges() {
+        let cli =
+            Cli::try_parse_from(["fabricctl", "snapshot-tags", "vm1", "abc", "--keep"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::SnapshotTags {
+                keep: true,
+                no_keep: false,
+                ..
+            })
+        ));
+        assert!(Cli::try_parse_from([
+            "fabricctl",
+            "snapshot-tags",
+            "v",
+            "i",
+            "--keep",
+            "--no-keep"
+        ])
+        .is_err());
+        assert_eq!(
+            merge_snapshot_tags(vec!["a".into()], true, false),
+            vec!["a", "keep"]
+        );
+        assert_eq!(
+            merge_snapshot_tags(vec!["keep".into(), "a".into()], true, false),
+            vec!["keep", "a"]
+        );
+        assert_eq!(
+            merge_snapshot_tags(vec!["keep".into(), "a".into()], false, true),
+            vec!["a"]
+        );
+    }
+
+    #[test]
+    fn audit_commands_parse_and_render() {
+        let cli = Cli::try_parse_from([
+            "fabricctl",
+            "audit",
+            "retention",
+            "--dry-run",
+            "--max-events",
+            "500",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Audit(AuditCmd::Retention {
+                dry_run: true,
+                max_age_days: None,
+                max_events: Some(500),
+                force: false,
+            }))
+        ));
+        assert!(Cli::try_parse_from(["fabricctl", "audit", "verify"]).is_ok());
+        let cli = Cli::try_parse_from([
+            "fabricctl",
+            "audit",
+            "export",
+            "--from",
+            "2026-03-01",
+            "--actor",
+            "a b&c",
+            "--format",
+            "csv",
+        ])
+        .unwrap();
+        let Some(Commands::Audit(AuditCmd::Export {
+            from,
+            to,
+            actor,
+            action,
+            format,
+            ..
+        })) = cli.command
+        else {
+            panic!("not an audit export");
+        };
+        assert_eq!(
+            audit_export_path(&from, &to, &actor, &action, &format),
+            "/audit/export?format=csv&from=2026-03-01&actor=a%20b%26c"
+        );
+        let v = serde_json::json!({"status":"broken","total":5,"chained":5,"legacy_unchained":0,
+            "first_break":{"reason":"sequence_gap","seq":4,"id":"x","detail":"events 3..3 are missing"}});
+        let out = render_audit_verify(&v);
+        assert!(out.contains("FIRST BROKEN LINK: sequence_gap (seq 4, event x)"));
+        let r = serde_json::json!({"dry_run":true,"pruned":4,"total":6,"remaining":2,
+            "oldest_pruned":"2026-01-01T00:00:00Z","newest_pruned":"2026-01-02T00:00:00Z","chained_pruned":4});
+        assert!(render_audit_retention(&r)
+            .starts_with("Dry run: 4 of 6 events would be pruned, 2 remain"));
     }
 
     #[test]

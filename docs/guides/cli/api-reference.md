@@ -455,10 +455,11 @@ A per-VM policy that takes snapshots on a schedule and prunes old ones.
 
 * Schedule: exactly one of `interval_secs` (>= 60) or `cron` (5 fields `min hour dom mon dow`, UTC; `*`, `*/n`, `a-b`, `a,b`).
 * Retention: `keep_last` (>= 1; 0 is rejected) and/or `max_age_secs` (>= 60); at least one. With both, a snapshot is kept if either rule keeps it.
-* Only snapshots named `<name_prefix>-<UTC timestamp>` are managed. The newest managed snapshot and any snapshot tagged `keep` are never deleted. A snapshot dated in the future counts as age 0.
+* Policy snapshots are named `<name_prefix>-<UTC timestamp with milliseconds>` (for example `auto-20260301T030000123Z`); if that name is already taken a `-2`, `-3`... counter is appended, so two runs in the same instant never collide. Older second-resolution names stay managed.
+* Only snapshots named `<name_prefix>-<anything>` are managed. The newest managed snapshot and any snapshot tagged `keep` are never deleted. A snapshot dated in the future counts as age 0.
 * No quiesce option: the driver has no filesystem-freeze support.
 
-`GET` returns the policy with `last_run` and `last_result` (404 if none). `PUT` replaces it (400 on invalid input, 404 for an unknown VM) and keeps `last_run`. `DELETE` removes it (204).
+`GET` returns the policy with `last_run`, `last_result` and `next_run` (the next scheduled time, RFC 3339; `null` when the policy is disabled; a time in the past means due on the next scheduler tick; 404 if no policy). `PUT` returns the same shape. `PUT` replaces it (400 on invalid input, 404 for an unknown VM) and keeps `last_run`. `DELETE` removes it (204).
 
 The scheduler is off by default:
 
@@ -478,14 +479,30 @@ Run the policy now regardless of schedule: create one snapshot, then prune. `dry
 
 **Auth level:** Operator+ for `dry_run=true`; Admin for a real run (it deletes snapshots)
 
-**Response (200):** `{"vm_name", "dry_run", "created", "decisions": [{"id","name","created","action":"keep|delete","reason"}], "deleted": [...], "errors": [...]}`
+**Response (200):** `{"vm_name", "dry_run", "created", "decisions": [{"id","name","created","action":"keep|delete","reason"}], "deleted": [...], "delete_failed": [...], "errors": [...]}`. A snapshot whose delete fails (QMP or qemu-img error) keeps its record, is listed in `delete_failed` with the reason in `errors`, and is retried by the next run.
 
-Audit actions: `SNAPSHOT_POLICY_SET`, `SNAPSHOT_POLICY_DELETE`, `SNAPSHOT_POLICY_RUN`, `SNAPSHOT_PRUNE`.
+Audit actions: `SNAPSHOT_POLICY_SET`, `SNAPSHOT_POLICY_DELETE`, `SNAPSHOT_POLICY_RUN`, `SNAPSHOT_PRUNE` (status `FAILURE` when the delete failed), `SNAPSHOT_TAGS_SET`.
 
 ```bash
 fabricctl snapshot-policy set vm1 --cron "0 3 * * *" --keep-last 7
 fabricctl snapshot-policy run vm1 --dry-run
 ```
+
+### PUT /api/vms/:name/snapshots/:id/tags
+
+Replace a snapshot's tags. Body: `{"tags": ["keep", "golden"]}`. Each tag is 1 to 32 characters of letters, digits, `.`, `_`, `:` or `-`; at most 16; duplicates are dropped. An empty list clears all tags. The `keep` tag protects a snapshot from snapshot-policy pruning. Returns the updated snapshot; 400 for invalid tags, 404 for an unknown snapshot.
+
+**Auth level:** Operator+. Audited as `SNAPSHOT_TAGS_SET`.
+
+```bash
+fabricctl snapshot-tags vm1 <snapshot-id> --keep      # add keep, leave other tags
+fabricctl snapshot-tags vm1 <snapshot-id> --no-keep   # remove keep
+fabricctl snapshot-tags vm1 <snapshot-id> --tag golden --tag keep   # replace all tags
+```
+
+### DELETE /api/vms/:name/snapshots/:id
+
+Removes the snapshot from the disk (QMP on a running VM, `qemu-img snapshot -d` otherwise), then its record. If the disk delete fails the record is kept and the call returns 500 with the reason, so the record never says a snapshot is gone while it still occupies the image. A snapshot already missing from the image counts as deleted. Retry after fixing the cause.
 
 ---
 

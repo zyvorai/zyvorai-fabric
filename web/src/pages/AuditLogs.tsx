@@ -10,7 +10,12 @@ import {
   AuditLogFilters,
   exportAuditLogs,
   getAuditStats,
-  AuditStats
+  AuditStats,
+  exportAuditEvents,
+  verifyAuditChain,
+  type AuditExportFormat,
+  type AuditExportParams,
+  type AuditVerifyReport,
 } from '../api/audit'
 import { useToastContext } from '../contexts/ToastContext'
 import { PageHeader, StatusBadge } from '../components/ui'
@@ -20,6 +25,7 @@ import { toastFailure } from '../utils/toastError'
 import { hintsForError } from '../utils/daemonHints'
 import RelativeTime from '../components/RelativeTime'
 import { AuditInsightsPanel } from '../components/AuditInsightsPanel'
+import { AuditIntegrityPanel } from '../components/AuditIntegrityPanel'
 import { computeAuditInsights } from '../lib/auditInsights'
 
 export default function AuditLogs() {
@@ -86,6 +92,46 @@ export default function AuditLogs() {
       toast.error('Failed to export audit logs')
     } finally {
       setExporting(false)
+    }
+  }
+
+  const [integrityBusy, setIntegrityBusy] = useState<'export' | 'verify' | null>(null)
+  const [integrityError, setIntegrityError] = useState<string | null>(null)
+  const [verifyReport, setVerifyReport] = useState<AuditVerifyReport | null>(null)
+  const [exportNote, setExportNote] = useState<string | null>(null)
+
+  const handleVerify = async () => {
+    setIntegrityBusy('verify')
+    setIntegrityError(null)
+    try {
+      setVerifyReport(await verifyAuditChain())
+    } catch (e) {
+      setVerifyReport(null)
+      setIntegrityError(formatUserError(e))
+    } finally {
+      setIntegrityBusy(null)
+    }
+  }
+
+  const handleIntegrityExport = async (params: AuditExportParams, format: AuditExportFormat) => {
+    setIntegrityBusy('export')
+    setIntegrityError(null)
+    setExportNote(null)
+    try {
+      const blob = await exportAuditEvents(params, format)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `audit-export-${new Date().toISOString()}.${format}`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      setExportNote(`Exported ${blob.size} bytes as ${format.toUpperCase()}`)
+    } catch (e) {
+      setIntegrityError(formatUserError(e))
+    } finally {
+      setIntegrityBusy(null)
     }
   }
 
@@ -224,6 +270,14 @@ export default function AuditLogs() {
       )}
 
       <AuditInsightsPanel insights={insights} analysed={logs.length} />
+      <AuditIntegrityPanel
+        onExport={handleIntegrityExport}
+        onVerify={handleVerify}
+        report={verifyReport}
+        error={integrityError}
+        busy={integrityBusy}
+        exportNote={exportNote}
+      />
 
       {/* Search Bar */}
       <div className="mb-6">

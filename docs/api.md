@@ -127,6 +127,7 @@ Core virtual machine lifecycle operations.
 | GET | `/app/vms/autostart/reconcile` | List recent autostart runs (newest first, last 20 kept in memory; the startup pass is included) |
 | GET | `/app/vms/autostart/reconcile/:id` | Progress of one run: per-VM status as it happens, then the final report |
 | GET/PUT/DELETE | `/app/vms/{name}/snapshot-policy` | Per-VM snapshot schedule (interval or cron) and retention (keep_last, max_age_secs) |
+| PUT | `/app/vms/{name}/snapshots/{id}/tags` | Replace a snapshot's tags (`{"tags": [...]}`); the `keep` tag protects it from policy pruning |
 | POST | `/app/vms/{name}/snapshot-policy/run?dry_run=` | Take a policy snapshot now and prune (admin), or preview with `dry_run=true` |
 | POST | `/app/vms/:name/preflight` | Read-only pre-flight check: can this VM start here? (`can_start` plus findings) |
 | POST | `/app/vms/:name/stop` | Stop a VM |
@@ -385,6 +386,9 @@ Administrative action audit trail.
 | GET | `/app/audit/logs` | Query audit log entries |
 | GET | `/app/audit/logs/:id` | Get a specific audit entry |
 | GET | `/app/audit/summary` | Get audit summary statistics |
+| GET | `/api/audit/export` | Stream filtered events as NDJSON or CSV (see [audit-export.md](audit-export.md)) |
+| GET | `/api/audit/verify` | Check the audit hash chain |
+| POST | `/api/audit/retention` | Prune by age/size, with dry run |
 
 ## Analytics
 

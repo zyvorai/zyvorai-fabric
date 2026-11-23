@@ -76,11 +76,11 @@ pub async fn events(
     #[derive(serde::Deserialize)]
     struct AuditRow {
         id: String,
-        #[serde(default)]
+        #[serde(default, alias = "user")]
         user_id: String,
         #[serde(default)]
         action: String,
-        #[serde(default)]
+        #[serde(default, alias = "resource_name")]
         resource: String,
         #[serde(default)]
         status: String,

@@ -534,6 +534,72 @@ pub async fn delete_snapshot(
     delete_snapshot_core(&state, vm_name, id).await
 }
 
+/// Whether a delete error means the snapshot tag is already absent from the
+/// image (so the stale record can safely go).
+pub(crate) fn is_snapshot_already_gone(err: &str) -> bool {
+    let e = err.to_ascii_lowercase();
+    e.contains("could not find snapshot")
+        || (e.contains("snapshot") && e.contains("not found"))
+        || e.contains("does not exist")
+}
+
+/// Interpret a finished `qemu-img snapshot -d`.
+pub(crate) fn qemu_img_delete_outcome(success: bool, stderr: &str) -> Result<(), String> {
+    if success || is_snapshot_already_gone(stderr) {
+        Ok(())
+    } else {
+        Err(format!("qemu-img snapshot -d failed: {}", stderr.trim()))
+    }
+}
+
+/// Delete the snapshot tag from the live disk (QMP when the VM runs,
+/// `qemu-img` otherwise). Any failure is returned.
+async fn delete_from_disk(
+    state: &Arc<AppState>,
+    vm_name: &str,
+    snapshot: &VMSnapshot,
+) -> Result<(), String> {
+    if crate::validation::validate_snapshot_name(&snapshot.name).is_err() {
+        // A corrupted name cannot be passed to qemu; nothing safe to delete.
+        tracing::error!("Corrupted snapshot name in store, skipping disk delete");
+        return Ok(());
+    }
+    let vm_running = matches!(
+        state.store.get_vm(vm_name).ok().flatten().map(|v| v.state),
+        Some(vm_model::VMState::Running) | Some(vm_model::VMState::Paused)
+    );
+    if vm_running {
+        let sock = state
+            .driver
+            .get_control_socket(vm_name)
+            .await
+            .map_err(|e| e.to_string())?
+            .ok_or_else(|| "VM is running but has no QMP control socket".to_string())?;
+        let qmp = crate::qmp::QmpClient::for_socket(sock.to_string_lossy().into_owned());
+        let tag = snapshot.name.clone();
+        match tokio::task::spawn_blocking(move || live_delete_snapshot_via_qmp(&qmp, &tag))
+            .await
+            .unwrap_or_else(|e| Err(e.to_string()))
+        {
+            Err(e) if !is_snapshot_already_gone(&e) => Err(format!("QMP snapshot delete: {e}")),
+            _ => Ok(()),
+        }
+    } else {
+        let disk = state
+            .driver
+            .get_disk_path(vm_name)
+            .await
+            .map_err(|e| format!("disk path: {e}"))?;
+        let path = disk.display().to_string();
+        let out = Command::new("qemu-img")
+            .args(["snapshot", "-d", &snapshot.name, &path])
+            .output()
+            .await
+            .map_err(|e| format!("failed to run qemu-img: {e}"))?;
+        qemu_img_delete_outcome(out.status.success(), &String::from_utf8_lossy(&out.stderr))
+    }
+}
+
 /// Shared by the HTTP handler and the snapshot-policy scheduler.
 pub(crate) async fn delete_snapshot_core(
     state: &Arc<AppState>,
@@ -548,38 +614,20 @@ pub(crate) async fn delete_snapshot_core(
 
     let store_key = format!("snapshots_{}", vm_name);
 
-    // Get snapshot info to delete from the live disk
+    // Remove the snapshot from the disk first. If that fails the record is
+    // KEPT and the failure is reported, so the record never claims a
+    // snapshot is gone while it still occupies the image.
     if let Ok(Some(snapshot)) = state.store.get_entity::<VMSnapshot>(&store_key, &id) {
-        if crate::validation::validate_snapshot_name(&snapshot.name).is_err() {
-            tracing::error!("Corrupted snapshot name in store, skipping qemu-img delete");
-        } else {
-            let vm_running = matches!(
-                state.store.get_vm(&vm_name).ok().flatten().map(|v| v.state),
-                Some(vm_model::VMState::Running) | Some(vm_model::VMState::Paused)
-            );
-            if vm_running {
-                if let Ok(Some(p)) = state.driver.get_control_socket(&vm_name).await {
-                    let qmp = crate::qmp::QmpClient::for_socket(p.to_string_lossy().into_owned());
-                    let tag = snapshot.name.clone();
-                    if let Err(e) = tokio::task::spawn_blocking(move || {
-                        live_delete_snapshot_via_qmp(&qmp, &tag)
-                    })
-                    .await
-                    .unwrap_or_else(|e| Err(e.to_string()))
-                    {
-                        tracing::warn!("QMP snapshot delete failed for '{}': {}", snapshot.name, e);
-                    }
-                }
-            } else if let Ok(disk) = state.driver.get_disk_path(&vm_name).await {
-                let path = disk.display().to_string();
-                if let Err(e) = Command::new("qemu-img")
-                    .args(["snapshot", "-d", &snapshot.name, &path])
-                    .output()
-                    .await
-                {
-                    tracing::warn!("Command failed: {}", e);
-                }
-            }
+        if let Err(e) = delete_from_disk(state, &vm_name, &snapshot).await {
+            tracing::warn!("snapshot delete failed for '{}': {}", snapshot.name, e);
+            return crate::api_error::json_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!(
+                    "Snapshot '{}' could not be removed from the disk; the record was kept: {}",
+                    snapshot.name, e
+                ),
+            )
+            .into_response();
         }
     }
 
@@ -591,6 +639,87 @@ pub(crate) async fn delete_snapshot_core(
         )
         .into_response(),
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SetTagsRequest {
+    pub tags: Vec<String>,
+}
+
+const MAX_TAGS: usize = 16;
+const MAX_TAG_LEN: usize = 32;
+
+/// Validate and normalise a tag list: 1-32 chars of `[A-Za-z0-9._:-]`,
+/// at most 16, duplicates dropped (first occurrence wins).
+pub(crate) fn normalize_tags(tags: &[String]) -> Result<Vec<String>, String> {
+    let mut out: Vec<String> = Vec::new();
+    for t in tags {
+        let t = t.trim();
+        if t.is_empty() || t.len() > MAX_TAG_LEN {
+            return Err(format!("tags must be 1 to {MAX_TAG_LEN} characters"));
+        }
+        if !t
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | ':' | '-'))
+        {
+            return Err(format!(
+                "tag '{t}' may only contain letters, digits, . _ : -"
+            ));
+        }
+        if !out.iter().any(|o| o == t) {
+            out.push(t.to_string());
+        }
+    }
+    if out.len() > MAX_TAGS {
+        return Err(format!("at most {MAX_TAGS} tags per snapshot"));
+    }
+    Ok(out)
+}
+
+/// PUT /api/vms/:name/snapshots/:id/tags - Replace a snapshot's tags
+/// (set or clear `keep`, which protects it from policy pruning).
+pub async fn set_snapshot_tags(
+    RequireWrite(claims): RequireWrite,
+    State(state): State<Arc<AppState>>,
+    Path((vm_name, id)): Path<(String, String)>,
+    Json(req): Json<SetTagsRequest>,
+) -> impl IntoResponse {
+    if let Err((status, msg)) = crate::validation::validate_vm_name(&vm_name) {
+        return crate::api_error::json_error(status, msg).into_response();
+    }
+    let tags = match normalize_tags(&req.tags) {
+        Ok(t) => t,
+        Err(e) => return crate::api_error::json_error(StatusCode::BAD_REQUEST, e).into_response(),
+    };
+    let _lock = state.vm_lock(&vm_name).lock_owned().await;
+    let store_key = format!("snapshots_{}", vm_name);
+    let mut snap = match state.store.get_entity::<VMSnapshot>(&store_key, &id) {
+        Ok(Some(s)) => s,
+        Ok(None) => {
+            return crate::api_error::json_error(StatusCode::NOT_FOUND, "Snapshot not found")
+                .into_response()
+        }
+        Err(_) => {
+            return crate::api_error::json_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to load snapshot",
+            )
+            .into_response()
+        }
+    };
+    snap.tags = tags;
+    if let Err(e) = state.store.save_entity(&store_key, &snap.id, &snap) {
+        return crate::api_error::json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+            .into_response();
+    }
+    crate::routes::audit(
+        &state,
+        &claims.sub,
+        "SNAPSHOT_TAGS_SET",
+        &format!("vm/{vm_name}/snapshot/{}", snap.name),
+        "SUCCESS",
+    );
+    Json(snap).into_response()
 }
 
 /// POST /api/vms/:name/snapshots/:id/revert - Revert to a snapshot
@@ -845,5 +974,33 @@ mod tests {
             serde_json::from_str::<SnapshotType>("\"Full\"").unwrap(),
             SnapshotType::Full
         ));
+    }
+
+    #[test]
+    fn test_tag_normalisation() {
+        let ok = normalize_tags(&["keep".into(), " keep ".into(), "a.b:c-d_e".into()]).unwrap();
+        assert_eq!(ok, vec!["keep", "a.b:c-d_e"]);
+        assert!(normalize_tags(&[]).unwrap().is_empty());
+        assert!(normalize_tags(&["".into()]).is_err());
+        assert!(normalize_tags(&["bad tag".into()]).is_err());
+        assert!(normalize_tags(&["x".repeat(33)]).is_err());
+        let many: Vec<String> = (0..17).map(|i| format!("t{i}")).collect();
+        assert!(normalize_tags(&many).is_err());
+    }
+
+    #[test]
+    fn test_qemu_img_delete_outcome_reports_failure() {
+        assert!(qemu_img_delete_outcome(true, "").is_ok());
+        let e = qemu_img_delete_outcome(false, "qemu-img: Failed to get shared write lock\n")
+            .unwrap_err();
+        assert!(e.contains("shared"), "{e}");
+        // tag already absent: the stale record may go
+        assert!(qemu_img_delete_outcome(
+            false,
+            "qemu-img: Could not delete snapshot 'x': (Could not find snapshot 'x' on disk)"
+        )
+        .is_ok());
+        assert!(is_snapshot_already_gone("Snapshot x not found"));
+        assert!(!is_snapshot_already_gone("Device or resource busy"));
     }
 }

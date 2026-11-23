@@ -41,19 +41,8 @@ pub async fn get_license_status(RequireRead(_claims): RequireRead) -> impl IntoR
 
 /// Helper: record an audit log entry to both tracing and the state store.
 pub(crate) fn audit(state: &AppState, user: &str, action: &str, resource: &str, status: &str) {
-    let entry = security::AuditLog::new(
-        user.to_string(),
-        action.to_string(),
-        resource.to_string(),
-        status.to_string(),
-    );
-    if let Err(e) = entry.log() {
-        tracing::warn!("Failed to write audit log: {}", e);
-    }
-    // Persist to state store for queryable audit history
-    if let Err(e) = state.store.save_entity("audit_logs", &entry.id, &entry) {
-        tracing::warn!("Failed to persist audit log: {}", e);
-    }
+    // Persisted (and hash-chained when `[audit] chain` is on) for queryable history.
+    crate::audit_trail::record(state, user, action, resource, status);
 }
 
 use crate::api_error::json_error;

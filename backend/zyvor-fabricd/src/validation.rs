@@ -337,11 +337,9 @@ pub fn validate_machine_path(path: &str) -> Result<(), (StatusCode, String)> {
 
 /// Escape a string for safe CSV output. Prevents CSV injection.
 pub fn escape_csv_field(field: &str) -> String {
-    let needs_quoting = field.contains(',') || field.contains('\n') || field.contains('"');
-    let is_formula = field.starts_with('=')
-        || field.starts_with('+')
-        || field.starts_with('-')
-        || field.starts_with('@');
+    // A leading tab or carriage return is also a spreadsheet formula vector.
+    let is_formula = field.starts_with(['=', '+', '-', '@', '\t', '\r']);
+    let needs_quoting = is_formula || field.contains([',', '\n', '\r', '"']);
 
     let mut escaped = if is_formula {
         format!("'{}", field)
@@ -349,7 +347,7 @@ pub fn escape_csv_field(field: &str) -> String {
         field.to_string()
     };
 
-    if needs_quoting || is_formula {
+    if needs_quoting {
         escaped = format!("\"{}\"", escaped.replace('"', "\"\""));
     }
 
@@ -523,5 +521,7 @@ mod tests {
         assert_eq!(escape_csv_field("hello"), "hello");
         assert_eq!(escape_csv_field("hello,world"), "\"hello,world\"");
         assert_eq!(escape_csv_field("=SUM(A1)"), "\"'=SUM(A1)\"");
+        assert_eq!(escape_csv_field("\t=1"), "\"'\t=1\"");
+        assert_eq!(escape_csv_field("a\rb"), "\"a\rb\"");
     }
 }
