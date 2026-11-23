@@ -37,7 +37,7 @@ Strings are cut at 256 characters (the cut text carries a hash of the full text,
 
 A revision is marked good when either:
 
-- **auto**: after the revision, the VM stayed in the Running state for `[config_history] good_after_minutes` (default 15, range 1 to 1440) according to its lifecycle events (started, resumed or auto-healed, with no stop, pause, error, created or deleted event in between), and is Running without a recorded error now. The window for a revision ends at the next revision. The check runs when the history is read or a revision is written, not on a timer.
+- **auto**: after the revision, the VM stayed in the Running state for `[config_history] good_after_minutes` (default 15, range 1 to 1440) according to its lifecycle events (started, resumed or auto-healed, with no stop, pause, error, created or deleted event in between), and is Running without a recorded error now. The window for a revision ends at the next revision. The check runs when the history list, a diff or since-good is read, not on a timer, so a mark can appear later than the moment the VM qualified.
 - **operator**: `POST /api/vms/{name}/history/{rev}/mark-good` (write access, audited as `VM_CONFIG_MARK_GOOD`, optional `{"note":"..."}`).
 
 Honest limit: the automatic signal is VM lifecycle state, not guest or application health. A VM that is Running but whose application is broken still earns a good mark. Fabric has no reliable in-guest health signal for every VM; if you have one, use `mark-good`. A VM with no recorded lifecycle events (created before events existed) never gets an automatic mark.
@@ -54,7 +54,7 @@ All paths are under `/api`. Read access for GETs; write access for `mark-good`. 
 | GET | `/vms/{name}/history/since-good` | Diff from the last good revision to now |
 | POST | `/vms/{name}/history/{rev}/mark-good` | Mark a revision good |
 
-Reading the history first records the live configuration if it differs from the newest revision (see above), so these GETs can write one `system:observed` revision and audit event.
+The list, diff and since-good reads first record the live configuration if it differs from the newest revision (see above), so these GETs can write one `system:observed` revision and audit event.
 
 ### Diff
 
