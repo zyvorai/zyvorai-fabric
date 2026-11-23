@@ -230,6 +230,7 @@ const CPU_TOPOLOGY = {
   online_cpus: [0, 1, 2, 3, 4, 5, 6, 7], offline_cpus: [],
 }
 const NUMA = { nodes: [{ id: 0, cpus: [0, 1, 2, 3, 4, 5, 6, 7], memory_total_mb: 65536, memory_free_mb: 24576, hugepages_2mb_total: 1024, hugepages_2mb_free: 512, hugepages_1gb_total: 4, hugepages_1gb_free: 2 }], distances: [[10]] }
+const SYS_CAPACITY = { physical: { cpus: 32, memory_mb: 131072 }, effective: { cpus: 64, memory_mb: 131072 }, allocated: { cpus: 22, memory_mb: 57344 }, available: { cpus: 42, memory_mb: 73728 }, overcommit: { enabled: true, cpu_ratio: 2, memory_ratio: 1 }, vm_count: 6 }
 const SYS_MEMORY = { total_kb: 67108864, free_kb: 25165824, available_kb: 41943040, buffers_kb: 1048576, cached_kb: 12582912 }
 const HUGEPAGES = { size: 'Size2MB', total: 1024, free: 512, reserved: 0, surplus: 0 }
 const RECOMMENDATIONS = [
@@ -545,6 +546,7 @@ export function mockBody(path) {
   if (p === '/audit/stats') return AUDIT_STATS
   if (p === '/system/cpu/topology') return CPU_TOPOLOGY
   if (p === '/system/numa/topology') return NUMA
+  if (p === '/system/capacity') return SYS_CAPACITY
   if (p === '/system/memory') return SYS_MEMORY
   if (p === '/system/memory/hugepages') return HUGEPAGES
   if (p === '/system/optimization/recommendations') return RECOMMENDATIONS
