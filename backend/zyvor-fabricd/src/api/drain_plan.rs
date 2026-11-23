@@ -39,6 +39,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use super::resource_policy::OvercommitPolicy;
+use crate::cpu_compat::{self, CpuRequirement, CpuVerdict, HostCpu};
 use crate::server::AppState;
 use datacenter::{HostInfo, HostStatus};
 use predictive_drs::{AffinityRule, AffinityRuleType, RuleEnforcement};
@@ -77,6 +78,8 @@ pub struct DrainHost {
     pub schedulable: bool,
     pub vcpus: u64,
     pub memory_mb: u64,
+    /// CPU inventory of the host, when one was recorded.
+    pub cpu: Option<HostCpu>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -87,6 +90,8 @@ pub struct DrainVm {
     pub vcpus: u64,
     pub memory_mb: u64,
     pub eviction: Eviction,
+    /// CPU requirement derived from the VM's stored CPU config, if any.
+    pub cpu: Option<CpuRequirement>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -329,6 +334,7 @@ pub fn plan_drain(
 
     for v in ordered {
         let mut rejected: BTreeSet<String> = BTreeSet::new();
+        let mut cpu_details: BTreeSet<String> = BTreeSet::new();
         let mut best: Option<(u32, i128, &DrainHost)> = None;
         if candidates.is_empty() {
             rejected.insert("no_target_hosts".into());
@@ -346,22 +352,45 @@ pub fn plan_drain(
                     continue;
                 }
             }
+            let mut cpu_unknown = false;
+            if let Some(req) = &v.cpu {
+                match cpu_compat::check(req, h.cpu.as_ref()) {
+                    CpuVerdict::Compatible => {}
+                    CpuVerdict::Unknown => cpu_unknown = true,
+                    CpuVerdict::Incompatible {
+                        missing,
+                        vendor_mismatch,
+                    } => {
+                        rejected.insert("cpu_incompatible".into());
+                        cpu_details.insert(format!(
+                            "host {} {}",
+                            h.id,
+                            cpu_compat::describe_incompatible(&missing, vendor_mismatch)
+                        ));
+                        continue;
+                    }
+                }
+            }
             let (hard, soft) = rule_check(&ctx, &v.name, &h.id);
             if !hard.is_empty() {
                 rejected.extend(hard);
                 continue;
             }
             let free_after = i128::from(mem_cap) - i128::from(um) - i128::from(v.memory_mb);
+            // Prefer a target whose CPU was verified over an unverified one.
+            let key = soft * 2 + u32::from(cpu_unknown);
             let better = match &best {
                 None => true,
-                Some((bs, bf, _)) => soft < *bs || (soft == *bs && free_after > *bf),
+                Some((bs, bf, _)) => key < *bs || (key == *bs && free_after > *bf),
             };
             if better {
-                best = Some((soft, free_after, h));
+                best = Some((key, free_after, h));
             }
         }
         match best {
-            Some((soft, _, h)) => {
+            Some((key, _, h)) => {
+                let soft = key / 2;
+                let unverified = key % 2 == 1;
                 if v.running {
                     let u = used.get_mut(&h.id).expect("candidate tracked");
                     u.0 += v.vcpus;
@@ -371,6 +400,12 @@ pub fn plan_drain(
                 let mut w = Vec::new();
                 if soft > 0 {
                     w.push(format!("{soft} preferred rule(s) not satisfied on target"));
+                }
+                if unverified {
+                    w.push(format!(
+                        "CPU compatibility with host {} not verified (no CPU inventory)",
+                        h.id
+                    ));
                 }
                 let d = Done {
                     vm: v.name.clone(),
@@ -402,7 +437,7 @@ pub fn plan_drain(
                         action: "blocked",
                         target: None,
                         reasons,
-                        warnings: vec![],
+                        warnings: cpu_details.into_iter().collect(),
                     });
                 }
             }
@@ -560,13 +595,23 @@ pub async fn drain_plan(
                 Eviction::Migrate
             }),
         };
+        let running = matches!(
+            v.state,
+            VMState::Running | VMState::Paused | VMState::Starting
+        );
+        let cpu = cpu_compat::stored_vm_cpu(&state, &v.name).map(|cfg| {
+            let src = state
+                .store
+                .get_entity::<cpu_compat::HostCpuRecord>(cpu_compat::ENTITY, &host.id)
+                .ok()
+                .flatten();
+            cpu_compat::requirement(&cfg, src.as_ref().map(|r| &r.cpu), running)
+        });
         vms.push(DrainVm {
             name: v.name.clone(),
             host_id: host.id.clone(),
-            running: matches!(
-                v.state,
-                VMState::Running | VMState::Paused | VMState::Starting
-            ),
+            cpu,
+            running,
             vcpus: u64::from(v.cpus),
             memory_mb: v.memory,
             eviction,
@@ -585,6 +630,12 @@ pub async fn drain_plan(
             schedulable: h.status == HostStatus::Connected,
             vcpus: u64::from(h.cpus),
             memory_mb: h.memory_mb,
+            cpu: state
+                .store
+                .get_entity::<cpu_compat::HostCpuRecord>(cpu_compat::ENTITY, &h.id)
+                .ok()
+                .flatten()
+                .map(|r| r.cpu),
         })
         .collect();
     Ok(Json(plan_drain(
@@ -603,6 +654,7 @@ mod tests {
             schedulable: true,
             vcpus: cpus,
             memory_mb: mem,
+            cpu: None,
         }
     }
 
@@ -614,6 +666,7 @@ mod tests {
             vcpus: 1,
             memory_mb: mem,
             eviction: Eviction::Migrate,
+            cpu: None,
         }
     }
 
@@ -802,6 +855,78 @@ mod tests {
     fn empty_source_is_trivially_drainable() {
         let p = plan_drain("a", &[host("a", 1, 1)], &[], &[], R1, vec![]);
         assert!(p.can_drain && p.actions.is_empty());
+    }
+
+    fn cpu_host(id: &str, flags: &[&str]) -> DrainHost {
+        let mut h = host(id, 8, 8192);
+        h.cpu = Some(HostCpu {
+            vendor: "GenuineIntel".into(),
+            model_name: "t".into(),
+            flags: flags.iter().map(|s| s.to_string()).collect(),
+        });
+        h
+    }
+
+    fn req(flags: &[&str]) -> CpuRequirement {
+        CpuRequirement {
+            vendor: None,
+            features: flags.iter().map(|s| s.to_string()).collect(),
+            notes: vec![],
+        }
+    }
+
+    #[test]
+    fn cpu_incompatible_blocks_with_reason_and_detail() {
+        let hosts = [cpu_host("a", &["avx2"]), cpu_host("b", &["sse4_2"])];
+        let mut v = vm("x", "a", 100);
+        v.cpu = Some(req(&["avx2"]));
+        let p = plan_drain("a", &hosts, &[v], &[], R1, vec![]);
+        assert!(!p.can_drain);
+        assert_eq!(act(&p, "x").reasons, vec!["cpu_incompatible"]);
+        assert!(act(&p, "x").warnings[0].contains("lacks avx2"));
+    }
+
+    #[test]
+    fn cpu_check_steers_to_the_compatible_host() {
+        let hosts = [
+            cpu_host("a", &["avx2"]),
+            cpu_host("b", &["sse4_2"]),
+            cpu_host("c", &["avx2"]),
+        ];
+        let mut v = vm("x", "a", 100);
+        v.cpu = Some(req(&["avx2"]));
+        let p = plan_drain("a", &hosts, &[v], &[], R1, vec![]);
+        assert_eq!(act(&p, "x").target.as_deref(), Some("c"));
+        assert!(act(&p, "x").warnings.is_empty());
+    }
+
+    #[test]
+    fn unknown_target_cpu_is_a_warning_not_a_blocker_and_verified_wins() {
+        let hosts = [host("a", 8, 8192), host("b", 8, 99999)];
+        let mut v = vm("x", "a", 100);
+        v.cpu = Some(req(&["avx2"]));
+        let p = plan_drain("a", &hosts, &[v.clone()], &[], R1, vec![]);
+        assert!(p.can_drain);
+        assert!(act(&p, "x").warnings[0].contains("not verified"));
+        // a verified host beats a roomier unverified one
+        let hosts = [
+            host("a", 8, 8192),
+            host("b", 8, 99999),
+            cpu_host("c", &["avx2"]),
+        ];
+        let p = plan_drain("a", &hosts, &[v], &[], R1, vec![]);
+        assert_eq!(act(&p, "x").target.as_deref(), Some("c"));
+    }
+
+    #[test]
+    fn cpu_incompatible_with_migrate_if_possible_stops_the_vm() {
+        let hosts = [cpu_host("a", &["avx2"]), cpu_host("b", &[])];
+        let mut v = vm("x", "a", 100);
+        v.cpu = Some(req(&["avx2"]));
+        v.eviction = Eviction::MigrateIfPossible;
+        let p = plan_drain("a", &hosts, &[v], &[], R1, vec![]);
+        assert_eq!(act(&p, "x").action, "stop");
+        assert!(act(&p, "x").warnings[0].contains("cpu_incompatible"));
     }
 
     #[test]

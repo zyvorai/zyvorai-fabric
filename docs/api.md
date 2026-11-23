@@ -339,6 +339,10 @@ Daemon health, configuration, and system information.
 | POST | `/capacity/whatif` | Capacity what-if (read-only): which of these new VMs would fit, and why not |
 | POST | `/hosts/{id}/drain-plan` | Host drain plan (read-only dry run): where each VM would migrate, stop or be blocked, with a plan hash |
 | GET | `/snapshots/health` | Snapshot health scoreboard (read-only): RPO status, broken chains, space forecast per VM |
+| GET | `/cpu/inventory` | CPU inventory (read-only): host CPU records, VM CPU models, per-cluster baseline model |
+| GET, PUT | `/hosts/{id}/cpu-inventory` | Read or record a host's CPU vendor, model and flags (`PUT` needs write) |
+| GET | `/vms/{name}/cpu-compat?host=` | Can this VM run on a host? Stored CPU model against host CPU flags (read-only) |
+| POST | `/vms/bulk` | Bulk VM operation by selector (start, stop, snapshot, tag-add, tag-remove): dry-run plan by default, apply with the plan hash |
 
 ### Host drain plan
 
@@ -358,6 +362,39 @@ Daemon health, configuration, and system information.
 ```
 
 Order: migrations (largest memory first), relocations, stops, then blocked VMs. `plan_hash` changes when any action or target load changes. CLI: `fabricctl drain-plan <host>`. Web: Host Drain Plan.
+
+### CPU inventory and compatibility
+
+Fabric stores a VM's CPU document (`GET/POST /api/vms/{name}/cpu-model`: `mode` `custom`, `host-model` or `host-passthrough`, `model`, `features_add`, `features_remove`, `vendor`) but the host agent heartbeat carries no CPU data, so host CPUs are recorded explicitly: `PUT /api/hosts/{id}/cpu-inventory` with `{"vendor":"GenuineIntel","model_name":"...","flags":["avx2","aes"]}` (at most 1024 flags of 48 characters from `a-z 0-9 _ . -`; 400 otherwise) or `{"from_local":true}`, which reads `/proc/cpuinfo` (bounded to 256 KiB) on the daemon host and is only right when the daemon runs on that host. `GET /api/cpu/inventory` lists hosts with their CPU records, VMs with a stored CPU document and, per cluster, the highest named model every host with an inventory can run (`baseline_model`; names come from a built-in table that approximates the QEMU definitions: `qemu64`, `x86-64-v2`/`v3`/`v4`, Nehalem to Icelake-Server, EPYC, EPYC-Rome, EPYC-Milan). Tenant-scoped tokens get 403.
+
+`GET /api/vms/{name}/cpu-compat[?host=id-or-hostname]` returns the VM's requirement and a `verdict` per host: `compatible`, `unknown` (no inventory for that host) or `incompatible` (with `missing` features and `vendor_mismatch`). Requirement rules:
+
+* No stored CPU document: no requirement (the default document is deliberately not enforced).
+* `custom`: the model's features plus `features_add` minus `features_remove`, and `vendor` (`intel`, `amd` or a vendor string). An unknown model or a feature outside the compared set is ignored and listed in `notes`, so the check never invents a blocker.
+* `host-model` / `host-passthrough`: a running VM needs the target to offer the feature set of the host it runs on (label `fabric.zyvor.dev/host`, which needs that host's inventory) and the same vendor; a stopped VM has no requirement.
+
+Only guest-visible ISA features (the union of the model table) are compared, never mitigation or kernel flags. The result feeds two existing checks: the drain planner rejects a target with the reason `cpu_incompatible` (the blocked action's `warnings` say which features are missing; a target without an inventory is allowed and the action warns `not verified`, and verified targets are preferred), and the start preflight reports the Blocker `cpu.incompatible` for a `custom` VM whose model this host cannot provide (Info `cpu.unverified` when `/proc/cpuinfo` cannot be read). CLI: `fabricctl cpu-inventory`, `cpu-report <host> [--from-local | --vendor V --model M --flags "a b"]`, `cpu-compat <vm> [--host H]`. Web: CPU Compatibility.
+
+Limit: the FluxVM driver does not read the stored CPU document today, so this is a planning and safety check on declared intent, not a guarantee about what the guest sees.
+
+### Bulk VM operations
+
+`POST /api/vms/bulk` (write access; 403 for tenant-scoped tokens) selects VMs and plans one action each. Body:
+
+```json
+{
+  "selector": { "tags": ["web"], "labels": {"tier": "a"}, "names": [], "name_prefix": "web-" },
+  "action": "stop",
+  "tag": "only for tag-add / tag-remove",
+  "snapshot_prefix": "bulk",
+  "max_vms": 10,
+  "dry_run": true,
+  "plan_hash": "<from the dry run, required to apply>",
+  "continue_on_error": false
+}
+```
+
+All selector criteria must match, an empty selector is 400, and a selector matching more than 500 VMs is 400. The default is a dry run, which returns `plan.items` (`will`: the action or `skip` with a `reason` such as `already_running`, `not_running`, `already_tagged`, `state_transitioning` or `preflight_blocked: <ids>` for `start`), a summary, `over_cap`, `can_apply` and a SHA-256 `plan_hash`. To apply, repeat the request with `dry_run:false` and that hash: the plan is recomputed first and a different hash is `409` with the new plan. `max_vms` (default 10, hard limit 50) caps how many VMs may be acted on; an over-cap plan cannot be applied (400). VMs are processed one at a time in name order through the same guarded code as the single-VM routes (per-VM lock; `start` runs the preflight and waits for the start task, `snapshot` is a Disk snapshot named `<prefix>-<UTC timestamp>`), and the first failure stops the run unless `continue_on_error` is true (the rest are `not_attempted`). One bulk run at a time: a second gets 409. Each VM writes an audit entry `BULK_START`, `BULK_STOP`, `BULK_SNAPSHOT`, `BULK_TAG_ADD` or `BULK_TAG_REMOVE`, and the run writes `BULK_VMS` with the first 16 hex characters of the plan hash. The request is held open while VMs start, so keep the cap small. CLI: `fabricctl vm-bulk --action stop --select-tag web [--apply --plan-hash H]`. Web: Bulk VM Operations.
 
 ### Snapshot health
 

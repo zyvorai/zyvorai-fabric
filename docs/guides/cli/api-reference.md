@@ -488,6 +488,25 @@ fabricctl snapshot-policy set vm1 --cron "0 3 * * *" --keep-last 7
 fabricctl snapshot-policy run vm1 --dry-run
 ```
 
+### GET /api/cpu/inventory, PUT /api/hosts/:id/cpu-inventory, GET /api/vms/:name/cpu-compat
+
+CPU inventory and the "can this VM run on that host" check. Details in `docs/api.md` (CPU inventory and compatibility). Auth level: Viewer+ to read, Operator+ to record a host CPU.
+
+```bash
+fabricctl cpu-report host-a --from-local
+fabricctl cpu-inventory
+fabricctl cpu-compat web-1 --host host-b
+```
+
+### POST /api/vms/bulk
+
+Bulk start, stop, snapshot, tag-add or tag-remove by selector, as a dry-run plan with a plan hash, then applied with that hash. Details in `docs/api.md` (Bulk VM operations). Auth level: Operator+.
+
+```bash
+fabricctl vm-bulk --action stop --select-tag web --label tier=a
+fabricctl vm-bulk --action stop --select-tag web --label tier=a --apply --plan-hash <hash>
+```
+
 ### POST /api/hosts/:id/drain-plan
 
 Read-only dry-run plan for draining a host. See `docs/api.md` (Host drain plan) for the rules and response. Auth level: Viewer+.

@@ -253,6 +253,72 @@ enum Commands {
         host: String,
     },
 
+    /// CPU inventory: host CPU flags, VM CPU models and the per-cluster baseline model
+    #[command(name = "cpu-inventory")]
+    CpuInventory,
+
+    /// Record a host's CPU vendor, model and flags (from the daemon host, or given explicitly)
+    #[command(name = "cpu-report")]
+    CpuReport {
+        /// Host id or hostname
+        host: String,
+        /// Read /proc/cpuinfo on the daemon host (only right when the daemon runs on that host)
+        #[arg(long, conflicts_with_all = ["vendor", "model", "flags"])]
+        from_local: bool,
+        #[arg(long)]
+        vendor: Option<String>,
+        #[arg(long)]
+        model: Option<String>,
+        /// Space or comma separated CPU flags (as in /proc/cpuinfo)
+        #[arg(long)]
+        flags: Option<String>,
+    },
+
+    /// Can this VM run on a host? Compares its stored CPU model with host CPU flags
+    #[command(name = "cpu-compat")]
+    CpuCompat {
+        vm: String,
+        /// Host id or hostname (default: every host)
+        #[arg(long)]
+        host: Option<String>,
+    },
+
+    /// Bulk VM operation by selector: dry-run plan by default, `--apply --plan-hash H` to run it
+    #[command(name = "vm-bulk")]
+    VmBulk {
+        /// start, stop, snapshot, tag-add or tag-remove
+        #[arg(long)]
+        action: String,
+        /// Select VMs that have this tag (repeatable, all must match)
+        #[arg(long = "select-tag")]
+        select_tags: Vec<String>,
+        /// Select VMs with this label, KEY=VALUE (repeatable)
+        #[arg(long = "label")]
+        labels: Vec<String>,
+        /// Select a VM by exact name (repeatable)
+        #[arg(long = "name")]
+        names: Vec<String>,
+        #[arg(long)]
+        name_prefix: Option<String>,
+        /// Tag to add or remove (tag-add / tag-remove)
+        #[arg(long)]
+        tag: Option<String>,
+        /// Snapshot name prefix (a timestamp is appended)
+        #[arg(long)]
+        snapshot_prefix: Option<String>,
+        /// Largest number of VMs to act on (default 10, hard limit 50)
+        #[arg(long)]
+        max_vms: Option<usize>,
+        /// Run the plan; needs --plan-hash from the dry run
+        #[arg(long, requires = "plan_hash")]
+        apply: bool,
+        #[arg(long)]
+        plan_hash: Option<String>,
+        /// Keep going after a VM fails
+        #[arg(long)]
+        continue_on_error: bool,
+    },
+
     /// Snapshot health scoreboard: RPO status, broken chains and space forecast per VM
     #[command(name = "snapshot-health")]
     SnapshotHealth {
@@ -1695,6 +1761,154 @@ fn render_drain_plan(p: &serde_json::Value) -> String {
     out
 }
 
+fn render_cpu_inventory(r: &serde_json::Value) -> String {
+    let mut out = String::from("Hosts\n");
+    for h in r["hosts"].as_array().into_iter().flatten() {
+        let cpu = &h["cpu"];
+        let detail = if cpu.is_null() {
+            "no CPU inventory".to_string()
+        } else {
+            format!(
+                "{} {} ({} flags, {})",
+                cpu["vendor"].as_str().unwrap_or("?"),
+                cpu["model_name"].as_str().unwrap_or("?"),
+                cpu["flags"].as_array().map(|f| f.len()).unwrap_or(0),
+                cpu["source"].as_str().unwrap_or("?")
+            )
+        };
+        out.push_str(&format!(
+            "  {:20} {:14} {}\n",
+            h["hostname"].as_str().unwrap_or("?"),
+            h["cluster_id"].as_str().unwrap_or("?"),
+            detail
+        ));
+    }
+    out.push_str("Clusters\n");
+    for c in r["clusters"].as_array().into_iter().flatten() {
+        out.push_str(&format!(
+            "  {:14} {}/{} hosts known, baseline model: {}\n",
+            c["cluster_id"].as_str().unwrap_or("?"),
+            c["hosts_known"].as_u64().unwrap_or(0),
+            c["hosts_total"].as_u64().unwrap_or(0),
+            c["baseline_model"].as_str().unwrap_or("unknown")
+        ));
+    }
+    let configured: Vec<_> = r["vms"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|v| v["configured"].as_bool().unwrap_or(false))
+        .collect();
+    out.push_str(&format!("VMs with a CPU model: {}\n", configured.len()));
+    for v in configured {
+        out.push_str(&format!(
+            "  {:24} {} {}\n",
+            v["name"].as_str().unwrap_or("?"),
+            v["mode"].as_str().unwrap_or("?"),
+            v["model"].as_str().unwrap_or("?")
+        ));
+    }
+    out
+}
+
+fn render_cpu_compat(r: &serde_json::Value) -> String {
+    if !r["configured"].as_bool().unwrap_or(false) {
+        return format!(
+            "VM '{}' has no stored CPU model; nothing to check\n",
+            r["vm"].as_str().unwrap_or("?")
+        );
+    }
+    let mut out = format!(
+        "VM '{}' CPU {} {}\n",
+        r["vm"].as_str().unwrap_or("?"),
+        r["mode"].as_str().unwrap_or("?"),
+        r["model"].as_str().unwrap_or("?")
+    );
+    for n in r["requirement"]["notes"].as_array().into_iter().flatten() {
+        out.push_str(&format!("  note: {}\n", n.as_str().unwrap_or("?")));
+    }
+    for h in r["results"].as_array().into_iter().flatten() {
+        let res = &h["result"];
+        let verdict = res["verdict"].as_str().unwrap_or("?");
+        let missing = res["missing"]
+            .as_array()
+            .map(|m| {
+                m.iter()
+                    .filter_map(|x| x.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            })
+            .unwrap_or_default();
+        out.push_str(&format!(
+            "  {:20} {}{}{}\n",
+            h["hostname"].as_str().unwrap_or("?"),
+            verdict,
+            if missing.is_empty() {
+                String::new()
+            } else {
+                format!(" (missing: {missing})")
+            },
+            if res["vendor_mismatch"].as_bool().unwrap_or(false) {
+                " (vendor differs)"
+            } else {
+                ""
+            }
+        ));
+    }
+    out
+}
+
+fn render_bulk(r: &serde_json::Value) -> String {
+    let mut out = String::new();
+    if r["dry_run"].as_bool().unwrap_or(true) {
+        let p = &r["plan"];
+        out.push_str(&format!(
+            "Bulk {} (dry run, nothing changed): {} matched, {} to act on, {} skipped, cap {}{}\n",
+            p["action"].as_str().unwrap_or("?"),
+            p["summary"]["matched"].as_u64().unwrap_or(0),
+            p["summary"]["actionable"].as_u64().unwrap_or(0),
+            p["summary"]["skipped"].as_u64().unwrap_or(0),
+            p["max_vms"].as_u64().unwrap_or(0),
+            if p["over_cap"].as_bool().unwrap_or(false) {
+                " (OVER CAP, cannot apply)"
+            } else {
+                ""
+            }
+        ));
+        for i in p["items"].as_array().into_iter().flatten() {
+            out.push_str(&format!(
+                "  {:10} {:24} {}\n",
+                i["will"].as_str().unwrap_or("?"),
+                i["vm"].as_str().unwrap_or("?"),
+                i["reason"].as_str().unwrap_or("")
+            ));
+        }
+        out.push_str(&format!(
+            "  plan hash: {}\n",
+            p["plan_hash"].as_str().unwrap_or("?")
+        ));
+    } else {
+        let sm = &r["summary"];
+        out.push_str(&format!(
+            "Bulk {} applied: {} ok, {} failed, {} skipped, {} not attempted\n",
+            r["action"].as_str().unwrap_or("?"),
+            sm["ok"].as_u64().unwrap_or(0),
+            sm["failed"].as_u64().unwrap_or(0),
+            sm["skipped"].as_u64().unwrap_or(0),
+            sm["not_attempted"].as_u64().unwrap_or(0)
+        ));
+        for i in r["results"].as_array().into_iter().flatten() {
+            out.push_str(&format!(
+                "  {:13} {:24} {}\n",
+                i["status"].as_str().unwrap_or("?"),
+                i["vm"].as_str().unwrap_or("?"),
+                i["error"].as_str().unwrap_or("")
+            ));
+        }
+    }
+    out
+}
+
 fn render_snapshot_health(r: &serde_json::Value) -> String {
     let s = &r["summary"];
     let mut out = format!(
@@ -2689,6 +2903,112 @@ impl Cli {
                     print!("{}", render_drain_plan(&plan));
                 } else {
                     print_value(&plan, fmt);
+                }
+            }
+
+            Commands::CpuInventory => {
+                let r = api_get(&client, "/cpu/inventory").await?;
+                if matches!(fmt, OutputFormat::Table) {
+                    print!("{}", render_cpu_inventory(&r));
+                } else {
+                    print_value(&r, fmt);
+                }
+            }
+
+            Commands::CpuReport {
+                host,
+                from_local,
+                vendor,
+                model,
+                flags,
+            } => {
+                let body = if from_local {
+                    serde_json::json!({"from_local": true})
+                } else {
+                    let flags: Vec<String> = flags
+                        .unwrap_or_default()
+                        .split(|c: char| c == ',' || c.is_whitespace())
+                        .filter(|f| !f.is_empty())
+                        .map(String::from)
+                        .collect();
+                    anyhow::ensure!(
+                        !flags.is_empty(),
+                        "give --flags (or --from-local on the daemon host)"
+                    );
+                    serde_json::json!({
+                        "vendor": vendor.unwrap_or_default(),
+                        "model_name": model.unwrap_or_default(),
+                        "flags": flags,
+                    })
+                };
+                let r = api_put(&client, &format!("/hosts/{host}/cpu-inventory"), &body).await?;
+                println!(
+                    "Recorded {} CPU flags for host '{}' ({})",
+                    r["flags"].as_array().map(|f| f.len()).unwrap_or(0),
+                    host,
+                    r["source"].as_str().unwrap_or("?")
+                );
+            }
+
+            Commands::CpuCompat { vm, host } => {
+                let path = match host {
+                    Some(h) => format!("/vms/{vm}/cpu-compat?host={h}"),
+                    None => format!("/vms/{vm}/cpu-compat"),
+                };
+                let r = api_get(&client, &path).await?;
+                if matches!(fmt, OutputFormat::Table) {
+                    print!("{}", render_cpu_compat(&r));
+                } else {
+                    print_value(&r, fmt);
+                }
+            }
+
+            Commands::VmBulk {
+                action,
+                select_tags,
+                labels,
+                names,
+                name_prefix,
+                tag,
+                snapshot_prefix,
+                max_vms,
+                apply,
+                plan_hash,
+                continue_on_error,
+            } => {
+                let mut label_map = serde_json::Map::new();
+                for l in labels {
+                    let (k, v) = l
+                        .split_once('=')
+                        .with_context(|| format!("label '{l}' must be KEY=VALUE"))?;
+                    label_map.insert(k.to_string(), serde_json::json!(v));
+                }
+                let mut body = serde_json::json!({
+                    "selector": {
+                        "tags": select_tags, "labels": label_map, "names": names,
+                        "name_prefix": name_prefix,
+                    },
+                    "action": action,
+                    "dry_run": !apply,
+                    "continue_on_error": continue_on_error,
+                });
+                if let Some(t) = tag {
+                    body["tag"] = serde_json::json!(t);
+                }
+                if let Some(p) = snapshot_prefix {
+                    body["snapshot_prefix"] = serde_json::json!(p);
+                }
+                if let Some(m) = max_vms {
+                    body["max_vms"] = serde_json::json!(m);
+                }
+                if let Some(h) = plan_hash {
+                    body["plan_hash"] = serde_json::json!(h);
+                }
+                let r = api_post(&client, "/vms/bulk", &body).await?;
+                if matches!(fmt, OutputFormat::Table) {
+                    print!("{}", render_bulk(&r));
+                } else {
+                    print_value(&r, fmt);
                 }
             }
 
@@ -4899,6 +5219,78 @@ mod apply_plan_cli_tests {
         let out = render_snapshot_health(&rep);
         assert!(out.contains("1 breached"));
         assert!(out.contains("breached      v (newest 99s old, target 10s) late"));
+    }
+
+    #[test]
+    fn cpu_and_bulk_commands_parse_and_render() {
+        let cli = Cli::try_parse_from(["fabricctl", "cpu-compat", "vm1", "--host", "h2"]).unwrap();
+        assert!(matches!(cli.command, Some(Commands::CpuCompat { .. })));
+        let cli = Cli::try_parse_from(["fabricctl", "cpu-report", "h1", "--from-local"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::CpuReport {
+                from_local: true,
+                ..
+            })
+        ));
+        assert!(Cli::try_parse_from([
+            "fabricctl",
+            "cpu-report",
+            "h1",
+            "--from-local",
+            "--flags",
+            "a"
+        ])
+        .is_err());
+        let cli = Cli::try_parse_from([
+            "fabricctl",
+            "vm-bulk",
+            "--action",
+            "stop",
+            "--select-tag",
+            "web",
+            "--label",
+            "k=v",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::VmBulk { apply: false, .. })
+        ));
+        // applying without a plan hash is refused by the parser
+        assert!(
+            Cli::try_parse_from(["fabricctl", "vm-bulk", "--action", "stop", "--apply"]).is_err()
+        );
+
+        let inv = serde_json::json!({
+            "hosts":[{"hostname":"h1","cluster_id":"c","cpu":{"vendor":"GenuineIntel","model_name":"X","flags":["a","b"],"source":"local"}},
+                     {"hostname":"h2","cluster_id":"c","cpu":null}],
+            "clusters":[{"cluster_id":"c","hosts_known":1,"hosts_total":2,"baseline_model":"Haswell"}],
+            "vms":[{"name":"v","configured":true,"mode":"custom","model":"Haswell"},{"name":"w","configured":false}]});
+        let out = render_cpu_inventory(&inv);
+        assert!(out.contains("no CPU inventory"));
+        assert!(out.contains("1/2 hosts known, baseline model: Haswell"));
+        assert!(out.contains("VMs with a CPU model: 1"));
+        let compat = serde_json::json!({"vm":"v","configured":true,"mode":"custom","model":"Haswell",
+            "requirement":{"notes":["n1"]},
+            "results":[{"hostname":"h1","result":{"verdict":"incompatible","missing":["avx2"],"vendor_mismatch":false}},
+                       {"hostname":"h2","result":{"verdict":"unknown"}}]});
+        let out = render_cpu_compat(&compat);
+        assert!(out.contains("incompatible (missing: avx2)"));
+        assert!(out.contains("note: n1"));
+        let plan = serde_json::json!({"dry_run":true,"plan":{"action":"stop","summary":{"matched":2,"actionable":1,"skipped":1},
+            "max_vms":10,"over_cap":false,"plan_hash":"abc",
+            "items":[{"vm":"a","will":"stop"},{"vm":"b","will":"skip","reason":"not_running"}]}});
+        let out = render_bulk(&plan);
+        assert!(
+            out.contains("1 to act on")
+                && out.contains("not_running")
+                && out.contains("plan hash: abc")
+        );
+        let done = serde_json::json!({"dry_run":false,"action":"stop",
+            "summary":{"ok":1,"failed":1,"skipped":0,"not_attempted":0},
+            "results":[{"vm":"a","status":"ok"},{"vm":"b","status":"failed","error":"boom"}]});
+        assert!(render_bulk(&done).contains("failed        b"));
     }
 
     #[test]
