@@ -5,7 +5,10 @@ import { PanelLoading } from '../components/Skeleton'
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { getVM, getMetrics, deleteVM, addPortForward, removePortForward, getVMLogs, VM, VMMetrics, VMLogEntry } from '../api/vm'
-import { listSnapshots, createSnapshotWithRetry, deleteSnapshot, revertSnapshot, VMSnapshot } from '../api/snapshots'
+import { listSnapshots, createSnapshotWithRetry, deleteSnapshot, revertSnapshot, setSnapshotTags, VMSnapshot } from '../api/snapshots'
+import SnapshotPolicyPanel from '../components/SnapshotPolicyPanel'
+import { SnapshotTagChips } from '../components/SnapshotTagChips'
+import { toggleKeep } from '../lib/snapshotPolicy'
 import { listAuditLogs, AuditLog } from '../api/audit'
 import {
   Play, Square, RotateCw, Trash2, Info, Activity, HardDrive,
@@ -876,6 +879,7 @@ function PortForwardsSection({ vm, onUpdated }: { vm: VM; onUpdated: () => void 
 
 function SnapshotsTab({ vm }: { vm: VM }) {
   const toast = useToastContext()
+  const { canWrite } = usePermissions()
   const [snapshots, setSnapshots] = useState<VMSnapshot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -941,6 +945,18 @@ function SnapshotsTab({ vm }: { vm: VM }) {
       await loadSnapshots()
     } catch (err) {
       toastFailure(toast, 'Failed to delete snapshot', err)
+    } finally {
+      setActionInProgress(null)
+    }
+  }
+
+  const handleToggleKeep = async (snap: VMSnapshot) => {
+    setActionInProgress(snap.id)
+    try {
+      const updated = await setSnapshotTags(vm.name, snap.id, toggleKeep(snap.tags))
+      setSnapshots((cur) => cur.map((s) => (s.id === snap.id ? updated : s)))
+    } catch (err) {
+      toastFailure(toast, 'Failed to update snapshot tags', err)
     } finally {
       setActionInProgress(null)
     }
@@ -1100,6 +1116,11 @@ function SnapshotsTab({ vm }: { vm: VM }) {
                     {snap.description && (
                       <div className="text-xs text-[var(--zf-muted)] mt-0.5">{snap.description}</div>
                     )}
+                    <SnapshotTagChips
+                      tags={snap.tags}
+                      busy={actionInProgress === snap.id}
+                      onToggleKeep={canWrite ? () => void handleToggleKeep(snap) : undefined}
+                    />
                   </td>
                   <td className="py-3 px-4">
                     <span className="px-2 py-0.5 text-xs font-medium rounded text-[var(--zf-muted)] bg-[var(--zf-canvas)] border border-[var(--zf-hairline)]">
@@ -1132,6 +1153,8 @@ function SnapshotsTab({ vm }: { vm: VM }) {
           </table>
         </div>
       )}
+
+      <SnapshotPolicyPanel vmName={vm.name} readOnly={!canWrite} />
     </div>
   )
 }

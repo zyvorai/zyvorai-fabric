@@ -682,6 +682,10 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             get(api::snapshots::get_snapshot).delete(api::snapshots::delete_snapshot),
         )
         .route(
+            "/vms/{name}/snapshots/{id}/tags",
+            put(api::snapshots::set_snapshot_tags),
+        )
+        .route(
             "/vms/{name}/snapshots/{id}/revert",
             post(api::snapshots::revert_snapshot),
         )
@@ -955,6 +959,9 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route("/audit/logs/{id}", get(api::audit::get_audit_log))
         .route("/audit/logs/export", get(api::audit::export_audit_logs))
         .route("/audit/stats", get(api::audit::get_audit_stats))
+        .route("/audit/export", get(api::audit::export_audit))
+        .route("/audit/verify", get(api::audit::verify_audit))
+        .route("/audit/retention", post(api::audit::run_audit_retention))
         // Analytics routes
         .route(
             "/analytics/vms/{name}",

@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
-import { apiGet, apiPost, apiPostVoid, apiDelete, apiFetch } from './client'
+import { apiGet, apiPost, apiPostVoid, apiPut, apiDelete, apiFetch } from './client'
 import { API_BASE_URL } from './config'
 import { formatHttpErrorBody } from '../utils/apiError'
 import { parseJsonResponse } from '../utils/parseJsonResponse'
@@ -15,6 +15,8 @@ export interface VMSnapshot {
   parent_id: string | null
   size_bytes: number
   created: string
+  /** `keep` protects a snapshot from policy pruning. */
+  tags?: string[]
 }
 
 export interface SnapshotTreeNode {
@@ -87,4 +89,9 @@ export async function revertSnapshot(vmName: string, id: string): Promise<void> 
 
 export async function getSnapshotTree(vmName: string): Promise<SnapshotTreeNode[]> {
   return apiGet<SnapshotTreeNode[]>(`${API_BASE_URL}/vms/${vmName}/snapshots/tree`)
+}
+
+/** Replace a snapshot's tags (set or clear `keep`). */
+export async function setSnapshotTags(vmName: string, id: string, tags: string[]): Promise<VMSnapshot> {
+  return apiPut<VMSnapshot>(`${API_BASE_URL}/vms/${vmName}/snapshots/${id}/tags`, { tags })
 }

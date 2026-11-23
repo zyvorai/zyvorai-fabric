@@ -93,18 +93,7 @@ pub(crate) fn fluxvm_client(
 }
 
 pub(crate) fn audit(state: &AppState, user: &str, action: &str, resource: &str, status: &str) {
-    let entry = security::AuditLog::new(
-        user.to_string(),
-        action.to_string(),
-        resource.to_string(),
-        status.to_string(),
-    );
-    if let Err(e) = entry.log() {
-        tracing::warn!("Failed to write audit log: {}", e);
-    }
-    if let Err(e) = state.store.save_entity("audit_logs", &entry.id, &entry) {
-        tracing::warn!("Failed to persist audit log: {}", e);
-    }
+    crate::audit_trail::record(state, user, action, resource, status);
     record_audit_chain(state, &format!("{user}|{action}|{resource}|{status}"));
 }
 

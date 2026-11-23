@@ -8,6 +8,11 @@
 //! * A policy only ever creates and prunes snapshots whose name starts with
 //!   its `name_prefix` (default `auto`) followed by `-`. Hand-made snapshots
 //!   are never touched.
+//! * Snapshot names are `<prefix>-<UTC timestamp with milliseconds>`, with a
+//!   `-N` counter appended if that name is already taken, so two runs in the
+//!   same instant never collide.
+//! * A snapshot whose delete fails (QMP / qemu-img error) keeps its record and
+//!   is reported in `errors`, never silently dropped.
 //! * Pruning never deletes the newest managed snapshot, nor any snapshot
 //!   tagged `keep` (`tags` on the snapshot).
 //! * With both `keep_last` and `max_age_secs`, a snapshot is kept if EITHER
@@ -288,6 +293,38 @@ pub fn is_due(p: &SnapshotPolicy, now: DateTime<Utc>) -> bool {
     false
 }
 
+/// When the policy will next run, or `None` if disabled or malformed.
+/// Same anchor rule as [`is_due`]; a result in the past means "due now".
+pub fn next_run(p: &SnapshotPolicy, now: DateTime<Utc>) -> Option<DateTime<Utc>> {
+    if !p.spec.enabled {
+        return None;
+    }
+    let anchor = p.last_run.unwrap_or(p.updated_at).min(now);
+    if let Some(i) = p.spec.interval_secs {
+        return Some(anchor + Duration::seconds(i.min(i64::MAX as u64) as i64));
+    }
+    p.spec
+        .cron
+        .as_deref()
+        .and_then(|c| CronExpr::parse(c).ok())
+        .and_then(|c| c.next_after(anchor))
+}
+
+/// A policy as returned by the API: the stored fields plus `next_run`.
+#[derive(Debug, Clone, Serialize)]
+pub struct PolicyView {
+    #[serde(flatten)]
+    pub policy: SnapshotPolicy,
+    pub next_run: Option<DateTime<Utc>>,
+}
+
+impl PolicyView {
+    fn of(policy: SnapshotPolicy) -> Self {
+        let next_run = next_run(&policy, Utc::now());
+        Self { policy, next_run }
+    }
+}
+
 // ───────────────────────── retention ─────────────────────────
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -372,11 +409,23 @@ pub struct RunReport {
     pub created: Option<String>,
     pub decisions: Vec<Decision>,
     pub deleted: Vec<String>,
+    /// Snapshots a delete was attempted for and failed; their records are kept.
+    pub delete_failed: Vec<String>,
     pub errors: Vec<String>,
 }
 
-pub fn snapshot_name(prefix: &str, now: DateTime<Utc>) -> String {
-    format!("{prefix}-{}", now.format("%Y%m%dT%H%M%SZ"))
+/// `<prefix>-<UTC timestamp with milliseconds>`, with `-2`, `-3`... appended
+/// while the name is already used by an existing snapshot.
+pub fn snapshot_name(prefix: &str, now: DateTime<Utc>, existing: &[VMSnapshot]) -> String {
+    let base = format!("{prefix}-{}", now.format("%Y%m%dT%H%M%S%3fZ"));
+    let taken = |n: &str| existing.iter().any(|s| s.name == n);
+    if !taken(&base) {
+        return base;
+    }
+    (2u32..)
+        .map(|i| format!("{base}-{i}"))
+        .find(|n| !taken(n))
+        .unwrap_or(base)
 }
 
 /// Create one snapshot, then prune. On a dry run nothing is changed and the
@@ -401,7 +450,7 @@ pub async fn run_policy(
             return report;
         }
     };
-    let name = snapshot_name(&spec.name_prefix, now);
+    let name = snapshot_name(&spec.name_prefix, now, &snaps);
     if dry_run {
         snaps.push(VMSnapshot {
             id: "(planned)".into(),
@@ -432,7 +481,12 @@ pub async fn run_policy(
         for d in report.decisions.iter().filter(|d| d.action == "delete") {
             match backend.delete(vm, &d.id).await {
                 Ok(()) => report.deleted.push(d.name.clone()),
-                Err(e) => report.errors.push(format!("delete {}: {e}", d.name)),
+                Err(e) => {
+                    report.delete_failed.push(d.name.clone());
+                    report
+                        .errors
+                        .push(format!("delete {} (record kept): {e}", d.name));
+                }
             }
         }
     }
@@ -551,6 +605,15 @@ async fn run_and_record(
             "FAILURE"
         };
         crate::routes::audit(state, actor, "SNAPSHOT_POLICY_RUN", &resource, status);
+        for name in &report.delete_failed {
+            crate::routes::audit(
+                state,
+                actor,
+                "SNAPSHOT_PRUNE",
+                &format!("vm/{}/snapshot/{name}", policy.vm_name),
+                "FAILURE",
+            );
+        }
         for name in &report.deleted {
             crate::routes::audit(
                 state,
@@ -614,7 +677,7 @@ pub async fn get_policy(
         return *r;
     }
     match load_policy(&state, &vm) {
-        Ok(Some(p)) => Json(p).into_response(),
+        Ok(Some(p)) => Json(PolicyView::of(p)).into_response(),
         Ok(None) => {
             json_error(StatusCode::NOT_FOUND, "No snapshot policy for this VM").into_response()
         }
@@ -653,7 +716,7 @@ pub async fn put_policy(
         &format!("vm/{vm}"),
         "SUCCESS",
     );
-    Json(policy).into_response()
+    Json(PolicyView::of(policy)).into_response()
 }
 
 /// DELETE /api/vms/{name}/snapshot-policy
@@ -1001,7 +1064,7 @@ mod tests {
             .collect();
         assert_eq!(
             names,
-            vec!["auto-20260301T030000Z", "auto-20260301T040000Z"]
+            vec!["auto-20260301T030000000Z", "auto-20260301T040000000Z"]
         );
     }
 
@@ -1017,7 +1080,7 @@ mod tests {
             ..Default::default()
         };
         let r = run_policy("vm", &spec(Some(1), None), &be, clock.as_ref(), true).await;
-        assert_eq!(r.created.as_deref(), Some("auto-20260301T050000Z"));
+        assert_eq!(r.created.as_deref(), Some("auto-20260301T050000000Z"));
         assert_eq!(deleted(&r.decisions), vec!["auto-2", "auto-1"]);
         assert!(r.deleted.is_empty());
         assert_eq!(be.snaps.lock().unwrap().len(), 2);
@@ -1049,6 +1112,81 @@ mod tests {
         };
         let r = run_policy("vm", &spec(Some(1), None), &be, clock.as_ref(), false).await;
         assert_eq!(r.errors.len(), 1);
+        assert!(r.errors[0].contains("record kept"));
         assert_eq!(r.deleted.len(), 2);
+        assert_eq!(r.delete_failed, vec!["auto-2"]);
+        // the failed delete keeps its record; the others are gone
+        let left: Vec<String> = be
+            .snaps
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|s| s.name.clone())
+            .collect();
+        assert!(left.contains(&"auto-2".to_string()), "{left:?}");
+        assert!(!left.contains(&"auto-1".to_string()));
+    }
+
+    #[test]
+    fn names_are_unique_within_the_same_second_and_instant() {
+        let t1: DateTime<Utc> = "2026-03-01T01:00:00.100Z".parse().unwrap();
+        let t2: DateTime<Utc> = "2026-03-01T01:00:00.200Z".parse().unwrap();
+        let a = snapshot_name("auto", t1, &[]);
+        let b = snapshot_name("auto", t2, &[]);
+        assert_ne!(a, b);
+        assert_eq!(a, "auto-20260301T010000100Z");
+        // same instant: counter suffix, still a managed name
+        let existing = vec![snap(&a, "2026-03-01T01:00:00Z", &[])];
+        let c = snapshot_name("auto", t1, &existing);
+        assert_eq!(c, "auto-20260301T010000100Z-2");
+        let existing = vec![
+            snap(&a, "2026-03-01T01:00:00Z", &[]),
+            snap(&c, "2026-03-01T01:00:00Z", &[]),
+        ];
+        let d = snapshot_name("auto", t1, &existing);
+        assert_eq!(d, "auto-20260301T010000100Z-3");
+        assert!(is_managed(&snap(&d, "2026-03-01T01:00:00Z", &[]), "auto"));
+        assert!(crate::validation::validate_snapshot_name(&d).is_ok());
+    }
+
+    #[tokio::test]
+    async fn two_runs_same_instant_do_not_collide() {
+        let clock = Arc::new(FakeClock::at("2026-03-01T05:00:00Z"));
+        let be = Fake {
+            clock: Some(clock.clone()),
+            ..Default::default()
+        };
+        let s = spec(Some(5), None);
+        run_policy("vm", &s, &be, clock.as_ref(), false).await;
+        run_policy("vm", &s, &be, clock.as_ref(), false).await;
+        let names: Vec<String> = be
+            .snaps
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|s| s.name.clone())
+            .collect();
+        assert_eq!(names.len(), 2);
+        assert_ne!(names[0], names[1]);
+    }
+
+    #[test]
+    fn next_run_interval_cron_and_disabled() {
+        let now: DateTime<Utc> = "2026-03-01T10:30:00Z".parse().unwrap();
+        let p = policy(spec(Some(3), None), Some("2026-03-01T10:00:00Z"));
+        assert_eq!(
+            next_run(&p, now).unwrap().to_rfc3339(),
+            "2026-03-01T11:00:00+00:00"
+        );
+        let mut s = spec(Some(3), None);
+        s.interval_secs = None;
+        s.cron = Some("0 3 * * *".into());
+        let p = policy(s.clone(), Some("2026-03-01T03:00:00Z"));
+        assert_eq!(
+            next_run(&p, now).unwrap().to_rfc3339(),
+            "2026-03-02T03:00:00+00:00"
+        );
+        s.enabled = false;
+        assert!(next_run(&policy(s, None), now).is_none());
     }
 }

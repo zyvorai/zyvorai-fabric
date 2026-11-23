@@ -46,7 +46,21 @@ async fn inject_admin_claims(
 }
 
 pub async fn create_test_app() -> Router {
-    let tmp_dir = std::env::temp_dir().join(format!("zyvor-fabricd-test-{}", std::process::id()));
+    create_test_app_with_audit(zyvor_fabricd::config::AuditConfig::default()).await
+}
+
+/// Like `create_test_app` with an explicit `[audit]` section (for example
+/// `chain = true`).
+pub async fn create_test_app_with_audit(audit: zyvor_fabricd::config::AuditConfig) -> Router {
+    // A non-default [audit] section gets its own store so tests that count
+    // audit events do not see events written by other apps in the same binary.
+    let suffix = if audit.chain || audit.max_export_events != 100_000 {
+        format!("-audit-{}-{}", audit.chain, audit.max_export_events)
+    } else {
+        String::new()
+    };
+    let tmp_dir =
+        std::env::temp_dir().join(format!("zyvor-fabricd-test-{}{suffix}", std::process::id()));
     let store_dir = tmp_dir.join("store");
     let storage_dir = tmp_dir.join("storage");
 
@@ -87,6 +101,7 @@ pub async fn create_test_app() -> Router {
         metrics: zyvor_fabricd::config::MetricsConfig::default(),
         autostart: zyvor_fabricd::config::AutostartConfig::default(),
         snapshots: zyvor_fabricd::config::SnapshotsConfig::default(),
+        audit: audit.clone(),
     };
 
     let storage_manager = zyvor_fabric_storage::StorageManager::new(&storage_dir).unwrap();
@@ -142,6 +157,7 @@ pub async fn create_test_app() -> Router {
 /// Create a test app with a specific role injected into all requests.
 /// Use this to test role-based access control.
 pub async fn create_test_app_with_role(role: security::Role) -> Router {
+    let audit = zyvor_fabricd::config::AuditConfig::default();
     let tmp_dir = std::env::temp_dir().join(format!(
         "zyvor-fabricd-test-rbac-{}-{:?}",
         std::process::id(),
@@ -187,6 +203,7 @@ pub async fn create_test_app_with_role(role: security::Role) -> Router {
         metrics: zyvor_fabricd::config::MetricsConfig::default(),
         autostart: zyvor_fabricd::config::AutostartConfig::default(),
         snapshots: zyvor_fabricd::config::SnapshotsConfig::default(),
+        audit: audit.clone(),
     };
 
     let storage_manager = zyvor_fabric_storage::StorageManager::new(&storage_dir).unwrap();

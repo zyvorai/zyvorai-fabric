@@ -111,3 +111,60 @@ async fn unknown_vm_is_404() {
         .unwrap();
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn policy_get_reports_next_run() {
+    let app = common::create_test_app().await;
+    let resp = app
+        .clone()
+        .oneshot(req(
+            "POST",
+            "/api/vms",
+            Some(json!({"name": "nr-vm", "image": "t.qcow2", "cpus": 1, "memory": 512})),
+        ))
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::CREATED);
+    let uri = "/api/vms/nr-vm/snapshot-policy";
+    let resp = app
+        .clone()
+        .oneshot(req(
+            "PUT",
+            uri,
+            Some(json!({"enabled": true, "interval_secs": 3600, "keep_last": 2})),
+        ))
+        .await
+        .unwrap();
+    assert!(json_of(resp).await["next_run"].is_string());
+    let resp = app.clone().oneshot(req("GET", uri, None)).await.unwrap();
+    assert!(json_of(resp).await["next_run"].is_string());
+    // disabled: no next run
+    let resp = app
+        .clone()
+        .oneshot(req(
+            "PUT",
+            uri,
+            Some(json!({"enabled": false, "interval_secs": 3600, "keep_last": 2})),
+        ))
+        .await
+        .unwrap();
+    assert!(json_of(resp).await["next_run"].is_null());
+}
+
+#[tokio::test]
+async fn snapshot_tags_endpoint_validates_and_404s() {
+    let app = common::create_test_app().await;
+    let uri = "/api/vms/some-vm/snapshots/nope/tags";
+    let resp = app
+        .clone()
+        .oneshot(req("PUT", uri, Some(json!({"tags": ["keep"]}))))
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    let resp = app
+        .clone()
+        .oneshot(req("PUT", uri, Some(json!({"tags": ["bad tag"]}))))
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+}
