@@ -308,7 +308,7 @@ pub async fn delete_template(
 
 /// POST /api/templates/:id/deploy - Deploy a new VM from a template
 pub async fn deploy_template(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(id): Path<String>,
     Json(req): Json<DeployTemplateRequest>,
@@ -429,6 +429,8 @@ pub async fn deploy_template(
             Json(json!({ "error": e.to_string() })),
         )
     })?;
+
+    crate::config_history::capture(&state, &vm.name, &claims.sub, "TEMPLATE_DEPLOY");
 
     Ok((StatusCode::CREATED, Json(vm)))
 }

@@ -139,7 +139,7 @@ fn validate_tag(tag: &str) -> Result<(), (StatusCode, String)> {
 
 /// POST /api/vms/:name/tags - Add a tag to a VM
 pub async fn add_tag(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
     Json(req): Json<AddTagRequest>,
@@ -164,12 +164,13 @@ pub async fn add_tag(
     if let Err(e) = state.store.save_vm(&vm) {
         return json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
+    crate::config_history::capture(&state, &name, &claims.sub, "ADD_TAG");
     (StatusCode::OK, Json(vm)).into_response()
 }
 
 /// DELETE /api/vms/:name/tags/:tag - Remove a tag from a VM
 pub async fn remove_tag(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path((name, tag)): Path<(String, String)>,
 ) -> impl IntoResponse {
@@ -189,12 +190,13 @@ pub async fn remove_tag(
     if let Err(e) = state.store.save_vm(&vm) {
         return json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
+    crate::config_history::capture(&state, &name, &claims.sub, "REMOVE_TAG");
     (StatusCode::OK, Json(vm)).into_response()
 }
 
 /// PUT /api/vms/:name/tags - Replace a VM's full tag set
 pub async fn update_tags(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
     Json(req): Json<UpdateTagsRequest>,
@@ -216,6 +218,7 @@ pub async fn update_tags(
     if let Err(e) = state.store.save_vm(&vm) {
         return json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
+    crate::config_history::capture(&state, &name, &claims.sub, "UPDATE_TAGS");
     (StatusCode::OK, Json(vm)).into_response()
 }
 
@@ -294,6 +297,7 @@ pub async fn create_vm(
         &format!("vm/{}", vm.name),
         "SUCCESS",
     );
+    crate::config_history::capture(&state, &vm.name, &claims.sub, "CREATE");
     crate::api::events::record_event(
         &state,
         crate::api::events::VMEventType::Created,
@@ -499,6 +503,7 @@ pub async fn add_port_forward(
         return json_error_safe(StatusCode::INTERNAL_SERVER_ERROR, e.to_string(), &claims)
             .into_response();
     }
+    crate::config_history::capture(&state, &name, &claims.sub, "ADD_PORT_FORWARD");
 
     // Clear any existing FluxVM-side record regardless of current running
     // state -- a stopped VM that was previously started still has one, and
@@ -622,6 +627,7 @@ pub async fn remove_port_forward(
         return json_error_safe(StatusCode::INTERNAL_SERVER_ERROR, e.to_string(), &claims)
             .into_response();
     }
+    crate::config_history::capture(&state, &name, &claims.sub, "REMOVE_PORT_FORWARD");
 
     if let Err(e) = state.driver.delete(&name).await {
         let msg = e.to_string();
@@ -775,6 +781,7 @@ pub async fn set_direct_uplink(
         return json_error_safe(StatusCode::INTERNAL_SERVER_ERROR, e.to_string(), &claims)
             .into_response();
     }
+    crate::config_history::capture(&state, &name, &claims.sub, "SET_DIRECT_UPLINK");
     if let Err(resp) = clear_fluxvm_record(&state, &claims, &name, "SET_DIRECT_UPLINK").await {
         return resp;
     }
@@ -826,6 +833,7 @@ pub async fn clear_direct_uplink(
         return json_error_safe(StatusCode::INTERNAL_SERVER_ERROR, e.to_string(), &claims)
             .into_response();
     }
+    crate::config_history::capture(&state, &name, &claims.sub, "CLEAR_DIRECT_UPLINK");
     if let Err(resp) = clear_fluxvm_record(&state, &claims, &name, "CLEAR_DIRECT_UPLINK").await {
         return resp;
     }
@@ -1491,6 +1499,12 @@ pub async fn clone_vm(
                 &format!("vm/{}->{}", source_name, req.target_name),
                 "SUCCESS",
             );
+            crate::config_history::capture(
+                &state,
+                &req.target_name,
+                &claims.sub,
+                &format!("CLONE from {source_name}"),
+            );
             crate::api::events::record_event(
                 &state,
                 crate::api::events::VMEventType::Cloned,
@@ -1728,7 +1742,7 @@ fn extract_write_files_from_user_data(user_data: &str) -> Vec<vm_model::CloudIni
 /// endpoint used to write an ISO no VM ever received, so cloud-init and
 /// therefore networking silently never worked for any VM here).
 pub async fn configure_cloud_init(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(vm_name): Path<String>,
     Json(config): Json<CloudInitConfig>,
@@ -1756,6 +1770,8 @@ pub async fn configure_cloud_init(
             );
         }
     }
+
+    crate::config_history::capture(&state, &vm_name, &claims.sub, "CLOUD_INIT");
 
     let generator = match CloudInitGenerator::new("/var/lib/zyvor-fabricd/cloud-init") {
         Ok(gen) => gen,

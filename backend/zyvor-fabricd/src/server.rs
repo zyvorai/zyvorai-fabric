@@ -1738,6 +1738,26 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             get(crate::cpu_compat::get_host_cpu).put(crate::cpu_compat::put_host_cpu),
         )
         .route("/vms/{name}/cpu-compat", get(crate::cpu_compat::vm_compat))
+        .route(
+            "/vms/{name}/history",
+            get(crate::config_history::list_history),
+        )
+        .route(
+            "/vms/{name}/history/diff",
+            get(crate::config_history::diff_history),
+        )
+        .route(
+            "/vms/{name}/history/since-good",
+            get(crate::config_history::since_good),
+        )
+        .route(
+            "/vms/{name}/history/{rev}",
+            get(crate::config_history::get_revision),
+        )
+        .route(
+            "/vms/{name}/history/{rev}/mark-good",
+            post(crate::config_history::mark_good),
+        )
         .route("/hosts/discover", post(api::datacenter::discover_host))
         .route(
             "/clusters/{id}/health",

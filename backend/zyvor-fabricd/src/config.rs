@@ -30,6 +30,51 @@ pub struct Config {
     pub snapshots: SnapshotsConfig,
     #[serde(default)]
     pub audit: AuditConfig,
+    #[serde(default)]
+    pub config_history: ConfigHistoryConfig,
+}
+
+/// VM configuration history (`[config_history]`). Revisions are redacted,
+/// bounded and capped per VM; see `docs/config-history.md`.
+///
+/// - `max_revisions`: revisions kept per VM (clamped to 5..=1000). When the
+///   cap is hit the oldest revisions go first; the newest revision and the
+///   last known good one are never evicted.
+/// - `good_after_minutes`: how long a VM must stay in the Running state (no
+///   stop, pause or error event) after a revision before that revision is
+///   marked good automatically (clamped to 1..=1440).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigHistoryConfig {
+    #[serde(default = "default_ch_max_revisions")]
+    pub max_revisions: usize,
+    #[serde(default = "default_ch_good_after_minutes")]
+    pub good_after_minutes: u64,
+}
+
+fn default_ch_max_revisions() -> usize {
+    100
+}
+
+fn default_ch_good_after_minutes() -> u64 {
+    15
+}
+
+impl Default for ConfigHistoryConfig {
+    fn default() -> Self {
+        Self {
+            max_revisions: default_ch_max_revisions(),
+            good_after_minutes: default_ch_good_after_minutes(),
+        }
+    }
+}
+
+impl ConfigHistoryConfig {
+    pub fn max_revisions_clamped(&self) -> usize {
+        self.max_revisions.clamp(5, 1000)
+    }
+    pub fn good_after_minutes_clamped(&self) -> u64 {
+        self.good_after_minutes.clamp(1, 1440)
+    }
 }
 
 /// Audit trail (`[audit]`). Everything is off or unbounded by default, so
@@ -625,6 +670,7 @@ impl Config {
             autostart: AutostartConfig::default(),
             snapshots: SnapshotsConfig::default(),
             audit: AuditConfig::default(),
+            config_history: ConfigHistoryConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         })
     }
@@ -679,6 +725,7 @@ mod tests {
             autostart: AutostartConfig::default(),
             snapshots: SnapshotsConfig::default(),
             audit: AuditConfig::default(),
+            config_history: ConfigHistoryConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         }
     }

@@ -7,6 +7,7 @@ pub mod audit_trail;
 pub mod autostart;
 pub mod bulk_ops;
 pub mod config;
+pub mod config_history;
 pub mod cpu_compat;
 pub mod metrics_layer;
 pub mod plugins;
