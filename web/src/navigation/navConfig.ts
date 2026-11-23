@@ -106,6 +106,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: 'Autoscale', path: '/app/autoscale', icon: TrendingUp },
       { label: 'Availability Zones', path: '/app/zones', icon: Globe },
       { label: 'Snapshots', path: '/app/snapshots', icon: Camera },
+      { label: 'Snapshot Health', path: '/app/snapshot-health', icon: HeartPulse },
+      { label: 'Host Drain Plan', path: '/app/drain-plan', icon: ArrowRightLeft },
       { label: 'Backups', path: '/app/backups', icon: Save },
       { label: 'Container Groups', path: '/app/container-groups', icon: Boxes },
       { label: 'AI Workloads', path: '/app/ai', icon: Bot },

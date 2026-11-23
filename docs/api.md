@@ -337,6 +337,31 @@ Daemon health, configuration, and system information.
 | GET | `/system/capacity` | Host CPU/memory capacity with the overcommit policy applied, allocated and available |
 | GET | `/system/overcommit` | Overcommit policy (admin `PUT` to change) |
 | POST | `/capacity/whatif` | Capacity what-if (read-only): which of these new VMs would fit, and why not |
+| POST | `/hosts/{id}/drain-plan` | Host drain plan (read-only dry run): where each VM would migrate, stop or be blocked, with a plan hash |
+| GET | `/snapshots/health` | Snapshot health scoreboard (read-only): RPO status, broken chains, space forecast per VM |
+
+### Host drain plan
+
+`POST /api/hosts/{id}/drain-plan` (id or hostname; read access; no body; 404 for an unknown host; 403 for tenant-scoped tokens) never moves or stops anything. A VM belongs to a host when its label `fabric.zyvor.dev/host` equals the host id or hostname; VMs without it are not planned and the response warns with their count. Targets are other `connected` hosts in the same cluster. Capacity is `floor(total * ratio)` (overcommit policy when enabled) against the vCPUs and memory of running VMs on the host. DRS affinity rules are applied: `required` rules block a target, `preferred` rules only steer. Label `fabric.zyvor.dev/eviction` per VM: `migrate` (default), `migrate-if-possible` (becomes `stop` when it cannot move), `stop`, `pin` (blocks the drain).
+
+```json
+{
+  "host_id": "h1", "dry_run": true, "can_drain": false,
+  "actions": [
+    { "order": 1, "vm": "web", "action": "migrate", "target": "h2", "reasons": [], "warnings": [] },
+    { "order": 2, "vm": "db", "action": "blocked", "target": null, "reasons": ["memory"], "warnings": [] }
+  ],
+  "summary": { "migrate": 1, "relocate": 0, "stop": 0, "blocked": 1 },
+  "targets": [{ "host_id": "h2", "vcpus_used_after": 1, "vcpus_capacity": 8, "memory_mb_used_after": 512, "memory_mb_capacity": 4096 }],
+  "warnings": [], "plan_hash": "<sha256 hex>"
+}
+```
+
+Order: migrations (largest memory first), relocations, stops, then blocked VMs. `plan_hash` changes when any action or target load changes. CLI: `fabricctl drain-plan <host>`. Web: Host Drain Plan.
+
+### Snapshot health
+
+`GET /api/snapshots/health?default_rpo_secs=86400` (read access; tenant-scoped tokens see only their VMs; `default_rpo_secs` at least 60) returns a summary and one row per VM, worst first. Status compares the newest snapshot's age with the RPO target: `healthy` at or under the target, `at_risk` up to twice the target, `breached` beyond, `no_snapshots` when none. The target is the policy `interval_secs`, the gap between two cron runs, or `default_rpo_secs` when there is no enabled policy (`rpo_source` says which). `orphaned` lists snapshot ids whose `parent_id` no longer exists. `growth_bytes_per_day` is the last 7 days of snapshot bytes divided by 7; `projected_bytes_30d` adds 30 days of growth, capped by `keep_last` retention. CLI: `fabricctl snapshot-health [--default-rpo-secs N]`. Web: Snapshot Health.
 
 ### Capacity what-if
 

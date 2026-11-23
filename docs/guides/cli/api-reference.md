@@ -488,6 +488,22 @@ fabricctl snapshot-policy set vm1 --cron "0 3 * * *" --keep-last 7
 fabricctl snapshot-policy run vm1 --dry-run
 ```
 
+### POST /api/hosts/:id/drain-plan
+
+Read-only dry-run plan for draining a host. See `docs/api.md` (Host drain plan) for the rules and response. Auth level: Viewer+.
+
+```bash
+fabricctl drain-plan host-a
+```
+
+### GET /api/snapshots/health
+
+Fleet snapshot health: RPO status, broken chains and space forecast per VM, worst first. Optional `default_rpo_secs`. Auth level: Viewer+.
+
+```bash
+fabricctl snapshot-health --default-rpo-secs 86400
+```
+
 ### PUT /api/vms/:name/snapshots/:id/tags
 
 Replace a snapshot's tags. Body: `{"tags": ["keep", "golden"]}`. Each tag is 1 to 32 characters of letters, digits, `.`, `_`, `:` or `-`; at most 16; duplicates are dropped. An empty list clears all tags. The `keep` tag protects a snapshot from snapshot-policy pruning. Returns the updated snapshot; 400 for invalid tags, 404 for an unknown snapshot.
