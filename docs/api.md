@@ -123,7 +123,11 @@ Core virtual machine lifecycle operations.
 | GET | `/app/vms/:name` | Get VM details |
 | DELETE | `/app/vms/:name` | Delete a VM |
 | POST | `/app/vms/:name/start` | Start a VM |
-| POST | `/app/vms/autostart/reconcile?dry_run=` | Start VMs tagged `autostart` that are not running (ordered, pre-flight checked); returns started/skipped/failed report |
+| POST | `/app/vms/autostart/reconcile?dry_run=` | Start VMs tagged `autostart` that are not running (ordered, pre-flight checked). `dry_run=true` answers 200 with the report; a live run answers 202 with a job `id` (409 while another live run is active) |
+| GET | `/app/vms/autostart/reconcile` | List recent autostart runs (newest first, last 20 kept in memory; the startup pass is included) |
+| GET | `/app/vms/autostart/reconcile/:id` | Progress of one run: per-VM status as it happens, then the final report |
+| GET/PUT/DELETE | `/app/vms/{name}/snapshot-policy` | Per-VM snapshot schedule (interval or cron) and retention (keep_last, max_age_secs) |
+| POST | `/app/vms/{name}/snapshot-policy/run?dry_run=` | Take a policy snapshot now and prune (admin), or preview with `dry_run=true` |
 | POST | `/app/vms/:name/preflight` | Read-only pre-flight check: can this VM start here? (`can_start` plus findings) |
 | POST | `/app/vms/:name/stop` | Stop a VM |
 | POST | `/app/vms/:name/restart` | Restart a VM |

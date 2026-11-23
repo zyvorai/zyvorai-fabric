@@ -21,12 +21,12 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
-use security::RequireWrite;
+use security::{RequireRead, RequireWrite};
 use serde::{Deserialize, Serialize};
 use vm_model::{VMState, VM};
 
@@ -163,6 +163,15 @@ fn blocker_text(findings: &[Finding]) -> String {
         .join(" ")
 }
 
+fn note_skip(sink: &mut (dyn FnMut(Progress) + Send), s: &SkippedVm) {
+    sink(Progress::Vm {
+        vm: s.vm.clone(),
+        status: "skipped",
+        code: Some(s.code),
+        reason: Some(s.reason.clone()),
+    });
+}
+
 fn shutdown_skip(name: String) -> SkippedVm {
     SkippedVm {
         vm: name,
@@ -170,6 +179,30 @@ fn shutdown_skip(name: String) -> SkippedVm {
         reason: "The daemon is shutting down.".into(),
         findings: vec![],
     }
+}
+
+/// A progress notification emitted while a pass runs.
+#[derive(Debug, Clone)]
+pub enum Progress {
+    /// The ordered candidate list (name, order), before anything is touched.
+    Candidates(Vec<(String, i64)>),
+    /// A VM's status changed: `checking`, `waiting`, `starting`, `started`,
+    /// `skipped` (with `code`) or `failed`.
+    Vm {
+        vm: String,
+        status: &'static str,
+        code: Option<&'static str>,
+        reason: Option<String>,
+    },
+}
+
+fn note(sink: &mut (dyn FnMut(Progress) + Send), vm: &str, status: &'static str) {
+    sink(Progress::Vm {
+        vm: vm.to_string(),
+        status,
+        code: None,
+        reason: None,
+    });
 }
 
 /// Compare every flagged VM against its actual state and start the ones that
@@ -180,6 +213,17 @@ pub async fn reconcile<H: Host>(
     dry_run: bool,
     trigger: &'static str,
 ) -> Result<AutostartReport, String> {
+    reconcile_with(host, cfg, dry_run, trigger, &mut |_| {}).await
+}
+
+/// [`reconcile`] that reports each step to `sink` as it happens.
+pub async fn reconcile_with<H: Host>(
+    host: &H,
+    cfg: &AutostartConfig,
+    dry_run: bool,
+    trigger: &'static str,
+    sink: &mut (dyn FnMut(Progress) + Send),
+) -> Result<AutostartReport, String> {
     let mut candidates: Vec<(VM, AutostartPolicy)> = host
         .list_vms()?
         .into_iter()
@@ -188,6 +232,12 @@ pub async fn reconcile<H: Host>(
     candidates.sort_by(|a, b| (a.1.order, &a.0.name).cmp(&(b.1.order, &b.0.name)));
 
     let total = candidates.len();
+    sink(Progress::Candidates(
+        candidates
+            .iter()
+            .map(|(vm, p)| (vm.name.clone(), p.order))
+            .collect(),
+    ));
     let mut started = Vec::new();
     let mut skipped = Vec::new();
     let mut failed = Vec::new();
@@ -199,9 +249,12 @@ pub async fn reconcile<H: Host>(
 
     for (mut vm, policy) in candidates {
         if interrupted {
-            skipped.push(shutdown_skip(vm.name));
+            let s = shutdown_skip(vm.name);
+            note_skip(sink, &s);
+            skipped.push(s);
             continue;
         }
+        note(sink, &vm.name, "checking");
         let actual = host.actual_state(&vm.name).await;
         let skip = |code: &'static str, reason: &str| SkippedVm {
             vm: vm.name.clone(),
@@ -211,15 +264,21 @@ pub async fn reconcile<H: Host>(
         };
         match actual {
             VMState::Running | VMState::Starting => {
-                skipped.push(skip("already_running", "The VM is already running."));
+                let s = skip("already_running", "The VM is already running.");
+                note_skip(sink, &s);
+                skipped.push(s);
                 continue;
             }
             VMState::Stopping => {
-                skipped.push(skip("stopping", "The VM is stopping; not started."));
+                let s = skip("stopping", "The VM is stopping; not started.");
+                note_skip(sink, &s);
+                skipped.push(s);
                 continue;
             }
             VMState::Paused => {
-                skipped.push(skip("paused", "The VM is paused; resume it instead."));
+                let s = skip("paused", "The VM is paused; resume it instead.");
+                note_skip(sink, &s);
+                skipped.push(s);
                 continue;
             }
             VMState::Stopped | VMState::Failed | VMState::Unknown => {}
@@ -230,7 +289,7 @@ pub async fn reconcile<H: Host>(
 
         let findings = host.preflight(&vm).await;
         if findings.iter().any(|f| f.severity == Severity::Blocker) {
-            skipped.push(SkippedVm {
+            let s = SkippedVm {
                 vm: vm.name.clone(),
                 code: "preflight_blocked",
                 reason: blocker_text(&findings),
@@ -238,18 +297,32 @@ pub async fn reconcile<H: Host>(
                     .into_iter()
                     .filter(|f| f.severity == Severity::Blocker)
                     .collect(),
-            });
+            };
+            note_skip(sink, &s);
+            skipped.push(s);
             continue;
         }
 
         if !dry_run {
             let wait = std::mem::take(&mut pending_delay);
-            if wait > 0 && !host.pause(Duration::from_secs(wait)).await {
-                interrupted = true;
-                skipped.push(shutdown_skip(vm.name));
-                continue;
+            if wait > 0 {
+                note(sink, &vm.name, "waiting");
+                if !host.pause(Duration::from_secs(wait)).await {
+                    interrupted = true;
+                    let s = shutdown_skip(vm.name);
+                    note_skip(sink, &s);
+                    skipped.push(s);
+                    continue;
+                }
             }
+            note(sink, &vm.name, "starting");
             if let Err(reason) = host.start(&vm).await {
+                sink(Progress::Vm {
+                    vm: vm.name.clone(),
+                    status: "failed",
+                    code: None,
+                    reason: Some(reason.clone()),
+                });
                 failed.push(FailedVm {
                     vm: vm.name,
                     reason,
@@ -257,6 +330,7 @@ pub async fn reconcile<H: Host>(
                 continue;
             }
         }
+        note(sink, &vm.name, "started");
         pending_delay = policy
             .delay_secs
             .unwrap_or(cfg.start_delay_secs)
@@ -336,6 +410,161 @@ impl Host for Arc<AppState> {
     }
 }
 
+// ─── Run history ────────────────────────────────────────────────────────────
+
+/// Recent runs kept in memory (oldest dropped first).
+const MAX_RUNS: usize = 20;
+
+/// One VM's progress within a run.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct VmProgress {
+    pub vm: String,
+    pub order: i64,
+    /// `pending`, `checking`, `waiting`, `starting`, `started`, `skipped`
+    /// or `failed`.
+    pub status: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+/// A live reconciliation run, as returned by the job endpoints.
+#[derive(Debug, Clone, Serialize)]
+pub struct RunRecord {
+    pub id: String,
+    /// `startup` or `manual`.
+    pub trigger: &'static str,
+    /// `running`, `completed` or `failed`.
+    pub state: &'static str,
+    pub started_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub finished_at: Option<String>,
+    pub vms: Vec<VmProgress>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub report: Option<AutostartReport>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Compact row for the run list.
+#[derive(Debug, Clone, Serialize)]
+pub struct RunSummary {
+    pub id: String,
+    pub trigger: &'static str,
+    pub state: &'static str,
+    pub started_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub finished_at: Option<String>,
+    pub candidates: usize,
+    pub started: usize,
+    pub skipped: usize,
+    pub failed: usize,
+}
+
+impl RunRecord {
+    fn summary(&self) -> RunSummary {
+        let count = |s: &str| self.vms.iter().filter(|v| v.status == s).count();
+        RunSummary {
+            id: self.id.clone(),
+            trigger: self.trigger,
+            state: self.state,
+            started_at: self.started_at.clone(),
+            finished_at: self.finished_at.clone(),
+            candidates: self.vms.len(),
+            started: count("started"),
+            skipped: count("skipped"),
+            failed: count("failed"),
+        }
+    }
+}
+
+static RUNS: std::sync::Mutex<Vec<RunRecord>> = std::sync::Mutex::new(Vec::new());
+
+fn runs() -> std::sync::MutexGuard<'static, Vec<RunRecord>> {
+    RUNS.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+fn begin_run(trigger: &'static str) -> String {
+    let id = uuid::Uuid::new_v4().to_string();
+    let mut r = runs();
+    r.push(RunRecord {
+        id: id.clone(),
+        trigger,
+        state: "running",
+        started_at: chrono::Utc::now().to_rfc3339(),
+        finished_at: None,
+        vms: vec![],
+        report: None,
+        error: None,
+    });
+    let excess = r.len().saturating_sub(MAX_RUNS);
+    r.drain(..excess);
+    id
+}
+
+fn record_progress(id: &str, p: Progress) {
+    let mut r = runs();
+    let Some(run) = r.iter_mut().find(|x| x.id == id) else {
+        return;
+    };
+    match p {
+        Progress::Candidates(list) => {
+            run.vms = list
+                .into_iter()
+                .map(|(vm, order)| VmProgress {
+                    vm,
+                    order,
+                    status: "pending",
+                    code: None,
+                    reason: None,
+                })
+                .collect();
+        }
+        Progress::Vm {
+            vm,
+            status,
+            code,
+            reason,
+        } => {
+            if let Some(v) = run.vms.iter_mut().find(|v| v.vm == vm) {
+                v.status = status;
+                v.code = code;
+                v.reason = reason;
+            }
+        }
+    }
+}
+
+fn finish_run(id: &str, result: &Result<AutostartReport, String>) {
+    let mut r = runs();
+    if let Some(run) = r.iter_mut().find(|x| x.id == id) {
+        run.finished_at = Some(chrono::Utc::now().to_rfc3339());
+        match result {
+            Ok(rep) => {
+                run.state = "completed";
+                run.report = Some(rep.clone());
+            }
+            Err(e) => {
+                run.state = "failed";
+                run.error = Some(e.clone());
+            }
+        }
+    }
+}
+
+/// Run a live pass, recording it in the history under `id`.
+async fn run_recorded(
+    state: &Arc<AppState>,
+    id: &str,
+    trigger: &'static str,
+) -> Result<AutostartReport, String> {
+    let cfg = state.config.autostart.clone();
+    let result = reconcile_with(state, &cfg, false, trigger, &mut |p| record_progress(id, p)).await;
+    finish_run(id, &result);
+    result
+}
+
 /// Background task: one reconciliation shortly after daemon start.
 pub async fn run_startup_reconcile(state: Arc<AppState>) {
     let cfg = state.config.autostart.clone();
@@ -349,7 +578,8 @@ pub async fn run_startup_reconcile(state: Arc<AppState>) {
         return;
     }
     let _guard = LIVE_RUN.lock().await;
-    match reconcile(&state, &cfg, false, "startup").await {
+    let id = begin_run("startup");
+    match run_recorded(&state, &id, "startup").await {
         Ok(r) => tracing::info!(
             "Autostart reconcile: {} started, {} skipped, {} failed",
             r.summary.started,
@@ -367,6 +597,9 @@ pub struct ReconcileQuery {
 }
 
 /// POST /api/vms/autostart/reconcile?dry_run=true|false
+///
+/// A dry run answers 200 with the report. A live run answers 202 with a job
+/// id; follow it with `GET /api/vms/autostart/reconcile/{id}`.
 pub async fn reconcile_autostart(
     RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
@@ -379,28 +612,73 @@ pub async fn reconcile_autostart(
         )
         .into_response();
     }
-    let _guard = if q.dry_run {
-        None
-    } else {
-        match LIVE_RUN.try_lock() {
-            Ok(g) => Some(g),
-            Err(_) => {
-                return json_error(
-                    StatusCode::CONFLICT,
-                    "An autostart reconciliation is already running",
-                )
-                .into_response()
-            }
-        }
+    if q.dry_run {
+        return match reconcile(&state, &state.config.autostart, true, "manual").await {
+            Ok(report) => (StatusCode::OK, Json(report)).into_response(),
+            Err(e) => json_error(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        };
+    }
+    let Ok(guard) = LIVE_RUN.try_lock() else {
+        return json_error(
+            StatusCode::CONFLICT,
+            "An autostart reconciliation is already running",
+        )
+        .into_response();
     };
-    match reconcile(&state, &state.config.autostart, q.dry_run, "manual").await {
-        Ok(report) => {
-            if !q.dry_run {
-                crate::routes::audit(&state, &claims.sub, "AUTOSTART_RECONCILE", "vms", "SUCCESS");
-            }
-            (StatusCode::OK, Json(report)).into_response()
-        }
-        Err(e) => json_error(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+    let id = begin_run("manual");
+    let job = id.clone();
+    let actor = claims.sub.clone();
+    tokio::spawn(async move {
+        let _guard = guard;
+        let ok = run_recorded(&state, &job, "manual").await.is_ok();
+        crate::routes::audit(
+            &state,
+            &actor,
+            "AUTOSTART_RECONCILE",
+            "vms",
+            if ok { "SUCCESS" } else { "FAILURE" },
+        );
+    });
+    (
+        StatusCode::ACCEPTED,
+        Json(serde_json::json!({
+            "id": id,
+            "state": "running",
+            "status_url": format!("/api/vms/autostart/reconcile/{id}"),
+        })),
+    )
+        .into_response()
+}
+
+/// GET /api/vms/autostart/reconcile: recent live runs, newest first.
+pub async fn list_autostart_runs(RequireRead(claims): RequireRead) -> impl IntoResponse {
+    if claims.tenant.is_some() {
+        return json_error(
+            StatusCode::FORBIDDEN,
+            "Autostart runs are not available to tenant-scoped users",
+        )
+        .into_response();
+    }
+    let list: Vec<RunSummary> = runs().iter().rev().map(RunRecord::summary).collect();
+    Json(serde_json::json!({ "runs": list })).into_response()
+}
+
+/// GET /api/vms/autostart/reconcile/{id}: progress and, once done, the report.
+pub async fn get_autostart_run(
+    RequireRead(claims): RequireRead,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    if claims.tenant.is_some() {
+        return json_error(
+            StatusCode::FORBIDDEN,
+            "Autostart runs are not available to tenant-scoped users",
+        )
+        .into_response();
+    }
+    let found = runs().iter().find(|r| r.id == id).cloned();
+    match found {
+        Some(r) => Json(r).into_response(),
+        None => json_error(StatusCode::NOT_FOUND, "Autostart run not found").into_response(),
     }
 }
 
@@ -622,5 +900,63 @@ mod tests {
         let f = Fake::new(vec![vm("a", &[])]);
         let r = reconcile(&f, &cfg(0), false, "manual").await.unwrap();
         assert_eq!(r.summary.candidates, 0);
+    }
+
+    #[tokio::test]
+    async fn progress_is_reported_per_vm_as_it_happens() {
+        let mut f = Fake::new(vec![
+            vm("a", &["autostart", "autostart-order:1"]),
+            vm("b", &["autostart", "autostart-order:2"]),
+            vm("up", &["autostart", "autostart-order:3"]),
+        ]);
+        f.actual.insert("up".into(), VMState::Running);
+        f.fail = vec!["b"];
+        let mut seen = Vec::new();
+        reconcile_with(&f, &cfg(1), false, "manual", &mut |p| match p {
+            Progress::Candidates(c) => seen.push(format!("candidates {}", c.len())),
+            Progress::Vm { vm, status, .. } => seen.push(format!("{vm} {status}")),
+        })
+        .await
+        .unwrap();
+        assert_eq!(
+            seen,
+            [
+                "candidates 3",
+                "a checking",
+                "a starting",
+                "a started",
+                "b checking",
+                "b waiting",
+                "b starting",
+                "b failed",
+                "up checking",
+                "up skipped",
+            ]
+        );
+    }
+
+    #[test]
+    fn run_history_is_bounded_and_records_progress() {
+        let first = begin_run("manual");
+        record_progress(&first, Progress::Candidates(vec![("a".into(), 1)]));
+        record_progress(
+            &first,
+            Progress::Vm {
+                vm: "a".into(),
+                status: "started",
+                code: None,
+                reason: None,
+            },
+        );
+        finish_run(&first, &Err("boom".into()));
+        let rec = runs().iter().find(|r| r.id == first).cloned().unwrap();
+        assert_eq!(rec.state, "failed");
+        assert_eq!(rec.summary().started, 1);
+        for _ in 0..(MAX_RUNS + 3) {
+            begin_run("startup");
+        }
+        let r = runs();
+        assert_eq!(r.len(), MAX_RUNS);
+        assert!(r.iter().all(|x| x.id != first));
     }
 }

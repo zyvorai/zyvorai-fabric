@@ -30,6 +30,7 @@ tower-http = { version = "0.7", features = ["fs", "cors", "trace", "timeout"] }
 futures.workspace = true
 uuid.workspace = true
 chrono.workspace = true
+async-trait = "0.1"
 reqwest = { version = "0.13", features = ["json", "stream", "form"] }
 lettre = { version = "0.11", features = ["tokio1-native-tls", "smtp-transport", "builder"] }
 rand.workspace = true

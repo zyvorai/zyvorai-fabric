@@ -86,6 +86,7 @@ pub async fn create_test_app() -> Router {
         agent_runtime: zyvor_fabricd::config::AgentRuntimeConfig::default(),
         metrics: zyvor_fabricd::config::MetricsConfig::default(),
         autostart: zyvor_fabricd::config::AutostartConfig::default(),
+        snapshots: zyvor_fabricd::config::SnapshotsConfig::default(),
     };
 
     let storage_manager = zyvor_fabric_storage::StorageManager::new(&storage_dir).unwrap();
@@ -185,6 +186,7 @@ pub async fn create_test_app_with_role(role: security::Role) -> Router {
         agent_runtime: zyvor_fabricd::config::AgentRuntimeConfig::default(),
         metrics: zyvor_fabricd::config::MetricsConfig::default(),
         autostart: zyvor_fabricd::config::AutostartConfig::default(),
+        snapshots: zyvor_fabricd::config::SnapshotsConfig::default(),
     };
 
     let storage_manager = zyvor_fabric_storage::StorageManager::new(&storage_dir).unwrap();

@@ -5,7 +5,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Home, Server, Monitor, Layers, Building2, Star, Network, Shield, HardDrive, Database, Cpu,
   HeartPulse, Container, GitBranch, Zap, RefreshCw, Activity, ArrowRightLeft, CheckCircle, Clock,
-  FileText, Calendar, TrendingUp, Camera, Save, PackageCheck, Archive, Package, Bell, Terminal,
+  FileText, Power, Calendar, TrendingUp, Camera, Save, PackageCheck, Archive, Package, Bell, Terminal,
   BarChart3, AlertTriangle, Bug, HelpCircle, Radio, Lock, Key, Users, Settings, Globe, DollarSign,
   Upload, Download, Disc, Workflow, FileUp, Map, Inbox, Boxes, Wrench, MoreHorizontal, Code, Bot, FlaskConical,
 } from 'lucide-react'
@@ -102,6 +102,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: 'Templates', path: '/app/templates', icon: Layers },
       { label: 'Content Library', path: '/app/content-library', icon: Archive },
       { label: 'Schedules', path: '/app/schedules', icon: Calendar },
+      { label: 'Autostart Runs', path: '/app/autostart', icon: Power },
       { label: 'Autoscale', path: '/app/autoscale', icon: TrendingUp },
       { label: 'Availability Zones', path: '/app/zones', icon: Globe },
       { label: 'Snapshots', path: '/app/snapshots', icon: Camera },
