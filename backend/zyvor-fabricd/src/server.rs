@@ -267,6 +267,15 @@ impl Server {
             );
         }
 
+        // Snapshot policy scheduler (off unless [snapshots] enabled)
+        if self.state.config.snapshots.enabled {
+            spawn_bg!(
+                self.state,
+                "snapshot_scheduler",
+                crate::snapshot_policy::run_snapshot_scheduler
+            );
+        }
+
         // Start background metrics collector
         spawn_bg!(self.state, "metrics_collector", run_metrics_collector);
 
@@ -653,6 +662,16 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route(
             "/vms/{name}/snapshots",
             get(api::snapshots::list_snapshots).post(api::snapshots::create_snapshot),
+        )
+        .route(
+            "/vms/{name}/snapshot-policy",
+            get(crate::snapshot_policy::get_policy)
+                .put(crate::snapshot_policy::put_policy)
+                .delete(crate::snapshot_policy::delete_policy),
+        )
+        .route(
+            "/vms/{name}/snapshot-policy/run",
+            post(crate::snapshot_policy::run_policy_now),
         )
         .route(
             "/vms/{name}/snapshots/tree",
@@ -1200,7 +1219,11 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         // Declarative VM spec
         .route(
             "/vms/autostart/reconcile",
-            post(crate::autostart::reconcile_autostart),
+            post(crate::autostart::reconcile_autostart).get(crate::autostart::list_autostart_runs),
+        )
+        .route(
+            "/vms/autostart/reconcile/{id}",
+            get(crate::autostart::get_autostart_run),
         )
         .route("/vms/apply", post(api::declarative::apply_vm_spec))
         .route("/vms/plan", post(api::declarative::plan_vm_specs))

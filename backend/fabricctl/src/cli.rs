@@ -242,6 +242,10 @@ enum Commands {
     /// Get VM metrics
     Metrics { name: String },
 
+    /// Snapshot policy: scheduled snapshots with retention for a VM
+    #[command(subcommand, name = "snapshot-policy")]
+    SnapshotPolicy(SnapshotPolicyCmd),
+
     /// Autostart: start the VMs tagged `autostart` that are not running
     #[command(subcommand)]
     Autostart(AutostartCmd),
@@ -377,12 +381,55 @@ enum Commands {
 // ─── Sub-command enums ───────────────────────────────────────────────────────
 
 #[derive(Subcommand)]
+enum SnapshotPolicyCmd {
+    /// Show a VM's snapshot policy
+    Show { vm: String },
+    /// Create or replace a VM's snapshot policy
+    Set {
+        vm: String,
+        /// Snapshot every N seconds (>= 60); exclusive with --cron
+        #[arg(long)]
+        interval_secs: Option<u64>,
+        /// 5-field UTC cron expression; exclusive with --interval-secs
+        #[arg(long)]
+        cron: Option<String>,
+        /// Keep the newest N managed snapshots (N >= 1)
+        #[arg(long)]
+        keep_last: Option<u32>,
+        /// Delete managed snapshots older than this many seconds
+        #[arg(long)]
+        max_age_secs: Option<u64>,
+        /// Name prefix of managed snapshots
+        #[arg(long, default_value = "auto")]
+        name_prefix: String,
+        /// Store the policy but do not run it on schedule
+        #[arg(long)]
+        disabled: bool,
+    },
+    /// Remove a VM's snapshot policy
+    Delete { vm: String },
+    /// Run the policy now (take a snapshot, then prune)
+    Run {
+        vm: String,
+        /// Report what would be created and pruned and change nothing
+        #[arg(long)]
+        dry_run: bool,
+    },
+}
+
+#[derive(Subcommand)]
 enum AutostartCmd {
     /// Compare autostart VMs with their actual state and start the missing ones
     Reconcile {
         /// Report what would be started and change nothing
         #[arg(long)]
         dry_run: bool,
+        /// Return as soon as the run is accepted and print its id
+        #[arg(long, conflicts_with = "wait")]
+        no_wait: bool,
+        /// Poll the run until it finishes and print the report (default)
+        #[arg(long)]
+        wait: bool,
     },
 }
 
@@ -1422,6 +1469,38 @@ fn load_config_file(path: &str) -> Result<serde_json::Value> {
     }
 }
 
+/// Render a snapshot-policy run report as text.
+fn render_snapshot_policy_report(r: &serde_json::Value) -> String {
+    let dry = r["dry_run"].as_bool().unwrap_or(false);
+    let mut out = format!(
+        "{} for '{}'\n",
+        if dry {
+            "Dry run"
+        } else {
+            "Snapshot policy run"
+        },
+        r["vm_name"].as_str().unwrap_or("?")
+    );
+    if let Some(c) = r["created"].as_str() {
+        out.push_str(&format!(
+            "  {} {c}\n",
+            if dry { "would create" } else { "created" }
+        ));
+    }
+    for d in r["decisions"].as_array().into_iter().flatten() {
+        out.push_str(&format!(
+            "  {:6} {} ({})\n",
+            d["action"].as_str().unwrap_or("?"),
+            d["name"].as_str().unwrap_or("?"),
+            d["reason"].as_str().unwrap_or("")
+        ));
+    }
+    for e in r["errors"].as_array().into_iter().flatten() {
+        out.push_str(&format!("  error: {}\n", e.as_str().unwrap_or("?")));
+    }
+    out
+}
+
 /// Render an autostart reconciliation report as text.
 fn render_autostart_report(r: &serde_json::Value) -> String {
     use std::fmt::Write as _;
@@ -2344,13 +2423,90 @@ impl Cli {
                 }
             }
 
-            Commands::Autostart(AutostartCmd::Reconcile { dry_run }) => {
+            Commands::SnapshotPolicy(cmd) => match cmd {
+                SnapshotPolicyCmd::Show { vm } => {
+                    let v = api_get(&client, &format!("/vms/{vm}/snapshot-policy")).await?;
+                    print_value(&v, fmt);
+                }
+                SnapshotPolicyCmd::Set {
+                    vm,
+                    interval_secs,
+                    cron,
+                    keep_last,
+                    max_age_secs,
+                    name_prefix,
+                    disabled,
+                } => {
+                    let body = serde_json::json!({
+                        "enabled": !disabled,
+                        "interval_secs": interval_secs,
+                        "cron": cron,
+                        "keep_last": keep_last,
+                        "max_age_secs": max_age_secs,
+                        "name_prefix": name_prefix,
+                    });
+                    let v = api_put(&client, &format!("/vms/{vm}/snapshot-policy"), &body).await?;
+                    print_value(&v, fmt);
+                }
+                SnapshotPolicyCmd::Delete { vm } => {
+                    api_delete(&client, &format!("/vms/{vm}/snapshot-policy")).await?;
+                    println!("Snapshot policy for '{vm}' removed");
+                }
+                SnapshotPolicyCmd::Run { vm, dry_run } => {
+                    let path = format!("/vms/{vm}/snapshot-policy/run?dry_run={dry_run}");
+                    let report = api_post_empty(&client, &path).await?;
+                    if matches!(fmt, OutputFormat::Table) {
+                        print!("{}", render_snapshot_policy_report(&report));
+                    } else {
+                        print_value(&report, fmt);
+                    }
+                }
+            },
+
+            Commands::Autostart(AutostartCmd::Reconcile {
+                dry_run,
+                no_wait,
+                wait: _,
+            }) => {
                 let path = format!("/vms/autostart/reconcile?dry_run={dry_run}");
-                let report = api_post_empty(&client, &path).await?;
-                if matches!(fmt, OutputFormat::Table) {
-                    print!("{}", render_autostart_report(&report));
-                } else {
-                    print_value(&report, fmt);
+                let mut report = api_post_empty(&client, &path).await?;
+                let mut show = true;
+                if !dry_run {
+                    // A live run is a job: 202 with an id.
+                    let id = report
+                        .get("id")
+                        .and_then(|v| v.as_str())
+                        .context("The daemon did not return a run id")?
+                        .to_string();
+                    if no_wait {
+                        show = false;
+                        if matches!(fmt, OutputFormat::Table) {
+                            println!("Autostart run {id} accepted.");
+                            println!("Poll GET /api/vms/autostart/reconcile/{id} for progress.");
+                        } else {
+                            print_value(&report, fmt);
+                        }
+                    } else {
+                        let run_path = format!("/vms/autostart/reconcile/{id}");
+                        let run = loop {
+                            let run = api_get(&client, &run_path).await?;
+                            if run.get("state").and_then(|v| v.as_str()) != Some("running") {
+                                break run;
+                            }
+                            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                        };
+                        if let Some(err) = run.get("error").and_then(|v| v.as_str()) {
+                            anyhow::bail!("Autostart run {id} failed: {err}");
+                        }
+                        report = run.get("report").cloned().unwrap_or(run);
+                    }
+                }
+                if show {
+                    if matches!(fmt, OutputFormat::Table) {
+                        print!("{}", render_autostart_report(&report));
+                    } else {
+                        print_value(&report, fmt);
+                    }
                 }
             }
 
@@ -4316,15 +4472,61 @@ mod apply_plan_cli_tests {
     use super::*;
 
     #[test]
+    fn snapshot_policy_parses_and_renders() {
+        let cli = Cli::try_parse_from([
+            "fabricctl",
+            "snapshot-policy",
+            "set",
+            "vm1",
+            "--interval-secs",
+            "3600",
+            "--keep-last",
+            "7",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::SnapshotPolicy(SnapshotPolicyCmd::Set {
+                keep_last: Some(7),
+                ..
+            }))
+        ));
+        let r = serde_json::json!({"vm_name":"vm1","dry_run":true,"created":"auto-x",
+            "decisions":[{"action":"delete","name":"auto-a","reason":"beyond retention"}],"errors":[]});
+        let out = render_snapshot_policy_report(&r);
+        assert!(out.contains("would create auto-x"));
+        assert!(out.contains("delete auto-a"));
+    }
+
+    #[test]
     fn autostart_reconcile_parses_and_renders() {
         let cli =
             Cli::try_parse_from(["fabricctl", "autostart", "reconcile", "--dry-run"]).unwrap();
         assert!(matches!(
             cli.command,
             Some(Commands::Autostart(AutostartCmd::Reconcile {
-                dry_run: true
+                dry_run: true,
+                no_wait: false,
+                wait: false,
             }))
         ));
+        let cli =
+            Cli::try_parse_from(["fabricctl", "autostart", "reconcile", "--no-wait"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Autostart(AutostartCmd::Reconcile {
+                no_wait: true,
+                ..
+            }))
+        ));
+        assert!(Cli::try_parse_from([
+            "fabricctl",
+            "autostart",
+            "reconcile",
+            "--wait",
+            "--no-wait"
+        ])
+        .is_err());
         let report = serde_json::json!({
             "dry_run": true,
             "started": [{"vm": "a"}],

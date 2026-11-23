@@ -16,7 +16,7 @@ use uuid::Uuid;
 use crate::server::AppState;
 use security::{RequireAdmin, RequireRead, RequireWrite};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SnapshotType {
     Disk,
     Full,
@@ -32,6 +32,10 @@ pub struct VMSnapshot {
     pub parent_id: Option<String>,
     pub size_bytes: u64,
     pub created: DateTime<Utc>,
+    /// Free-form tags. A snapshot tagged `keep` is never pruned by a
+    /// snapshot policy.
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -47,6 +51,8 @@ pub struct CreateSnapshotRequest {
     pub description: Option<String>,
     #[serde(default = "default_snapshot_type")]
     pub snapshot_type: SnapshotType,
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 fn default_snapshot_type() -> SnapshotType {
@@ -246,6 +252,15 @@ pub async fn create_snapshot(
     Json(req): Json<CreateSnapshotRequest>,
 ) -> impl IntoResponse {
     tracing::debug!("snapshots::{}", stringify!(create_snapshot));
+    create_snapshot_core(&state, vm_name, req).await
+}
+
+/// Shared by the HTTP handler and the snapshot-policy scheduler.
+pub(crate) async fn create_snapshot_core(
+    state: &Arc<AppState>,
+    vm_name: String,
+    req: CreateSnapshotRequest,
+) -> axum::response::Response {
     if let Err((status, msg)) = crate::validation::validate_vm_name(&vm_name) {
         return crate::api_error::json_error(status, msg).into_response();
     }
@@ -449,13 +464,14 @@ pub async fn create_snapshot(
         parent_id: None,
         size_bytes: 0,
         created: Utc::now(),
+        tags: req.tags,
     };
 
     let store_key = format!("snapshots_{}", vm_name);
     match state.store.save_entity(&store_key, &snapshot.id, &snapshot) {
         Ok(_) => {
             crate::api::events::record_event(
-                &state,
+                state,
                 crate::api::events::VMEventType::SnapshotCreated,
                 &vm_name,
                 Some(format!("Snapshot: {}", snapshot.name)),
@@ -515,6 +531,15 @@ pub async fn delete_snapshot(
     Path((vm_name, id)): Path<(String, String)>,
 ) -> impl IntoResponse {
     tracing::debug!("snapshots::{}", stringify!(delete_snapshot));
+    delete_snapshot_core(&state, vm_name, id).await
+}
+
+/// Shared by the HTTP handler and the snapshot-policy scheduler.
+pub(crate) async fn delete_snapshot_core(
+    state: &Arc<AppState>,
+    vm_name: String,
+    id: String,
+) -> axum::response::Response {
     if let Err((status, msg)) = crate::validation::validate_vm_name(&vm_name) {
         return crate::api_error::json_error(status, msg).into_response();
     }
@@ -738,6 +763,7 @@ mod tests {
             parent_id: parent.map(|s| s.to_string()),
             size_bytes: 0,
             created: Utc::now(),
+            tags: vec![],
         }
     }
 

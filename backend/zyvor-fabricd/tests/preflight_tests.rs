@@ -195,6 +195,7 @@ async fn jwt_app() -> (Router, Arc<security::JwtConfig>) {
         agent_runtime: zyvor_fabricd::config::AgentRuntimeConfig::default(),
         metrics: zyvor_fabricd::config::MetricsConfig::default(),
         autostart: zyvor_fabricd::config::AutostartConfig::default(),
+        snapshots: zyvor_fabricd::config::SnapshotsConfig::default(),
     };
     let storage_manager = zyvor_fabric_storage::StorageManager::new(&storage_dir).unwrap();
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();

@@ -377,7 +377,15 @@ max_delay_secs = 600     # cap for any pause
 
 **Query:** `dry_run=true|false` (default `false`). A dry run starts nothing and waits for nothing; `started` then lists the VMs that would be started.
 
-**Response (200):** the request returns when the pass is complete, so with delays it can take a while.
+A **dry run** is synchronous and answers `200` with the report below. A **live run** is asynchronous: it answers `202` immediately with a job id, and the pass (including start delays) continues in the background.
+
+```json
+{ "id": "7c1f...", "state": "running", "status_url": "/api/vms/autostart/reconcile/7c1f..." }
+```
+
+Poll `GET /api/vms/autostart/reconcile/:id` (see below) for progress and the final report. Only one live run (manual or the startup pass) can be active at a time.
+
+**Report (dry-run response, and `report` of a finished run):**
 
 ```json
 {
@@ -404,6 +412,79 @@ Skip codes: `already_running`, `stopping`, `paused` (resume it instead), `prefli
 curl -s -X POST "http://localhost:3000/api/vms/autostart/reconcile?dry_run=true" \
   -H "Authorization: Bearer $TOKEN" | jq
 fabricctl autostart reconcile --dry-run
+fabricctl autostart reconcile            # starts a run and polls until it finishes (--wait, default)
+fabricctl autostart reconcile --no-wait  # prints the run id and returns
+```
+
+### GET /api/vms/autostart/reconcile
+
+List recent live runs, newest first. The last 20 runs (manual and startup) are kept in memory and are lost on daemon restart.
+
+**Auth level:** Read; not available to tenant-scoped users
+
+```json
+{ "runs": [{ "id": "7c1f...", "trigger": "manual", "state": "completed",
+             "started_at": "2026-01-01T00:00:00Z", "finished_at": "2026-01-01T00:00:42Z",
+             "candidates": 4, "started": 1, "skipped": 2, "failed": 1 }] }
+```
+
+### GET /api/vms/autostart/reconcile/:id
+
+One run with per-VM progress. `state` is `running`, `completed` or `failed`. Each entry of `vms` has a `status` of `pending`, `checking`, `waiting` (in the delay before its start), `starting`, `started`, `skipped` (with `code` and `reason`) or `failed` (with `reason`). `report` (the report above) is present once the run completed; `error` is set if the pass itself failed.
+
+**Error responses:** `403` tenant-scoped token; `404` unknown or expired run id.
+
+```json
+{ "id": "7c1f...", "trigger": "manual", "state": "running", "started_at": "...",
+  "vms": [{ "vm": "db", "order": 1, "status": "started" },
+          { "vm": "web", "order": 2, "status": "waiting" }] }
+```
+
+The web console shows the same data under Autostart Runs (`/app/autostart`).
+
+---
+
+### GET/PUT/DELETE /api/vms/:name/snapshot-policy
+
+A per-VM policy that takes snapshots on a schedule and prunes old ones.
+
+```json
+{"enabled": true, "cron": "0 3 * * *", "keep_last": 7, "max_age_secs": 2592000,
+ "name_prefix": "auto", "snapshot_type": "Disk"}
+```
+
+* Schedule: exactly one of `interval_secs` (>= 60) or `cron` (5 fields `min hour dom mon dow`, UTC; `*`, `*/n`, `a-b`, `a,b`).
+* Retention: `keep_last` (>= 1; 0 is rejected) and/or `max_age_secs` (>= 60); at least one. With both, a snapshot is kept if either rule keeps it.
+* Only snapshots named `<name_prefix>-<UTC timestamp>` are managed. The newest managed snapshot and any snapshot tagged `keep` are never deleted. A snapshot dated in the future counts as age 0.
+* No quiesce option: the driver has no filesystem-freeze support.
+
+`GET` returns the policy with `last_run` and `last_result` (404 if none). `PUT` replaces it (400 on invalid input, 404 for an unknown VM) and keeps `last_run`. `DELETE` removes it (204).
+
+The scheduler is off by default:
+
+```toml
+[snapshots]
+enabled = false   # run due policies in the daemon
+tick_secs = 60    # how often to look for due policies (min 5)
+```
+
+A policy first becomes due one interval (or the next cron time) after it was saved or last ran.
+
+**Auth level:** GET Viewer+, PUT/DELETE Operator+
+
+### POST /api/vms/:name/snapshot-policy/run
+
+Run the policy now regardless of schedule: create one snapshot, then prune. `dry_run=true` (default `false`) creates and deletes nothing and returns the plan. If the create fails nothing is pruned.
+
+**Auth level:** Operator+ for `dry_run=true`; Admin for a real run (it deletes snapshots)
+
+**Response (200):** `{"vm_name", "dry_run", "created", "decisions": [{"id","name","created","action":"keep|delete","reason"}], "deleted": [...], "errors": [...]}`
+
+Audit actions: `SNAPSHOT_POLICY_SET`, `SNAPSHOT_POLICY_DELETE`, `SNAPSHOT_POLICY_RUN`, `SNAPSHOT_PRUNE`.
+
+```bash
+fabricctl snapshot-policy set vm1 --cron "0 3 * * *" --keep-last 7
+fabricctl snapshot-policy run vm1 --dry-run
 ```
 
 ---

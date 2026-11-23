@@ -26,6 +26,33 @@ pub struct Config {
     pub metrics: MetricsConfig,
     #[serde(default)]
     pub autostart: AutostartConfig,
+    #[serde(default)]
+    pub snapshots: SnapshotsConfig,
+}
+
+/// Snapshot policy scheduler (`[snapshots]`). Off by default: with
+/// `enabled = false` no policy runs on its own (the policy endpoints and a
+/// manual `POST /vms/{name}/snapshot-policy/run` still work).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotsConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    /// How often the scheduler looks for due policies (minimum 5).
+    #[serde(default = "default_snapshots_tick")]
+    pub tick_secs: u64,
+}
+
+fn default_snapshots_tick() -> u64 {
+    60
+}
+
+impl Default for SnapshotsConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            tick_secs: default_snapshots_tick(),
+        }
+    }
 }
 
 /// Autostart reconciliation (`[autostart]`). A VM opts in with the tag or
@@ -557,6 +584,7 @@ impl Config {
             container_groups: ContainerGroupsConfig::default(),
             metrics: MetricsConfig::default(),
             autostart: AutostartConfig::default(),
+            snapshots: SnapshotsConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         })
     }
@@ -609,6 +637,7 @@ mod tests {
             container_groups: ContainerGroupsConfig::default(),
             metrics: MetricsConfig::default(),
             autostart: AutostartConfig::default(),
+            snapshots: SnapshotsConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         }
     }
