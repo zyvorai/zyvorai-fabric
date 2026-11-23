@@ -6,11 +6,11 @@
 | Workspace crates | 54 |
 | Workspace version | 0.5.1 |
 | Web package version | 0.5.1 |
-| React version | 19.3.0 |
-| Rough web route matches | 306 |
-| App.tsx path= count | 114 |
+| React version | 19.3.1 |
+| Rough web route matches | 387 |
+| App.tsx path= count | 120 |
 
 Canonical facts for README/architecture prose:
 
 - Backend workspace: **54 crates**
-- Web UI: **React 19.3.0**
+- Web UI: **React 19.3.1**
