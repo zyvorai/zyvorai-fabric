@@ -13,7 +13,7 @@ import { listAuditLogs, AuditLog } from '../api/audit'
 import {
   Play, Square, RotateCw, Trash2, Info, Activity, HardDrive,
   Network, Camera, Terminal, Cpu, MemoryStick, Pause, Copy, Wifi,
-  AlertCircle, Loader2, RefreshCw, Plus, Plug, Usb, Cloud, Settings, Wrench, Shield,
+  AlertCircle, Loader2, RefreshCw, Plus, Plug, Usb, Cloud, Settings, Wrench, Shield, History,
 } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useToastContext } from '../contexts/ToastContext'
@@ -32,6 +32,7 @@ import { hintsForError } from '../utils/daemonHints'
 import { usePermissions } from '../hooks/usePermissions'
 import ReadOnlyNotice from '../components/ReadOnlyNotice'
 import HotplugTab from './vm-details/HotplugTab'
+import HistoryTab from './vm-details/HistoryTab'
 import DevicesTab from './vm-details/DevicesTab'
 import CloudInitTab from './vm-details/CloudInitTab'
 import AdvancedTab from './vm-details/AdvancedTab'
@@ -41,7 +42,7 @@ import { AnsiText } from '../components/AnsiText'
 import { AppleTerminalFrame } from '../components/AppleTerminalFrame'
 import { isSpinnerNoise } from '../utils/ansi'
 
-type Tab = 'overview' | 'metrics' | 'disks' | 'network' | 'dataplane' | 'snapshots' | 'logs' | 'hotplug' | 'devices' | 'cloudinit' | 'advanced' | 'rescue'
+type Tab = 'overview' | 'metrics' | 'disks' | 'network' | 'dataplane' | 'snapshots' | 'logs' | 'hotplug' | 'devices' | 'cloudinit' | 'advanced' | 'rescue' | 'history'
 
 export default function VMDetails() {
   const { name } = useParams<{ name: string }>()
@@ -156,6 +157,7 @@ export default function VMDetails() {
     { id: 'devices', label: 'Devices', icon: Usb },
     { id: 'cloudinit', label: 'Cloud-init', icon: Cloud },
     { id: 'rescue', label: 'Rescue', icon: Wrench },
+    { id: 'history', label: 'History', icon: History },
     { id: 'advanced', label: 'Advanced', icon: Settings },
     { id: 'logs', label: 'Logs', icon: Terminal },
   ]
@@ -275,6 +277,7 @@ export default function VMDetails() {
         {activeTab === 'devices' && <DevicesTab vm={vm} />}
         {activeTab === 'cloudinit' && <CloudInitTab vm={vm} />}
         {activeTab === 'rescue' && <RescueTab vm={vm} />}
+        {activeTab === 'history' && <HistoryTab vm={vm} />}
         {activeTab === 'advanced' && <AdvancedTab vm={vm} />}
         {activeTab === 'logs' && <LogsTab vm={vm} />}
       </div>
