@@ -41,7 +41,8 @@ use http_body_util::{BodyExt, Full, Limited};
 use hyper::{body::Incoming, service::service_fn, Request, Response};
 use hyper_util::rt::TokioIo;
 use rcgen::{
-    BasicConstraints, CertificateParams, DnType, ExtendedKeyUsagePurpose, IsCa, KeyPair, SanType,
+    BasicConstraints, CertificateParams, DnType, ExtendedKeyUsagePurpose, IsCa, Issuer, KeyPair,
+    SanType,
 };
 use rustls::{
     pki_types::{CertificateDer, PrivateKeyDer},
@@ -65,8 +66,7 @@ const CA_KEY: &str = "ca.key";
 const MAX_BODY: usize = 16 * 1024 * 1024;
 
 pub struct Mitm {
-    ca_cert: rcgen::Certificate,
-    ca_key: KeyPair,
+    issuer: Issuer<'static, KeyPair>,
     ca_pem: String,
     configs: Mutex<HashMap<String, Arc<ServerConfig>>>,
 }
@@ -101,14 +101,12 @@ impl Mitm {
 
     fn from_pem(cert_pem: &str, key_pem: &str) -> Result<Self> {
         let ca_key = KeyPair::from_pem(key_pem).context("reading the interception CA key")?;
-        // Rebuild the signing certificate from the stored one: same subject and
+        // Build the issuer from the stored certificate: same subject and
         // key, so leaves it signs verify against the CA certificate on disk.
-        let params = CertificateParams::from_ca_cert_pem(cert_pem)
+        let issuer = Issuer::from_ca_cert_pem(cert_pem, ca_key)
             .context("reading the interception CA certificate")?;
-        let ca_cert = params.self_signed(&ca_key)?;
         Ok(Self {
-            ca_cert,
-            ca_key,
+            issuer,
             ca_pem: cert_pem.to_string(),
             configs: Mutex::new(HashMap::new()),
         })
@@ -141,7 +139,7 @@ impl Mitm {
         params.not_before = now - time::Duration::days(1);
         params.not_after = now + time::Duration::days(30);
         let key = KeyPair::generate()?;
-        let cert = params.signed_by(&key, &self.ca_cert, &self.ca_key)?;
+        let cert = params.signed_by(&key, &self.issuer)?;
         let chain = vec![CertificateDer::from(cert.der().to_vec())];
         let key_der = PrivateKeyDer::try_from(key.serialize_der())
             .map_err(|e| anyhow::anyhow!("leaf key: {e}"))?;

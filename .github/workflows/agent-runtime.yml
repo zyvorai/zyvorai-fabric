@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "24"
       - name: Install SDK dependencies
         run: cd sdk/agent-runtime && npm install --no-audit --no-fund
       - name: SDK tests
@@ -74,7 +74,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "24"
       - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-go@v7
         with:
