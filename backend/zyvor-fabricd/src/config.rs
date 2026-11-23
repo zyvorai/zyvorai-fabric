@@ -24,6 +24,49 @@ pub struct Config {
     pub agent_runtime: AgentRuntimeConfig,
     #[serde(default)]
     pub metrics: MetricsConfig,
+    #[serde(default)]
+    pub autostart: AutostartConfig,
+}
+
+/// Autostart reconciliation (`[autostart]`). A VM opts in with the tag or
+/// label `autostart`; see `crate::autostart`. With `enabled = false` (the
+/// default) nothing runs at daemon startup and behaviour is unchanged; the
+/// manual `POST /vms/autostart/reconcile` still works.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutostartConfig {
+    /// Reconcile once when the daemon starts.
+    #[serde(default)]
+    pub enabled: bool,
+    /// Seconds to wait after daemon start before the startup pass, so the
+    /// VM backend is up.
+    #[serde(default = "default_autostart_startup_delay")]
+    pub startup_delay_secs: u64,
+    /// Seconds to wait after each started VM before the next one. A VM can
+    /// override it with `autostart.delay` (label) or `autostart-delay:N` (tag).
+    #[serde(default)]
+    pub start_delay_secs: u64,
+    /// Upper bound for any single delay, whatever a VM asks for.
+    #[serde(default = "default_autostart_max_delay")]
+    pub max_delay_secs: u64,
+}
+
+fn default_autostart_startup_delay() -> u64 {
+    5
+}
+
+fn default_autostart_max_delay() -> u64 {
+    600
+}
+
+impl Default for AutostartConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            startup_delay_secs: default_autostart_startup_delay(),
+            start_delay_secs: 0,
+            max_delay_secs: default_autostart_max_delay(),
+        }
+    }
 }
 
 /// Prometheus `/metrics` options.
@@ -513,6 +556,7 @@ impl Config {
             tls: TlsConfig::default(),
             container_groups: ContainerGroupsConfig::default(),
             metrics: MetricsConfig::default(),
+            autostart: AutostartConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         })
     }
@@ -564,6 +608,7 @@ mod tests {
             },
             container_groups: ContainerGroupsConfig::default(),
             metrics: MetricsConfig::default(),
+            autostart: AutostartConfig::default(),
             agent_runtime: AgentRuntimeConfig::default(),
         }
     }

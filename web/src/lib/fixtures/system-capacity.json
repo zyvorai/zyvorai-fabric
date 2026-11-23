@@ -1,0 +1,34 @@
+{
+  "plain": {
+    "physical": { "cpus": 16, "memory_mb": 65536 },
+    "effective": { "cpus": 16, "memory_mb": 65536 },
+    "allocated": { "cpus": 10, "memory_mb": 40960 },
+    "available": { "cpus": 6, "memory_mb": 24576 },
+    "overcommit": { "enabled": false, "cpu_ratio": 2.0, "memory_ratio": 1.5 },
+    "vm_count": 5
+  },
+  "overcommitted": {
+    "physical": { "cpus": 16, "memory_mb": 65536 },
+    "effective": { "cpus": 32, "memory_mb": 98304 },
+    "allocated": { "cpus": 60, "memory_mb": 90112 },
+    "available": { "cpus": 0, "memory_mb": 8192 },
+    "overcommit": { "enabled": true, "cpu_ratio": 2.0, "memory_ratio": 1.5 },
+    "vm_count": 20
+  },
+  "beyond_physical_no_policy": {
+    "physical": { "cpus": 8, "memory_mb": 16384 },
+    "effective": { "cpus": 8, "memory_mb": 16384 },
+    "allocated": { "cpus": 12, "memory_mb": 8192 },
+    "available": { "cpus": 0, "memory_mb": 8192 },
+    "overcommit": { "enabled": false, "cpu_ratio": 2.0, "memory_ratio": 1.5 },
+    "vm_count": 3
+  },
+  "empty": {
+    "physical": { "cpus": 4, "memory_mb": 8192 },
+    "effective": { "cpus": 4, "memory_mb": 8192 },
+    "allocated": { "cpus": 0, "memory_mb": 0 },
+    "available": { "cpus": 4, "memory_mb": 8192 },
+    "overcommit": { "enabled": false, "cpu_ratio": 2.0, "memory_ratio": 1.5 },
+    "vm_count": 0
+  }
+}

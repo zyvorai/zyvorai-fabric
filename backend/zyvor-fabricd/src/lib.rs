@@ -3,6 +3,7 @@
 
 pub mod api;
 pub mod api_error;
+pub mod autostart;
 pub mod config;
 pub mod metrics_layer;
 pub mod plugins;

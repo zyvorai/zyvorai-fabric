@@ -6,11 +6,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { TrendingUp, TrendingDown, Cpu, HardDrive, Database, AlertTriangle } from 'lucide-react'
 import { apiFetch, apiPost } from '../api/client'
 import { listVMs } from '../api/vm'
+import { getSystemCapacity, type SystemCapacity } from '../api/system'
+import { DensityPanel } from '../components/DensityPanel'
 import PageLoadBanner from '../components/PageLoadBanner'
 import { PageHeader } from '../components/ui'
 import { usePageLoader } from '../hooks/usePageLoader'
 import { WhatIfView } from '../components/WhatIfView'
-import { EMPTY_ROW, NO_OVERCOMMIT, fitVms, hostFromMetrics, parseRows, type FitReport, type WhatIfFormRow } from '../lib/capacity'
+import { EMPTY_ROW, NO_OVERCOMMIT, densityReport, fitVms, metricsFromCapacity, hostFromMetrics, parseRows, type FitReport, type WhatIfFormRow } from '../lib/capacity'
 
 interface ResourceMetric { label: string; used: number; total: number; unit: string; trend: number; projected_full?: string }
 
@@ -25,6 +27,7 @@ function fmtVal(val: number, unit: string): string {
 export default function CapacityPlanning() {
   const [metrics, setMetrics] = useState<ResourceMetric[]>([])
   const [vmCount, setVmCount] = useState(0)
+  const [capacity, setCapacity] = useState<SystemCapacity | null>(null)
   const { loading, loadError, run } = usePageLoader('Failed to load capacity data')
   const [rows, setRows] = useState<WhatIfFormRow[]>([{ ...EMPTY_ROW }])
   const [report, setReport] = useState<FitReport | null>(null)
@@ -57,14 +60,15 @@ export default function CapacityPlanning() {
   const load = useCallback(() => {
     return run(async () => {
       const [sysRes, vmRes] = await Promise.allSettled([
-        apiFetch('/api/system/capacity'),
+        getSystemCapacity(),
         listVMs(),
       ])
 
-      if (sysRes.status === 'fulfilled' && sysRes.value.ok) {
-        const data = await sysRes.value.json()
-        setMetrics(data.metrics || data.resources || [])
+      if (sysRes.status === 'fulfilled') {
+        setCapacity(sysRes.value)
+        setMetrics(metricsFromCapacity(sysRes.value))
       } else {
+        setCapacity(null)
         const memRes = await apiFetch('/api/system/memory')
         if (memRes.ok) {
           const mem = await memRes.json()
@@ -133,6 +137,8 @@ export default function CapacityPlanning() {
           <div className="text-xs text-[var(--zf-muted)] mt-1">Growing Resources</div>
         </div>
       </div>
+
+      {capacity && <DensityPanel report={densityReport(capacity)} />}
 
       <div className="space-y-4">
         {metrics.map((m, idx) => {

@@ -547,7 +547,11 @@ pub async fn preflight_vm(
         .into_response()
 }
 
-async fn gather_host_inputs(state: &AppState, vm: &VM, opts: &VMStartOptions) -> HostInputs {
+pub(crate) async fn gather_host_inputs(
+    state: &AppState,
+    vm: &VM,
+    opts: &VMStartOptions,
+) -> HostInputs {
     let overcommit = state
         .store
         .get_entity::<OvercommitPolicy>("config", "overcommit")

@@ -242,6 +242,10 @@ enum Commands {
     /// Get VM metrics
     Metrics { name: String },
 
+    /// Autostart: start the VMs tagged `autostart` that are not running
+    #[command(subcommand)]
+    Autostart(AutostartCmd),
+
     /// VM edge dataplane (FluxVM Network Fabric) — not Fabric SDN network-policies
     #[command(subcommand)]
     Dataplane(DataplaneCmd),
@@ -371,6 +375,16 @@ enum Commands {
 }
 
 // ─── Sub-command enums ───────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+enum AutostartCmd {
+    /// Compare autostart VMs with their actual state and start the missing ones
+    Reconcile {
+        /// Report what would be started and change nothing
+        #[arg(long)]
+        dry_run: bool,
+    },
+}
 
 #[derive(Subcommand)]
 enum DataplaneCmd {
@@ -1408,6 +1422,57 @@ fn load_config_file(path: &str) -> Result<serde_json::Value> {
     }
 }
 
+/// Render an autostart reconciliation report as text.
+fn render_autostart_report(r: &serde_json::Value) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::new();
+    let dry = r.get("dry_run").and_then(|v| v.as_bool()).unwrap_or(false);
+    let text = |v: &serde_json::Value, k: &str| {
+        v.get(k).and_then(|x| x.as_str()).unwrap_or("").to_string()
+    };
+    let list = |k: &str| {
+        r.get(k)
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default()
+    };
+    for e in list("started") {
+        let _ = writeln!(
+            out,
+            "{} {}",
+            if dry { "would start" } else { "started    " },
+            text(&e, "vm")
+        );
+    }
+    for e in list("skipped") {
+        let _ = writeln!(
+            out,
+            "skipped     {} ({}): {}",
+            text(&e, "vm"),
+            text(&e, "code"),
+            text(&e, "reason")
+        );
+    }
+    for e in list("failed") {
+        let _ = writeln!(
+            out,
+            "failed      {}: {}",
+            text(&e, "vm"),
+            text(&e, "reason")
+        );
+    }
+    let n = |k: &str| list(k).len();
+    let _ = writeln!(
+        out,
+        "{}: {} started, {} skipped, {} failed.",
+        if dry { "Dry run" } else { "Autostart" },
+        n("started"),
+        n("skipped"),
+        n("failed")
+    );
+    out
+}
+
 /// True when a plan from `POST /vms/apply?dry_run=true` has pending changes.
 fn plan_has_changes(plan: &serde_json::Value) -> bool {
     plan.get("has_changes")
@@ -2276,6 +2341,16 @@ impl Cli {
                         );
                     }
                     _ => println!("{}", format_output(&vm, fmt)?),
+                }
+            }
+
+            Commands::Autostart(AutostartCmd::Reconcile { dry_run }) => {
+                let path = format!("/vms/autostart/reconcile?dry_run={dry_run}");
+                let report = api_post_empty(&client, &path).await?;
+                if matches!(fmt, OutputFormat::Table) {
+                    print!("{}", render_autostart_report(&report));
+                } else {
+                    print_value(&report, fmt);
                 }
             }
 
@@ -4239,6 +4314,29 @@ mod default_server_probe_tests {
 #[cfg(test)]
 mod apply_plan_cli_tests {
     use super::*;
+
+    #[test]
+    fn autostart_reconcile_parses_and_renders() {
+        let cli =
+            Cli::try_parse_from(["fabricctl", "autostart", "reconcile", "--dry-run"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Autostart(AutostartCmd::Reconcile {
+                dry_run: true
+            }))
+        ));
+        let report = serde_json::json!({
+            "dry_run": true,
+            "started": [{"vm": "a"}],
+            "skipped": [{"vm": "b", "code": "already_running", "reason": "up"}],
+            "failed": [{"vm": "c", "reason": "boom"}],
+        });
+        let out = render_autostart_report(&report);
+        assert!(out.contains("would start a"));
+        assert!(out.contains("skipped     b (already_running): up"));
+        assert!(out.contains("failed      c: boom"));
+        assert!(out.contains("Dry run: 1 started, 1 skipped, 1 failed."));
+    }
 
     #[test]
     fn apply_dry_run_flags_parse() {

@@ -40,7 +40,7 @@ pub async fn get_license_status(RequireRead(_claims): RequireRead) -> impl IntoR
 }
 
 /// Helper: record an audit log entry to both tracing and the state store.
-fn audit(state: &AppState, user: &str, action: &str, resource: &str, status: &str) {
+pub(crate) fn audit(state: &AppState, user: &str, action: &str, resource: &str, status: &str) {
     let entry = security::AuditLog::new(
         user.to_string(),
         action.to_string(),
@@ -964,120 +964,136 @@ pub async fn start_vm(
     // Spawn start in background so API returns immediately.
     // Transfer the lock into the spawned task to avoid a race window
     // where another request could modify VM state.
-    let vm_name = name.clone();
     let state_clone = state.clone();
+    let task_name = name.clone();
     tokio::spawn(async move {
         // _lock is moved into this task and held until it completes
         let _lock = _lock;
-        let shutdown = state_clone.shutdown.clone();
-
-        // Check if shutdown was requested before starting the blocking work
-        if shutdown.is_cancelled() {
-            tracing::info!("Start task for VM '{}' cancelled due to shutdown", vm_name);
-            // Revert state from Starting back to Stopped
-            if let Ok(Some(mut vm)) = state_clone.store.get_vm(&vm_name) {
-                vm.state = vm_model::VMState::Stopped;
-                if let Err(e) = state_clone.store.save_vm(&vm) {
-                    tracing::error!("Failed to save VM state: {}", e);
-                }
-            }
-            return;
-        }
-
-        // Always go through start_with_options: FluxVM only learns about a
-        // VM on its first start (see FluxVmDriver::start_with_options's
-        // "First launch" branch, which lazily calls FluxVM's create API).
-        // The plain start() has no such fallback and fails with "not known
-        // to FluxVM" for any VM that was only ever `POST /vms`-created —
-        // which is every VM made through the Create VM wizard, since it
-        // never sends start options. Using opts.unwrap_or_default() here
-        // routes that common case through the same lazy-create path as an
-        // explicit-options start.
-        let vm = match state_clone.store.get_vm(&vm_name) {
-            Ok(Some(vm)) => vm,
-            Ok(None) => {
-                tracing::error!("VM '{}' not found in store", vm_name);
-                return;
-            }
-            Err(e) => {
-                tracing::error!("Failed to load VM '{}': {}", vm_name, e);
-                return;
-            }
-        };
-        // No explicit start body (the plain Start button): fall back to the
-        // VM's own stored port_forwards/network_tap (set at Create VM time)
-        // rather than a bare default, so a VM created with an exposed SSH
-        // port or bridged networking actually gets that applied on its
-        // first real launch in FluxVM.
-        let opts = start_opts.unwrap_or_else(|| vm_model::VMStartOptions {
-            port_forwards: vm.port_forwards.clone(),
-            network_tap: vm.network_tap,
-            network_static_ip: vm.network_static_ip,
-            ssh_authorized_keys: vm.ssh_authorized_keys.clone(),
-            cloud_init_packages: vm.cloud_init_packages.clone(),
-            cloud_init_runcmd: vm.cloud_init_runcmd.clone(),
-            cloud_init_write_files: vm.cloud_init_write_files.clone(),
-            storage: vm.storage.clone(),
-            enable_qga: vm.enable_qga,
-            hyperv: vm.hyperv,
-            direct_uplink: vm.direct_uplink.clone(),
-            direct_mode: vm.direct_mode.clone(),
-            direct_guest_ips: vm.direct_guest_ips.clone(),
-            ..Default::default()
-        });
-        let result = state_clone.driver.start_with_options(&vm, &opts).await;
-
-        match result {
-            Ok(_) => {
-                // Wait for QMP so "Running" means the monitor is usable
-                // (snapshots / hotplug) — FluxVM can report running before
-                // qmp.sock exists.
-                if let Ok(Some(p)) = state_clone.driver.get_control_socket(&vm_name).await {
-                    let path = p.to_string_lossy().into_owned();
-                    let _ = tokio::task::spawn_blocking(move || {
-                        crate::api::snapshots::wait_for_qmp_connectable(&path, 30, 500)
-                    })
-                    .await;
-                }
-                tracing::info!("VM '{}' started successfully", vm_name);
-                if let Ok(Some(mut vm)) = state_clone.store.get_vm(&vm_name) {
-                    vm.state = vm_model::VMState::Running;
-                    vm.last_error = None; // Clear any previous error
-                    vm.updated = Some(chrono::Utc::now());
-                    if let Err(e) = state_clone.store.save_vm(&vm) {
-                        tracing::error!("Failed to save VM state: {}", e);
-                    }
-                }
-                // Clear autoheal counter on a clean start so a prior crash
-                // streak doesn't immediately burn remaining attempts.
-                let _ = state_clone.store.delete_entity("autoheal", &vm_name);
-                crate::api::events::record_event(
-                    &state_clone,
-                    crate::api::events::VMEventType::Started,
-                    &vm_name,
-                    None,
-                );
-            }
-            Err(e) => {
-                tracing::error!("Failed to start VM '{}': {}", vm_name, e);
-                crate::api::events::record_event(
-                    &state_clone,
-                    crate::api::events::VMEventType::Error,
-                    &vm_name,
-                    Some(format!("Failed to start: {}", e)),
-                );
-                if let Ok(Some(mut vm)) = state_clone.store.get_vm(&vm_name) {
-                    vm.state = vm_model::VMState::Failed;
-                    vm.last_error = Some(e.to_string());
-                    if let Err(e) = state_clone.store.save_vm(&vm) {
-                        tracing::error!("Failed to save VM state: {}", e);
-                    }
-                }
-            }
-        }
+        let _ = run_start_task(&state_clone, &task_name, start_opts).await;
     });
 
     (StatusCode::ACCEPTED, Json(json!({ "status": "starting" }))).into_response()
+}
+
+/// The body of a VM start after the VM was marked `Starting` and the caller
+/// holds the per-VM lock: launches it through the driver, waits for QMP and
+/// records the resulting state and event. Shared by `POST /vms/{name}/start`
+/// (which runs it in the background) and autostart reconciliation (which
+/// awaits it to report the outcome). The `Err` text is the reason the start
+/// did not happen.
+pub(crate) async fn run_start_task(
+    state: &Arc<AppState>,
+    vm_name: &str,
+    start_opts: Option<vm_model::VMStartOptions>,
+) -> Result<(), String> {
+    let shutdown = state.shutdown.clone();
+
+    // Check if shutdown was requested before starting the blocking work
+    if shutdown.is_cancelled() {
+        tracing::info!("Start task for VM '{}' cancelled due to shutdown", vm_name);
+        // Revert state from Starting back to Stopped
+        if let Ok(Some(mut vm)) = state.store.get_vm(vm_name) {
+            vm.state = vm_model::VMState::Stopped;
+            if let Err(e) = state.store.save_vm(&vm) {
+                tracing::error!("Failed to save VM state: {}", e);
+            }
+        }
+        return Err("cancelled due to shutdown".to_string());
+    }
+
+    // Always go through start_with_options: FluxVM only learns about a
+    // VM on its first start (see FluxVmDriver::start_with_options's
+    // "First launch" branch, which lazily calls FluxVM's create API).
+    // The plain start() has no such fallback and fails with "not known
+    // to FluxVM" for any VM that was only ever `POST /vms`-created —
+    // which is every VM made through the Create VM wizard, since it
+    // never sends start options. Using opts.unwrap_or_default() here
+    // routes that common case through the same lazy-create path as an
+    // explicit-options start.
+    let vm = match state.store.get_vm(vm_name) {
+        Ok(Some(vm)) => vm,
+        Ok(None) => {
+            tracing::error!("VM '{}' not found in store", vm_name);
+            return Err("VM not found".to_string());
+        }
+        Err(e) => {
+            tracing::error!("Failed to load VM '{}': {}", vm_name, e);
+            return Err(format!("failed to load VM: {e}"));
+        }
+    };
+    // No explicit start body (the plain Start button): fall back to the
+    // VM's own stored port_forwards/network_tap (set at Create VM time)
+    // rather than a bare default, so a VM created with an exposed SSH
+    // port or bridged networking actually gets that applied on its
+    // first real launch in FluxVM.
+    let opts = start_opts.unwrap_or_else(|| vm_model::VMStartOptions {
+        port_forwards: vm.port_forwards.clone(),
+        network_tap: vm.network_tap,
+        network_static_ip: vm.network_static_ip,
+        ssh_authorized_keys: vm.ssh_authorized_keys.clone(),
+        cloud_init_packages: vm.cloud_init_packages.clone(),
+        cloud_init_runcmd: vm.cloud_init_runcmd.clone(),
+        cloud_init_write_files: vm.cloud_init_write_files.clone(),
+        storage: vm.storage.clone(),
+        enable_qga: vm.enable_qga,
+        hyperv: vm.hyperv,
+        direct_uplink: vm.direct_uplink.clone(),
+        direct_mode: vm.direct_mode.clone(),
+        direct_guest_ips: vm.direct_guest_ips.clone(),
+        ..Default::default()
+    });
+    let result = state.driver.start_with_options(&vm, &opts).await;
+
+    match result {
+        Ok(_) => {
+            // Wait for QMP so "Running" means the monitor is usable
+            // (snapshots / hotplug) — FluxVM can report running before
+            // qmp.sock exists.
+            if let Ok(Some(p)) = state.driver.get_control_socket(vm_name).await {
+                let path = p.to_string_lossy().into_owned();
+                let _ = tokio::task::spawn_blocking(move || {
+                    crate::api::snapshots::wait_for_qmp_connectable(&path, 30, 500)
+                })
+                .await;
+            }
+            tracing::info!("VM '{}' started successfully", vm_name);
+            if let Ok(Some(mut vm)) = state.store.get_vm(vm_name) {
+                vm.state = vm_model::VMState::Running;
+                vm.last_error = None; // Clear any previous error
+                vm.updated = Some(chrono::Utc::now());
+                if let Err(e) = state.store.save_vm(&vm) {
+                    tracing::error!("Failed to save VM state: {}", e);
+                }
+            }
+            // Clear autoheal counter on a clean start so a prior crash
+            // streak doesn't immediately burn remaining attempts.
+            let _ = state.store.delete_entity("autoheal", vm_name);
+            crate::api::events::record_event(
+                state,
+                crate::api::events::VMEventType::Started,
+                vm_name,
+                None,
+            );
+        }
+        Err(e) => {
+            tracing::error!("Failed to start VM '{}': {}", vm_name, e);
+            crate::api::events::record_event(
+                state,
+                crate::api::events::VMEventType::Error,
+                vm_name,
+                Some(format!("Failed to start: {}", e)),
+            );
+            if let Ok(Some(mut vm)) = state.store.get_vm(vm_name) {
+                vm.state = vm_model::VMState::Failed;
+                vm.last_error = Some(e.to_string());
+                if let Err(e) = state.store.save_vm(&vm) {
+                    tracing::error!("Failed to save VM state: {}", e);
+                }
+            }
+            return Err(e.to_string());
+        }
+    }
+    Ok(())
 }
 
 pub async fn stop_vm(
