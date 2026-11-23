@@ -81,6 +81,7 @@ pub mod capacity_whatif;
 pub mod config_diff;
 pub mod config_snapshot;
 pub mod db_migrations;
+pub mod drain_plan;
 pub mod export;
 pub mod external_auth;
 pub mod logs;

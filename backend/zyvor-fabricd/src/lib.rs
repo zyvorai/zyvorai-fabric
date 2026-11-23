@@ -13,6 +13,7 @@ pub mod qmp;
 pub mod routes;
 pub mod schedulers;
 pub mod server;
+pub mod snapshot_health;
 pub mod snapshot_policy;
 pub mod tenant_scope;
 pub mod tls;

@@ -664,6 +664,10 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             get(api::snapshots::list_snapshots).post(api::snapshots::create_snapshot),
         )
         .route(
+            "/snapshots/health",
+            get(crate::snapshot_health::snapshot_health),
+        )
+        .route(
             "/vms/{name}/snapshot-policy",
             get(crate::snapshot_policy::get_policy)
                 .put(crate::snapshot_policy::put_policy)
@@ -1726,6 +1730,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             "/hosts/{id}/maintenance/exit",
             post(api::datacenter::host_exit_maintenance),
         )
+        .route("/hosts/{id}/drain-plan", post(api::drain_plan::drain_plan))
         .route("/hosts/discover", post(api::datacenter::discover_host))
         .route(
             "/clusters/{id}/health",

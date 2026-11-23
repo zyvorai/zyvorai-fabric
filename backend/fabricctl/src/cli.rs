@@ -246,6 +246,21 @@ enum Commands {
     #[command(subcommand, name = "snapshot-policy")]
     SnapshotPolicy(SnapshotPolicyCmd),
 
+    /// Dry-run plan for draining a host: where each VM would migrate, stop or be blocked
+    #[command(name = "drain-plan")]
+    DrainPlan {
+        /// Host id or hostname
+        host: String,
+    },
+
+    /// Snapshot health scoreboard: RPO status, broken chains and space forecast per VM
+    #[command(name = "snapshot-health")]
+    SnapshotHealth {
+        /// RPO target in seconds for VMs without an enabled policy (default 86400)
+        #[arg(long)]
+        default_rpo_secs: Option<u64>,
+    },
+
     /// Edit the tags of a snapshot (`keep` protects it from policy pruning)
     #[command(name = "snapshot-tags")]
     SnapshotTags {
@@ -1631,6 +1646,89 @@ fn render_audit_retention(r: &serde_json::Value) -> String {
     out
 }
 
+fn render_drain_plan(p: &serde_json::Value) -> String {
+    let sm = &p["summary"];
+    let mut out = format!(
+        "Drain plan for host '{}' (dry run, nothing changed)\n  {} migrate, {} relocate, {} stop, {} blocked -> {}\n",
+        p["host_id"].as_str().unwrap_or("?"),
+        sm["migrate"].as_u64().unwrap_or(0),
+        sm["relocate"].as_u64().unwrap_or(0),
+        sm["stop"].as_u64().unwrap_or(0),
+        sm["blocked"].as_u64().unwrap_or(0),
+        if p["can_drain"].as_bool().unwrap_or(false) {
+            "can drain"
+        } else {
+            "CANNOT drain"
+        }
+    );
+    for a in p["actions"].as_array().into_iter().flatten() {
+        let detail = match a["target"].as_str() {
+            Some(t) => format!("-> {t}"),
+            None => a["reasons"]
+                .as_array()
+                .map(|r| {
+                    r.iter()
+                        .filter_map(|x| x.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                })
+                .unwrap_or_default(),
+        };
+        out.push_str(&format!(
+            "  {:>3}. {:8} {} {}\n",
+            a["order"].as_u64().unwrap_or(0),
+            a["action"].as_str().unwrap_or("?"),
+            a["vm"].as_str().unwrap_or("?"),
+            detail
+        ));
+        for w in a["warnings"].as_array().into_iter().flatten() {
+            out.push_str(&format!("       warning: {}\n", w.as_str().unwrap_or("?")));
+        }
+    }
+    for w in p["warnings"].as_array().into_iter().flatten() {
+        out.push_str(&format!("  warning: {}\n", w.as_str().unwrap_or("?")));
+    }
+    out.push_str(&format!(
+        "  plan hash: {}\n",
+        p["plan_hash"].as_str().unwrap_or("?")
+    ));
+    out
+}
+
+fn render_snapshot_health(r: &serde_json::Value) -> String {
+    let s = &r["summary"];
+    let mut out = format!(
+        "Snapshot health: {} VM(s): {} healthy, {} at risk, {} breached, {} without snapshots; {} broken-chain snapshot(s)\n",
+        s["vms"].as_u64().unwrap_or(0),
+        s["healthy"].as_u64().unwrap_or(0),
+        s["at_risk"].as_u64().unwrap_or(0),
+        s["breached"].as_u64().unwrap_or(0),
+        s["no_snapshots"].as_u64().unwrap_or(0),
+        s["orphaned_snapshots"].as_u64().unwrap_or(0),
+    );
+    for v in r["vms"].as_array().into_iter().flatten() {
+        let age = v["age_secs"]
+            .as_u64()
+            .map(|a| format!("{a}s old"))
+            .unwrap_or_else(|| "none".into());
+        out.push_str(&format!(
+            "  {:13} {} (newest {age}, target {}s) {}\n",
+            v["status"].as_str().unwrap_or("?"),
+            v["vm"].as_str().unwrap_or("?"),
+            v["rpo_target_secs"].as_u64().unwrap_or(0),
+            v["findings"]
+                .as_array()
+                .map(|f| f
+                    .iter()
+                    .filter_map(|x| x.as_str())
+                    .collect::<Vec<_>>()
+                    .join("; "))
+                .unwrap_or_default()
+        ));
+    }
+    out
+}
+
 fn render_snapshot_policy_report(r: &serde_json::Value) -> String {
     let dry = r["dry_run"].as_bool().unwrap_or(false);
     let mut out = format!(
@@ -2581,6 +2679,29 @@ impl Cli {
                         );
                     }
                     _ => println!("{}", format_output(&vm, fmt)?),
+                }
+            }
+
+            Commands::DrainPlan { host } => {
+                let path = format!("/hosts/{host}/drain-plan");
+                let plan = api_post_empty(&client, &path).await?;
+                if matches!(fmt, OutputFormat::Table) {
+                    print!("{}", render_drain_plan(&plan));
+                } else {
+                    print_value(&plan, fmt);
+                }
+            }
+
+            Commands::SnapshotHealth { default_rpo_secs } => {
+                let path = match default_rpo_secs {
+                    Some(n) => format!("/snapshots/health?default_rpo_secs={n}"),
+                    None => "/snapshots/health".to_string(),
+                };
+                let report = api_get(&client, &path).await?;
+                if matches!(fmt, OutputFormat::Table) {
+                    print!("{}", render_snapshot_health(&report));
+                } else {
+                    print_value(&report, fmt);
                 }
             }
 
@@ -4748,6 +4869,36 @@ mod apply_plan_cli_tests {
         let out = render_snapshot_policy_report(&r);
         assert!(out.contains("would create auto-x"));
         assert!(out.contains("delete auto-a"));
+    }
+
+    #[test]
+    fn drain_plan_and_snapshot_health_parse_and_render() {
+        let cli = Cli::try_parse_from(["fabricctl", "drain-plan", "h1"]).unwrap();
+        assert!(matches!(cli.command, Some(Commands::DrainPlan { .. })));
+        let cli =
+            Cli::try_parse_from(["fabricctl", "snapshot-health", "--default-rpo-secs", "600"])
+                .unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::SnapshotHealth {
+                default_rpo_secs: Some(600)
+            })
+        ));
+        let plan = serde_json::json!({"host_id":"h1","can_drain":false,
+            "summary":{"migrate":1,"relocate":0,"stop":0,"blocked":1},
+            "actions":[{"order":1,"action":"migrate","vm":"a","target":"h2","reasons":[],"warnings":["w1"]},
+                       {"order":2,"action":"blocked","vm":"b","target":null,"reasons":["memory"],"warnings":[]}],
+            "warnings":["note"],"plan_hash":"abc"});
+        let out = render_drain_plan(&plan);
+        assert!(out.contains("CANNOT drain"));
+        assert!(out.contains("migrate  a -> h2"));
+        assert!(out.contains("blocked  b memory"));
+        assert!(out.contains("plan hash: abc"));
+        let rep = serde_json::json!({"summary":{"vms":1,"healthy":0,"at_risk":0,"breached":1,"no_snapshots":0,"orphaned_snapshots":2},
+            "vms":[{"status":"breached","vm":"v","age_secs":99,"rpo_target_secs":10,"findings":["late"]}]});
+        let out = render_snapshot_health(&rep);
+        assert!(out.contains("1 breached"));
+        assert!(out.contains("breached      v (newest 99s old, target 10s) late"));
     }
 
     #[test]

@@ -42,6 +42,8 @@ const MerionHistory = lazy(() => import('./pages/MerionHistory'))
 const UiKit = lazy(() => import('./pages/UiKit'))
 const Schedules = lazy(() => import('./pages/Schedules'))
 const AutostartRuns = lazy(() => import('./pages/AutostartRuns'))
+const DrainPlan = lazy(() => import('./pages/DrainPlan'))
+const SnapshotHealth = lazy(() => import('./pages/SnapshotHealth'))
 const AuditLogs = lazy(() => import('./pages/AuditLogs'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const Backups = lazy(() => import('./pages/Backups'))
@@ -162,6 +164,8 @@ function ConsoleRoutes() {
             <Route path="merion/:sessionId" element={<MerionSession />} />
             <Route path="schedules" element={<Schedules />} />
             <Route path="autostart" element={<AutostartRuns />} />
+            <Route path="drain-plan" element={<DrainPlan />} />
+            <Route path="snapshot-health" element={<SnapshotHealth />} />
             <Route path="autoscale" element={<AutoscalePage />} />
             <Route path="zones" element={<Zones />} />
             <Route path="audit" element={<AuditLogs />} />
