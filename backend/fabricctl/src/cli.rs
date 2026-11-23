@@ -246,6 +246,10 @@ enum Commands {
     #[command(subcommand, name = "snapshot-policy")]
     SnapshotPolicy(SnapshotPolicyCmd),
 
+    /// VM configuration history: who changed a VM, when, and what differs from last known good
+    #[command(subcommand, name = "vm")]
+    Vm(VmHistoryCmd),
+
     /// Dry-run plan for draining a host: where each VM would migrate, stop or be blocked
     #[command(name = "drain-plan")]
     DrainPlan {
@@ -480,6 +484,39 @@ enum Commands {
 }
 
 // ─── Sub-command enums ───────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+enum VmHistoryCmd {
+    /// List a VM's recorded configuration revisions (newest first)
+    History {
+        vm: String,
+        /// Show one revision in full (redacted configuration included)
+        #[arg(long)]
+        rev: Option<u64>,
+        /// Number of revisions to list (1-200, default 50)
+        #[arg(long)]
+        limit: Option<usize>,
+    },
+    /// Field-level diff between two revisions (default: FROM to the newest)
+    Diff {
+        vm: String,
+        #[arg(long)]
+        from: u64,
+        #[arg(long)]
+        to: Option<u64>,
+    },
+    /// What changed since the last known good revision, likely culprits first
+    #[command(name = "since-good")]
+    SinceGood { vm: String },
+    /// Record a revision as known good (a judgement, not an automatic check)
+    #[command(name = "mark-good")]
+    MarkGood {
+        vm: String,
+        rev: u64,
+        #[arg(long)]
+        note: Option<String>,
+    },
+}
 
 #[derive(Subcommand)]
 enum SnapshotPolicyCmd {
@@ -1858,6 +1895,103 @@ fn render_cpu_compat(r: &serde_json::Value) -> String {
     out
 }
 
+fn render_history(r: &serde_json::Value) -> String {
+    let mut out = format!(
+        "VM '{}': {} revision(s) kept (cap {}), current r{}, last known good {}\n",
+        r["vm"].as_str().unwrap_or("?"),
+        r["retention"]["kept"].as_u64().unwrap_or(0),
+        r["retention"]["max_revisions"].as_u64().unwrap_or(0),
+        r["current_rev"].as_u64().unwrap_or(0),
+        r["last_good_rev"]
+            .as_u64()
+            .map_or("none".to_string(), |n| format!("r{n}")),
+    );
+    if r["chain"]["status"].as_str() == Some("broken") {
+        out.push_str(&format!(
+            "  WARNING: revision chain is broken at r{} ({})\n",
+            r["chain"]["first_break"]["rev"].as_u64().unwrap_or(0),
+            r["chain"]["first_break"]["reason"].as_str().unwrap_or("?")
+        ));
+    }
+    for v in r["revisions"].as_array().into_iter().flatten() {
+        let good = match v["good"]["source"].as_str() {
+            Some(src) => format!(" [good:{src}]"),
+            None => String::new(),
+        };
+        out.push_str(&format!(
+            "  r{:<4} {}  {:18} {}{}  ({} field(s) changed{})\n",
+            v["rev"].as_u64().unwrap_or(0),
+            v["timestamp"].as_str().unwrap_or("?"),
+            v["actor"].as_str().unwrap_or("?"),
+            v["cause"].as_str().unwrap_or("?"),
+            good,
+            v["changed_fields"].as_u64().unwrap_or(0),
+            match v["high_risk_changes"].as_u64().unwrap_or(0) {
+                0 => String::new(),
+                n => format!(", {n} high-risk"),
+            }
+        ));
+    }
+    out
+}
+
+fn render_change_line(c: &serde_json::Value) -> String {
+    let risk = match c["risk"]["level"].as_str() {
+        Some(l) => format!("[{}] ", l.to_uppercase()),
+        None => String::new(),
+    };
+    let mut line = format!("  {risk}{}\n", c["summary"].as_str().unwrap_or("?"));
+    if let Some(why) = c["risk"]["reason"].as_str() {
+        line.push_str(&format!("      why it matters: {why}\n"));
+    }
+    line
+}
+
+fn render_vm_diff(r: &serde_json::Value) -> String {
+    let mut out = format!(
+        "{} (r{} by {} -> r{} by {})\n",
+        r["summary"].as_str().unwrap_or("?"),
+        r["from"]["rev"].as_u64().unwrap_or(0),
+        r["from"]["actor"].as_str().unwrap_or("?"),
+        r["to"]["rev"].as_u64().unwrap_or(0),
+        r["to"]["actor"].as_str().unwrap_or("?"),
+    );
+    for c in r["changes"].as_array().into_iter().flatten() {
+        out.push_str(&render_change_line(c));
+    }
+    out
+}
+
+fn render_since_good(r: &serde_json::Value) -> String {
+    match r["status"].as_str() {
+        Some("no_known_good") => format!(
+            "{}\n",
+            r["message"].as_str().unwrap_or("no known good revision")
+        ),
+        Some("unchanged") => format!("{}\n", r["summary"].as_str().unwrap_or("unchanged")),
+        _ => {
+            let mut out = format!(
+                "{}\n\nLikely culprits, most likely first:\n",
+                r["summary"].as_str().unwrap_or("?")
+            );
+            for c in r["culprits"].as_array().into_iter().flatten() {
+                out.push_str(&format!("{:>3}.", c["rank"].as_u64().unwrap_or(0)));
+                out.push_str(render_change_line(c).trim_start_matches(' '));
+                for w in c["changed_in"].as_array().into_iter().flatten() {
+                    out.push_str(&format!(
+                        "      r{} by {} at {} ({})\n",
+                        w["rev"].as_u64().unwrap_or(0),
+                        w["actor"].as_str().unwrap_or("?"),
+                        w["at"].as_str().unwrap_or("?"),
+                        w["cause"].as_str().unwrap_or("?")
+                    ));
+                }
+            }
+            out
+        }
+    }
+}
+
 fn render_bulk(r: &serde_json::Value) -> String {
     let mut out = String::new();
     if r["dry_run"].as_bool().unwrap_or(true) {
@@ -3050,6 +3184,56 @@ impl Cli {
                 let v = api_put(&client, &format!("/vms/{vm}/snapshots/{id}/tags"), &body).await?;
                 print_value(&v, fmt);
             }
+
+            Commands::Vm(cmd) => match cmd {
+                VmHistoryCmd::History { vm, rev, limit } => {
+                    if let Some(n) = rev {
+                        let v = api_get(&client, &format!("/vms/{vm}/history/{n}")).await?;
+                        print_value(&v, fmt);
+                    } else {
+                        let path = match limit {
+                            Some(l) => format!("/vms/{vm}/history?limit={l}"),
+                            None => format!("/vms/{vm}/history"),
+                        };
+                        let v = api_get(&client, &path).await?;
+                        if matches!(fmt, OutputFormat::Table) {
+                            print!("{}", render_history(&v));
+                        } else {
+                            print_value(&v, fmt);
+                        }
+                    }
+                }
+                VmHistoryCmd::Diff { vm, from, to } => {
+                    let path = match to {
+                        Some(t) => format!("/vms/{vm}/history/diff?from={from}&to={t}"),
+                        None => format!("/vms/{vm}/history/diff?from={from}"),
+                    };
+                    let v = api_get(&client, &path).await?;
+                    if matches!(fmt, OutputFormat::Table) {
+                        print!("{}", render_vm_diff(&v));
+                    } else {
+                        print_value(&v, fmt);
+                    }
+                }
+                VmHistoryCmd::SinceGood { vm } => {
+                    let v = api_get(&client, &format!("/vms/{vm}/history/since-good")).await?;
+                    if matches!(fmt, OutputFormat::Table) {
+                        print!("{}", render_since_good(&v));
+                    } else {
+                        print_value(&v, fmt);
+                    }
+                }
+                VmHistoryCmd::MarkGood { vm, rev, note } => {
+                    let body = serde_json::json!({ "note": note });
+                    let v = api_post(
+                        &client,
+                        &format!("/vms/{vm}/history/{rev}/mark-good"),
+                        &body,
+                    )
+                    .await?;
+                    print_value(&v, fmt);
+                }
+            },
 
             Commands::SnapshotPolicy(cmd) => match cmd {
                 SnapshotPolicyCmd::Show { vm } => {
@@ -5291,6 +5475,56 @@ mod apply_plan_cli_tests {
             "summary":{"ok":1,"failed":1,"skipped":0,"not_attempted":0},
             "results":[{"vm":"a","status":"ok"},{"vm":"b","status":"failed","error":"boom"}]});
         assert!(render_bulk(&done).contains("failed        b"));
+    }
+
+    #[test]
+    fn vm_history_commands_parse_and_render() {
+        let cli =
+            Cli::try_parse_from(["fabricctl", "vm", "history", "web-1", "--limit", "5"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Vm(VmHistoryCmd::History { limit: Some(5), .. }))
+        ));
+        let cli = Cli::try_parse_from(["fabricctl", "vm", "diff", "web-1", "--from", "2"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Vm(VmHistoryCmd::Diff { from: 2, .. }))
+        ));
+        assert!(Cli::try_parse_from(["fabricctl", "vm", "diff", "web-1"]).is_err());
+        let cli = Cli::try_parse_from(["fabricctl", "vm", "since-good", "web-1"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Vm(VmHistoryCmd::SinceGood { .. }))
+        ));
+        let cli =
+            Cli::try_parse_from(["fabricctl", "vm", "mark-good", "web-1", "3", "--note", "ok"])
+                .unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Vm(VmHistoryCmd::MarkGood { rev: 3, .. }))
+        ));
+
+        let h = serde_json::json!({"vm":"web-1","current_rev":3,"last_good_rev":1,
+            "retention":{"kept":3,"max_revisions":100},"chain":{"status":"ok"},
+            "revisions":[{"rev":3,"timestamp":"t","actor":"bob","cause":"UPDATE_TAGS","changed_fields":2,"high_risk_changes":1,"good":null},
+                         {"rev":1,"timestamp":"t0","actor":"alice","cause":"CREATE","changed_fields":0,"good":{"source":"auto"}}]});
+        let out = render_history(&h);
+        assert!(out.contains("last known good r1"));
+        assert!(out.contains("1 high-risk"));
+        assert!(out.contains("[good:auto]"));
+        let d = serde_json::json!({"summary":"1 field(s) differ","from":{"rev":1,"actor":"a"},"to":{"rev":3,"actor":"b"},
+            "changes":[{"summary":"vCPU count decreased from 4 to 2","risk":{"level":"high","reason":"starved"}}]});
+        let out = render_vm_diff(&d);
+        assert!(
+            out.contains("[HIGH] vCPU count decreased") && out.contains("why it matters: starved")
+        );
+        let sg = serde_json::json!({"status":"changed","summary":"web-1: since r1","culprits":[
+            {"rank":1,"summary":"Memory decreased","risk":{"level":"high","reason":"oom"},
+             "changed_in":[{"rev":3,"actor":"bob","at":"t","cause":"X"}]}]});
+        let out = render_since_good(&sg);
+        assert!(out.contains("1.[HIGH] Memory decreased") && out.contains("r3 by bob"));
+        let none = serde_json::json!({"status":"no_known_good","message":"No revision is marked good yet."});
+        assert!(render_since_good(&none).contains("No revision"));
     }
 
     #[test]
