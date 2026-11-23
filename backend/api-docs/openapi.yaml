@@ -387,6 +387,136 @@ paths:
         '200':
           description: cloud-init configured
 
+  /api/vms/{name}/history:
+    get:
+      summary: VM configuration revisions (redacted, hash-chained to the audit log), newest first
+      tags: [Configuration history]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: Revisions with actor, cause, hashes, audit link, good mark, retention and chain status
+        '400':
+          description: Invalid VM name or limit
+        '404':
+          description: VM not found or no recorded history
+
+  /api/vms/{name}/history/{rev}:
+    get:
+      summary: One configuration revision with its redacted configuration
+      tags: [Configuration history]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: rev
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: The revision
+        '400':
+          description: Revision is not a positive integer
+        '404':
+          description: Revision never recorded or evicted by the retention cap
+
+  /api/vms/{name}/history/diff:
+    get:
+      summary: Field-level diff between two revisions with risk flags
+      tags: [Configuration history]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - name: to
+          in: query
+          required: false
+          description: Defaults to the newest revision
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Changed fields with operator-language summaries and risk (high, medium, low)
+        '400':
+          description: Missing or invalid from/to
+        '404':
+          description: Revision not found
+
+  /api/vms/{name}/history/since-good:
+    get:
+      summary: Diff from the last known good revision to the current one, with ranked likely culprits
+      tags: [Configuration history]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: status no_known_good, unchanged or changed, with a summary and ranked culprits
+        '404':
+          description: VM not found or no recorded history
+
+  /api/vms/{name}/history/{rev}/mark-good:
+    post:
+      summary: Mark a revision as known good (write access; audited as VM_CONFIG_MARK_GOOD)
+      tags: [Configuration history]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: rev
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  maxLength: 256
+      responses:
+        '200':
+          description: The revision summary with its good mark
+        '400':
+          description: Invalid revision number or body
+        '404':
+          description: Revision not found
+
   /api/vms/compare:
     get:
       summary: api · vms · compare

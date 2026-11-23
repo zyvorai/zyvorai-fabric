@@ -342,6 +342,11 @@ Daemon health, configuration, and system information.
 | GET | `/cpu/inventory` | CPU inventory (read-only): host CPU records, VM CPU models, per-cluster baseline model |
 | GET, PUT | `/hosts/{id}/cpu-inventory` | Read or record a host's CPU vendor, model and flags (`PUT` needs write) |
 | GET | `/vms/{name}/cpu-compat?host=` | Can this VM run on a host? Stored CPU model against host CPU flags (read-only) |
+| GET | `/vms/{name}/history` | VM configuration revisions (redacted, hash-chained to the audit log), newest first |
+| GET | `/vms/{name}/history/{rev}` | One revision with its redacted configuration |
+| GET | `/vms/{name}/history/diff?from=&to=` | Field-level diff between two revisions with risk flags |
+| GET | `/vms/{name}/history/since-good` | Diff from the last known good revision to now, likely culprits ranked, with a summary |
+| POST | `/vms/{name}/history/{rev}/mark-good` | Mark a revision as known good (write access, audited) |
 | POST | `/vms/bulk` | Bulk VM operation by selector (start, stop, snapshot, tag-add, tag-remove): dry-run plan by default, apply with the plan hash |
 
 ### Host drain plan
@@ -376,6 +381,10 @@ Fabric stores a VM's CPU document (`GET/POST /api/vms/{name}/cpu-model`: `mode` 
 Only guest-visible ISA features (the union of the model table) are compared, never mitigation or kernel flags. The result feeds two existing checks: the drain planner rejects a target with the reason `cpu_incompatible` (the blocked action's `warnings` say which features are missing; a target without an inventory is allowed and the action warns `not verified`, and verified targets are preferred), and the start preflight reports the Blocker `cpu.incompatible` for a `custom` VM whose model this host cannot provide (Info `cpu.unverified` when `/proc/cpuinfo` cannot be read). CLI: `fabricctl cpu-inventory`, `cpu-report <host> [--from-local | --vendor V --model M --flags "a b"]`, `cpu-compat <vm> [--host H]`. Web: CPU Compatibility.
 
 Limit: the FluxVM driver does not read the stored CPU document today, so this is a planning and safety check on declared intent, not a guarantee about what the guest sees.
+
+### VM configuration history
+
+`GET /api/vms/{name}/history` lists redacted, bounded, content-hashed revisions of a VM's configuration with actor, cause and a link (`audit.id`, `seq`, `hash`) to the `VM_CONFIG_REVISION` audit event each one wrote; `.../history/{rev}` returns one with its configuration; `.../history/diff?from=&to=` explains each changed field and flags risky ones (CPU, memory or disk shrink, disk removal or bus change, NIC model or MAC, firmware or machine type, boot order); `.../history/since-good` returns the diff from the last known good revision with a one-paragraph summary and ranked likely culprits. A revision is good automatically when the VM stayed Running for `[config_history] good_after_minutes` (lifecycle events, not guest health) or when marked with `POST .../mark-good`. Secrets are never stored in clear. Nothing changes or reverts the VM. Full reference: [config-history.md](config-history.md). CLI: `fabricctl vm history|diff|since-good|mark-good`. Web: VM detail, History tab.
 
 ### Bulk VM operations
 

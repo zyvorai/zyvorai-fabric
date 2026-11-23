@@ -23,6 +23,7 @@ Private cloud control plane driving VM lifecycle over FluxVM's REST API — no l
 | **Enterprise identity** (SCIM 2.0) | [scim-identity.md](scim-identity.md) |
 | **OpenStack compatibility** (Keystone/Nova/…) | [openstack-compat.md](openstack-compat.md) · [Tutorial 08](tutorials/08-openstack-clients.md) |
 | **Host maintenance evacuation** | [host-lifecycle.md](host-lifecycle.md) |
+| **VM configuration history** | [config-history.md](config-history.md) |
 | **Container Groups** (FluxVM Secure Containers workloads) | [container-groups.md](container-groups.md) |
 | **Agent Runtime** (sandboxed sessions, harness, schedules, session CI) | [agent-runtime/README.md](../agent-runtime/README.md) |
 | **Merion approvals and telemetry** (Slack/Teams, OpenTelemetry, Android) | [chatops-approvals](merion/design/chatops-approvals.md) · [otlp-export](merion/design/otlp-export.md) · [Android app](../integrations/android-merion/README.md) |
