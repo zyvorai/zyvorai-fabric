@@ -1,6 +1,6 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
-FROM rust:1.98-slim-bookworm AS builder
+FROM rust:1.100-slim-bookworm AS builder
 
 WORKDIR /build
 

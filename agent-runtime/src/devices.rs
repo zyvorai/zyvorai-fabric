@@ -412,7 +412,9 @@ mod tests {
     }
 
     fn p256_device() -> (DeviceRecord, p256::ecdsa::SigningKey) {
-        let sk = p256::ecdsa::SigningKey::random(&mut rand_core_os());
+        let sk = <p256::ecdsa::SigningKey as p256::elliptic_curve::Generate>::generate_from_rng(
+            &mut rand_core_os(),
+        );
         let spki = sk.verifying_key().to_public_key_der().unwrap();
         let rec = build_record(
             "ana",
@@ -450,8 +452,8 @@ mod tests {
         (rec, sk)
     }
 
-    fn rand_core_os() -> impl ed25519_dalek::ed25519::signature::rand_core::CryptoRngCore {
-        ed25519_dalek::ed25519::signature::rand_core::OsRng
+    fn rand_core_os() -> impl rand_core::CryptoRng {
+        rand_core::UnwrapErr(getrandom::SysRng)
     }
 
     fn server_key() -> Vec<u8> {

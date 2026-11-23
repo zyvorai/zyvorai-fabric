@@ -3,7 +3,7 @@
 # Builds the Keep runtime (zyvor-fabric-agent-runtime). Build from the repo root:
 #   docker build -f agent-runtime/Dockerfile -t zyvor-fabric-agent-runtime:local agent-runtime
 # It only serves HTTP and talks to FluxVM, so it needs no capabilities; see charts/zyvor-merion.
-FROM rust:1.98-slim AS build
+FROM rust:1.100-slim AS build
 WORKDIR /build
 COPY . .
 RUN cargo build --locked --release --bin zyvor-fabric-agent-runtime

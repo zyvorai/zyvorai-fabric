@@ -567,8 +567,8 @@ use base64::Engine as _;
 use p256::ecdsa::signature::Signer as _;
 use p256::pkcs8::EncodePublicKey as _;
 
-fn os_rng() -> impl ed25519_dalek::ed25519::signature::rand_core::CryptoRngCore {
-    ed25519_dalek::ed25519::signature::rand_core::OsRng
+fn os_rng() -> impl rand_core::CryptoRng {
+    rand_core::UnwrapErr(getrandom::SysRng)
 }
 
 fn b64(bytes: &[u8]) -> String {
@@ -585,7 +585,9 @@ impl Phone {
     fn new(id: &'static str) -> Self {
         Self {
             id,
-            sk: p256::ecdsa::SigningKey::random(&mut os_rng()),
+            sk: <p256::ecdsa::SigningKey as p256::elliptic_curve::Generate>::generate_from_rng(
+                &mut os_rng(),
+            ),
         }
     }
 
