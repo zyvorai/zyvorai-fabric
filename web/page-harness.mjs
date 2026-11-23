@@ -51,9 +51,9 @@ export const PAGE_TABS = {
   'network-security': ['Policies', 'Firewall', 'Services', 'QoS', 'DNS', 'VPN', 'Mirror', 'NAT', 'Monitor'],
   notifications: ['Channels', 'Rules', 'History'],
   'merion/history': ['Runs', 'Triggers', 'Audit', 'Approvals'],
-  'vms/web-01': ['Overview', 'Metrics', 'Disks', 'Network', 'Dataplane', 'Snapshots', 'Hotplug', 'Devices', 'Cloud-init', 'Rescue', 'Advanced', 'Logs'],
-  'vms/staging-api': ['Overview', 'Metrics', 'Disks', 'Network', 'Dataplane', 'Snapshots', 'Hotplug', 'Devices', 'Cloud-init', 'Rescue', 'Advanced', 'Logs'],
-  'vms/ci-runner': ['Overview', 'Metrics', 'Disks', 'Network', 'Dataplane', 'Snapshots', 'Hotplug', 'Devices', 'Cloud-init', 'Rescue', 'Advanced', 'Logs'],
+  'vms/web-01': ['Overview', 'Metrics', 'Disks', 'Network', 'Dataplane', 'Snapshots', 'Hotplug', 'Devices', 'Cloud-init', 'Rescue', 'History', 'Advanced', 'Logs'],
+  'vms/staging-api': ['Overview', 'Metrics', 'Disks', 'Network', 'Dataplane', 'Snapshots', 'Hotplug', 'Devices', 'Cloud-init', 'Rescue', 'History', 'Advanced', 'Logs'],
+  'vms/ci-runner': ['Overview', 'Metrics', 'Disks', 'Network', 'Dataplane', 'Snapshots', 'Hotplug', 'Devices', 'Cloud-init', 'Rescue', 'History', 'Advanced', 'Logs'],
 }
 export const SIZES = { desktop: [1440, 900], phone: [390, 844] }
 

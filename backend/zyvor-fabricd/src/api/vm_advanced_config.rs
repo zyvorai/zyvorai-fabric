@@ -87,7 +87,7 @@ pub async fn get_boot_config(
 
 /// POST /api/vms/:name/boot
 pub async fn update_boot_config(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(vm_name): Path<String>,
     Json(patch): Json<BootConfigPatch>,
@@ -130,6 +130,7 @@ pub async fn update_boot_config(
         return crate::api_error::json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             .into_response();
     }
+    crate::config_history::capture(&state, &vm_name, &claims.sub, "UPDATE_BOOT_CONFIG");
     (StatusCode::OK, Json(cfg)).into_response()
 }
 
@@ -202,7 +203,7 @@ pub async fn get_display(
 
 /// POST /api/vms/:name/display
 pub async fn update_display(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(vm_name): Path<String>,
     Json(patch): Json<DisplayConfigPatch>,
@@ -245,6 +246,7 @@ pub async fn update_display(
         return crate::api_error::json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             .into_response();
     }
+    crate::config_history::capture(&state, &vm_name, &claims.sub, "UPDATE_DISPLAY");
     (StatusCode::OK, Json(cfg)).into_response()
 }
 
@@ -314,7 +316,7 @@ pub async fn get_cpu_config(
 
 /// POST /api/vms/:name/cpu-model
 pub async fn update_cpu_config(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(vm_name): Path<String>,
     Json(patch): Json<CpuModelConfigPatch>,
@@ -367,6 +369,7 @@ pub async fn update_cpu_config(
         return crate::api_error::json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             .into_response();
     }
+    crate::config_history::capture(&state, &vm_name, &claims.sub, "UPDATE_CPU_CONFIG");
     (StatusCode::OK, Json(cfg)).into_response()
 }
 
@@ -483,7 +486,7 @@ pub async fn get_watchdog(
 
 /// POST /api/vms/:name/watchdog
 pub async fn set_watchdog(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(vm_name): Path<String>,
     Json(cfg): Json<WatchdogConfig>,
@@ -527,6 +530,7 @@ pub async fn set_watchdog(
         return crate::api_error::json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             .into_response();
     }
+    crate::config_history::capture(&state, &vm_name, &claims.sub, "SET_WATCHDOG");
     (StatusCode::OK, Json(cfg)).into_response()
 }
 
@@ -565,7 +569,7 @@ pub async fn list_serials(
 
 /// POST /api/vms/:name/serials - append a serial console definition
 pub async fn add_serial(
-    RequireWrite(_claims): RequireWrite,
+    RequireWrite(claims): RequireWrite,
     State(state): State<Arc<AppState>>,
     Path(vm_name): Path<String>,
     Json(cfg): Json<SerialConfig>,
@@ -605,5 +609,6 @@ pub async fn add_serial(
         return crate::api_error::json_error(StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
             .into_response();
     }
+    crate::config_history::capture(&state, &vm_name, &claims.sub, "ADD_SERIAL");
     (StatusCode::OK, Json(serials)).into_response()
 }

@@ -20,6 +20,7 @@ The full table of Fabric documentation by area. The complete catalog is [index.m
 | | | | | User stories | [docs/USER_STORIES.md](USER_STORIES.md) |
 | | | | | OpenStack compatibility | [docs/openstack-compat.md](openstack-compat.md) · [Tutorial](tutorials/08-openstack-clients.md) |
 | | | | | Host maintenance | [docs/host-lifecycle.md](host-lifecycle.md) |
+| | | | | VM configuration history | [docs/config-history.md](config-history.md) |
 | | | | | User manuals | [docs/user/README.md](user/README.md) |
 | | | | | Tutorials index | [docs/tutorials/README.md](tutorials/README.md) |
 | | | | | Governance / branch protection | [docs/GOVERNANCE.md](GOVERNANCE.md) |

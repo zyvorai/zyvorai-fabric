@@ -488,6 +488,37 @@ const AI_REPORT = { router: 'assistant', control: 'large', min_samples: 30, reco
   { variant: 'large', requests: 66, errors: 0, error_rate: 0, scored: 66, mean_score: 1, latency_p50_ms: 1120, latency_p95_ms: 1710, prompt_tokens: 14000, completion_tokens: 20000, est_cost_usd: 0.0888 },
   { variant: 'small', requests: 61, errors: 1, error_rate: 0.0164, scored: 61, mean_score: 0.623, latency_p50_ms: 380, latency_p95_ms: 560, prompt_tokens: 12000, completion_tokens: 15000, est_cost_usd: 0.0057, vs_control: { delta: -0.377, z: -6.1, p_value: 0.0000004, significant: true } } ] }
 
+const HIST_REVS = (vm) => [
+  { rev: 3, timestamp: ago(1800), actor: 'bob', cause: 'UPDATE_CPU_CONFIG', content_hash: 'c'.repeat(64), rev_hash: 'f'.repeat(64), truncated: false, audit: { id: 'a3', seq: 12, hash: 'e'.repeat(64), link: 'ok' }, good: null, changed_fields: 2, high_risk_changes: 1 },
+  { rev: 2, timestamp: ago(7200), actor: 'alice', cause: 'ADD_TAG', content_hash: 'b'.repeat(64), rev_hash: 'e'.repeat(64), truncated: false, audit: { id: 'a2', seq: 8, hash: 'd'.repeat(64), link: 'ok' }, good: null, changed_fields: 1, high_risk_changes: 0 },
+  { rev: 1, timestamp: ago(86400), actor: 'admin', cause: 'CREATE', content_hash: 'a'.repeat(64), rev_hash: 'd'.repeat(64), truncated: false, audit: { id: 'a1', seq: 3, hash: 'c'.repeat(64), link: 'ok' }, good: { source: 'auto', at: ago(80000), healthy_minutes: 22 }, changed_fields: 0, high_risk_changes: 0 },
+]
+const HIST_CHANGES = [
+  { path: 'cpus', label: 'vCPUs', kind: 'changed', from: 4, to: 2, summary: 'vCPU count decreased from 4 to 2 vCPUs (a reduction of 2 vCPUs)', risk: { level: 'high', reason: 'Fewer vCPUs can starve the workload; thread pools and licences are often sized for the old count.' }, hidden: false },
+  { path: 'tags', label: 'Tags', kind: 'changed', from: [], to: ['canary'], summary: 'Tags changed: added [canary], removed []', hidden: false },
+]
+const HIST_WHO = (rev, actor) => ({ rev, actor, at: ago(1800), cause: 'UPDATE_CPU_CONFIG' })
+function mockVmHistory(vm, tail) {
+  if (tail === 'since-good') {
+    return { vm, status: 'changed', good_rev: 1, current_rev: 3, good: HIST_REVS(vm)[2].good,
+      summary: `${vm}: since revision 1 (marked good automatically after 22 minute(s) of running, ${ago(80000)}), the configuration changed in 2 revision(s) by alice, bob, leaving 2 differing field(s) in revision 3; 1 high-risk and 0 medium-risk. Most likely culprit: vCPU count decreased from 4 to 2 vCPUs (revision 3 by bob).`,
+      counts: { total: 2, high: 1, medium: 0, low: 0 },
+      culprits: [ { rank: 1, ...HIST_CHANGES[0], changed_in: [HIST_WHO(3, 'bob')] }, { rank: 2, ...HIST_CHANGES[1], changed_in: [HIST_WHO(2, 'alice')] } ],
+      revisions_since: [HIST_WHO(2, 'alice'), HIST_WHO(3, 'bob')], note: 'Read-only. Nothing was reverted; to undo a change, apply the old value through the normal VM settings.' }
+  }
+  if (tail === 'diff') {
+    return { vm, from: HIST_WHO(1, 'admin'), to: HIST_WHO(3, 'bob'), identical: false, identical_content_hash: false, counts: { total: 2, high: 1, medium: 0, low: 0 }, summary: '2 field(s) differ between revision 1 and revision 3; 1 high-risk, 0 medium-risk, 0 low-risk.', changes: HIST_CHANGES }
+  }
+  if (tail) {
+    const r = HIST_REVS(vm).find((x) => String(x.rev) === tail) ?? HIST_REVS(vm)[0]
+    return { ...r, vm, prev_hash: '0'.repeat(64), config: { image: 'ubuntu-22.04.qcow2', cpus: 2, memory: 4096, disk: 40, tags: ['canary'] } }
+  }
+  return { vm, exists: true, current_rev: 3, last_good_rev: 1, retention: { max_revisions: 100, kept: 3, evicted_total: 0 }, good_after_minutes: 15,
+    good_signal: 'A revision is marked good automatically when the VM stayed in the Running state (no stop, pause or error event) long enough after it. This is VM lifecycle state, not guest or application health; use mark-good to record a judgement you trust more.',
+    redaction: 'Secrets, cloud-init commands and file contents, SSH keys and kernel arguments are stored only as salted hash markers.',
+    chain: { status: 'ok', revisions: 3 }, truncated_list: false, revisions: HIST_REVS(vm) }
+}
+
 /** The JSON body for an `/api/...` path (without the `/api` prefix and query), or undefined for the default. */
 export function mockBody(path) {
   const p = path.replace(/\/+$/, '')
@@ -502,6 +533,10 @@ export function mockBody(path) {
   if (/^\/storage\/pools\/[^/]+\/volumes$/.test(p)) return STORAGE_VOLUMES
   let m = p.match(/^\/vms\/([^/]+)$/)
   if (m) return VMS.find((v) => v.name === m[1])
+  m = p.match(/^\/vms\/([^/]+)\/snapshot-policy$/)
+  if (m) return { vm_name: m[1], enabled: true, interval_secs: 86400, cron: null, keep_last: 7, max_age_secs: null, name_prefix: 'auto', snapshot_type: 'Disk', updated_at: ago(86400), last_run: ago(3600), last_result: 'ok', next_run: ago(-82800) }
+  m = p.match(/^\/vms\/([^/]+)\/history(?:\/([^/]+))?(?:\/(mark-good))?$/)
+  if (m) return mockVmHistory(m[1], m[2])
   m = p.match(/^\/vms\/([^/]+)\/(boot|display|cpu-model|watchdog|serials|firmware\/status|cpu\/affinity|logs)$/)
   if (m) {
     const what = m[2]

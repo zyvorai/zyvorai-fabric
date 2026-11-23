@@ -498,6 +498,17 @@ fabricctl cpu-inventory
 fabricctl cpu-compat web-1 --host host-b
 ```
 
+### GET /api/vms/:name/history, /history/:rev, /history/diff, /history/since-good, POST /history/:rev/mark-good
+
+VM configuration history, field-level diff and "what changed since last known good". Details in `docs/config-history.md`. Auth level: Viewer+ to read, Operator+ to mark a revision good.
+
+```bash
+fabricctl vm history web-1
+fabricctl vm diff web-1 --from 2 --to 5
+fabricctl vm since-good web-1
+fabricctl vm mark-good web-1 3 --note "verified"
+```
+
 ### POST /api/vms/bulk
 
 Bulk start, stop, snapshot, tag-add or tag-remove by selector, as a dry-run plan with a plan hash, then applied with that hash. Details in `docs/api.md` (Bulk VM operations). Auth level: Operator+.

@@ -19,7 +19,7 @@ export interface SnapshotPolicyViewProps {
   readOnly: boolean
 }
 
-const input = 'w-full px-2 py-1 text-sm rounded border border-[var(--zf-hairline)] bg-white disabled:opacity-60'
+const input = 'w-full px-2 py-1 text-sm rounded border border-[var(--zf-hairline)] bg-[var(--zf-surface)] text-[var(--zf-ink)] disabled:opacity-60'
 
 /** Presentational snapshot-policy editor: pure of data fetching so it renders statically. */
 export function SnapshotPolicyView(p: SnapshotPolicyViewProps) {

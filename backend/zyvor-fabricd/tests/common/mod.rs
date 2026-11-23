@@ -52,10 +52,39 @@ pub async fn create_test_app() -> Router {
 /// Like `create_test_app` with an explicit `[audit]` section (for example
 /// `chain = true`).
 pub async fn create_test_app_with_audit(audit: zyvor_fabricd::config::AuditConfig) -> Router {
+    build_test_app(audit, zyvor_fabricd::config::ConfigHistoryConfig::default())
+        .await
+        .0
+}
+
+/// Like `create_test_app` with an explicit `[config_history]` section, also
+/// returning the shared state so tests can inject lifecycle events and
+/// inspect the stored revisions. `tag` keeps each caller on its own store.
+#[allow(dead_code)]
+pub async fn create_test_app_with_history(
+    tag: &str,
+    ch: zyvor_fabricd::config::ConfigHistoryConfig,
+    audit: zyvor_fabricd::config::AuditConfig,
+) -> (Router, Arc<AppState>) {
+    build_test_app_tagged(audit, ch, tag).await
+}
+
+async fn build_test_app(
+    audit: zyvor_fabricd::config::AuditConfig,
+    ch: zyvor_fabricd::config::ConfigHistoryConfig,
+) -> (Router, Arc<AppState>) {
+    build_test_app_tagged(audit, ch, "").await
+}
+
+async fn build_test_app_tagged(
+    audit: zyvor_fabricd::config::AuditConfig,
+    ch: zyvor_fabricd::config::ConfigHistoryConfig,
+    tag: &str,
+) -> (Router, Arc<AppState>) {
     // A non-default [audit] section gets its own store so tests that count
     // audit events do not see events written by other apps in the same binary.
-    let suffix = if audit.chain || audit.max_export_events != 100_000 {
-        format!("-audit-{}-{}", audit.chain, audit.max_export_events)
+    let suffix = if audit.chain || audit.max_export_events != 100_000 || !tag.is_empty() {
+        format!("-audit-{}-{}-{tag}", audit.chain, audit.max_export_events)
     } else {
         String::new()
     };
@@ -102,6 +131,7 @@ pub async fn create_test_app_with_audit(audit: zyvor_fabricd::config::AuditConfi
         autostart: zyvor_fabricd::config::AutostartConfig::default(),
         snapshots: zyvor_fabricd::config::SnapshotsConfig::default(),
         audit: audit.clone(),
+        config_history: ch,
     };
 
     let storage_manager = zyvor_fabric_storage::StorageManager::new(&storage_dir).unwrap();
@@ -151,7 +181,11 @@ pub async fn create_test_app_with_audit(audit: zyvor_fabricd::config::AuditConfi
         k8s_pod_client: None,
     });
 
-    zyvor_fabricd::server::build_router(state).layer(middleware::from_fn(inject_admin_claims))
+    (
+        zyvor_fabricd::server::build_router(state.clone())
+            .layer(middleware::from_fn(inject_admin_claims)),
+        state,
+    )
 }
 
 /// Create a test app with a specific role injected into all requests.
@@ -204,6 +238,7 @@ pub async fn create_test_app_with_role(role: security::Role) -> Router {
         autostart: zyvor_fabricd::config::AutostartConfig::default(),
         snapshots: zyvor_fabricd::config::SnapshotsConfig::default(),
         audit: audit.clone(),
+        config_history: zyvor_fabricd::config::ConfigHistoryConfig::default(),
     };
 
     let storage_manager = zyvor_fabric_storage::StorageManager::new(&storage_dir).unwrap();

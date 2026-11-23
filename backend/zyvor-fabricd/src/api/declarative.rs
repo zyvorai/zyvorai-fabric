@@ -627,6 +627,8 @@ pub async fn apply_vm_spec(
         let _ = state.store.delete_entity("vm_start_options", &spec.name);
     }
 
+    crate::config_history::capture(&state, &spec.name, &claims.sub, "DECLARATIVE_APPLY");
+
     // Start VM if requested
     let mut started = false;
     if spec.auto_start {

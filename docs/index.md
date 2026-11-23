@@ -174,6 +174,7 @@ Detailed documentation for each major feature area.
 |----------|-------------|
 | DRS | Distributed Resource Scheduling and placement |
 | Affinity Rules | VM-to-VM and VM-to-host affinity/anti-affinity |
+| [VM Configuration History](config-history.md) | Per-VM redacted config revisions chained to the audit log, field diff with risk flags, and what changed since last known good ([research](RESEARCH-config-history.md)) |
 | [Host Maintenance Evacuation](host-lifecycle.md) | Preflight-checked workload evacuation before a host enters maintenance |
 | [Fabric Doctor](FABRIC_DOCTOR.md) | Production host preflight checks and safe support bundles (`tools/fabric-doctor`) |
 | Fault Tolerance | Automatic failover, fencing, and recovery |
