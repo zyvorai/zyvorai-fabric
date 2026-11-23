@@ -23,8 +23,7 @@
 //! * Tenant-scoped tokens are refused.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use security::RequireWrite;
@@ -42,20 +41,24 @@ const MAX_MATCHED: usize = 500;
 const MAX_CRITERIA: usize = 32;
 const MAX_TEXT: usize = 128;
 
-static RUNNING: AtomicBool = AtomicBool::new(false);
+/// Daemons (AppState instances, keyed by address) with a bulk run in flight.
+/// Keyed per instance so independent daemons in one process (tests) do not
+/// block each other.
+static RUNNING: Mutex<BTreeSet<usize>> = Mutex::new(BTreeSet::new());
 
-struct RunGuard;
+struct RunGuard(usize);
 impl RunGuard {
-    fn acquire() -> Option<Self> {
-        RUNNING
-            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
-            .ok()
-            .map(|_| RunGuard)
+    fn acquire(key: usize) -> Option<Self> {
+        let mut set = RUNNING.lock().unwrap_or_else(|e| e.into_inner());
+        set.insert(key).then(|| RunGuard(key))
     }
 }
 impl Drop for RunGuard {
     fn drop(&mut self) {
-        RUNNING.store(false, Ordering::SeqCst);
+        RUNNING
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(&self.0);
     }
 }
 
@@ -492,7 +495,7 @@ pub async fn bulk(
         ))
         .into_response();
     }
-    let Some(_guard) = RunGuard::acquire() else {
+    let Some(_guard) = RunGuard::acquire(Arc::as_ptr(&state) as usize) else {
         return json_error(
             StatusCode::CONFLICT,
             "Another bulk operation is already running",
@@ -749,9 +752,11 @@ mod tests {
 
     #[test]
     fn run_guard_is_exclusive() {
-        let g = RunGuard::acquire().expect("free");
-        assert!(RunGuard::acquire().is_none());
+        let g = RunGuard::acquire(1).expect("free");
+        assert!(RunGuard::acquire(1).is_none());
+        // another instance is independent
+        assert!(RunGuard::acquire(2).is_some());
         drop(g);
-        assert!(RunGuard::acquire().is_some());
+        assert!(RunGuard::acquire(1).is_some());
     }
 }
