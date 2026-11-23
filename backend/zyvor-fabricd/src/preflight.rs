@@ -28,6 +28,7 @@ use vm_model::{VMStartOptions, VMState, VM};
 
 use crate::api::resource_policy::OvercommitPolicy;
 use crate::api_error::json_error;
+use crate::cpu_compat::{self, CpuRequirement, CpuVerdict, HostCpu};
 use crate::server::AppState;
 use crate::validation::validate_vm_name;
 
@@ -158,6 +159,16 @@ pub struct HostInputs {
     pub disk_found: Option<bool>,
     /// Host network interface names (None = not probed).
     pub host_nics: Option<Vec<String>>,
+    /// CPU requirement of a VM with a stored custom CPU model, with this
+    /// host's CPU (None = no stored model, nothing to check).
+    pub cpu: Option<CpuPreflight>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct CpuPreflight {
+    pub requirement: CpuRequirement,
+    /// None when `/proc/cpuinfo` could not be read.
+    pub host: Option<HostCpu>,
 }
 
 /// Options the backend rejects outright; shared with the start route so it
@@ -292,6 +303,31 @@ pub fn check(
 
     // Backend capabilities
     out.extend(capability_findings(vm, opts, caps));
+
+    // CPU model
+    if let Some(c) = &host.cpu {
+        match cpu_compat::check(&c.requirement, c.host.as_ref()) {
+            CpuVerdict::Compatible => {}
+            CpuVerdict::Unknown => out.push(Finding::new(
+                "cpu.unverified",
+                Severity::Info,
+                "The VM's CPU model could not be compared with this host (no readable CPU flags).",
+                "Check the model with GET /api/vms/{name}/cpu-compat.",
+            )),
+            CpuVerdict::Incompatible {
+                missing,
+                vendor_mismatch,
+            } => out.push(Finding::new(
+                "cpu.incompatible",
+                Severity::Blocker,
+                format!(
+                    "This host cannot provide the VM's configured CPU model: {}.",
+                    cpu_compat::describe_incompatible(&missing, vendor_mismatch)
+                ),
+                "Pick a lower baseline CPU model for the VM, or start it on a newer host.",
+            )),
+        }
+    }
 
     // Image / disk
     if vm.image.trim().is_empty() {
@@ -615,7 +651,16 @@ pub(crate) async fn gather_host_inputs(
         None
     };
 
+    let cpu = match cpu_compat::stored_vm_cpu(state, &vm.name) {
+        Some(cfg) if cfg.mode == "custom" => Some(CpuPreflight {
+            requirement: cpu_compat::requirement(&cfg, None, false),
+            host: cpu_compat::read_local_cpu().await,
+        }),
+        _ => None,
+    };
+
     HostInputs {
+        cpu,
         capacity: Some(capacity),
         overcommit,
         quotas,
@@ -648,6 +693,7 @@ mod tests {
             image_found: Some(true),
             disk_found: Some(true),
             host_nics: None,
+            cpu: None,
         }
     }
 
@@ -896,6 +942,41 @@ mod tests {
         assert_eq!(ids(&f), vec!["quota.exceeded"]);
         assert_eq!(f[0].severity, Severity::Warning);
         assert!(f[0].message.contains("memory") && f[0].message.contains("VMs"));
+    }
+
+    #[test]
+    fn cpu_rules() {
+        let mut h = host();
+        let flags = |f: &[&str]| HostCpu {
+            vendor: "GenuineIntel".into(),
+            model_name: "t".into(),
+            flags: f.iter().map(|s| s.to_string()).collect(),
+        };
+        let requirement = CpuRequirement {
+            vendor: None,
+            features: ["avx2".to_string()].into_iter().collect(),
+            notes: vec![],
+        };
+        h.cpu = Some(CpuPreflight {
+            requirement: requirement.clone(),
+            host: Some(flags(&["sse4_2"])),
+        });
+        let f = run(&vm(), &VMStartOptions::default(), &h);
+        assert_eq!(ids(&f), vec!["cpu.incompatible"]);
+        assert_eq!(f[0].severity, Severity::Blocker);
+        assert!(f[0].message.contains("avx2"));
+        h.cpu = Some(CpuPreflight {
+            requirement: requirement.clone(),
+            host: Some(flags(&["avx2"])),
+        });
+        assert!(run(&vm(), &VMStartOptions::default(), &h).is_empty());
+        h.cpu = Some(CpuPreflight {
+            requirement,
+            host: None,
+        });
+        let f = run(&vm(), &VMStartOptions::default(), &h);
+        assert_eq!(ids(&f), vec!["cpu.unverified"]);
+        assert_eq!(f[0].severity, Severity::Info);
     }
 
     #[test]

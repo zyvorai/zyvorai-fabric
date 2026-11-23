@@ -1731,6 +1731,12 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             post(api::datacenter::host_exit_maintenance),
         )
         .route("/hosts/{id}/drain-plan", post(api::drain_plan::drain_plan))
+        .route("/cpu/inventory", get(crate::cpu_compat::inventory))
+        .route(
+            "/hosts/{id}/cpu-inventory",
+            get(crate::cpu_compat::get_host_cpu).put(crate::cpu_compat::put_host_cpu),
+        )
+        .route("/vms/{name}/cpu-compat", get(crate::cpu_compat::vm_compat))
         .route("/hosts/discover", post(api::datacenter::discover_host))
         .route(
             "/clusters/{id}/health",

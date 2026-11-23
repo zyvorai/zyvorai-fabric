@@ -6,6 +6,7 @@ pub mod api_error;
 pub mod audit_trail;
 pub mod autostart;
 pub mod config;
+pub mod cpu_compat;
 pub mod metrics_layer;
 pub mod plugins;
 pub mod preflight;
