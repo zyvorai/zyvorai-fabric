@@ -5,6 +5,7 @@ pub mod api;
 pub mod api_error;
 pub mod audit_trail;
 pub mod autostart;
+pub mod bulk_ops;
 pub mod config;
 pub mod cpu_compat;
 pub mod metrics_layer;

@@ -440,6 +440,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         // VM management routes
         .route("/vms", get(routes::list_vms).post(routes::create_vm))
         .route("/vms/compare", get(api::ux_extensions::compare_vms))
+        .route("/vms/bulk", post(crate::bulk_ops::bulk))
         .route("/vms/{name}", get(routes::get_vm).delete(routes::delete_vm))
         .route(
             "/vms/{name}/tags",

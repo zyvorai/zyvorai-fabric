@@ -1093,43 +1093,39 @@ pub async fn stop_vm(
     if let Err((status, msg)) = validate_vm_name(&name) {
         return json_error(status, msg).into_response();
     }
+    match stop_core(&state, &claims.sub, &name).await {
+        Ok(()) => (StatusCode::OK, Json(json!({ "status": "stopped" }))).into_response(),
+        Err(e) => json_error_safe(StatusCode::INTERNAL_SERVER_ERROR, e, &claims).into_response(),
+    }
+}
 
-    let _lock = state.vm_lock(&name).lock_owned().await;
+/// Power a VM off under its per-VM lock, record state, audit and event.
+/// Shared by `POST /vms/{name}/stop` and bulk operations; the `Err` text is
+/// the driver's reason.
+pub(crate) async fn stop_core(state: &Arc<AppState>, user: &str, name: &str) -> Result<(), String> {
+    let _lock = state.vm_lock(name).lock_owned().await;
 
-    match state.driver.poweroff(&name).await {
+    match state.driver.poweroff(name).await {
         Ok(_) => {
-            if let Ok(Some(mut vm)) = state.store.get_vm(&name) {
+            if let Ok(Some(mut vm)) = state.store.get_vm(name) {
                 vm.state = vm_model::VMState::Stopped;
                 vm.updated = Some(chrono::Utc::now());
                 if let Err(e) = state.store.save_vm(&vm) {
                     tracing::error!("Failed to save VM state: {}", e);
                 }
             }
-            audit(
-                &state,
-                &claims.sub,
-                "STOP",
-                &format!("vm/{}", name),
-                "SUCCESS",
-            );
+            audit(state, user, "STOP", &format!("vm/{}", name), "SUCCESS");
             crate::api::events::record_event(
-                &state,
+                state,
                 crate::api::events::VMEventType::Stopped,
-                &name,
+                name,
                 None,
             );
-            (StatusCode::OK, Json(json!({ "status": "stopped" }))).into_response()
+            Ok(())
         }
         Err(e) => {
-            audit(
-                &state,
-                &claims.sub,
-                "STOP",
-                &format!("vm/{}", name),
-                "FAILED",
-            );
-            json_error_safe(StatusCode::INTERNAL_SERVER_ERROR, e.to_string(), &claims)
-                .into_response()
+            audit(state, user, "STOP", &format!("vm/{}", name), "FAILED");
+            Err(e.to_string())
         }
     }
 }
