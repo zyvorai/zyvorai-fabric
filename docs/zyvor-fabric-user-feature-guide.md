@@ -87,6 +87,12 @@ _Create, run, and reshape virtual machines with declarative or interactive workf
   - **How:** Web Host Drain Plan · REST `POST /api/hosts/:id/drain-plan` · `fabricctl drain-plan <host>`. VMs are tied to hosts with the label `fabric.zyvor.dev/host`.
 - **Snapshot Health Scoreboard** — Per-VM recovery point status (newest snapshot vs policy interval), broken snapshot chains, disabled or failing policies and a 30-day snapshot space forecast. — _Shows which VMs are not protected as the policy promises._
   - **How:** Web Snapshot Health · REST `GET /api/snapshots/health` · `fabricctl snapshot-health`.
+- **Snapshot Hygiene** — Stale snapshots, deep snapshot chains and the most space that could be reclaimed per VM. — _Keeps snapshots from quietly eating storage and slowing disks._
+  - **How:** Web Snapshot Hygiene · REST `GET /api/snapshots/hygiene` · `fabricctl snapshot-hygiene`.
+- **VM Ownership and Leases** — Owner, contact, purpose, notes and an optional lease end per VM, with a report of expired, expiring and unowned VMs. — _Answers who to ask before touching a VM._
+  - **How:** Web VM Ownership · REST `/api/vms/:name/ownership`, `GET /api/ownership/report` · `fabricctl ownership`.
+- **Reclaim Report** — Idle stopped VMs, expired leases and stale snapshot bytes, read-only. — _Finds capacity to give back without deleting anything for you._
+  - **How:** Web Reclaim · REST `GET /api/reclaim/report` · `fabricctl reclaim`.
 - **Declarative Apply** — Define VMs in YAML and reconcile them with fabricctl apply -f config.yaml. — _GitOps-friendly infrastructure without a control-plane rewrite._
   - **How:** CLI `fabricctl apply -f config.yaml` reconciles a YAML spec (version it in git); equivalent imperative path is REST `POST /api/vms`, or a `VirtualMachine` CRD via the K8s operator.
 - **Cloning & Templates** — Full and linked copy-on-write clones plus reusable templates for rapid deployment. — _Stand up fleets from a golden image in seconds, not minutes._

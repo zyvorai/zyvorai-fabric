@@ -331,6 +331,31 @@ enum Commands {
         default_rpo_secs: Option<u64>,
     },
 
+    /// Snapshot hygiene: stale snapshots, deep chains and reclaimable bytes per VM
+    #[command(name = "snapshot-hygiene")]
+    SnapshotHygiene {
+        /// Snapshots older than this many hours are stale (default 72)
+        #[arg(long)]
+        max_age_hours: Option<u64>,
+        /// Recommended maximum chain depth, 1-32 (default 3)
+        #[arg(long)]
+        max_chain: Option<usize>,
+    },
+
+    /// Who owns a VM, why it exists and when its lease ends
+    #[command(subcommand, name = "ownership")]
+    Ownership(OwnershipCmd),
+
+    /// Reclamation report: idle VMs, expired leases and stale snapshots (read-only)
+    Reclaim {
+        /// A stopped or failed VM unchanged for this many days is idle (default 30)
+        #[arg(long)]
+        stopped_days: Option<i64>,
+        /// Snapshots older than this many hours are stale (default 72)
+        #[arg(long)]
+        snapshot_age_hours: Option<u64>,
+    },
+
     /// Edit the tags of a snapshot (`keep` protects it from policy pruning)
     #[command(name = "snapshot-tags")]
     SnapshotTags {
@@ -484,6 +509,41 @@ enum Commands {
 }
 
 // ─── Sub-command enums ───────────────────────────────────────────────────────
+
+#[derive(Subcommand)]
+enum OwnershipCmd {
+    /// Show a VM's ownership record
+    Show { vm: String },
+    /// Replace a VM's ownership record
+    Set {
+        vm: String,
+        #[arg(long)]
+        owner: Option<String>,
+        #[arg(long)]
+        contact: Option<String>,
+        #[arg(long)]
+        purpose: Option<String>,
+        #[arg(long)]
+        notes: Option<String>,
+        /// Lease end as an RFC 3339 timestamp, for example 2026-12-31T00:00:00Z
+        #[arg(long)]
+        expires: Option<String>,
+    },
+    /// Remove a VM's ownership record
+    Clear { vm: String },
+    /// Move the lease end forward by N days (1-365)
+    Extend {
+        vm: String,
+        #[arg(long)]
+        days: i64,
+    },
+    /// Fleet report: expired, expiring and unowned VMs
+    Report {
+        /// Window for "expiring", 1-365 days (default 14)
+        #[arg(long)]
+        within_days: Option<i64>,
+    },
+}
 
 #[derive(Subcommand)]
 enum VmHistoryCmd {
@@ -2077,6 +2137,126 @@ fn render_snapshot_health(r: &serde_json::Value) -> String {
     out
 }
 
+fn human_bytes(b: u64) -> String {
+    const U: [&str; 5] = ["B", "KiB", "MiB", "GiB", "TiB"];
+    let mut v = b as f64;
+    let mut i = 0;
+    while v >= 1024.0 && i < U.len() - 1 {
+        v /= 1024.0;
+        i += 1;
+    }
+    if i == 0 {
+        format!("{b} B")
+    } else {
+        format!("{v:.1} {}", U[i])
+    }
+}
+
+fn render_snapshot_hygiene(r: &serde_json::Value) -> String {
+    let s = &r["summary"];
+    let mut out = format!(
+        "Snapshot hygiene: {} VM(s) with snapshots: {} critical, {} warning, {} ok; {} stale ({} protected); {} reclaimable of {}\n",
+        s["vms_with_snapshots"].as_u64().unwrap_or(0),
+        s["critical"].as_u64().unwrap_or(0),
+        s["warning"].as_u64().unwrap_or(0),
+        s["ok"].as_u64().unwrap_or(0),
+        s["stale_snapshots"].as_u64().unwrap_or(0),
+        s["protected_stale"].as_u64().unwrap_or(0),
+        human_bytes(s["reclaimable_bytes"].as_u64().unwrap_or(0)),
+        human_bytes(s["total_bytes"].as_u64().unwrap_or(0)),
+    );
+    for v in r["vms"].as_array().into_iter().flatten() {
+        out.push_str(&format!(
+            "  {:9} {} (chain {}, oldest {}h, reclaimable {}) {}\n",
+            v["status"].as_str().unwrap_or("?"),
+            v["vm"].as_str().unwrap_or("?"),
+            v["max_chain_depth"].as_u64().unwrap_or(0),
+            v["oldest_age_hours"].as_u64().unwrap_or(0),
+            human_bytes(v["reclaimable_bytes"].as_u64().unwrap_or(0)),
+            v["findings"]
+                .as_array()
+                .map(|f| f
+                    .iter()
+                    .filter_map(|x| x.as_str())
+                    .collect::<Vec<_>>()
+                    .join("; "))
+                .unwrap_or_default()
+        ));
+    }
+    out
+}
+
+fn render_ownership_report(r: &serde_json::Value) -> String {
+    let s = &r["summary"];
+    let mut out = format!(
+        "Ownership: {} VM(s): {} expired, {} expiring within {} days, {} unowned, {} owned\n",
+        s["vms"].as_u64().unwrap_or(0),
+        s["expired"].as_u64().unwrap_or(0),
+        s["expiring"].as_u64().unwrap_or(0),
+        r["within_days"].as_i64().unwrap_or(0),
+        s["unowned"].as_u64().unwrap_or(0),
+        s["owned"].as_u64().unwrap_or(0),
+    );
+    for v in r["vms"].as_array().into_iter().flatten() {
+        let exp = v["days_to_expiry"]
+            .as_i64()
+            .map(|d| format!(", lease {d}d"))
+            .unwrap_or_default();
+        out.push_str(&format!(
+            "  {:9} {} ({}) owner {}{exp}\n",
+            v["status"].as_str().unwrap_or("?"),
+            v["vm"].as_str().unwrap_or("?"),
+            v["state"].as_str().unwrap_or("?"),
+            v["owner"].as_str().unwrap_or("-"),
+        ));
+    }
+    out
+}
+
+fn render_reclaim(r: &serde_json::Value) -> String {
+    let s = &r["summary"];
+    let mut out = format!(
+        "Reclaim: {} candidate(s): {} idle, {} expired lease(s), {} unowned; {} GB disk and {} of snapshots reclaimable (stale snapshots fleet-wide: {})\n",
+        s["candidates"].as_u64().unwrap_or(0),
+        s["idle_vms"].as_u64().unwrap_or(0),
+        s["expired_leases"].as_u64().unwrap_or(0),
+        s["unowned_candidates"].as_u64().unwrap_or(0),
+        s["reclaimable_disk_gb"].as_u64().unwrap_or(0),
+        human_bytes(s["reclaimable_snapshot_bytes_candidates"].as_u64().unwrap_or(0)),
+        human_bytes(s["stale_snapshot_bytes_total"].as_u64().unwrap_or(0)),
+    );
+    for c in r["candidates"].as_array().into_iter().flatten() {
+        out.push_str(&format!(
+            "  {} ({}, {} GB, owner {}) {}\n",
+            c["vm"].as_str().unwrap_or("?"),
+            c["state"].as_str().unwrap_or("?"),
+            c["reclaimable_disk_gb"].as_u64().unwrap_or(0),
+            c["owner"].as_str().unwrap_or("-"),
+            c["reasons"]
+                .as_array()
+                .map(|f| f
+                    .iter()
+                    .filter_map(|x| x.as_str())
+                    .collect::<Vec<_>>()
+                    .join("; "))
+                .unwrap_or_default()
+        ));
+    }
+    out
+}
+
+fn query_string(pairs: &[(&str, Option<String>)]) -> String {
+    let parts: Vec<String> = pairs
+        .iter()
+        .filter_map(|(k, v)| v.as_ref().map(|v| format!("{k}={v}")))
+        .collect();
+    if parts.is_empty() {
+        String::new()
+    } else {
+        format!("?{}", parts.join("&"))
+    }
+}
+
 fn render_snapshot_policy_report(r: &serde_json::Value) -> String {
     let dry = r["dry_run"].as_bool().unwrap_or(false);
     let mut out = format!(
@@ -3158,6 +3338,82 @@ impl Cli {
                     print_value(&report, fmt);
                 }
             }
+
+            Commands::SnapshotHygiene {
+                max_age_hours,
+                max_chain,
+            } => {
+                let q = query_string(&[
+                    ("max_age_hours", max_age_hours.map(|v| v.to_string())),
+                    ("max_chain", max_chain.map(|v| v.to_string())),
+                ]);
+                let report = api_get(&client, &format!("/snapshots/hygiene{q}")).await?;
+                if matches!(fmt, OutputFormat::Table) {
+                    print!("{}", render_snapshot_hygiene(&report));
+                } else {
+                    print_value(&report, fmt);
+                }
+            }
+
+            Commands::Reclaim {
+                stopped_days,
+                snapshot_age_hours,
+            } => {
+                let q = query_string(&[
+                    ("stopped_days", stopped_days.map(|v| v.to_string())),
+                    (
+                        "snapshot_age_hours",
+                        snapshot_age_hours.map(|v| v.to_string()),
+                    ),
+                ]);
+                let report = api_get(&client, &format!("/reclaim/report{q}")).await?;
+                if matches!(fmt, OutputFormat::Table) {
+                    print!("{}", render_reclaim(&report));
+                } else {
+                    print_value(&report, fmt);
+                }
+            }
+
+            Commands::Ownership(cmd) => match cmd {
+                OwnershipCmd::Show { vm } => {
+                    let v = api_get(&client, &format!("/vms/{vm}/ownership")).await?;
+                    print_value(&v, fmt);
+                }
+                OwnershipCmd::Set {
+                    vm,
+                    owner,
+                    contact,
+                    purpose,
+                    notes,
+                    expires,
+                } => {
+                    let body = serde_json::json!({
+                        "owner": owner, "contact": contact, "purpose": purpose,
+                        "notes": notes, "expires_at": expires,
+                    });
+                    let v = api_put(&client, &format!("/vms/{vm}/ownership"), &body).await?;
+                    print_value(&v, fmt);
+                }
+                OwnershipCmd::Clear { vm } => {
+                    api_delete(&client, &format!("/vms/{vm}/ownership")).await?;
+                    println!("Ownership record for '{vm}' cleared");
+                }
+                OwnershipCmd::Extend { vm, days } => {
+                    let body = serde_json::json!({ "days": days });
+                    let v =
+                        api_post(&client, &format!("/vms/{vm}/ownership/extend"), &body).await?;
+                    print_value(&v, fmt);
+                }
+                OwnershipCmd::Report { within_days } => {
+                    let q = query_string(&[("within_days", within_days.map(|v| v.to_string()))]);
+                    let report = api_get(&client, &format!("/ownership/report{q}")).await?;
+                    if matches!(fmt, OutputFormat::Table) {
+                        print!("{}", render_ownership_report(&report));
+                    } else {
+                        print_value(&report, fmt);
+                    }
+                }
+            },
 
             Commands::SnapshotTags {
                 vm,
@@ -5403,6 +5659,87 @@ mod apply_plan_cli_tests {
         let out = render_snapshot_health(&rep);
         assert!(out.contains("1 breached"));
         assert!(out.contains("breached      v (newest 99s old, target 10s) late"));
+    }
+
+    #[test]
+    fn hygiene_ownership_reclaim_commands_parse_and_render() {
+        let cli = Cli::try_parse_from([
+            "fabricctl",
+            "snapshot-hygiene",
+            "--max-age-hours",
+            "24",
+            "--max-chain",
+            "2",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::SnapshotHygiene {
+                max_age_hours: Some(24),
+                max_chain: Some(2)
+            })
+        ));
+        let cli = Cli::try_parse_from([
+            "fabricctl",
+            "ownership",
+            "set",
+            "vm1",
+            "--owner",
+            "alice",
+            "--expires",
+            "2026-12-31T00:00:00Z",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Ownership(OwnershipCmd::Set { .. }))
+        ));
+        assert!(Cli::try_parse_from(["fabricctl", "ownership", "extend", "vm1"]).is_err());
+        let cli = Cli::try_parse_from(["fabricctl", "reclaim", "--stopped-days", "60"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Reclaim {
+                stopped_days: Some(60),
+                snapshot_age_hours: None
+            })
+        ));
+        assert_eq!(query_string(&[("a", None)]), "");
+        assert_eq!(
+            query_string(&[
+                ("a", Some("1".into())),
+                ("b", None),
+                ("c", Some("2".into()))
+            ]),
+            "?a=1&c=2"
+        );
+        assert_eq!(human_bytes(512), "512 B");
+        assert_eq!(human_bytes(1536), "1.5 KiB");
+
+        let h = serde_json::json!({"summary":{"vms_with_snapshots":1,"critical":0,"warning":1,"ok":0,
+            "stale_snapshots":2,"protected_stale":1,"total_bytes":2048,"reclaimable_bytes":1024},
+            "vms":[{"status":"warning","vm":"v","max_chain_depth":4,"oldest_age_hours":100,
+            "reclaimable_bytes":1024,"findings":["old","deep"]}]});
+        let out = render_snapshot_hygiene(&h);
+        assert!(out.contains("1 warning"));
+        assert!(out.contains("1.0 KiB reclaimable of 2.0 KiB"));
+        assert!(out.contains("warning   v (chain 4, oldest 100h, reclaimable 1.0 KiB) old; deep"));
+        let o = serde_json::json!({"within_days":14,"summary":{"vms":2,"expired":1,"expiring":0,"unowned":1,"owned":0},
+            "vms":[{"status":"expired","vm":"a","state":"Stopped","owner":"bob","days_to_expiry":-3},
+                   {"status":"unowned","vm":"b","state":"Running","owner":null,"days_to_expiry":null}]});
+        let out = render_ownership_report(&o);
+        assert!(out.contains("1 expired, 0 expiring within 14 days, 1 unowned"));
+        assert!(out.contains("expired   a (Stopped) owner bob, lease -3d"));
+        assert!(out.contains("unowned   b (Running) owner -\n"));
+        let rc = serde_json::json!({"summary":{"candidates":1,"idle_vms":1,"expired_leases":0,
+            "unowned_candidates":1,"reclaimable_disk_gb":40,"reclaimable_snapshot_bytes_candidates":0,
+            "stale_snapshot_bytes_total":0},
+            "candidates":[{"vm":"x","state":"Stopped","reclaimable_disk_gb":40,"owner":null,
+            "reasons":["Stopped with no recorded change for 90 days"]}]});
+        let out = render_reclaim(&rc);
+        assert!(out.contains("40 GB disk"));
+        assert!(
+            out.contains("x (Stopped, 40 GB, owner -) Stopped with no recorded change for 90 days")
+        );
     }
 
     #[test]

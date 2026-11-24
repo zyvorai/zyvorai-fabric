@@ -377,6 +377,9 @@ pub async fn delete_vm(
             if let Ok(mut locks) = state.vm_locks.lock() {
                 locks.remove(&name);
             }
+            let _ = state
+                .store
+                .delete_entity(crate::vm_ownership::STORE_KEY, &name);
             audit(
                 &state,
                 &claims.sub,

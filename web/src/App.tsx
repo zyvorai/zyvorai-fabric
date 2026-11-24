@@ -46,6 +46,9 @@ const DrainPlan = lazy(() => import('./pages/DrainPlan'))
 const CpuCompat = lazy(() => import('./pages/CpuCompat'))
 const BulkOps = lazy(() => import('./pages/BulkOps'))
 const SnapshotHealth = lazy(() => import('./pages/SnapshotHealth'))
+const SnapshotHygiene = lazy(() => import('./pages/SnapshotHygiene'))
+const Reclaim = lazy(() => import('./pages/Reclaim'))
+const Ownership = lazy(() => import('./pages/Ownership'))
 const AuditLogs = lazy(() => import('./pages/AuditLogs'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const Backups = lazy(() => import('./pages/Backups'))
@@ -170,6 +173,9 @@ function ConsoleRoutes() {
             <Route path="cpu-compat" element={<CpuCompat />} />
             <Route path="bulk-ops" element={<BulkOps />} />
             <Route path="snapshot-health" element={<SnapshotHealth />} />
+            <Route path="snapshot-hygiene" element={<SnapshotHygiene />} />
+            <Route path="reclaim" element={<Reclaim />} />
+            <Route path="ownership" element={<Ownership />} />
             <Route path="autoscale" element={<AutoscalePage />} />
             <Route path="zones" element={<Zones />} />
             <Route path="audit" element={<AuditLogs />} />
