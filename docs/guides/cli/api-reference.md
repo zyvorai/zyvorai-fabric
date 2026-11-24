@@ -534,6 +534,32 @@ Fleet snapshot health: RPO status, broken chains and space forecast per VM, wors
 fabricctl snapshot-health --default-rpo-secs 86400
 ```
 
+### GET /api/snapshots/hygiene
+
+Read-only snapshot hygiene report (stale snapshots, chain depth, reclaimable bytes). Query: `max_age_hours` (default 72), `max_chain` (default 3, at most 32).
+
+```bash
+fabricctl snapshot-hygiene --max-age-hours 72 --max-chain 3
+```
+
+### GET, PUT, DELETE /api/vms/:name/ownership
+
+Owner, contact, purpose, notes and lease end of a VM; `POST /api/vms/:name/ownership/extend` takes `{"days": 30}`; `GET /api/ownership/report?within_days=14` lists expired, expiring and unowned VMs.
+
+```bash
+fabricctl ownership set web-01 --owner alice --contact alice@example.com --expires 2026-12-31T00:00:00Z
+fabricctl ownership extend web-01 --days 30
+fabricctl ownership report --within-days 14
+```
+
+### GET /api/reclaim/report
+
+Read-only list of idle VMs, expired leases and stale snapshot bytes. Query: `stopped_days` (default 30), `snapshot_age_hours` (default 72).
+
+```bash
+fabricctl reclaim --stopped-days 60
+```
+
 ### PUT /api/vms/:name/snapshots/:id/tags
 
 Replace a snapshot's tags. Body: `{"tags": ["keep", "golden"]}`. Each tag is 1 to 32 characters of letters, digits, `.`, `_`, `:` or `-`; at most 16; duplicates are dropped. An empty list clears all tags. The `keep` tag protects a snapshot from snapshot-policy pruning. Returns the updated snapshot; 400 for invalid tags, 404 for an unknown snapshot.

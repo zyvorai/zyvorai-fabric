@@ -669,6 +669,25 @@ pub fn build_router(state: Arc<AppState>) -> Router {
             get(crate::snapshot_health::snapshot_health),
         )
         .route(
+            "/snapshots/hygiene",
+            get(crate::snapshot_hygiene::snapshot_hygiene),
+        )
+        .route("/reclaim/report", get(crate::reclaim::reclaim_report))
+        .route(
+            "/ownership/report",
+            get(crate::vm_ownership::ownership_report),
+        )
+        .route(
+            "/vms/{name}/ownership",
+            get(crate::vm_ownership::get_ownership)
+                .put(crate::vm_ownership::put_ownership)
+                .delete(crate::vm_ownership::delete_ownership),
+        )
+        .route(
+            "/vms/{name}/ownership/extend",
+            post(crate::vm_ownership::extend_ownership),
+        )
+        .route(
             "/vms/{name}/snapshot-policy",
             get(crate::snapshot_policy::get_policy)
                 .put(crate::snapshot_policy::put_policy)

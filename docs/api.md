@@ -339,6 +339,11 @@ Daemon health, configuration, and system information.
 | POST | `/capacity/whatif` | Capacity what-if (read-only): which of these new VMs would fit, and why not |
 | POST | `/hosts/{id}/drain-plan` | Host drain plan (read-only dry run): where each VM would migrate, stop or be blocked, with a plan hash |
 | GET | `/snapshots/health` | Snapshot health scoreboard (read-only): RPO status, broken chains, space forecast per VM |
+| GET | `/snapshots/hygiene?max_age_hours=&max_chain=` | Snapshot hygiene (read-only): stale snapshots, deep chains, reclaimable bytes per VM |
+| GET | `/reclaim/report?stopped_days=&snapshot_age_hours=` | Reclamation report (read-only): idle stopped VMs, expired leases, stale snapshot bytes |
+| GET, PUT, DELETE | `/vms/{name}/ownership` | VM owner, contact, purpose, notes and lease end (`PUT`/`DELETE` need write, audited) |
+| POST | `/vms/{name}/ownership/extend` | Move the lease end forward by `days` (1-365) |
+| GET | `/ownership/report?within_days=` | Fleet report: expired, expiring and unowned VMs |
 | GET | `/cpu/inventory` | CPU inventory (read-only): host CPU records, VM CPU models, per-cluster baseline model |
 | GET, PUT | `/hosts/{id}/cpu-inventory` | Read or record a host's CPU vendor, model and flags (`PUT` needs write) |
 | GET | `/vms/{name}/cpu-compat?host=` | Can this VM run on a host? Stored CPU model against host CPU flags (read-only) |
@@ -408,6 +413,18 @@ All selector criteria must match, an empty selector is 400, and a selector match
 ### Snapshot health
 
 `GET /api/snapshots/health?default_rpo_secs=86400` (read access; tenant-scoped tokens see only their VMs; `default_rpo_secs` at least 60) returns a summary and one row per VM, worst first. Status compares the newest snapshot's age with the RPO target: `healthy` at or under the target, `at_risk` up to twice the target, `breached` beyond, `no_snapshots` when none. The target is the policy `interval_secs`, the gap between two cron runs, or `default_rpo_secs` when there is no enabled policy (`rpo_source` says which). `orphaned` lists snapshot ids whose `parent_id` no longer exists. `growth_bytes_per_day` is the last 7 days of snapshot bytes divided by 7; `projected_bytes_30d` adds 30 days of growth, capped by `keep_last` retention. CLI: `fabricctl snapshot-health [--default-rpo-secs N]`. Web: Snapshot Health.
+
+### Snapshot hygiene
+
+`GET /api/snapshots/hygiene?max_age_hours=72&max_chain=3` (read access; tenant-scoped tokens see only their VMs; `max_age_hours` 1 to 87600, `max_chain` 1 to 32) lists VMs that have snapshots, worst first. A snapshot is stale when older than `max_age_hours` (a future-dated one counts as age 0). Stale snapshots tagged `keep` are listed with `protected: true` and are not counted in `reclaimable_bytes`, which is an upper bound (merging frees only what neighbouring snapshots do not share). `max_chain_depth` is the longest parent chain; a VM is `warning` for stale unprotected snapshots or a chain deeper than `max_chain`, and `critical` for a chain over 32 or a snapshot whose parent is missing. Defaults follow VMware's guidance (KB 318825): keep a snapshot no longer than 72 hours, 2 to 3 per chain, never more than 32. Nothing is deleted. CLI: `fabricctl snapshot-hygiene [--max-age-hours N] [--max-chain N]`. Web: Snapshot Hygiene.
+
+### VM ownership and leases
+
+`PUT /api/vms/{name}/ownership` stores `owner` (128 bytes), `contact` (256), `purpose` (256), `notes` (4096, newlines allowed) and `expires_at` (RFC 3339, at most 10 years ahead); empty strings clear a field, control characters are rejected, and each change is audited (`VM_OWNERSHIP_SET`, `VM_OWNERSHIP_DELETE`, `VM_OWNERSHIP_EXTEND`). `GET` returns the record (empty fields when none; 404 for an unknown VM). `POST .../ownership/extend` with `{"days": 30}` (1 to 365) moves the lease end forward from the later of now and the current end. `GET /api/ownership/report?within_days=14` reports each VM as `expired`, `expiring`, `unowned` or `owned` (in that precedence). A lease running out stops and deletes nothing; it only feeds the reports. Deleting a VM removes its record. CLI: `fabricctl ownership show|set|clear|extend|report`. Web: VM Ownership.
+
+### Reclaim report
+
+`GET /api/reclaim/report?stopped_days=30&snapshot_age_hours=72` (read access, tenant-scoped) lists reclaim candidates: VMs that are `Stopped` or `Failed` with no recorded change for `stopped_days`, and VMs whose lease has expired (running ones are listed for review with 0 reclaimable disk). Fabric does not store when a VM stopped, so idle time is measured from the VM record's `updated` time (falling back to `created`; `idle_basis` says which), and a tag edit restarts the clock. `reclaimable_disk_gb` is the provisioned disk of idle VMs, an upper bound on thin storage. Snapshot bytes come from the hygiene report. Expired leases sort first, then longest idle. Read-only. CLI: `fabricctl reclaim [--stopped-days N] [--snapshot-age-hours N]`. Web: Reclaim.
 
 ### Capacity what-if
 

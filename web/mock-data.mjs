@@ -519,6 +519,19 @@ function mockVmHistory(vm, tail) {
     chain: { status: 'ok', revisions: 3 }, truncated_list: false, revisions: HIST_REVS(vm) }
 }
 
+const HYGIENE_REPORT = { generated_at: ago(0), max_age_hours: 72, max_chain: 3,
+  summary: { vms_with_snapshots: 1, ok: 0, warning: 1, critical: 0, stale_snapshots: 2, protected_stale: 1, total_bytes: 3 * 1024 ** 3, reclaimable_bytes: 1024 ** 3 },
+  vms: [ { vm: 'web-01', status: 'warning', snapshot_count: 3, total_bytes: 3 * 1024 ** 3, oldest_age_hours: 200, max_chain_depth: 4, orphaned: [],
+    stale: [ { id: 's1', name: 'before-upgrade', age_hours: 200, size_bytes: 1024 ** 3, protected: false, chain_depth: 1 } ], reclaimable_bytes: 1024 ** 3,
+    findings: ['1 snapshot(s) older than 72h and not tagged keep', 'snapshot chain is 4 deep, more than the recommended 3'] } ] }
+const OWNERSHIP_REPORT = { generated_at: ago(0), within_days: 14,
+  summary: { vms: 2, owned: 0, expiring: 1, expired: 0, unowned: 1 },
+  vms: [ { vm: 'web-01', status: 'expiring', state: 'Running', owner: 'alice', contact: 'alice@example.com', purpose: 'build runner', expires_at: ago(-5 * 86400), days_to_expiry: 5 },
+    { vm: 'db-primary', status: 'unowned', state: 'Running', owner: null, contact: null, purpose: null, expires_at: null, days_to_expiry: null } ] }
+const RECLAIM_REPORT = { generated_at: ago(0), stopped_days: 30, snapshot_age_hours: 72,
+  summary: { candidates: 1, idle_vms: 1, expired_leases: 0, unowned_candidates: 1, reclaimable_disk_gb: 40, reclaimable_snapshot_bytes_candidates: 0, stale_snapshot_bytes_total: 1024 ** 3 },
+  candidates: [ { vm: 'old-test', state: 'Stopped', reasons: ['Stopped with no recorded change for 90 days'], idle_basis: 'updated', idle_days: 90, disk_gb: 40, reclaimable_disk_gb: 40, reclaimable_snapshot_bytes: 0, owner: null, contact: null, lease_expires_at: null } ] }
+
 /** The JSON body for an `/api/...` path (without the `/api` prefix and query), or undefined for the default. */
 export function mockBody(path) {
   const p = path.replace(/\/+$/, '')
@@ -582,6 +595,11 @@ export function mockBody(path) {
   if (p === '/system/cpu/topology') return CPU_TOPOLOGY
   if (p === '/system/numa/topology') return NUMA
   if (p === '/system/capacity') return SYS_CAPACITY
+  if (p === '/snapshots/hygiene') return HYGIENE_REPORT
+  if (p === '/ownership/report') return OWNERSHIP_REPORT
+  if (p === '/reclaim/report') return RECLAIM_REPORT
+  m = p.match(/^\/vms\/([^/]+)\/ownership(?:\/extend)?$/)
+  if (m) return { vm_name: m[1], owner: 'alice', contact: 'alice@example.com', purpose: 'build runner', notes: null, expires_at: ago(-20 * 86400), updated_at: ago(3600), updated_by: 'admin' }
   if (p === '/system/memory') return SYS_MEMORY
   if (p === '/system/memory/hugepages') return HUGEPAGES
   if (p === '/system/optimization/recommendations') return RECOMMENDATIONS
